@@ -1,0 +1,3 @@
+lightenna_structured:
+    resource: "@LightennaStructuredBundle/Resources/config/routing.yml"
+    prefix:   /

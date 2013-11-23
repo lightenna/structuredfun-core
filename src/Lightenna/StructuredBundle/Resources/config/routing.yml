@@ -1,0 +1,5 @@
+lightenna_structured_fileview:
+    path:      /file/{name}
+    defaults:  { _controller: LightennaStructuredBundle:Fileview:index }
+    requirements:
+        name:  ".*"
