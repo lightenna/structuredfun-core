@@ -39,10 +39,42 @@ class FileviewController extends Controller
 		foreach ($listing as $k => $v) {
 			if ($v == '.' || $v == '..') {
 				unset($listing[$k]);
-				break;
+				continue;
 			}
-			// turn array entries into objects
-			// START HERE
+			// create an object (stdClass is outside of namespace)
+			$obj = new \stdClass();
+			$obj->{'name'} = $v;
+			$obj->{'path'} = $name;
+			// assume it's a generic file
+			$obj->{'type'} = 'genfile';
+			$obj->{'hidden'} = false;
+			if (is_dir($name.'/'.$v)) {
+				$obj->{'type'} = 'directory';
+			} else {
+				// find position of last .
+				$pos = strrpos($v, '.');
+				// if not found
+				if ($pos === false) {
+					$obj->{'extension'} = null;
+				}
+				// if hidden file (.something)
+				else if ($pos == 0) {
+					$obj->{'extension'} = null;
+					$obj->{'hidden'} = true;
+				}
+				else {
+					$obj->{'extension'} = substr($v, $pos+1);
+					switch($obj->{'extension'}) {
+						case 'jpeg' :
+						case 'jpg' :
+						case 'gif' :
+							$obj->{'type'} = 'image';
+							break;
+					}
+				}
+			}
+			// replace this entry in the array with the object we've just made
+			$listing[$k] = $obj;
 		}
 		return $listing;
 	}
