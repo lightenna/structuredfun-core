@@ -3,3 +3,9 @@ lightenna_structured_fileview:
     defaults:  { _controller: LightennaStructuredBundle:Fileview:index }
     requirements:
         name:  ".*"
+
+lightenna_structured_imageview:
+    path:      /image/{name}
+    defaults:  { _controller: LightennaStructuredBundle:Imageview:index }
+    requirements:
+        name:  ".*"

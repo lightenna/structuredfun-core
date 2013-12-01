@@ -5,6 +5,8 @@
 	{% for file in dirlisting %}
 		{% if file.type == 'directory' %}
 	<li><a href="{{ file.name }}/">{{ file.name|e }}</a></li>
+		{% elseif file.type == 'image' %}
+	<li><a href="/image/{{ linkpath }}{{ file.name }}">{{ file.name|e }}</a></li>
 		{% else %}
 	<li>{{ file.name }}</li>
 		{% endif %}
