@@ -8,16 +8,18 @@ class ImageviewController extends ViewController
 {
 	public function indexAction($name)
 	{
+		// print $name;
+		// exit;
 		// search path for any zip directories
 		if (self::detectZipInPath($name) !== false) {
-			$zipname = self::getZipFromZipPath($name);
+			$zipname = self::getZipBitFromZipPath($name);
 			// convert path to zip to full path to zip
 			$zipfull = self::convertUrlToFilename($zipname);
 			// open up the zip file
 			$zip = new \ZipArchive;
 			if ($zip->open($zipfull) === true) {
 				// work out the filename within the zip
-				$filename = self::getFileFromZipPath($name);
+				$filename = self::getFileBitFromZipPath($name);
 				// pull information about this file
 				$stats = $zip->statName($filename);
 				// send the right headers

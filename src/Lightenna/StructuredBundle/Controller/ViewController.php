@@ -5,7 +5,8 @@ namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 define('DEBUG', true);
-define('ZIP_SEPARATOR', '@');
+define('ZIP_SEPARATOR', '~');
+define('ARG_SEPARATOR', '~args');
 
 class ViewController extends Controller
 {
@@ -52,7 +53,7 @@ class ViewController extends Controller
 	 * detect if a path contains a reference to a zip
 	 * @param $name full path
 	 */
-	static function getZipFromZipPath($name) {
+	static function getZipBitFromZipPath($name) {
 		$zip_pos = self::detectZipInPath($name);
 		// break out if we're not in a zip
 		if ($zip_pos === false) return false;
@@ -65,12 +66,18 @@ class ViewController extends Controller
 	 * detect if a path contains a reference to a zip
 	 * @param $name full path
 	 */
-	static function getFileFromZipPath($name) {
+	static function getFileBitFromZipPath($name) {
 		$zip_pos = self::detectZipInPath($name);
 		// break out if we're not in a zip
 		if ($zip_pos === false) return false;
-		// find path within zip (after .zip#)
-		$zip_path = substr($name, $zip_pos + 5);
+			// strip args if present
+		$arg_pos = strpos($name, ARG_SEPARATOR);
+		if ($arg_pos === false) {
+			// find path within zip (after .zip<separator>)
+			$zip_path = substr($name, $zip_pos + 5);
+		} else {
+			$zip_path = substr($name, $zip_pos + 5, $arg_pos - $zip_pos - 5);
+		}
 		return $zip_path;
 	}
 
