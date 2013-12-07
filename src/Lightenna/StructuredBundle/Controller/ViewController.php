@@ -134,7 +134,7 @@ class ViewController extends Controller
 				if ($v[0] == '.') {
 					$obj->{'hidden'} = true;
 				}
-				switch($obj->{'extension'}) {
+				switch(strtolower($obj->{'extension'})) {
 					case 'jpeg' :
 					case 'jpg' :
 					case 'gif' :
