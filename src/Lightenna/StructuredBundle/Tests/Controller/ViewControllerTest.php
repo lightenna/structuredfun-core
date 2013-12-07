@@ -20,6 +20,12 @@ class ViewControllerTest extends WebTestCase
 	 */
 
 	public function testConvertUrlToFilename() {
-		$this->assertEquals(ViewController::convertUrlToFilename('data/my_directory'),'fish');
+		$t = new \Lightenna\StructuredBundle\Controller\ViewController();
+		// test path to Symfony
+		$this->assertEquals($t::convertUrlToFilename('data/my_directory'),'/../../../data/my_directory');
+		// test blank path
+		$this->assertEquals($t::convertUrlToFilename(''),'/../../../');
+		// test path /
+		$this->assertEquals($t::convertUrlToFilename('/'),'/../../../');
 	}
 }
