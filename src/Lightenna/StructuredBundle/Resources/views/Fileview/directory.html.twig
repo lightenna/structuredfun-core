@@ -6,7 +6,7 @@
 		{% if file.type == 'directory' %}
 	<li><a href="{{ file.name }}/">{{ file.name|e }}</a></li>
 		{% elseif file.type == 'image' %}
-	<li><a href="/image/{{ linkpath }}{{ file.name }}"><img src="/image/{{ linkpath }}{{ file.name }}" alt="image thumbnail for {{ file.name}}" /></a></li>
+	<li><a href="/image/{{ linkpath }}{{ file.name }}"><img src="/image/{{ linkpath }}{{ file.name }}{% if args is defined %}{{ args }}{% endif %}" alt="image thumbnail for {{ file.name}}" /></a></li>
 		{% else %}
 	<li>{{ file.name }}</li>
 		{% endif %}

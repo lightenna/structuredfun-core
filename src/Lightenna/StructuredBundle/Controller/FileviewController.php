@@ -19,6 +19,7 @@ class FileviewController extends ViewController
 			return $this->render('LightennaStructuredBundle:Fileview:directory.html.twig', array(
 				'dirname' => rtrim($filename,'/'),
 				'linkpath' => rtrim($name,'/').ZIP_SEPARATOR,
+				'args' => ARG_SEPARATOR.'maxwidth=200&maxheight=200',
 				'dirlisting' => $dirlisting)
 			);
 		}

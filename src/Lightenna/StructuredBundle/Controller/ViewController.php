@@ -6,11 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 define('DEBUG', true);
 define('ZIP_SEPARATOR', '~');
-define('ARG_SEPARATOR', '~args');
+define('ARG_SEPARATOR', '~args&');
 
 class ViewController extends Controller
 {
 	static function convertUrlToFilename($name) {
+		$name = rtrim($name, '/');
 		// path back up out of symfony
 		$symfony_offset = '../../../';
 		// return composite path to real root
@@ -63,14 +64,15 @@ class ViewController extends Controller
 	}
 
 	/**
-	 * detect if a path contains a reference to a zip
+	 * get the relative filename within the zip archive
 	 * @param $name full path
+	 * @todo merge with getFileBitFromPath
 	 */
 	static function getFileBitFromZipPath($name) {
 		$zip_pos = self::detectZipInPath($name);
 		// break out if we're not in a zip
 		if ($zip_pos === false) return false;
-			// strip args if present
+		// strip args if present
 		$arg_pos = strpos($name, ARG_SEPARATOR);
 		if ($arg_pos === false) {
 			// find path within zip (after .zip<separator>)
@@ -79,6 +81,44 @@ class ViewController extends Controller
 			$zip_path = substr($name, $zip_pos + 5, $arg_pos - $zip_pos - 5);
 		}
 		return $zip_path;
+	}
+
+	/**
+	 * return the file path without any arguments
+	 */
+	static function getFileBitFromPath($name) {
+		// strip args if present
+		$arg_pos = strpos($name, ARG_SEPARATOR);
+		if ($arg_pos === false) {
+			$path = $name;
+		} else {
+			$path = substr($name, 0, $arg_pos);
+		}
+		return $path;
+	}
+
+	/**
+	 * get any arguments that feature on the filename
+	 * @param $name full path
+	 */
+	static function getArgsFromPath($name) {
+		$args = array();
+		// strip args if present
+		$arg_pos = strpos($name, ARG_SEPARATOR);
+		if ($arg_pos === false) {
+			// no arguments found
+		} else {
+			$char_split = explode('&', substr($name, $arg_pos + strlen(ARG_SEPARATOR)));
+			foreach ($char_split as $char_var) {
+				if (strpos($char_var, '=') === false) {
+					$args[$char_var] = null;
+					continue;
+				}
+				list($k, $v) = explode('=', $char_var);
+				$args[$k] = $v;
+			}
+		}
+		return $args;
 	}
 
 	/**
