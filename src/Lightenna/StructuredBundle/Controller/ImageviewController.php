@@ -6,10 +6,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class ImageviewController extends ViewController
 {
+	// @param Array image metadata array
+	private $stats;
+	// @param Array URL arguments array
+	private $args;
+
 	public function indexAction($name)
 	{
 		// parse args to work out what to return
-		$args = self::getArgsFromPath($name);
+		$this->args = self::getArgsFromPath($name);
 		// search path for any zip directories
 		if (self::detectZipInPath($name) !== false) {
 			$zipname = self::getZipBitFromZipPath($name);
@@ -21,9 +26,9 @@ class ImageviewController extends ViewController
 				// work out the filename within the zip
 				$filename = self::getFileBitFromZipPath($name);
 				// pull information about this file
-				$stats = $zip->statName($filename);
-				$stats['filezip'] = $zip;
-				$this->printImage($stats, $args);
+				$this->stats = $zip->statName($filename);
+				$this->stats['filezip'] = $zip;
+				$this->printImage();
 				$zip->close();
 			}
 		} else {
@@ -33,13 +38,13 @@ class ImageviewController extends ViewController
 			// open the image file
 			$fp = fopen($filefull, 'rb');
 			if ($fp) {
-				$stats = array(
+				$this->stats = array(
 					'name' => $filefull,
 					'file' => $fp,
 					'size' => filesize($filefull),
 				);
 				// process the picture
-				$this->printImage($stats, $args);
+				$this->printImage($this->stats, $this->args);
 				fclose($fp);			
 			}
 		}
@@ -47,30 +52,113 @@ class ImageviewController extends ViewController
 	}
 
 	/**
-	 * print out an image based on an array of its metadata
-	 * @param array $stats Array of metadata
+	 * overwrite the arguments array (used for testing)
+	 * @param array $a new arguments array
 	 */
-	public function printImage($stats, $args) {
+	public function setArgs($a) {
+		$this->args = $a;
+	}
+
+	/**
+	 * @return array stats (metadata) array
+	 */
+	public function getStats() {
+		return $this->stats;
+	}
+
+	/**
+	 * print out an image based on an array of its metadata
+	 * @param array $this->stats Array of metadata
+	 */
+	public function printImage() {
 		// send the right headers
-		header("Content-Type: image/" . self::getExtension($stats['name']));
-		header("Content-Length: " . $stats['size']);
-		if (isset($args['maxwidth']) || isset($args['maxheight'])) {
-			// resize the image
-			// START HERE
-			// TEMP: dump the picture depending on source
-			if (isset($stats['file'])) {
-				fpassthru($stats['file']);
-			} else if (isset($stats['filezip'])) {
-				echo $stats['filezip']->getFromName($stats['name']);
+		$ext = strtolower(self::getExtension($this->stats['name']));
+		header("Content-Type: image/" . $ext);
+		header("Content-Length: " . $this->stats['size']);
+		// load image into buffer
+		$imgdata = $this->loadImage();
+		if (isset($this->args['maxwidth']) || isset($this->args['maxheight'])) {
+			// resize the image, depending on type
+			$oldimg = imagecreatefromstring($imgdata);
+			$this->imageCalcNewSize($oldimg);
+			$img = $this->resizeImage($oldimg);
+			// if we successfully read the image
+			if ($img) {
+				echo $imgdata;
 			}
 		} else {
 			// dump the picture depending on source
-			if (isset($stats['file'])) {
-				fpassthru($stats['file']);
-			} else if (isset($stats['filezip'])) {
-				echo $stats['filezip']->getFromName($stats['name']);
-			}			
+			echo $imgdata;
 		}
 	}
+
+	/**
+	 * load image into a buffer
+	 * @return image as a string
+	 **/
+	public function loadImage() {
+		if (isset($this->stats['file'])) {
+			return file_get_contents($this->stats['file']);
+		} else if (isset($this->stats['filezip'])) {
+			return $this->stats['filezip']->getFromName($this->stats['name']);
+		}
+	}
+
+	/**
+	 * resize image to width/height or both based on args
+	 * @param resource $img The image
+	 * @return resource 
+	 */
+	public function resizeImage($img) {
+		// create a new image the correct shape and size
+		$newimg = imagecreatetruecolor($this->stats['newwidth'], $this->stats['newheight']);
+		return $newimg;
+	}
+
+	/**
+	 * use original image and args to decide new image size
+	 */
+	public function imageCalcNewSize($img) {
+		// clear old calculations
+		unset($this->stats['newwidth']);
+		unset($this->stats['newheight']);
+		// find image orientation
+		$width = imagesx($img);
+		$height = imagesy($img);
+		$portrait = false;
+		if ($height > $width) {
+			$portrait = true;
+		}
+		// catch case where we haven't restricted either dimension
+		if (!isset($this->args['maxwidth']) && !isset($this->args['maxheight'])) {
+			$this->stats['newwidth'] = $width;
+			$this->stats['newheight'] = $height;
+		}
+		// resize based on longest edge and args
+		// exactly 1 restriction is always set
+		if ($portrait) {
+			if (isset($this->args['maxheight'])) {
+				$this->stats['newheight'] = $this->args['maxheight'];
+			} else if (isset($this->args['maxwidth'])) {
+				// cover odd case where only width is restricted for portrait image
+				$this->stats['newwidth'] = $this->args['maxwidth'];
+			}
+		} else {
+			if (isset($this->args['maxwidth'])) {
+				$this->stats['newwidth'] = $this->args['maxwidth'];
+			} else if (isset($this->args['maxheight'])) {
+				// cover odd case where only height is restricted for landscape image
+				$this->stats['newheight'] = $this->args['maxheight'];
+			}
+		}
+		// derive unset dimension using restricted one
+		if (!isset($this->stats['newwidth'])) {
+			$this->stats['newwidth'] = $this->stats['newheight'] * $width / $height;
+		}
+		if (!isset($this->stats['newheight'])) {
+			$this->stats['newheight'] = $this->stats['newwidth'] * $height / $width;
+		}
+	}
+
 
 }
