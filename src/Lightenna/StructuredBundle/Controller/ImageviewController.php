@@ -35,17 +35,15 @@ class ImageviewController extends ViewController
 			// convert urlname to fs filename
 			$filename = self::getFileBitFromPath($name);
 			$filefull = self::convertUrlToFilename($filename);
-			// open the image file
-			$fp = fopen($filefull, 'rb');
-			if ($fp) {
+			// open the image file raw
+			if (file_exists($filefull)) {
 				$this->stats = array(
 					'name' => $filefull,
-					'file' => $fp,
+					'file' => $filefull,
 					'size' => filesize($filefull),
 				);
 				// process the picture
 				$this->printImage($this->stats, $this->args);
-				fclose($fp);			
 			}
 		}
 		exit;
@@ -74,7 +72,6 @@ class ImageviewController extends ViewController
 		// send the right headers
 		$ext = strtolower(self::getExtension($this->stats['name']));
 		header("Content-Type: image/" . $ext);
-		header("Content-Length: " . $this->stats['size']);
 		// load image into buffer
 		$imgdata = $this->loadImage();
 		if (isset($this->args['maxwidth']) || isset($this->args['maxheight'])) {
@@ -82,11 +79,16 @@ class ImageviewController extends ViewController
 			$oldimg = imagecreatefromstring($imgdata);
 			$this->imageCalcNewSize($oldimg);
 			$img = $this->resizeImage($oldimg);
+			// fetch new imgdata
+			$imgdata = self::getImageData($img);
+			// read size of new image
+			header("Content-Length: " . strlen($imgdata));
 			// if we successfully read the image
 			if ($img) {
 				echo $imgdata;
 			}
 		} else {
+			header("Content-Length: " . $this->stats['size']);
 			// dump the picture depending on source
 			echo $imgdata;
 		}
@@ -112,6 +114,7 @@ class ImageviewController extends ViewController
 	public function resizeImage($img) {
 		// create a new image the correct shape and size
 		$newimg = imagecreatetruecolor($this->stats['newwidth'], $this->stats['newheight']);
+		imagecopyresampled($newimg, $img , 0, 0, 0, 0, $this->stats['newwidth'], $this->stats['newheight'], $this->stats['width'], $this->stats['height']);
 		return $newimg;
 	}
 
@@ -123,16 +126,16 @@ class ImageviewController extends ViewController
 		unset($this->stats['newwidth']);
 		unset($this->stats['newheight']);
 		// find image orientation
-		$width = imagesx($img);
-		$height = imagesy($img);
+		$this->stats['width'] = imagesx($img);
+		$this->stats['height'] = imagesy($img);
 		$portrait = false;
-		if ($height > $width) {
+		if ($this->stats['height'] > $this->stats['width']) {
 			$portrait = true;
 		}
 		// catch case where we haven't restricted either dimension
 		if (!isset($this->args['maxwidth']) && !isset($this->args['maxheight'])) {
-			$this->stats['newwidth'] = $width;
-			$this->stats['newheight'] = $height;
+			$this->stats['newwidth'] = $this->stats['width'];
+			$this->stats['newheight'] = $this->stats['height'];
 		}
 		// resize based on longest edge and args
 		// exactly 1 restriction is always set
@@ -153,12 +156,19 @@ class ImageviewController extends ViewController
 		}
 		// derive unset dimension using restricted one
 		if (!isset($this->stats['newwidth'])) {
-			$this->stats['newwidth'] = $this->stats['newheight'] * $width / $height;
+			$this->stats['newwidth'] = $this->stats['newheight'] * $this->stats['width'] / $this->stats['height'];
 		}
 		if (!isset($this->stats['newheight'])) {
-			$this->stats['newheight'] = $this->stats['newwidth'] * $height / $width;
+			$this->stats['newheight'] = $this->stats['newwidth'] * $this->stats['height'] / $this->stats['width'];
 		}
 	}
 
-
+	/**
+	 * Nasty function to get the image data from an image resource
+	 */
+	static function getImageData($img) {
+		ob_start();
+		imagejpeg($img);
+		return ob_get_clean();
+	}
 }
