@@ -9,3 +9,4 @@ lightenna_structured_imageview:
     defaults:  { _controller: LightennaStructuredBundle:Imageview:index }
     requirements:
         name:  ".*"
+

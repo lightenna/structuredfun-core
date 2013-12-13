@@ -1,12 +1,16 @@
 <h1>Directory</h1>
 <p>Name: {{ dirname }}</p>
 
+<script type="text/javascript" src="/chrome/vendor/jquery/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="/chrome/structured.js"></script>
+<link rel="stylesheet" href="/chrome/structured.css">
+
 <ul>
 	{% for file in dirlisting %}
 		{% if file.type == 'directory' %}
 	<li><a href="{{ file.name }}/">{{ file.name|e }}</a></li>
 		{% elseif file.type == 'image' %}
-	<li><a href="/image/{{ linkpath }}{{ file.name }}"><img src="/image/{{ linkpath }}{{ file.name }}{% if args is defined %}{{ args }}{% endif %}" alt="image thumbnail for {{ file.name}}" /></a></li>
+	<li><a href="/image/{{ linkpath }}{{ file.name }}"><img src="/image/{{ linkpath }}{{ file.name }}{% if args is defined %}{{ args }}{% endif %}" alt="image thumbnail for {{ file.name}}" class="sfun-thumb" data-base-src="/image/{{ linkpath }}{{ file.name }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" /></a></li>
 		{% else %}
 	<li>{{ file.name }}</li>
 		{% endif %}
