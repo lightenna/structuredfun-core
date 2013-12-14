@@ -5,7 +5,6 @@
 
 	// constants
 	var numberOfImageVariants = 4;
-	var ARG_SEPARATOR = '~args&';
 
 	// hunt out sfun-thumb images and attach resize listener
 	$(document).ready(function() {
@@ -21,7 +20,7 @@
 					var req = (Math.floor(im.clientWidth / interval) + 1) * interval;
 					// swap the image for a bigger one
 					// assumption: no other args on im image
-					var newsrc = $(im).data('base-src') + ARG_SEPARATOR + 'maxwidth=' + req;
+					var newsrc = $(im).data('base-src') 'maxwidth=' + req;
 					$(im).attr('src', newsrc);
 				}
 			}

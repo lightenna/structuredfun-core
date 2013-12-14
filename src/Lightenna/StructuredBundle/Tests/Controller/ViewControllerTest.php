@@ -6,18 +6,20 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ViewControllerTest extends WebTestCase
 {
-	public function testConvertUrlToFilename() {
+	public function testconvertRawToFilename() {
 		$t = new \Lightenna\StructuredBundle\Controller\ViewController();
 		// test path to Symfony
-		$this->assertEquals($t::convertUrlToFilename('data/my_directory'),'/../../../data/my_directory');
+		$this->assertEquals($t::convertRawToFilename('data/my_directory/'),'/../../../data/my_directory');
+		// test path without trailing /
+		$this->assertEquals($t::convertRawToFilename('data/my_directory'),'/../../../data/my_directory');
 		// test blank path
-		$this->assertEquals($t::convertUrlToFilename(''),'/../../../');
+		$this->assertEquals($t::convertRawToFilename(''),'/../../../');
 		// test path /
-		$this->assertEquals($t::convertUrlToFilename('/'),'/../../../');
+		$this->assertEquals($t::convertRawToFilename('/'),'/../../../');
 		// test path .zip
-		$this->assertEquals($t::convertUrlToFilename('mydir/my.zip'),'/../../../mydir/my.zip');
+		$this->assertEquals($t::convertRawToFilename('mydir/my.zip'),'/../../../mydir/my.zip');
 		// test path .zip to .jpg
-		$this->assertEquals($t::convertUrlToFilename('mydir/my.zip~zippath/myzip.jpg'),'/../../../mydir/my.zip~zippath/myzip.jpg');
+		$this->assertEquals($t::convertRawToFilename('mydir/my.zip~zippath/myzip.jpg'),'/../../../mydir/my.zip~zippath/myzip.jpg');
 	}
 
 	public function testGetExtension() {

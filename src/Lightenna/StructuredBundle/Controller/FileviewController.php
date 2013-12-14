@@ -6,20 +6,22 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class FileviewController extends ViewController
 {
-	public function indexAction($name)
+	public function indexAction($rawname)
 	{
-		// convert urlname to fs filename
-		$filename = self::convertUrlToFilename($name);
+		// convert rawname to urlname and filename
+		$filename = self::convertRawToFilename($rawname);
+		$name = self::convertRawToUrl($rawname);
 		if (DEBUG && false) {
 			print('name('.$filename.') type('.self::getExtension($filename).') -> '.file_exists($filename));
 		}
 		// catch zips
 		if (self::getExtension($filename) == 'zip') {
-			$dirlisting = self::getZipListing(rtrim($filename,'/'));
+			$dirlisting = self::getZipListing($filename);
 			return $this->render('LightennaStructuredBundle:Fileview:directory.html.twig', array(
-				'dirname' => rtrim($filename,'/'),
-				'linkpath' => rtrim($name,'/').ZIP_SEPARATOR,
-				'args' => ARG_SEPARATOR.'maxwidth=200&maxheight=200',
+				'dirname' => $filename.'/',
+				'linkpath' => $name.ZIP_SEPARATOR,
+				'argsbase' => ARG_SEPARATOR.'thumb=true&',
+				'argsdefault' => ARG_SEPARATOR.'thumb=true&maxwidth=200&maxheight=200',
 				'dirlisting' => $dirlisting)
 			);
 		}
@@ -29,9 +31,10 @@ class FileviewController extends ViewController
 				// process straight-forward directory
 				$dirlisting = self::getDirectoryListing($filename);
 				return $this->render('LightennaStructuredBundle:Fileview:directory.html.twig', array(
-					'dirname' => $filename,
-					'linkpath' => $name,
-					'args' => ARG_SEPARATOR.'maxwidth=200&maxheight=200',
+					'dirname' => $filename.'/',
+					'linkpath' => $name.'/',
+					'argsbase' => ARG_SEPARATOR.'thumb=true&',
+					'argsdefault' => ARG_SEPARATOR.'thumb=true&maxwidth=200&maxheight=200',
 					'dirlisting' => $dirlisting)
 				);
 			} else {

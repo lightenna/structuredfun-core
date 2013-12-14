@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Lightenna\StructuredBundle\DependencyInjection\FFMpegHelper;
 
 class ImageviewController extends ViewController
 {
@@ -11,39 +12,43 @@ class ImageviewController extends ViewController
 	// @param Array URL arguments array
 	private $args;
 
-	public function indexAction($name)
+	public function indexAction($rawname)
 	{
+		$name = self::convertRawToUrl($rawname);
+		// build a basic listing object a la file view in $stats[0]
+		$us = array($name);
+		$this->stats = self::processListing(null, $us);
 		// parse args to work out what to return
 		$this->args = self::getArgsFromPath($name);
 		// search path for any zip directories
 		if (self::detectZipInPath($name) !== false) {
 			$zipname = self::getZipBitFromZipPath($name);
 			// convert path to zip to full path to zip
-			$zipfull = self::convertUrlToFilename($zipname);
+			$zipfull = self::convertRawToFilename($zipname);
 			// open up the zip file
 			$zip = new \ZipArchive;
 			if ($zip->open($zipfull) === true) {
 				// work out the filename within the zip
 				$filename = self::getFileBitFromZipPath($name);
 				// pull information about this file
-				$this->stats = $zip->statName($filename);
+				$this->stats += $zip->statName($filename);
 				$this->stats['filezip'] = $zip;
-				$this->printImage();
+				$this->fetchImage();
 				$zip->close();
 			}
 		} else {
 			// convert urlname to fs filename
 			$filename = self::getFileBitFromPath($name);
-			$filefull = self::convertUrlToFilename($filename);
-			// open the image file raw
+			$filefull = self::convertRawToFilename($filename);
+			// check that the file exists
 			if (file_exists($filefull)) {
-				$this->stats = array(
+				$this->stats += array(
 					'name' => $filefull,
 					'file' => $filefull,
 					'size' => filesize($filefull),
 				);
 				// process the picture
-				$this->printImage($this->stats, $this->args);
+				$this->fetchImage($this->stats, $this->args);
 			}
 		}
 		exit;
@@ -62,6 +67,31 @@ class ImageviewController extends ViewController
 	 */
 	public function getStats() {
 		return $this->stats;
+	}
+
+	/**
+	 * fetch a thumbnail image from the file (video/image)
+	 */
+	public function fetchImage() {
+		$listing = $this->stats[0];
+		switch($listing->type) {
+			case 'video' :
+				$ff = new FFMpegHelper($this->stats['file']);
+				$ff->printPoster();
+				// $ff->printEmbed();
+				print ('This is a video</br >');
+				print_r($this->stats);
+				print_r($this->args);
+				exit;
+				// decide whether to show embed or thumbnail
+				// maybe always show an embed, just of different sizes
+				// could change out the poster
+				break;
+			default:
+			case 'image' :
+				$this->printImage();
+				break;
+		}
 	}
 
 	/**

@@ -1,12 +1,12 @@
 lightenna_structured_fileview:
-    path:      /file/{name}
+    path:      /file/{rawname}
     defaults:  { _controller: LightennaStructuredBundle:Fileview:index }
     requirements:
-        name:  ".*"
+        rawname:  ".*"
 
 lightenna_structured_imageview:
-    path:      /image/{name}
+    path:      /image/{rawname}
     defaults:  { _controller: LightennaStructuredBundle:Imageview:index }
     requirements:
-        name:  ".*"
+        rawname:  ".*"
 

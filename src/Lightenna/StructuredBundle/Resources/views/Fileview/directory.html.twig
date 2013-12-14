@@ -8,9 +8,15 @@
 <ul>
 	{% for file in dirlisting %}
 		{% if file.type == 'directory' %}
-	<li><a href="{{ file.name }}/">{{ file.name|e }}</a></li>
+	<li><a href="/file/{{ linkpath }}{{ file.name }}/">{{ file.name|e }}</a></li>
 		{% elseif file.type == 'image' %}
-	<li><a href="/image/{{ linkpath }}{{ file.name }}"><img src="/image/{{ linkpath }}{{ file.name }}{% if args is defined %}{{ args }}{% endif %}" alt="image thumbnail for {{ file.name}}" class="sfun-thumb" data-base-src="/image/{{ linkpath }}{{ file.name }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" /></a></li>
+	<li><a href="/image/{{ linkpath }}{{ file.name }}">
+		<img src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" class="sfun-thumb" data-base-src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
+	</a></li>
+		{% elseif file.type == 'video' %}
+	<li><a href="/image/{{ linkpath }}{{ file.name }}">
+		<img src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" />
+	</a></li>
 		{% else %}
 	<li>{{ file.name }}</li>
 		{% endif %}

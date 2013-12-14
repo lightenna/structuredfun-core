@@ -10,12 +10,29 @@ define('ARG_SEPARATOR', '~args&');
 
 class ViewController extends Controller
 {
-	static function convertUrlToFilename($name) {
+	var $settings;
+
+	public function __construct() {
+		$settings_file = self::convertRawToFilename('structured/conf/structured.ini');
+		$this->settings = parse_ini_file($settings_file);
+	}
+
+	/**
+	 * @return Filename without trailing slash
+	 */
+	static function convertRawToFilename($name) {
 		$name = rtrim($name, '/');
 		// path back up out of symfony
 		$symfony_offset = '../../../';
 		// return composite path to real root
 		return $_SERVER['DOCUMENT_ROOT'].'/'.$symfony_offset.$name;
+	}
+
+	/**
+	 * @return URL name without trailing slash
+	 */
+	static function convertRawToUrl($name) {
+		return rtrim($name, '/');
 	}
 
 	/**
@@ -162,7 +179,9 @@ class ViewController extends Controller
 			// create an object (stdClass is outside of namespace)
 			$obj = new \stdClass();
 			$obj->{'name'} = $v;
-			$obj->{'path'} = $name;
+			if ($name !== null) {
+				$obj->{'path'} = $name;
+			}
 			// assume it's a generic file
 			$obj->{'type'} = 'genfile';
 			$obj->{'hidden'} = false;
@@ -179,6 +198,12 @@ class ViewController extends Controller
 					case 'jpg' :
 					case 'gif' :
 						$obj->{'type'} = 'image';
+						break;
+					case 'mp4' :
+					case 'm4v' :
+					case 'avi' :
+					case 'flv' :
+						$obj->{'type'} = 'video';
 						break;
 					case 'zip' :
 						$obj->{'type'} = 'directory';
