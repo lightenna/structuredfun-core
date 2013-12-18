@@ -4,7 +4,12 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 
 class CacheHelper
 {
-	public function __construct() {
+	var $settings;
+	var $cachedir;
+
+	public function __construct($set, $parentController) {
+		$this->settings = $set;
+		$this->cachedir = $parentController::convertRawToInternalFilename($this->settings['mc_path']);
 	}
 
 	/**
@@ -12,10 +17,10 @@ class CacheHelper
 	 * @todo incorporate file modified date into hash
 	 * @return string A cache key based on the file's metadata
 	 */
-	static function getKey($stats, $args = null) {
+	public function getKey($stats, $args = null) {
 		$cachestring = $stats['file'];
 		$cachestring .= self::flattenKeyArgs($args);
-		$key = md5($cachestring);
+		$key = md5($cachestring).'.'.$stats['ext'];
 		return $key;
 	}
 
@@ -24,9 +29,8 @@ class CacheHelper
 	 * @param  string $key cache key
 	 * @return bool true if present
 	 */
-	static function exists($key) {
-		// START HERE
-
+	public function exists($key) {
+		return file_exists($this->getFilename($key));
 	}
 
 	/**
@@ -34,8 +38,16 @@ class CacheHelper
 	 * @param  string $key cache key
 	 * @return string item
 	 */
-	static function get($key) {
+	public function get($key) {
+		return file_get_contents($this->getFilename($key));
+	}
 
+	/**
+	 * @param  string $key cache key
+	 * @return string full path filename of this key'd asset
+	 */
+	public function getFilename($key) {
+		return $this->cachedir.'/'.$key;
 	}
 
 	/**

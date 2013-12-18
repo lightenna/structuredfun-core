@@ -33,6 +33,7 @@ class ImageviewController extends ViewController
 				$filename = self::getFileBitFromZipPath($name);
 				// pull minimum information about this file
 				$this->stats += $zip->statName($filename);
+				$this->stats['ext'] = strtolower(self::getExtension($this->stats['name']));
 				$this->stats['filezip'] = $zip;
 				$this->fetchImage();
 				$zip->close();
@@ -47,6 +48,7 @@ class ImageviewController extends ViewController
 				$this->stats += array(
 					'name' => $filefull,
 					'file' => $filefull,
+					'ext'  => strtolower(self::getExtension($filefull)),
 					'size' => filesize($filefull),
 				);
 				// process the picture
@@ -76,24 +78,26 @@ class ImageviewController extends ViewController
 	 */
 	public function fetchImage() {
 		$listing = $this->stats[0];
-		$this->cache = new CacheHelper();
-		$this->stats['cachekey'] = CacheHelper::getKey($this->stats, $this->args);
+		$this->cache = new CacheHelper($this->settings, $this);
+		$this->stats['cachekey'] = $this->cache->getKey($this->stats, $this->args);
 		// if the image file exists in the cache at the requested size, return it
-		if (CacheHelper::exists($this->stats['cachekey'])) {
-			self::returnImage(CacheHelper::get($this->stats['cachekey']));
+		if ($this->cache->exists($this->stats['cachekey'])) {
+			self::returnImage($this->cache->get($this->stats['cachekey']));
 		} else {
 			// generate image based on media type
 			switch($listing->type) {
 				case 'video' :
+					// override the extension to return an image
+					$this->stats['ext'] = 'jpg';
 					// does the full-res image exist in the cache
-					$fullres_cachekey = CacheHelper::getKey($this->stats, null);
-					if (CacheHelper::exists($fullres_cachekey)) {
-						self::returnImage($this->filterImage(CacheHelper::get($fullres_cachekey)));
+					$fullres_cachekey = $this->cache->getKey($this->stats, null).'_fullres.'.$this->stats['ext'];
+					if ($this->cache->exists($fullres_cachekey)) {
+						self::returnImage($this->filterImage($this->cache->get($fullres_cachekey)));
 					} else {
 						// fetch full-res image
-						$ff = new FFmpegHelper($this->stats, $this->cache);
+						$ff = new FFmpegHelper($this->stats, $this->cache, $this);
 						// update stats array with new location of image in cache
-						$stats['file'] = $ff->takeSnapshot('00:00:10.0', $fullres_cachekey);
+						$this->stats['file'] = $ff->takeSnapshot('00:00:10.0', $this->cache->getFilename($fullres_cachekey));
 						$this->returnImage($this->loadAndFilterImage());
 					}
 					break;
@@ -110,8 +114,7 @@ class ImageviewController extends ViewController
 	 * @param string $imgdata Raw image data as a string
 	 */
 	public function returnImage($imgdata) {
-		$ext = strtolower(self::getExtension($this->stats['name']));
-		header("Content-Type: image/" . $ext);		
+		header("Content-Type: image/" . $this->stats['ext']);		
 		header("Content-Length: " . strlen($imgdata));
 		echo $imgdata;
 	}
