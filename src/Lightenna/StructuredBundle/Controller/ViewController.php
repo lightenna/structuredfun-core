@@ -29,6 +29,17 @@ class ViewController extends Controller
 	}
 
 	/**
+	 * @return Filename within structured folder without trailing slash
+	 */
+	static function convertRawToInternalFilename($name) {
+		$name = rtrim($name, '/');
+		// path back up out of symfony
+		$symfony_offset_to_structured = '../../';
+		// return composite path to real root
+		return $_SERVER['DOCUMENT_ROOT'].'/'.$symfony_offset_to_structured.$name;
+	}
+
+	/**
 	 * @return URL name without trailing slash
 	 */
 	static function convertRawToUrl($name) {
@@ -41,13 +52,19 @@ class ViewController extends Controller
 	 * @return string the extension
 	 */
 	static function getExtension($name) {
+		// find end of filename section (pre-args)
+		$end = strpos($name, ARG_SEPARATOR);
+		// if no args, use full length of string
+		if ($end === false) {
+			$end = strlen($name);
+		}
 		// find position of last .
 		$pos = strrpos($name, '.');
 		// if not found
 		if ($pos === false) {
 			return false;
 		}
-		$len = strlen($name) - $pos - 1;
+		$len = $end - $pos - 1;
 		// strip trailing / if it came from a URL
 		if ($name[$pos+1+$len-1] == '/') {
 			$len--;

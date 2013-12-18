@@ -32,6 +32,10 @@ class ViewControllerTest extends WebTestCase
 		$this->assertEquals($t::getExtension('data/my_directory/myfile'),false);
 		// find no extension on a directory
 		$this->assertEquals($t::getExtension('data/my_directory/myfile/'),false);
+		// find an extension when there are args
+		$this->assertEquals($t::getExtension('data/my_directory/myfile.jpg~args&test'),'jpg');
+		// find an extension when there are args (malformed)
+		$this->assertEquals($t::getExtension('data/my_directory/myfile.jpg~args&~args&test'),'jpg');
 	}
 
 	public function testGetArgsFromPath() {
