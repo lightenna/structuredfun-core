@@ -3,7 +3,8 @@
 namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Lightenna\StructuredBundle\DependencyInjection\FFMpegHelper;
+use Lightenna\StructuredBundle\DependencyInjection\FFmpegHelper;
+use Lightenna\StructuredBundle\DependencyInjection\CacheHelper;
 
 class ImageviewController extends ViewController
 {
@@ -30,7 +31,7 @@ class ImageviewController extends ViewController
 			if ($zip->open($zipfull) === true) {
 				// work out the filename within the zip
 				$filename = self::getFileBitFromZipPath($name);
-				// pull information about this file
+				// pull minimum information about this file
 				$this->stats += $zip->statName($filename);
 				$this->stats['filezip'] = $zip;
 				$this->fetchImage();
@@ -42,6 +43,7 @@ class ImageviewController extends ViewController
 			$filefull = self::convertRawToFilename($filename);
 			// check that the file exists
 			if (file_exists($filefull)) {
+				// pull minimum information about this file
 				$this->stats += array(
 					'name' => $filefull,
 					'file' => $filefull,
@@ -74,36 +76,63 @@ class ImageviewController extends ViewController
 	 */
 	public function fetchImage() {
 		$listing = $this->stats[0];
-		switch($listing->type) {
-			case 'video' :
-				$ff = new FFMpegHelper($this->stats['file']);
-				$ff->printPoster();
-				// $ff->printEmbed();
-				print ('This is a video</br >');
-				print_r($this->stats);
-				print_r($this->args);
-				exit;
-				// decide whether to show embed or thumbnail
-				// maybe always show an embed, just of different sizes
-				// could change out the poster
-				break;
-			default:
-			case 'image' :
-				$this->printImage();
-				break;
+		$this->cache = new CacheHelper();
+		$this->stats['cachekey'] = CacheHelper::getKey($this->stats, $this->args);
+		// if the image file exists in the cache at the requested size, return it
+		if (CacheHelper::exists($this->stats['cachekey'])) {
+			self::returnImage(CacheHelper::get($this->stats['cachekey']));
+		} else {
+			// generate image based on media type
+			switch($listing->type) {
+				case 'video' :
+					// does the full-res image exist in the cache
+					$fullres_cachekey = CacheHelper::getKey($this->stats, null);
+					if (CacheHelper::exists($fullres_cachekey)) {
+						self::returnImage($this->filterImage(CacheHelper::get($fullres_cachekey)));
+					} else {
+						// fetch full-res image
+						$ff = new FFmpegHelper($this->stats, $this->cache);
+						// update stats array with new location of image in cache
+						$stats['file'] = $ff->takeSnapshot('00:00:10.0', $fullres_cachekey);
+						$this->returnImage($this->loadAndFilterImage());
+					}
+					break;
+				default:
+				case 'image' :
+					$this->returnImage($this->loadAndFilterImage());
+					break;
+			}		
 		}
+	}
+	
+	/**
+	 * Output an image with correct headers
+	 * @param string $imgdata Raw image data as a string
+	 */
+	public function returnImage($imgdata) {
+		$ext = strtolower(self::getExtension($this->stats['name']));
+		header("Content-Type: image/" . $ext);		
+		header("Content-Length: " . strlen($imgdata));
+		echo $imgdata;
 	}
 
 	/**
 	 * print out an image based on an array of its metadata
-	 * @param array $this->stats Array of metadata
 	 */
-	public function printImage() {
-		// send the right headers
-		$ext = strtolower(self::getExtension($this->stats['name']));
-		header("Content-Type: image/" . $ext);
+	public function loadAndFilterImage() {
 		// load image into buffer
 		$imgdata = $this->loadImage();
+		// filter based on arguments
+		if (isset($this->args['maxwidth']) || isset($this->args['maxheight'])) {
+			$imgdata = $this->filterImage($imgdata);
+		}
+		return $imgdata;
+	}
+
+	/**
+	 * filter image based on its arguments
+	 */
+	public function filterImage($imgdata) {
 		if (isset($this->args['maxwidth']) || isset($this->args['maxheight'])) {
 			// resize the image, depending on type
 			$oldimg = imagecreatefromstring($imgdata);
@@ -111,22 +140,13 @@ class ImageviewController extends ViewController
 			$img = $this->resizeImage($oldimg);
 			// fetch new imgdata
 			$imgdata = self::getImageData($img);
-			// read size of new image
-			header("Content-Length: " . strlen($imgdata));
-			// if we successfully read the image
-			if ($img) {
-				echo $imgdata;
-			}
-		} else {
-			header("Content-Length: " . $this->stats['size']);
-			// dump the picture depending on source
-			echo $imgdata;
 		}
+		return $imgdata;
 	}
 
 	/**
 	 * load image into a buffer
-	 * @return image as a string
+	 * @return string image as a string
 	 **/
 	public function loadImage() {
 		if (isset($this->stats['file'])) {

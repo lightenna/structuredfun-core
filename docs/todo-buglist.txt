@@ -1,0 +1,40 @@
+
+* Using Project sheet in Google drive for major functional items
+https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
+
+Done
+
+* setup paths bin
+
+* install composer
+
+* use composer to install symfony2
+
+# install composer into bin directory using downloaded install script
+php bin\install-composer.php --install-dir bin
+
+* create a project
+php -c conf bin\composer.phar create-project symfony/framework-standard-edition ./vendor/symfony2/ 
+
+* commit everything to an open repo
+
+* test basic route on prod
+
+* create directory indexer like before
+  + but under symfony
+
+* setup php-dev server for dev if caching is annoying
+  = didn't have to, configured normal apache to use app-dev
+
+* setup model for record(directoryEntry)
+
+* setup controller and route
+
+* setup directory, file and record->directory->zip
+
+* never add trailing / to directories
+  + and make thumbnail paths work using linkpath
+
+* Double data/ for directories with trailing /
+  + http://localhost:8080/file/data/
+
