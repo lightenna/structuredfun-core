@@ -1,6 +1,25 @@
 /**
  * StructuredFun CSS
  */
-.sfun-thumb {
-	width: 30em;
+.thumb {
+}
+
+.folder {
+	background: #ffffff url('/chrome/images/fullres/folder_back.png') no-repeat left top;
+	background-size: contain;
+}
+
+a .folder img.overlay {
+	width: 100%;
+}
+
+a:hover .folder img.overlay {
+	height: 2em;
+	margin-top: 9em;
+	margin-bottom: 1em;
+}
+
+.direntry {
+	width: 20em;
+	height: 12em;
 }
