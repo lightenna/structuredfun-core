@@ -40,7 +40,7 @@ class ViewController extends Controller
 	 * Process settings array for actions
 	 */
 	public function processSettings() {
-		$shares = $this->settings[''];
+		$shares = $this->settings['shares'];
 		if (is_array($shares)) {
 			// build array of attach points
 			foreach ($shares as $sh) {
