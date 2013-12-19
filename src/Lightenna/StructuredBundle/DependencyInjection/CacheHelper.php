@@ -9,7 +9,7 @@ class CacheHelper
 
 	public function __construct($set, $parentController) {
 		$this->settings = $set;
-		$this->cachedir = $parentController::convertRawToInternalFilename($this->settings['mc_path']);
+		$this->cachedir = $parentController::convertRawToInternalFilename($this->settings['mediacache']['path']);
 	}
 
 	/**

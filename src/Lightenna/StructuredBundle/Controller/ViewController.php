@@ -14,7 +14,51 @@ class ViewController extends Controller
 
 	public function __construct() {
 		$settings_file = self::convertRawToFilename('structured/conf/structured.ini');
-		$this->settings = parse_ini_file($settings_file);
+		$this->settings = parse_ini_file($settings_file, true);
+		// pull in conf.d settings
+		if (isset($this->settings['general'])) {
+			if (isset($this->settings['general']['confd'])) {
+				// read all directory entries
+				$confdirname = self::convertRawToInternalFilename($this->settings['general']['confd']);
+				$listing = scandir($confdirname);
+				self::processListing($confdirname, $listing);
+				// parse each .ini file
+				foreach ($listing as $entry) {
+					if (strtolower($entry->ext) == 'ini') {
+						// add to settings
+						$subsets = parse_ini_file($confdirname.'/'.$entry->name, true);
+						$this->settings += $subsets;
+					}
+				}
+			}
+		}
+		// process settings
+		$this->processSettings();
+	}
+
+	/**
+	 * Process settings array for actions
+	 */
+	public function processSettings() {
+		$shares = $this->settings[''];
+		if (is_array($shares)) {
+			// build array of attach points
+			foreach ($shares as $sh) {
+// START HERE
+			}
+		}
+	}
+
+	/**
+	 * substitute references out of filename
+	 * @param  string $filename filename containing references
+	 * @return string filename with substitutions
+	 */
+	public function performFilenameSubstitution($filename) {
+		// search string for nth references [1]
+		// hunt for attach points from shares
+// START HERE
+		return $filename;
 	}
 
 	/**
@@ -168,7 +212,7 @@ class ViewController extends Controller
 			}
 			zip_close($zip);
 		}
-		return(self::processListing($name, $listing));
+		return self::processListing($name, $listing);
 	}
 
 	/**
@@ -178,7 +222,7 @@ class ViewController extends Controller
 	static function getDirectoryListing($name) {
 		// get basic listing
 		$listing = scandir($name);
-		return(self::processListing($name, $listing));
+		return self::processListing($name, $listing);
 	}
 
 	/**
@@ -205,12 +249,12 @@ class ViewController extends Controller
 			if (is_dir($name.'/'.$v)) {
 				$obj->{'type'} = 'directory';
 			} else {
-				$obj->{'extension'} = self::getExtension($v);
+				$obj->{'ext'} = self::getExtension($v);
 				// catch hidden files
 				if ($v[0] == '.') {
 					$obj->{'hidden'} = true;
 				}
-				switch(strtolower($obj->{'extension'})) {
+				switch(strtolower($obj->{'ext'})) {
 					case 'jpeg' :
 					case 'jpg' :
 					case 'gif' :
@@ -232,5 +276,7 @@ class ViewController extends Controller
 		}
 		return $listing;
 	}
+
+
 
 }

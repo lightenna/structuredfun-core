@@ -15,3 +15,11 @@ Is it video?
 Is it image
   Subsample
   Return
+
+url substitution
+  comes up for shares
+  comes up for get nth image
+can't mess with url
+  - because that's really the same 
+  + convenient because everything else is downstream
+let's do it on a filename level

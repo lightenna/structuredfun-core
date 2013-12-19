@@ -21,27 +21,29 @@ class ImageviewController extends ViewController
 		$this->stats = self::processListing(null, $us);
 		// parse args to work out what to return
 		$this->args = self::getArgsFromPath($name);
+		// convert urlname to fs filename
+		$filefull = self::convertRawToFilename(self::getFileBitFromPath($name));
+		// perform substitutions on filename
 		// search path for any zip directories
 		if (self::detectZipInPath($name) !== false) {
-			$zipname = self::getZipBitFromZipPath($name);
 			// convert path to zip to full path to zip
-			$zipfull = self::convertRawToFilename($zipname);
+			$zipfull = self::getZipBitFromZipPath($filefull);
 			// open up the zip file
 			$zip = new \ZipArchive;
 			if ($zip->open($zipfull) === true) {
 				// work out the filename within the zip
-				$filename = self::getFileBitFromZipPath($name);
-				// pull minimum information about this file
-				$this->stats += $zip->statName($filename);
-				$this->stats['ext'] = strtolower(self::getExtension($this->stats['name']));
+				$fileInZip = self::getFileBitFromZipPath($filefull);
+				// build up minimum information about this file
+				$this->stats += $zip->statName($fileInZip);
+				// include abstract 'file' full name for reference (e.g. caching)...
+				$this->stats['file'] = $filefull;
+				// ...but we actually use 'filezip' for access
 				$this->stats['filezip'] = $zip;
+				$this->stats['ext'] = strtolower(self::getExtension($this->stats['name']));
 				$this->fetchImage();
 				$zip->close();
 			}
 		} else {
-			// convert urlname to fs filename
-			$filename = self::getFileBitFromPath($name);
-			$filefull = self::convertRawToFilename($filename);
 			// check that the file exists
 			if (file_exists($filefull)) {
 				// pull minimum information about this file
@@ -50,6 +52,7 @@ class ImageviewController extends ViewController
 					'file' => $filefull,
 					'ext'  => strtolower(self::getExtension($filefull)),
 					'size' => filesize($filefull),
+					'mtime'=> filemtime($filefull),
 				);
 				// process the picture
 				$this->fetchImage($this->stats, $this->args);
@@ -97,7 +100,12 @@ class ImageviewController extends ViewController
 						// fetch full-res image
 						$ff = new FFmpegHelper($this->stats, $this->cache, $this);
 						// update stats array with new location of image in cache
-						$this->stats['file'] = $ff->takeSnapshot('00:00:10.0', $this->cache->getFilename($fullres_cachekey));
+						$returnedFile = $ff->takeSnapshot('00:00:10.0', $this->cache->getFilename($fullres_cachekey));
+						// if no image produced (e.g. video corrupted or stored in zip)
+						if ($returnedFile === false) {
+							$this->returnImage($this->filterImage($this->loadErrorImage()));
+						}
+						$this->stats['file'] = $returnedFile;
 						$this->returnImage($this->loadAndFilterImage());
 					}
 					break;
@@ -152,11 +160,19 @@ class ImageviewController extends ViewController
 	 * @return string image as a string
 	 **/
 	public function loadImage() {
-		if (isset($this->stats['file'])) {
-			return file_get_contents($this->stats['file']);
-		} else if (isset($this->stats['filezip'])) {
+		if (isset($this->stats['filezip'])) {
 			return $this->stats['filezip']->getFromName($this->stats['name']);
-		}
+		} else {
+			return file_get_contents($this->stats['file']);
+		}		
+	}
+
+	/**
+	 * Return a nice image showing there was a problem
+	 * @return string image as a string
+	 */
+	public function loadErrorImage() {
+		return file_get_contents(self::convertRawToInternalFilename('htdocs/web/chrome/images/fullres/missing_image.jpg'));
 	}
 
 	/**
