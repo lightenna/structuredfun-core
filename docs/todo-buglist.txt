@@ -38,3 +38,7 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 * Double data/ for directories with trailing /
   + http://localhost:8080/file/data/
 
+* Images not showing from zips
+
+* Error image
+
