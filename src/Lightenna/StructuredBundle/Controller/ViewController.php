@@ -4,8 +4,9 @@ namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
+/** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
-define('ZIP_SEPARATOR', '~');
+define('ZIP_SEPARATOR', '/');
 define('ARG_SEPARATOR', '~args&');
 
 class ViewController extends Controller
@@ -13,21 +14,25 @@ class ViewController extends Controller
 	var $settings;
 
 	public function __construct() {
-		$settings_file = self::convertRawToFilename('structured/conf/structured.ini');
+		$settings_file = self::convertRawToInternalFilename('conf/structured.ini');
 		$this->settings = parse_ini_file($settings_file, true);
 		// pull in conf.d settings
 		if (isset($this->settings['general'])) {
 			if (isset($this->settings['general']['confd'])) {
 				// read all directory entries
 				$confdirname = self::convertRawToInternalFilename($this->settings['general']['confd']);
-				$listing = scandir($confdirname);
-				self::processListing($confdirname, $listing);
-				// parse each .ini file
-				foreach ($listing as $entry) {
-					if (strtolower($entry->ext) == 'ini') {
-						// add to settings
-						$subsets = parse_ini_file($confdirname.'/'.$entry->name, true);
-						$this->settings += $subsets;
+				// check the directory exists
+				if (is_dir($confdirname)) {
+					// process settings if found
+					$listing = scandir($confdirname);
+					self::processListing($confdirname, $listing);
+					// parse each .ini file
+					foreach ($listing as $entry) {
+						if (strtolower($entry->ext) == 'ini') {
+							// add to settings
+							$subsets = parse_ini_file($confdirname.'/'.$entry->name, true);
+							$this->settings += $subsets;
+						}
 					}
 				}
 			}
@@ -40,13 +45,40 @@ class ViewController extends Controller
 	 * Process settings array for actions
 	 */
 	public function processSettings() {
-		$shares = $this->settings['shares'];
-		if (is_array($shares)) {
+		$this->settings['shares'] = self::findShares($this->settings);
+		$attach = array();
+		if (is_array($this->settings['shares'])) {
 			// build array of attach points
-			foreach ($shares as $sh) {
-// START HERE
+			foreach ($this->settings['shares'] as &$sh) {
+				if (isset($sh['enabled']) && ($sh['enabled'] == false)) {
+					// ignore disabled shares
+					continue;
+				}
+				// define each unique attach point as an array
+				if (!isset($attach[$sh['attach']])) {
+					$attach[$sh['attach']] = array();
+				}
+				// add this shares to that attach point
+				$attach[$sh['attach']][] = &$sh;
 			}
 		}
+		$this->settings['attach'] = $attach;
+	}
+
+	/**
+	 * parse settings array, look for and return shares
+	 * @param  Array $arr to search
+	 * @todo could insert validation here to check values
+	 * @return Array shares
+	 */
+	static function findShares($arr) {
+		$shares = array();
+		foreach ($arr as &$entry) {
+			if (isset($entry['type']) && ($entry['type'] == 'share')) {
+				$shares[] = &$entry;
+			}
+		}
+		return $shares;
 	}
 
 	/**
@@ -56,20 +88,25 @@ class ViewController extends Controller
 	 */
 	public function performFilenameSubstitution($filename) {
 		// search string for nth references [1]
-		// hunt for attach points from shares
 // START HERE
+// change / after zip for ZIP_SEPARATOR or use / as ZIP_SEPARATOR
+// print($filename);
+// exit;
+		// hunt for attach points from shares
 		return $filename;
 	}
 
 	/**
+	 * Note: all URLs go through this function (or internal version below) to become filenames
 	 * @return Filename without trailing slash
 	 */
-	static function convertRawToFilename($name) {
+	public function convertRawToFilename($name) {
 		$name = rtrim($name, '/');
 		// path back up out of symfony
 		$symfony_offset = '../../../';
 		// return composite path to real root
-		return $_SERVER['DOCUMENT_ROOT'].'/'.$symfony_offset.$name;
+		$filename = $_SERVER['DOCUMENT_ROOT'].'/'.$symfony_offset.$name;
+		return $this->performFilenameSubstitution($filename);
 	}
 
 	/**

@@ -1,4 +1,8 @@
 
+* double // for /file/ or /file
+
+* 404 for for / or <blank>
+
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 
@@ -41,4 +45,6 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 * Images not showing from zips
 
 * Error image
+
+* no route found for /file
 
