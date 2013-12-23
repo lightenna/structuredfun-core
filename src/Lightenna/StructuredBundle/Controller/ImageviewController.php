@@ -22,8 +22,7 @@ class ImageviewController extends ViewController
 		// parse args to work out what to return
 		$this->args = self::getArgsFromPath($name);
 		// convert urlname to fs filename
-		$filefull = self::convertRawToFilename(self::getFileBitFromPath($name));
-		// perform substitutions on filename
+		$filefull = $this->convertRawToFilename(self::getFileBitFromPath($name));
 		// search path for any zip directories
 		if (self::detectZipInPath($name) !== false) {
 			// convert path to zip to full path to zip

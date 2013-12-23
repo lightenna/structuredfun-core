@@ -9,7 +9,7 @@ class FileviewController extends ViewController
 	public function indexAction($rawname)
 	{
 		// convert rawname to urlname and filename
-		$filename = self::convertRawToFilename($rawname);
+		$filename = $this->convertRawToFilename($rawname);
 		$name = self::convertRawToUrl($rawname);
 		if (DEBUG && false) {
 			print('name('.$filename.') type('.self::getExtension($filename).') -> '.file_exists($filename));

@@ -4,6 +4,14 @@ lightenna_structured_fileview:
     requirements:
         rawname:  ".*"
 
+lightenna_structured_fileview_unspec:
+    path:      /file
+    defaults:  { _controller: LightennaStructuredBundle:Fileview:index, rawname:'' }
+
+lightenna_structured_fileview_root:
+    path:      /
+    defaults:  { _controller: LightennaStructuredBundle:Fileview:index, rawname:'' }
+
 lightenna_structured_imageview:
     path:      /image/{rawname}
     defaults:  { _controller: LightennaStructuredBundle:Imageview:index }
