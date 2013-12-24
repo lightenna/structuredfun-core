@@ -6,8 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 /** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
+define('DIR_SEPARATOR', '/');
 define('ZIP_SEPARATOR', '/');
 define('ARG_SEPARATOR', '~args&');
+// define('SUB_REGEX', '/\[([0-9]+)\]/x');
+// define('SUB_REGEX', '|\[([0-9]*)\]|i');
+define('SUB_REGEX', '/\[(.+)\]/');
 
 class ViewController extends Controller
 {
@@ -30,7 +34,7 @@ class ViewController extends Controller
 					foreach ($listing as $entry) {
 						if (strtolower($entry->ext) == 'ini') {
 							// add to settings
-							$subsets = parse_ini_file($confdirname.'/'.$entry->name, true);
+							$subsets = parse_ini_file($confdirname.DIR_SEPARATOR.$entry->name, true);
 							$this->settings += $subsets;
 						}
 					}
@@ -88,10 +92,14 @@ class ViewController extends Controller
 	 */
 	public function performFilenameSubstitution($filename) {
 		// search string for nth references [1]
+		$matches = array();
+		if (preg_match_all(SUB_REGEX, $filename, $matches, PREG_OFFSET_CAPTURE) == 1) {
+			print_r($matches);
+
+		} 
 // START HERE
-// change / after zip for ZIP_SEPARATOR or use / as ZIP_SEPARATOR
-// print($filename);
-// exit;
+print($filename);
+exit;
 		// hunt for attach points from shares
 		return $filename;
 	}
@@ -101,11 +109,11 @@ class ViewController extends Controller
 	 * @return Filename without trailing slash
 	 */
 	public function convertRawToFilename($name) {
-		$name = rtrim($name, '/');
+		$name = rtrim($name, DIR_SEPARATOR);
 		// path back up out of symfony
-		$symfony_offset = '../../../';
+		$symfony_offset = '..'.DIR_SEPARATOR.'..'.DIR_SEPARATOR.'..';
 		// return composite path to real root
-		$filename = $_SERVER['DOCUMENT_ROOT'].'/'.$symfony_offset.$name;
+		$filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR).DIR_SEPARATOR.$symfony_offset.DIR_SEPARATOR.ltrim($name, DIR_SEPARATOR);
 		return $this->performFilenameSubstitution($filename);
 	}
 
@@ -113,18 +121,18 @@ class ViewController extends Controller
 	 * @return Filename within structured folder without trailing slash
 	 */
 	static function convertRawToInternalFilename($name) {
-		$name = rtrim($name, '/');
+		$name = rtrim($name, DIR_SEPARATOR);
 		// path back up out of symfony
-		$symfony_offset_to_structured = '../../';
+		$symfony_offset_to_structured = '..'.DIR_SEPARATOR.'..';
 		// return composite path to real root
-		return $_SERVER['DOCUMENT_ROOT'].'/'.$symfony_offset_to_structured.$name;
+		return rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR).DIR_SEPARATOR.$symfony_offset_to_structured.DIR_SEPARATOR.ltrim($name, DIR_SEPARATOR);
 	}
 
 	/**
 	 * @return URL name without trailing slash
 	 */
 	static function convertRawToUrl($name) {
-		return rtrim($name, '/');
+		return DIR_SEPARATOR.trim($name, DIR_SEPARATOR);
 	}
 
 	/**
@@ -147,7 +155,7 @@ class ViewController extends Controller
 		}
 		$len = $end - $pos - 1;
 		// strip trailing / if it came from a URL
-		if ($name[$pos+1+$len-1] == '/') {
+		if ($name[$pos+1+$len-1] == DIR_SEPARATOR) {
 			$len--;
 		}
 		// pull out extension
@@ -283,7 +291,7 @@ class ViewController extends Controller
 			// assume it's a generic file
 			$obj->{'type'} = 'genfile';
 			$obj->{'hidden'} = false;
-			if (is_dir($name.'/'.$v)) {
+			if (is_dir($name.DIR_SEPARATOR.$v)) {
 				$obj->{'type'} = 'directory';
 			} else {
 				$obj->{'ext'} = self::getExtension($v);
