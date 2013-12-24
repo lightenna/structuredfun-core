@@ -18,8 +18,8 @@ class FileviewController extends ViewController
 		if (self::getExtension($filename) == 'zip') {
 			$dirlisting = self::getZipListing($filename);
 			return $this->render('LightennaStructuredBundle:Fileview:directory.html.twig', array(
-				'dirname' => $filename.'/',
-				'linkpath' => $name.ZIP_SEPARATOR,
+				'dirname' => $filename.DIR_SEPARATOR,
+				'linkpath' => rtrim($name, ZIP_SEPARATOR).ZIP_SEPARATOR,
 				'argsbase' => ARG_SEPARATOR.'thumb=true&',
 				'argsdefault' => ARG_SEPARATOR.'thumb=true&maxwidth=200&maxheight=200',
 				'dirlisting' => $dirlisting)
@@ -31,8 +31,8 @@ class FileviewController extends ViewController
 				// process straight-forward directory
 				$dirlisting = self::getDirectoryListing($filename);
 				return $this->render('LightennaStructuredBundle:Fileview:directory.html.twig', array(
-					'dirname' => $filename.'/',
-					'linkpath' => $name.'/',
+					'dirname' => $filename.DIR_SEPARATOR,
+					'linkpath' => rtrim($name, DIR_SEPARATOR).DIR_SEPARATOR,
 					'argsbase' => ARG_SEPARATOR.'thumb=true&',
 					'argsdefault' => ARG_SEPARATOR.'thumb=true&maxwidth=200&maxheight=200',
 					'dirlisting' => $dirlisting)

@@ -23,6 +23,22 @@ class ViewControllerTest extends WebTestCase
 		$this->assertEquals($t->convertRawToFilename('mydir/my.zip'.ZIP_SEPARATOR.'zippath/myzip.jpg'),'/../../../mydir/my.zip'.ZIP_SEPARATOR.'zippath/myzip.jpg');
 	}
 
+	public function testConvertRawToUrl() {
+		$t = new ViewController();
+		// test blank
+		$this->assertEquals($t::convertRawToUrl(''),'/');
+		$this->assertEquals($t::convertRawToUrl('/'),'/');
+		// test single word
+		$this->assertEquals($t::convertRawToUrl('fish'),'/fish');
+		$this->assertEquals($t::convertRawToUrl('/fish'),'/fish');
+		// test single word with trailing slash
+		$this->assertEquals($t::convertRawToUrl('fish/'),'/fish');
+		$this->assertEquals($t::convertRawToUrl('/fish/'),'/fish');
+		// test multiple words with trailing slash
+		$this->assertEquals($t::convertRawToUrl('fish/fowl/'),'/fish/fowl');
+		$this->assertEquals($t::convertRawToUrl('/fish/fowl/'),'/fish/fowl');
+	}
+
 	public function testGetExtension() {
 		$t = new ViewController();
 		// find an extension
