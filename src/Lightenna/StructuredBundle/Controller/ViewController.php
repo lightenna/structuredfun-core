@@ -7,11 +7,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 /** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
 define('DIR_SEPARATOR', '/');
+define('ZIP_EXTMATCH', 'zip');
 define('ZIP_SEPARATOR', '/');
 define('ARG_SEPARATOR', '~args&');
-// define('SUB_REGEX', '/\[([0-9]+)\]/x');
-// define('SUB_REGEX', '|\[([0-9]*)\]|i');
-define('SUB_REGEX', '/\[(.+)\]/');
+define('SUB_REGEX', '/\[([^\]]*)\]/');
 
 class ViewController extends Controller
 {
@@ -87,21 +86,80 @@ class ViewController extends Controller
 
 	/**
 	 * substitute references out of filename
-	 * @param  string $filename filename containing references
+	 * @param  string $filename filename (not raw) containing references
 	 * @return string filename with substitutions
 	 */
 	public function performFilenameSubstitution($filename) {
 		// search string for nth references [1]
 		$matches = array();
-		if (preg_match_all(SUB_REGEX, $filename, $matches, PREG_OFFSET_CAPTURE) == 1) {
-			print_r($matches);
-
+		// if there are no matches, substitution is same as input
+		$subname = $filename;
+		if (preg_match_all(SUB_REGEX, $filename, $matches, PREG_OFFSET_CAPTURE)) {
+			// record substitutions in new string called subname
+			// this is the full path up to this match
+			$subname = '';
+			if (false) {
+				print('<pre>'.print_r($matches, true).'</pre>');				
+			}
+			// mark position of last ] (i.e. last character in [2])
+			$lastpos = 0;
+			// loop through () part of regex matches
+			foreach ($matches[1] as $match) {
+				// get bit of path from last match (or start) to here
+				if ($lastpos == 0) {
+					$addition = substr($filename, 0, $match[1]-1);
+				} else {
+					$addition = substr($filename, $lastpos, $match[1]-1-$lastpos);
+				}
+				// subname gets real bit of path (from start, or last match)
+				$subname .= $addition;
+				// find file using that path
+				$matched_leaf = $this::findFile($subname, $match[0]);
+				// add found file to path
+				if ($matched_leaf === false) {
+					// fail, unable to find that file
+					throw $this->createNotFoundException('Unable to find a file matching those parameters');
+				} else {
+					$subname .= $matched_leaf;
+				}
+				$lastpos = $match[1] + 1 + strlen($match[0]);
+			}
 		} 
-// START HERE
-print($filename);
-exit;
 		// hunt for attach points from shares
-		return $filename;
+		return $subname;
+	}
+
+	/**
+	 * find a file by reference within a folder/zip
+	 * @todo  this assumes (for zips) that the match is being done immediately after a zip, but it could be a subfolder of a zip
+	 * @todo  allow match to be clever (e.g. Nth image, not just Nth file)
+	 * @param  string $filepath path to the folder to search
+	 * @param  string $match reference of file to find
+	 * @return string file leaf name, or false if failed
+	 */
+	static function findFile($filepath, $match) {
+		// get extension of last directory
+		$ext = self::getExtension($filepath);
+		if ($ext == ZIP_EXTMATCH) {
+
+		} else {
+			$listing = self::getDirectoryListing($filepath);
+			$entry_counter = 0;
+			$type_counter = array();
+			foreach ($listing as $entry) {
+				// update counters (making first entry = 1)
+				$entry_counter++;
+				if (!isset($type_counter[$entry->type])) {
+					$type_counter[$entry->type] = 0;
+				}
+				$type_counter[$entry->type]++;
+				// look for match
+				if ((int)$match == $entry_counter) {
+					return $entry->name;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -169,7 +227,7 @@ exit;
 	 */
 	static function detectZipInPath($name) {
 		// break path into component parts
-		$zip_pos = strpos($name, '.zip'.ZIP_SEPARATOR);
+		$zip_pos = strpos($name, '.'.ZIP_EXTMATCH.ZIP_SEPARATOR);
 		return $zip_pos;
 	}
 
