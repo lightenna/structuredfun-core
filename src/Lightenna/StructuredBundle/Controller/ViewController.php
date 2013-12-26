@@ -7,6 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 /** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
 define('DIR_SEPARATOR', '/');
+define('FOLDER_NAME', 'structured');
 define('ZIP_EXTMATCH', 'zip');
 define('ZIP_SEPARATOR', '/');
 define('ARG_SEPARATOR', '~args&');
@@ -17,13 +18,13 @@ class ViewController extends Controller
 	var $settings;
 
 	public function __construct() {
-		$settings_file = self::convertRawToInternalFilename('conf/structured.ini');
+		$settings_file = $this->convertRawToInternalFilename('conf/structured.ini');
 		$this->settings = parse_ini_file($settings_file, true);
 		// pull in conf.d settings
 		if (isset($this->settings['general'])) {
 			if (isset($this->settings['general']['confd'])) {
 				// read all directory entries
-				$confdirname = self::convertRawToInternalFilename($this->settings['general']['confd']);
+				$confdirname = $this->convertRawToInternalFilename($this->settings['general']['confd']);
 				// check the directory exists
 				if (is_dir($confdirname)) {
 					// process settings if found
@@ -107,6 +108,7 @@ class ViewController extends Controller
 			foreach ($matches[1] as $match) {
 				// get bit of path from last match (or start) to here
 				if ($lastpos == 0) {
+					// use $match[1]-1 because match is preceded by opening []
 					$addition = substr($filename, 0, $match[1]-1);
 				} else {
 					$addition = substr($filename, $lastpos, $match[1]-1-$lastpos);
@@ -114,7 +116,8 @@ class ViewController extends Controller
 				// subname gets real bit of path (from start, or last match)
 				$subname .= $addition;
 				// find file using that path
-				$matched_leaf = $this::findFile($subname, $match[0]);
+				// strip trailing slash because findFind works off either a directory/zip
+				$matched_leaf = $this::findFile(rtrim($subname, DIR_SEPARATOR), $match[0]);
 				// add found file to path
 				if ($matched_leaf === false) {
 					// fail, unable to find that file
@@ -124,8 +127,11 @@ class ViewController extends Controller
 				}
 				$lastpos = $match[1] + 1 + strlen($match[0]);
 			}
+			// attach remainder (unprocessed part) of filename after last match
+			$addition = substr($filename, $lastpos, strlen($filename)-$lastpos);;
+			// but remainder may include a trailing slash
+			$subname .= rtrim($addition, DIR_SEPARATOR);
 		} 
-		// hunt for attach points from shares
 		return $subname;
 	}
 
@@ -133,6 +139,7 @@ class ViewController extends Controller
 	 * find a file by reference within a folder/zip
 	 * @todo  this assumes (for zips) that the match is being done immediately after a zip, but it could be a subfolder of a zip
 	 * @todo  allow match to be clever (e.g. Nth image, not just Nth file)
+	 *     START HERE
 	 * @param  string $filepath path to the folder to search
 	 * @param  string $match reference of file to find
 	 * @return string file leaf name, or false if failed
@@ -141,22 +148,23 @@ class ViewController extends Controller
 		// get extension of last directory
 		$ext = self::getExtension($filepath);
 		if ($ext == ZIP_EXTMATCH) {
-
+			$listing = self::getZipListing(rtrim($filepath,'/'));
 		} else {
 			$listing = self::getDirectoryListing($filepath);
-			$entry_counter = 0;
-			$type_counter = array();
-			foreach ($listing as $entry) {
-				// update counters (making first entry = 1)
-				$entry_counter++;
-				if (!isset($type_counter[$entry->type])) {
-					$type_counter[$entry->type] = 0;
-				}
-				$type_counter[$entry->type]++;
-				// look for match
-				if ((int)$match == $entry_counter) {
-					return $entry->name;
-				}
+		}
+		// parse listing to match $match
+		$entry_counter = 0;
+		$type_counter = array();
+		foreach ($listing as $entry) {
+			// update counters (making first entry = 1)
+			$entry_counter++;
+			if (!isset($type_counter[$entry->type])) {
+				$type_counter[$entry->type] = 0;
+			}
+			$type_counter[$entry->type]++;
+			// look for match
+			if ((int)$match == $entry_counter) {
+				return $entry->name;
 			}
 		}
 		return false;
@@ -171,19 +179,21 @@ class ViewController extends Controller
 		// path back up out of symfony
 		$symfony_offset = '..'.DIR_SEPARATOR.'..'.DIR_SEPARATOR.'..';
 		// return composite path to real root
-		$filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR).DIR_SEPARATOR.$symfony_offset.DIR_SEPARATOR.ltrim($name, DIR_SEPARATOR);
+		$filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR).DIR_SEPARATOR.$symfony_offset;
+		// catch case where command line execution means DOCUMENT_ROOT is empty
+		if ($_SERVER['DOCUMENT_ROOT'] == '') {
+			// use php conf directory, which should be consistent across both
+			$filename = rtrim($_SERVER['PHPRC'], DIR_SEPARATOR).DIR_SEPARATOR.'..'.DIR_SEPARATOR.'..';
+		}
+		$filename .= DIR_SEPARATOR.ltrim($name, DIR_SEPARATOR);
 		return $this->performFilenameSubstitution($filename);
 	}
 
 	/**
 	 * @return Filename within structured folder without trailing slash
 	 */
-	static function convertRawToInternalFilename($name) {
-		$name = rtrim($name, DIR_SEPARATOR);
-		// path back up out of symfony
-		$symfony_offset_to_structured = '..'.DIR_SEPARATOR.'..';
-		// return composite path to real root
-		return rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR).DIR_SEPARATOR.$symfony_offset_to_structured.DIR_SEPARATOR.ltrim($name, DIR_SEPARATOR);
+	public function convertRawToInternalFilename($name) {
+		return $this->convertRawToFilename(FOLDER_NAME.DIR_SEPARATOR.$name);
 	}
 
 	/**

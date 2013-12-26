@@ -171,7 +171,7 @@ class ImageviewController extends ViewController
 	 * @return string image as a string
 	 */
 	public function loadErrorImage() {
-		return file_get_contents(self::convertRawToInternalFilename('htdocs/web/chrome/images/fullres/missing_image.jpg'));
+		return file_get_contents($this->convertRawToInternalFilename('htdocs/web/chrome/images/fullres/missing_image.jpg'));
 	}
 
 	/**

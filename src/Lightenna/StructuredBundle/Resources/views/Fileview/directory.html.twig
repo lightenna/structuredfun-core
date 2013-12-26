@@ -17,7 +17,7 @@
 	</a></li>
 		{% elseif file.type == 'image' %}
 	<li><a href="/image{{ linkpath }}{{ file.name }}">
-		<img src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" class="thumb direntry" data-base-src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
+		<img src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
 	</a></li>
 		{% elseif file.type == 'video' %}
 	<li><a href="/image{{ linkpath }}{{ file.name }}">
