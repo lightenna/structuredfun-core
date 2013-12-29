@@ -10,7 +10,9 @@
 		{% if file.type == 'directory' %}
 	<li><a href="/file{{ linkpath }}{{ file.name }}/">
 		<div class="folder direntry">
-			<img class="preview" src="/image{{ linkpath }}{{ file.name }}/[1]{{ argsbase }}{{ argsdefault }}" alt="directory preview thumbnail" />
+			{% for img_prev_n in 1..4 %}
+			<img class="preview" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=50&clipwidth=50&clipheight=50" alt="directory preview thumbnail" />
+			{% endfor %}
 			<img class="overlay" src="/chrome/images/fullres/folder_overlay.png" alt="directory semi-opaque front" />
 		</div>
 		<span class="title">{{ file.name|e }}</span>

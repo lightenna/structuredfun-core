@@ -138,8 +138,6 @@ class ViewController extends Controller
 	/**
 	 * find a file by reference within a folder/zip
 	 * @todo  this assumes (for zips) that the match is being done immediately after a zip, but it could be a subfolder of a zip
-	 * @todo  allow match to be clever (e.g. Nth image, not just Nth file)
-	 *     START HERE
 	 * @param  string $filepath path to the folder to search
 	 * @param  string $match reference of file to find
 	 * @return string file leaf name, or false if failed
@@ -147,10 +145,26 @@ class ViewController extends Controller
 	static function findFile($filepath, $match) {
 		// get extension of last directory
 		$ext = self::getExtension($filepath);
+		// pull listing
 		if ($ext == ZIP_EXTMATCH) {
 			$listing = self::getZipListing(rtrim($filepath,'/'));
 		} else {
 			$listing = self::getDirectoryListing($filepath);
+		}
+		// parse match to work out type
+		switch ($match[0]) {
+			case 'i' :
+				$match_type = 'image';
+				$match = intval(substr($match, 1));
+				break;
+			case 'n' :
+				$match_type = 'counter';
+				$match = intval(substr($match, 1));
+				break;
+			default :
+				$match_type = 'counter';
+				$match = intval($match);
+				break;
 		}
 		// parse listing to match $match
 		$entry_counter = 0;
@@ -163,9 +177,20 @@ class ViewController extends Controller
 			}
 			$type_counter[$entry->type]++;
 			// look for match
-			if ((int)$match == $entry_counter) {
-				return $entry->name;
-			}
+			switch ($match_type) {
+				// by default, match against counter
+			 	case 'counter':
+					if ($match == $entry_counter) {
+						return $entry->name;
+					}
+			 		break;
+			 	// if matching by the current entry type
+			 	case $entry->type :
+					if ($match == $type_counter[$entry->type]) {
+						return $entry->name;
+					}
+			 		break;
+			 }
 		}
 		return false;
 	}

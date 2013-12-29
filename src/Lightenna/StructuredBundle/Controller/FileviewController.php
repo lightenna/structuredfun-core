@@ -21,7 +21,7 @@ class FileviewController extends ViewController
 				'dirname' => $filename.DIR_SEPARATOR,
 				'linkpath' => rtrim($name, ZIP_SEPARATOR).ZIP_SEPARATOR,
 				'argsbase' => ARG_SEPARATOR.'thumb=true&',
-				'argsdefault' => ARG_SEPARATOR.'thumb=true&maxwidth=200&maxheight=200',
+				'argsdefault' => 'maxlongest=200&',
 				'dirlisting' => $dirlisting)
 			);
 		}
@@ -34,7 +34,7 @@ class FileviewController extends ViewController
 					'dirname' => $filename.DIR_SEPARATOR,
 					'linkpath' => rtrim($name, DIR_SEPARATOR).DIR_SEPARATOR,
 					'argsbase' => ARG_SEPARATOR.'thumb=true&',
-					'argsdefault' => ARG_SEPARATOR.'thumb=true&maxwidth=200&maxheight=200',
+					'argsdefault' => 'maxlongest=200&',
 					'dirlisting' => $dirlisting)
 				);
 			} else {
