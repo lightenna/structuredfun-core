@@ -133,7 +133,7 @@ class ImageviewController extends ViewController
 		// load image into buffer
 		$imgdata = $this->loadImage();
 		// filter based on arguments
-		if (isset($this->args['maxwidth']) || isset($this->args['maxheight'])) {
+		if ($this->argsSayFilterImage()) {
 			$imgdata = $this->filterImage($imgdata);
 		}
 		return $imgdata;
@@ -143,15 +143,55 @@ class ImageviewController extends ViewController
 	 * filter image based on its arguments
 	 */
 	public function filterImage($imgdata) {
-		if (isset($this->args['maxwidth']) || isset($this->args['maxheight'])) {
-			// resize the image, depending on type
-			$oldimg = imagecreatefromstring($imgdata);
+		if ($this->argsSayFilterImage()) {
+			// always load the image and calculate its new size (at least reads width & height from img)
+			$oldimg = imagecreatefromstring($imgdata);					
 			$this->imageCalcNewSize($oldimg);
-			$img = $this->resizeImage($oldimg);
+			// first [optionally] resize
+			if ($this->argsSayResizeImage()) {
+				$img = $this->resizeImage($oldimg);
+				// store image in oldimg for process symmetry
+				$oldimg = $img;
+			}
+			// then [optionally] clip
+			if ($this->argsSayClipImage()) {
+				if ($oldimg === null) {
+					$oldimg = imagecreatefromstring($imgdata);
+				}
+				$this->stats['newwidth'] = $this->args['clipwidth'];
+				$this->stats['newheight'] = $this->args['clipheight'];
+				$img = $this->clipImage($oldimg);
+				// store image in oldimg for process symmetry
+				$oldimg = $img;
+			}
 			// fetch new imgdata
-			$imgdata = self::getImageData($img);
+			$imgdata = self::getImageData($oldimg);
 		}
 		return $imgdata;
+	}
+
+	/**
+	 * decide if we're going to need to filter the image
+	 * @return boolean true if filtering required
+	 */
+	public function argsSayFilterImage() {
+		return ($this->argsSayResizeImage() || $this->argsSayClipImage());
+	}
+
+	/**
+	 * decide if we're going to need to resize the image
+	 * @return boolean true if resize required
+	 */
+	public function argsSayResizeImage() {
+		return (isset($this->args['maxwidth']) || isset($this->args['maxheight']) || isset($this->args['maxlongest']) || isset($this->args['maxshortest']));
+	}
+
+	/**
+	 * decide if we're going to need to clip the image
+	 * @return boolean true if clipping required
+	 */
+	public function argsSayClipImage() {
+		return (isset($this->args['clipwidth']) || isset($this->args['clipheight']));
 	}
 
 	/**
@@ -187,7 +227,25 @@ class ImageviewController extends ViewController
 	}
 
 	/**
+	 * clip image to width/height or both based on args
+	 * @param resource $img The image
+	 * @return resource 
+	 */
+	public function clipImage($img) {
+		// create a new image the correct shape and size
+		$newimg = imagecreatetruecolor($this->stats['newwidth'], $this->stats['newheight']);
+		$sx = imagesx($img)/2 - $this->stats['newwidth']/2;
+		$sy = imagesy($img)/2 - $this->stats['newheight']/2;
+		imagecopy($newimg, $img , 0, 0, $sx, $sy, $this->stats['newwidth'], $this->stats['newheight']);
+		return $newimg;
+	}
+
+	/**
 	 * use original image and args to decide new image size
+	 * max(width|height) - set the maximum width & height but constrain proportions
+	 * maxlongest - set the maximum longest edge and work out shortest
+	 * maxshortest - set the maximum shortest edge and work out longest
+	 * clip(width|height) - clip image independently of max(width|height|longest|shortest) settings
 	 */
 	public function imageCalcNewSize($img) {
 		// clear old calculations
@@ -200,34 +258,52 @@ class ImageviewController extends ViewController
 		if ($this->stats['height'] > $this->stats['width']) {
 			$portrait = true;
 		}
-		// catch case where we haven't restricted either dimension
-		if (!isset($this->args['maxwidth']) && !isset($this->args['maxheight'])) {
-			$this->stats['newwidth'] = $this->stats['width'];
-			$this->stats['newheight'] = $this->stats['height'];
-		}
 		// resize based on longest edge and args
 		// exactly 1 restriction is always set
 		if ($portrait) {
+			// use either max(width|height) as determinant, but don't set both (hence else if)
 			if (isset($this->args['maxheight'])) {
 				$this->stats['newheight'] = $this->args['maxheight'];
+			} else if (isset($this->args['maxlongest'])) {
+				// set the height to be maxlongest
+				// allow newwidth to be derived
+				$this->stats['newheight'] = $this->args['maxlongest'];
+			} else if (isset($this->args['maxshortest'])) {
+				// set the width to be maxshortest
+				// allow newheight to be derived
+				$this->stats['newwidth'] = $this->args['maxshortest'];
 			} else if (isset($this->args['maxwidth'])) {
-				// cover odd case where only width is restricted for portrait image
+				// cover odd portrait case where only width is restricted (maxwidth defined, but maxheight unset)
 				$this->stats['newwidth'] = $this->args['maxwidth'];
 			}
 		} else {
 			if (isset($this->args['maxwidth'])) {
 				$this->stats['newwidth'] = $this->args['maxwidth'];
+			} else if (isset($this->args['maxlongest'])) {
+				// set the width to be maxlongest
+				// allow newheight to be derived
+				$this->stats['newwidth'] = $this->args['maxlongest'];
+			} else if (isset($this->args['maxshortest'])) {
+				// set the height to be maxshortest
+				// allow newwidth to be derived
+				$this->stats['newheight'] = $this->args['maxshortest'];
 			} else if (isset($this->args['maxheight'])) {
-				// cover odd case where only height is restricted for landscape image
+				// cover odd landscape case where only height is restricted (maxheight defined, but maxwidth unset)
 				$this->stats['newheight'] = $this->args['maxheight'];
 			}
 		}
-		// derive unset dimension using restricted one
-		if (!isset($this->stats['newwidth'])) {
-			$this->stats['newwidth'] = $this->stats['newheight'] * $this->stats['width'] / $this->stats['height'];
-		}
-		if (!isset($this->stats['newheight'])) {
-			$this->stats['newheight'] = $this->stats['newwidth'] * $this->stats['height'] / $this->stats['width'];
+		// catch case where we haven't restricted either dimension
+		if (!isset($this->stats['newwidth']) && !isset($this->stats['newheight'])) {
+			$this->stats['newwidth'] = $this->stats['width'];
+			$this->stats['newheight'] = $this->stats['height'];
+		} else {
+			// derive unset dimension using restricted one
+			if (!isset($this->stats['newwidth'])) {
+				$this->stats['newwidth'] = $this->stats['newheight'] * $this->stats['width'] / $this->stats['height'];
+			}
+			if (!isset($this->stats['newheight'])) {
+				$this->stats['newheight'] = $this->stats['newwidth'] * $this->stats['height'] / $this->stats['width'];
+			}
 		}
 	}
 

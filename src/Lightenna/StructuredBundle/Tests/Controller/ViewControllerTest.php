@@ -78,7 +78,7 @@ class ViewControllerTest extends WebTestCase
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/'), $t->convertRawToFilename('structured/tests/data/'));
 		// test two subs
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/[1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder'));
-		// test nth
+		// test nth, 30-zip_folder is 3rd in tests/data
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/[3]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip'));
 		// test zip extract
 		$this->assertEquals($t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/[1]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/00980001.JPG'));
@@ -87,5 +87,9 @@ class ViewControllerTest extends WebTestCase
 		// @todo this test fails because we haven't coded for this case yet
 		// test zip extract from nested folder [FAILS]
 		// $this->assertEquals($t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/nested/[1]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/00980001.JPG'));
+		// test nth from mixed folder
+		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980000.txt'));
+		// test nth-image from mixed folder
+		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[i1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980001.JPG'));
 	}
 }

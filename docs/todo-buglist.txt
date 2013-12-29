@@ -1,4 +1,6 @@
 
+* Write tests for image resize/clip
+
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 
@@ -50,4 +52,8 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 
 * write test function for jazzy new performFilenameSubstitution()
   + extend to cover zips
+
+* clipping bug when used *with* resize
+  + suspect it's to do with not resetting width and height
+    + better to re-read
 
