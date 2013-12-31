@@ -13,3 +13,9 @@
 # Configuration files
 # app/config/parameters.ini
 # app/config/parameters.yml
+
+# Eclipse IDE files
+.buildpath
+.project
+.settings/
+
