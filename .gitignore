@@ -19,3 +19,6 @@
 .project
 .settings/
 
+# Ignore Compass/Sass cache
+web/chrome/.sass-cache
+
