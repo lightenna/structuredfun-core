@@ -13,13 +13,5 @@ a .folder img.overlay {
 	width: 100%;
 }
 
-a:hover .folder img.overlay {
-	height: 2em;
-	margin-top: 9em;
-	margin-bottom: 1em;
-}
-
 .direntry {
-	width: 20em;
-	height: 12em;
 }

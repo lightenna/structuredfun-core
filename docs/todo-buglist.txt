@@ -1,4 +1,7 @@
 
+* Internal server error on really big image requests
+  + http://sfun.elan/image/data/alice%20eve.zip/alice%20eve/alice-eve-06.jpg~args&thumb=true&maxwidth=4250
+
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 
