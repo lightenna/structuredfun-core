@@ -1,12 +1,92 @@
 // ---------------------------------------------------------------------------
 // Imports
 
+@import "compass/reset";
 @import "base";
+@import "susy";
+
+$total-columns: 24;
+$gutter-width: 1em;
+$grid-padding: 0;
+$container-width: 100%;
 
 /* -------------------------------------------------------------------------*/
 /* Layout */
 
-.container {
+.page {
   @include container;
-  @include susy-grid-background;
+
+  // header and footer are full-width by default.
+  .header, .footer { 
+    clear: both;
+    background-color: #ff0000;
+  }
+
+  .content {
+    background-color: #00ff00;
+
+    // t12: 12 thumb nails across/down screen
+    // every nth image completes a row.
+    ul.t24 {
+      li {
+        @include span-columns(1, 24);
+        &:nth-child(24n) { @include omega; }
+        &:nth-child(24n+1) { clear: both; }
+      }
+    }
+    
+    ul.t12 {
+      li {
+        @include span-columns(2, 24);
+        &:nth-child(12n) { @include omega; }
+        &:nth-child(12n+1) { clear: both; }
+      }
+    }
+    
+    ul.t6 {
+      li {
+        @include span-columns(4, 24);
+        &:nth-child(6n) { @include omega; }
+        &:nth-child(6n+1) { clear: both; }
+      }
+    }
+      
+    ul.t4 {
+      li {
+        @include span-columns(6, 24);
+        &:nth-child(4n) { @include omega; }
+        &:nth-child(4n+1) { clear: both; }
+      }
+    }
+      
+    ul.t3 {
+      li {
+        @include span-columns(8, 24);
+        &:nth-child(3n) { @include omega; }
+        &:nth-child(3n+1) { clear: both; }
+      }
+    }
+      
+    ul.t2 {
+      li {
+        @include span-columns(12, 24);
+        &:nth-child(2n) { @include omega; }
+        &:nth-child(2n+1) { clear: both; }
+      }
+    }
+      
+    ul.t1 {
+      li {
+        @include span-columns(24, 24);
+        &:nth-child(1n) { @include omega; }
+        &:nth-child(1n+1) { clear: both; }
+      }
+    }
+      
+    .thumb {
+      width: 100%;
+    }
+
+  }
 }
+

@@ -1,13 +1,7 @@
-<h1>Directory</h1>
-<p>Name: {{ dirname }}</p>
+{{ include('LightennaStructuredBundle:Fileview:partial.header.html.twig', {title: dirname}) }}
 
-<script type="text/javascript" src="/chrome/vendor/jquery/jquery-2.0.3.min.js"></script>
-<script type="text/javascript" src="/chrome/structured.js"></script>
-<link href="/chrome/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
-<link href="/chrome/stylesheets/overflow.css" media="screen, projection" rel="stylesheet" type="text/css" />
-
-
-<ul>
+<div class="content">
+<ul class="t6">
 	{% for file in dirlisting %}
 		{% if file.type == 'directory' %}
 	<li><a href="/file{{ linkpath }}{{ file.name }}/">
@@ -32,3 +26,6 @@
 		{% endif %}
     {% endfor %}
 </ul>
+</div><!-- /.content -->
+
+{{ include('LightennaStructuredBundle:Fileview:partial.footer.html.twig') }}
