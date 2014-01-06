@@ -74,6 +74,14 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   padding-right: 0;
   margin-left: auto;
   margin-right: auto;
+  /**
+   * Horizontal alignment
+   * - spanning on the list items
+   */
+  /**
+   * Vertical alignment
+   * - spanning on the lists (ul)
+   */
 }
 /* line 38, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/utilities/general/_clearfix.scss */
 .page:after {
@@ -90,133 +98,268 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 .page .content {
   background-color: #00ff00;
 }
-/* line 31, ../sass/screen.scss */
-.page .content ul.t24 li {
+/* line 28, ../sass/screen.scss */
+.page .content .thumb {
+  width: 100%;
+}
+/* line 41, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t24 li {
   width: 3.36134%;
   float: left;
   margin-right: 0.84034%;
   display: inline;
 }
-/* line 33, ../sass/screen.scss */
-.page .content ul.t24 li:nth-child(24n) {
+/* line 43, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t24 li:nth-child(24n) {
   float: right;
   margin-right: 0;
   *margin-left: -1em;
   display: inline;
 }
-/* line 34, ../sass/screen.scss */
-.page .content ul.t24 li:nth-child(24n+1) {
+/* line 44, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t24 li:nth-child(24n+1) {
   clear: both;
 }
-/* line 39, ../sass/screen.scss */
-.page .content ul.t12 li {
+/* line 49, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t12 li {
   width: 7.56303%;
   float: left;
   margin-right: 0.84034%;
   display: inline;
 }
-/* line 41, ../sass/screen.scss */
-.page .content ul.t12 li:nth-child(12n) {
+/* line 51, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t12 li:nth-child(12n) {
   float: right;
   margin-right: 0;
   *margin-left: -1em;
   display: inline;
 }
-/* line 42, ../sass/screen.scss */
-.page .content ul.t12 li:nth-child(12n+1) {
+/* line 52, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t12 li:nth-child(12n+1) {
   clear: both;
 }
-/* line 47, ../sass/screen.scss */
-.page .content ul.t6 li {
+/* line 57, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t6 li {
   width: 15.96639%;
   float: left;
   margin-right: 0.84034%;
   display: inline;
 }
-/* line 49, ../sass/screen.scss */
-.page .content ul.t6 li:nth-child(6n) {
+/* line 59, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t6 li:nth-child(6n) {
   float: right;
   margin-right: 0;
   *margin-left: -1em;
   display: inline;
 }
-/* line 50, ../sass/screen.scss */
-.page .content ul.t6 li:nth-child(6n+1) {
+/* line 60, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t6 li:nth-child(6n+1) {
   clear: both;
 }
-/* line 55, ../sass/screen.scss */
-.page .content ul.t4 li {
+/* line 65, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t4 li {
   width: 24.36975%;
   float: left;
   margin-right: 0.84034%;
   display: inline;
 }
-/* line 57, ../sass/screen.scss */
-.page .content ul.t4 li:nth-child(4n) {
+/* line 67, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t4 li:nth-child(4n) {
   float: right;
   margin-right: 0;
   *margin-left: -1em;
   display: inline;
 }
-/* line 58, ../sass/screen.scss */
-.page .content ul.t4 li:nth-child(4n+1) {
+/* line 68, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t4 li:nth-child(4n+1) {
   clear: both;
 }
-/* line 63, ../sass/screen.scss */
-.page .content ul.t3 li {
+/* line 73, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t3 li {
   width: 32.77311%;
   float: left;
   margin-right: 0.84034%;
   display: inline;
 }
-/* line 65, ../sass/screen.scss */
-.page .content ul.t3 li:nth-child(3n) {
+/* line 75, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t3 li:nth-child(3n) {
   float: right;
   margin-right: 0;
   *margin-left: -1em;
   display: inline;
 }
-/* line 66, ../sass/screen.scss */
-.page .content ul.t3 li:nth-child(3n+1) {
+/* line 76, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t3 li:nth-child(3n+1) {
   clear: both;
 }
-/* line 71, ../sass/screen.scss */
-.page .content ul.t2 li {
+/* line 81, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t2 li {
   width: 49.57983%;
   float: left;
   margin-right: 0.84034%;
   display: inline;
 }
-/* line 73, ../sass/screen.scss */
-.page .content ul.t2 li:nth-child(2n) {
+/* line 83, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t2 li:nth-child(2n) {
   float: right;
   margin-right: 0;
   *margin-left: -1em;
   display: inline;
 }
-/* line 74, ../sass/screen.scss */
-.page .content ul.t2 li:nth-child(2n+1) {
+/* line 84, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t2 li:nth-child(2n+1) {
   clear: both;
 }
-/* line 79, ../sass/screen.scss */
-.page .content ul.t1 li {
+/* line 89, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t1 li {
   width: 100%;
   float: left;
   margin-right: 0.84034%;
   display: inline;
 }
-/* line 81, ../sass/screen.scss */
-.page .content ul.t1 li:nth-child(1n) {
+/* line 91, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t1 li:nth-child(1n) {
   float: right;
   margin-right: 0;
   *margin-left: -1em;
   display: inline;
 }
-/* line 82, ../sass/screen.scss */
-.page .content ul.t1 li:nth-child(1n+1) {
+/* line 92, ../sass/screen.scss */
+.page .content-horiz ul.bundle-t1 li:nth-child(1n+1) {
   clear: both;
 }
-/* line 86, ../sass/screen.scss */
-.page .content .thumb {
+/* line 103, ../sass/screen.scss */
+.page .content-vert ul.bundle {
+  float: left;
+}
+/* line 107, ../sass/screen.scss */
+.page .content-vert ul.bundle li {
+  clear: both;
   width: 100%;
+}
+/* line 113, ../sass/screen.scss */
+.page .content-vert ul.bundle-t24 {
+  width: 3.36134%;
+  float: left;
+  margin-right: 0.84034%;
+  display: inline;
+}
+/* line 115, ../sass/screen.scss */
+.page .content-vert ul.bundle-t24:nth-child(24n) {
+  float: right;
+  margin-right: 0;
+  *margin-left: -1em;
+  display: inline;
+}
+/* line 116, ../sass/screen.scss */
+.page .content-vert ul.bundle-t24:nth-child(24n+1) {
+  clear: both;
+}
+/* line 119, ../sass/screen.scss */
+.page .content-vert ul.bundle-t12 {
+  width: 7.56303%;
+  float: left;
+  margin-right: 0.84034%;
+  display: inline;
+}
+/* line 121, ../sass/screen.scss */
+.page .content-vert ul.bundle-t12:nth-child(12n) {
+  float: right;
+  margin-right: 0;
+  *margin-left: -1em;
+  display: inline;
+}
+/* line 122, ../sass/screen.scss */
+.page .content-vert ul.bundle-t12:nth-child(12n+1) {
+  clear: both;
+}
+/* line 125, ../sass/screen.scss */
+.page .content-vert ul.bundle-t6 {
+  width: 15.96639%;
+  float: left;
+  margin-right: 0.84034%;
+  display: inline;
+}
+/* line 127, ../sass/screen.scss */
+.page .content-vert ul.bundle-t6:nth-child(6n) {
+  float: right;
+  margin-right: 0;
+  *margin-left: -1em;
+  display: inline;
+}
+/* line 128, ../sass/screen.scss */
+.page .content-vert ul.bundle-t6:nth-child(6n+1) {
+  clear: both;
+}
+/* line 131, ../sass/screen.scss */
+.page .content-vert ul.bundle-t4 {
+  width: 24.36975%;
+  float: left;
+  margin-right: 0.84034%;
+  display: inline;
+}
+/* line 133, ../sass/screen.scss */
+.page .content-vert ul.bundle-t4:nth-child(4n) {
+  float: right;
+  margin-right: 0;
+  *margin-left: -1em;
+  display: inline;
+}
+/* line 134, ../sass/screen.scss */
+.page .content-vert ul.bundle-t4:nth-child(4n+1) {
+  clear: both;
+}
+/* line 137, ../sass/screen.scss */
+.page .content-vert ul.bundle-t3 {
+  width: 32.77311%;
+  float: left;
+  margin-right: 0.84034%;
+  display: inline;
+}
+/* line 139, ../sass/screen.scss */
+.page .content-vert ul.bundle-t3:nth-child(3n) {
+  float: right;
+  margin-right: 0;
+  *margin-left: -1em;
+  display: inline;
+}
+/* line 140, ../sass/screen.scss */
+.page .content-vert ul.bundle-t3:nth-child(3n+1) {
+  clear: both;
+}
+/* line 143, ../sass/screen.scss */
+.page .content-vert ul.bundle-t2 {
+  width: 49.57983%;
+  float: left;
+  margin-right: 0.84034%;
+  display: inline;
+}
+/* line 145, ../sass/screen.scss */
+.page .content-vert ul.bundle-t2:nth-child(2n) {
+  float: right;
+  margin-right: 0;
+  *margin-left: -1em;
+  display: inline;
+}
+/* line 146, ../sass/screen.scss */
+.page .content-vert ul.bundle-t2:nth-child(2n+1) {
+  clear: both;
+}
+/* line 149, ../sass/screen.scss */
+.page .content-vert ul.bundle-t1 {
+  width: 100%;
+  float: left;
+  margin-right: 0.84034%;
+  display: inline;
+}
+/* line 151, ../sass/screen.scss */
+.page .content-vert ul.bundle-t1:nth-child(1n) {
+  float: right;
+  margin-right: 0;
+  *margin-left: -1em;
+  display: inline;
+}
+/* line 152, ../sass/screen.scss */
+.page .content-vert ul.bundle-t1:nth-child(1n+1) {
+  clear: both;
 }
