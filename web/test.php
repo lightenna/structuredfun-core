@@ -16,12 +16,15 @@ body {
 
 html {
   /* permanent scroll bar */
-  //overflow-<?php print $direction; ?>: scroll;
+  overflow-<?php print $direction; ?>: scroll;
 }
 
 #topcoat {
   /* make div same size as contents */
   overflow: hidden;
+}
+
+#topcoat table {
   <?php if ($direction == 'x') {?>
   /* flow elements horizontally */
   float: left;
@@ -57,12 +60,20 @@ $(document).ready(function(){
   // find topcoat and resize it to its current size (% -> px)
   // height hack because div around 100% table doesn't get given height
   var tw = $('#topcoat table').width(), th = $('#topcoat table').height();
+  var tablenew, seq=0;
   // set height back on table
   $('#topcoat table').width(tw).height(th);
-  // add more content to topcoat
-  $('#topcoat').append('<p>Appended</p>');
-  // expand width/height of page
-  $('body').width(2000);
+  // give first table an id
+  $('#topcoat table').attr('id', 'toptable-' + seq++);
+  for (i=0 ; i<20 ; ++i) {
+    // add more content to topcoat
+    tablenew = $('#toptable-0').clone();
+    tablenew.css('left',$('body').width());
+    tablenew.attr('id', 'toptable-' + seq++);
+    $('#topcoat').append(tablenew);
+    // expand width/height of page
+    $('body').width($('body').width() + tablenew.width());
+  }
 });
 
 </script>
