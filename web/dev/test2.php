@@ -23,38 +23,36 @@ html {
   -moz-column-width: 15em;
   -moz-column-gap: 0;
   background-color: #999900;
-  height: 600px;
+  height: 900px;
 }
 
 .horizontal {
-  width: 100%;
 }
 
-.horizontal li {
+.horizontal .elem {
   float: left;
 }
 
-ul, ul li {
+.container, .container .elem {
   margin: 0;
   padding: 0;
 }
 
-ul li {
+.container .elem {
   list-style: none inside none;
   width: 12em;
   height: 12em;
 }
 
-ul li img {
+.container .elem img {
   width: 12em;
   height: 12em;
-  background-color: #009900;
 }
 
-ul li:nth-child(odd) {
+.container .elem:nth-child(odd) {
   background-color: #ff0000;
 }
-ul li:nth-child(even) {
+.container .elem:nth-child(even) {
   background-color: #ffffff;
 }
 
@@ -69,6 +67,7 @@ $(document).ready(function(){
 </script>
 </head>
 <body>
+<!-- 
 <ul class="vertical">
 <li><img src="flow.jpg" alt="1" /></li>
 <li>2</li>
@@ -83,5 +82,20 @@ $(document).ready(function(){
 <li>11</li>
 <li>12</li>
 </ul>
+ -->
+<div class="container vertical">
+<p class="elem"><img src="flow.jpg" alt="1" /></p>
+<p class="elem">2</p>
+<p class="elem"><img src="flow.jpg" alt="3" /></p>
+<p class="elem"><img src="flow.jpg" alt="4" /></p>
+<p class="elem"><img src="flow.jpg" alt="5" /></p>
+<p class="elem">6</p>
+<p class="elem"><img src="flow.jpg" alt="7" /></p>
+<p class="elem"><img src="flow.jpg" alt="8" /></p>
+<p class="elem">9</p>
+<p class="elem">10</p>
+<p class="elem">11</p>
+<p class="elem">12</p>
+</div>
 </body>
 </html>
