@@ -1,6 +1,6 @@
 <?php
 
-$direction = 'y'; // | y
+$direction = 'x'; // | y
 
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -22,8 +22,12 @@ html {
 /* doesn't work in Firefox yet (maybe 28) */
 
 .cell {
+  height: 50%;
+/*
   width: 25%;
-  height: 25%;
+width: 20em;
+  height: 20em;
+*/
 }
 
 .flow-x {
@@ -45,11 +49,12 @@ ul {
 
 ul li {
   list-style: none;
+  vertical-align: middle;
 }
 
 ul li img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  max-height: 100%;
 }
 
 </style>
@@ -198,30 +203,30 @@ ul li img {
 </head>
 <body>
 <ul class="flex flow-<?php print $direction; ?> screenpc-height">
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="1" /></li>
-<li class="cell screenpc-width screenpc-height">2</li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="3" /></li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="4" /></li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="5" /></li>
-<li class="cell screenpc-width screenpc-height">6</li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="7" /></li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="8" /></li>
-<li class="cell screenpc-width screenpc-height">9</li>
-<li class="cell screenpc-width screenpc-height">10</li>
-<li class="cell screenpc-width screenpc-height">11</li>
-<li class="cell screenpc-width screenpc-height">12</li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="13" /></li>
-<li class="cell screenpc-width screenpc-height">14</li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="15" /></li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="16" /></li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="17" /></li>
-<li class="cell screenpc-width screenpc-height">18</li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="19" /></li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="20" /></li>
-<li class="cell screenpc-width screenpc-height">21</li>
-<li class="cell screenpc-width screenpc-height"><img src="flow.jpg" alt="22" /></li>
-<li class="cell screenpc-width screenpc-height">23</li>
-<li class="cell screenpc-width screenpc-height">24</li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="1" /></li>
+<li class="cell screenpc-height">2</li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="3" /></li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="4" /></li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="5" /></li>
+<li class="cell screenpc-height">6</li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="7" /></li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="8" /></li>
+<li class="cell screenpc-height">9</li>
+<li class="cell screenpc-height">10</li>
+<li class="cell screenpc-height">11</li>
+<li class="cell screenpc-height">12</li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="13" /></li>
+<li class="cell screenpc-height">14</li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="15" /></li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="16" /></li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="17" /></li>
+<li class="cell screenpc-height">18</li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="19" /></li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="20" /></li>
+<li class="cell screenpc-height">21</li>
+<li class="cell screenpc-height"><img src="flow.jpg" alt="22" /></li>
+<li class="cell screenpc-height">23</li>
+<li class="cell screenpc-height">24</li>
 </ul>
 </body>
 </html>
