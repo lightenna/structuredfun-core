@@ -3,18 +3,19 @@
 
 @import "compass/reset";
 @import "base";
-@import "susy";
-
-$total-columns: 24;
-$gutter-width: 1em;
-$grid-padding: 0;
-$container-width: 100%;
 
 /* -------------------------------------------------------------------------*/
 /* Layout */
 
+html.flow-x {
+  overflow-x: scroll;
+}
+
+html.flow-y {
+  overflow-y: scroll;
+}
+
 .page {
-  @include container;
 
   // header and footer are full-width by default.
   .header, .footer { 
@@ -25,132 +26,37 @@ $container-width: 100%;
   .content {
     background-color: #00ff00;
 
-    .thumb {
-      width: 100%;
-    }
-  }
-
-  /**
-   * Horizontal alignment
-   * - spanning on the list items
-   */
-  .content-horiz {
-    // t12: 12 thumb nails across/down screen
-    // every nth image completes a row.
-    ul.bundle-t24 {
-      li {
-        @include span-columns(1, 24);
-        &:nth-child(24n) { @include omega; }
-        &:nth-child(24n+1) { clear: both; }
-      }
-    }
-    
-    ul.bundle-t12 {
-      li {
-        @include span-columns(2, 24);
-        &:nth-child(12n) { @include omega; }
-        &:nth-child(12n+1) { clear: both; }
-      }
-    }
-    
-    ul.bundle-t6 {
-      li {
-        @include span-columns(4, 24);
-        &:nth-child(6n) { @include omega; }
-        &:nth-child(6n+1) { clear: both; }
-      }
-    }
+    .flow-em .cell {
+      width: 20em;
+      height: 20em;
       
-    ul.bundle-t4 {
-      li {
-        @include span-columns(6, 24);
-        &:nth-child(4n) { @include omega; }
-        &:nth-child(4n+1) { clear: both; }
-      }
-    }
-      
-    ul.bundle-t3 {
-      li {
-        @include span-columns(8, 24);
-        &:nth-child(3n) { @include omega; }
-        &:nth-child(3n+1) { clear: both; }
-      }
-    }
-      
-    ul.bundle-t2 {
-      li {
-        @include span-columns(12, 24);
-        &:nth-child(2n) { @include omega; }
-        &:nth-child(2n+1) { clear: both; }
-      }
-    }
-
-    ul.bundle-t1 {
-      li {
-        @include span-columns(24, 24);
-        &:nth-child(1n) { @include omega; }
-        &:nth-child(1n+1) { clear: both; }
-      }
-    }
-  }
-  
-  
-  /**
-   * Vertical alignment
-   * - spanning on the lists (ul)
-   */
-  .content-vert {
-    ul.bundle {
-      float: left;
-
-      // items always wrap on to a new line
-      li {
-        clear: both;
+      img.width-bound {
         width: 100%;
       }
-    }
-    
-    ul.bundle-t24 {
-      @include span-columns(1, 24);
-      &:nth-child(24n) { @include omega; }
-      &:nth-child(24n+1) { clear: both; }
-    }
-    
-    ul.bundle-t12 {
-      @include span-columns(2, 24);
-      &:nth-child(12n) { @include omega; }
-      &:nth-child(12n+1) { clear: both; }
-    }
-    
-    ul.bundle-t6 {
-      @include span-columns(4, 24);
-      &:nth-child(6n) { @include omega; }
-      &:nth-child(6n+1) { clear: both; }
-    }
       
-    ul.bundle-t4 {
-      @include span-columns(6, 24);
-      &:nth-child(4n) { @include omega; }
-      &:nth-child(4n+1) { clear: both; }
-    }
-      
-    ul.bundle-t3 {
-      @include span-columns(8, 24);
-      &:nth-child(3n) { @include omega; }
-      &:nth-child(3n+1) { clear: both; }
-    }
-      
-    ul.bundle-t2 {
-      @include span-columns(12, 24);
-      &:nth-child(2n) { @include omega; }
-      &:nth-child(2n+1) { clear: both; }
+      img.height-bound {
+        height: 100%;
+      }
     }
 
-    ul.bundle-t1 {
-      @include span-columns(24, 24);
-      &:nth-child(1n) { @include omega; }
-      &:nth-child(1n+1) { clear: both; }
+    /**
+     * Row major order
+     */
+    .flow-x {
+      display: -webkit-flex;
+      -webkit-flex-flow: column wrap;
+      display: flex;
+      flex-flow: column wrap;
+      height: 100%;
     }
+
+    /**
+     * Column major order
+     */
+    .flow-y li {
+      float: left;
+    }
+
   }
 
 }
