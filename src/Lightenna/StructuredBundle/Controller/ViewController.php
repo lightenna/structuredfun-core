@@ -208,14 +208,19 @@ class ViewController extends Controller {
 
   public function convertRawToFilename($name) {
     $name = rtrim($name, DIR_SEPARATOR);
-    // path back up out of symfony
-    $symfony_offset = '..' . DIR_SEPARATOR . '..' . DIR_SEPARATOR . '..';
-    // return composite path to real root
-    $filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR) . DIR_SEPARATOR . $symfony_offset;
+    // return composite path to real root (back up out of symfony)
+    $filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 3);
     // catch case where command line execution means DOCUMENT_ROOT is empty
     if ($_SERVER['DOCUMENT_ROOT'] == '') {
-      // use php conf directory, which should be consistent across both
-      $filename = rtrim($_SERVER['PHPRC'], DIR_SEPARATOR) . DIR_SEPARATOR . '..' . DIR_SEPARATOR . '..';
+      if (isset($_SERVER['PHPRC'])) {
+        // use php conf directory, which should be consistent across both
+        $filename = rtrim($_SERVER['PHPRC'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 2);
+      } else {
+        if (isset($_SERVER['PWD'])) {
+          // use php pwd
+          $filename = rtrim($_SERVER['PWD'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 2);
+        }
+      }
     }
     $filename .= DIR_SEPARATOR . ltrim($name, DIR_SEPARATOR);
     return $this->performFilenameSubstitution($filename);
