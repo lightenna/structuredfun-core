@@ -1,4 +1,8 @@
 
+* Add FileReader, then MetadataFileReader, then CachingMetadataFileReader
+  + but only after we've made the current read work
+    + unless we're refactoring in the wrong direction
+
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 

@@ -433,10 +433,26 @@ class ViewController extends Controller {
             break;
         }
       }
+      // get the image metadata to calculate display properties
+      $obj->orientation = self::getImageOrientation($obj);
       // replace this entry in the array with the object we've just made
       $listing[$k] = $obj;
     }
     return $listing;
   }
 
+  static function getImageOrientation($obj) {
+    // @todo rewrite when we have a database layer
+    $vc = new ImageviewController();
+    $basicList = array( 0 => $obj );
+    $imgdata = $vc->prepareFetchImage($basicList);
+var_dump($imgdata);
+    if ($imgdata == null)
+      return 'x';
+    $img = imagecreatefromstring($imgdata);
+    if (imagesx($img) < imagesy($img))
+      return 'y';
+    return 'x';
+  }
+  
 }

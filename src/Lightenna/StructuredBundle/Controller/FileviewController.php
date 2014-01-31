@@ -16,13 +16,16 @@ class FileviewController extends ViewController {
     if (self::getExtension($filename) == 'zip') {
       $dirlisting = self::getZipListing($filename);
       return $this
-        ->render('LightennaStructuredBundle:Fileview:directory.html.twig', array(
-          'dirname' => $name,
-          'linkpath' => rtrim($name, ZIP_SEPARATOR) . ZIP_SEPARATOR,
-          'argsbase' => ARG_SEPARATOR . 'thumb=true&',
-          'argsdefault' => 'maxlongest=200&',
-          'dirlisting' => $dirlisting
-        ));
+        ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
+          array(
+            'dirname' => $name,
+            'direction' => 'x',
+            'celltype' => 'em',
+            'linkpath' => rtrim($name, ZIP_SEPARATOR) . ZIP_SEPARATOR,
+            'argsbase' => ARG_SEPARATOR . 'thumb=true&',
+            'argsdefault' => 'maxlongest=200&',
+            'dirlisting' => $dirlisting
+          ));
     }
     // check if file/directory exists exactly as specified
     if (file_exists($filename)) {
@@ -30,13 +33,16 @@ class FileviewController extends ViewController {
         // process straight-forward directory
         $dirlisting = self::getDirectoryListing($filename);
         return $this
-          ->render('LightennaStructuredBundle:Fileview:directory.html.twig', array(
-            'dirname' => $name,
-            'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
-            'argsbase' => ARG_SEPARATOR . 'thumb=true&',
-            'argsdefault' => 'maxlongest=200&',
-            'dirlisting' => $dirlisting
-          ));
+          ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
+            array(
+              'dirname' => $name,
+              'direction' => 'x',
+              'celltype' => 'em',
+              'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
+              'argsbase' => ARG_SEPARATOR . 'thumb=true&',
+              'argsdefault' => 'maxlongest=200&',
+              'dirlisting' => $dirlisting
+            ));
       }
       else {
         // process file

@@ -1,10 +1,10 @@
-{{ include('LightennaStructuredBundle:Fileview:partial.header.html.twig', {title: dirname}) }}
+{{ include('LightennaStructuredBundle:Fileview:partial.header.html.twig', {title: dirname, direction: direction}) }}
 
 <div class="content">
-<ul class="bundleable bundle-t6">
+<ul class="flow flow-{{ direction }} flow-{{ celltype }} {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">
   {% for file in dirlisting %}
     {% if file.type == 'directory' %}
-  <li><a href="/file{{ linkpath }}{{ file.name }}/">
+  <li class="cell"><a href="/file{{ linkpath }}{{ file.name }}/">
     <div class="folder direntry">
       {% for img_prev_n in 1..4 %}
       <img class="preview" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=50&clipwidth=50&clipheight=50" alt="directory preview thumbnail" />
@@ -14,15 +14,15 @@
     <span class="title">{{ file.name|e }}</span>
   </a></li>
     {% elseif file.type == 'image' %}
-  <li><a href="/image{{ linkpath }}{{ file.name }}">
-    <img src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
+  <li class="cell"><a href="/image{{ linkpath }}{{ file.name }}">
+    <img class="{% if file.orientation == 'x' %}width-bound{% else %}height-bound{% endif %}" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
   </a></li>
     {% elseif file.type == 'video' %}
-  <li><a href="/image{{ linkpath }}{{ file.name }}">
-    <img src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" />
+  <li class="cell"><a href="/image{{ linkpath }}{{ file.name }}">
+    <img class="{% if file.orientation == 'x' %}width-bound{% else %}height-bound{% endif %}" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" />
   </a></li>
     {% else %}
-  <li>{{ file.name }}</li>
+  <li class="cell">{{ file.name }}</li>
     {% endif %}
     {% endfor %}
 </ul>

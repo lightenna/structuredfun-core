@@ -14,10 +14,16 @@ class ImageviewController extends ViewController {
   public function indexAction($rawname) {
     $name = self::convertRawToUrl($rawname);
     // build a basic listing object a la file view in $stats[0]
-    $us = array(
-      $name
-    );
-    $this->stats = self::processListing(null, $us);
+    $basicList = array( 0 => $name);
+    $stats = self::processListing(null, $basicList);
+    $this->prepareFetchImage($stats, true);
+  }
+
+  public function prepareFetchImage($stats, $outputImage = true) {
+    $imgdata = null;
+print_r($stats);
+    $name = $stats[0]->name;
+    $this->stats = $stats;
     // parse args to work out what to return
     $this->args = self::getArgsFromPath($name);
     // convert urlname to fs filename
@@ -38,7 +44,7 @@ class ImageviewController extends ViewController {
         // ...but we actually use 'filezip' for access
         $this->stats['filezip'] = $zip;
         $this->stats['ext'] = strtolower(self::getExtension($this->stats['name']));
-        $this->fetchImage();
+        $imgdata = $this->fetchImage();
         $zip->close();
       }
     }
@@ -54,10 +60,17 @@ class ImageviewController extends ViewController {
           'mtime' => filemtime($filefull),
         );
         // process the picture
-        $this->fetchImage($this->stats, $this->args);
+        $imgdata = $this->fetchImage();
       }
     }
-    exit;
+    if ($imgdata !== null) {
+      // print image to output stream, or return for internal use
+      if ($outputImage) {
+        self::returnImage($imgdata);
+      } else {
+        return $imgdata;
+      }
+    }
   }
 
   /**
@@ -87,7 +100,7 @@ class ImageviewController extends ViewController {
     $this->stats['cachekey'] = $this->cache->getKey($this->stats, $this->args);
     // if the image file exists in the cache at the requested size, return it
     if ($this->cache->exists($this->stats['cachekey'])) {
-      self::returnImage($this->cache->get($this->stats['cachekey']));
+      return $this->cache->get($this->stats['cachekey']);
     }
     else {
       // generate image based on media type
@@ -98,7 +111,7 @@ class ImageviewController extends ViewController {
           // does the full-res image exist in the cache
           $fullres_cachekey = $this->cache->getKey($this->stats, null) . '_fullres.' . $this->stats['ext'];
           if ($this->cache->exists($fullres_cachekey)) {
-            self::returnImage($this->filterImage($this->cache->get($fullres_cachekey)));
+            return $this->filterImage($this->cache->get($fullres_cachekey));
           }
           else {
             // fetch full-res image
@@ -107,15 +120,15 @@ class ImageviewController extends ViewController {
             $returnedFile = $ff->takeSnapshot('00:00:10.0', $this->cache->getFilename($fullres_cachekey));
             // if no image produced (e.g. video corrupted or stored in zip)
             if ($returnedFile === false) {
-              $this->returnImage($this->filterImage($this->loadErrorImage()));
+              return $this->filterImage($this->loadErrorImage());
             }
             $this->stats['file'] = $returnedFile;
-            $this->returnImage($this->loadAndFilterImage());
+            return $this->loadAndFilterImage();
           }
           break;
         default:
         case 'image':
-          $this->returnImage($this->loadAndFilterImage());
+          return $this->loadAndFilterImage();
           break;
       }
     }
@@ -130,6 +143,7 @@ class ImageviewController extends ViewController {
     header("Content-Type: image/" . $this->stats['ext']);
     header("Content-Length: " . strlen($imgdata));
     echo $imgdata;
+    exit;
   }
 
   /**
