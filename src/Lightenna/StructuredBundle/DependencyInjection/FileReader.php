@@ -14,7 +14,8 @@ class FileReader {
     // parse filename for zip marker
     if (($zip_pos = self::detectZip($filename)) !== false) {
       $this->file_part = substr($filename, 0, $zip_pos);
-      $this->zip_part = substr($filename, $zip_pos);
+      // store zip_part without preceding or trailing slash
+      $this->zip_part = ltrim(substr($filename, $zip_pos), DIR_SEPARATOR);
     }
     else {
       $this->file_part = $filename;
@@ -27,7 +28,16 @@ class FileReader {
 
   public function isExisting() {
     if ($this->inZip()) {
-      
+      // get the zip's listing, then scan for file entry
+      $this->getListing();
+      foreach($this->listing as $k => $item) {
+        // PROBLEM: we've already stripped the
+        // @todo START HERE
+        // split zip_part into zip_directory_part and zip_file_part
+        // make getListing crop & strip against the directory part 
+        //  + good for all kinds of things
+        // might be hard to tell the difference between file and directory
+      }
     } else {
       // use filesystem to detect presence
       return file_exists($this->file_part);
@@ -44,6 +54,8 @@ class FileReader {
 
   /**
    * Return a directory listing
+   * Crops and strips the zip_part from the listing items
+   * @return array Processed listing
    */
 
   public function getListing() {
@@ -53,7 +65,7 @@ class FileReader {
     }
     // get listing either using file system directly, or parsing zip
     if ($this->inZip()) {
-      $zip = zip_open($file_part);
+      $zip = zip_open($this->file_part);
       $listing = array();
       if ($zip) {
         while ($zip_entry = zip_read($zip)) {
@@ -61,9 +73,23 @@ class FileReader {
         }
         zip_close($zip);
       }
-      /**
-       * @todo crop zip entries based on directory path (zip_part)
-       */
+      // if zip_part is set and has characters
+      if (($this->zip_part !== null) && ($len = strlen($this->zip_part)) > 0) {
+        foreach($listing as $k => $item) {
+          // crop zip entries based on directory path (zip_part)
+          if (!(substr($item, 0, $len) === $this->zip_part)) {
+            unset($listing[$k]);
+          }
+          // remove entry for the directory itself too
+          else if (($item === $this->zip_part) || ($item === ($this->zip_part.DIR_SEPARATOR))) {
+            unset($listing[$k]);
+          }
+          // finally for each valid entry, remove the zip part and slash
+          else {
+            $listing[$k] = substr($item, $len+1);
+          }
+        }
+      }
     }
     else {
       $listing = scandir($this->file_part);
@@ -88,6 +114,8 @@ class FileReader {
       // replace this entry in the array with the object we've just made
       $listing[$k] = $obj;
     }
+    // store locally and return
+    $this->listing = $listing;
     return $listing;
   }
 
@@ -131,7 +159,7 @@ class FileReader {
    */
 
   static function detectZip($comp) {
-    $zip_pos = strpos($comp, '.' . ZIP_EXTMATCH . ZIP_SEPARATOR);
+    $zip_pos = strpos($comp, '.' . ZIP_EXTMATCH);
     if ($zip_pos !== false) {
       $zip_pos += strlen(ZIP_EXTMATCH) + 1;
     }
