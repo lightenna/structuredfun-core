@@ -1,5 +1,5 @@
 
-* Make test suite work for ViewController URL transformations plus new FileReader ones
+* Rewrite ViewController to use FileReader
 
 * Make Fileview work using FileReader family classes
 
@@ -72,4 +72,7 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 * Add FileReader, then MetadataFileReader, then CachingMetadataFileReader
   + but only after we've made the current read work
     + unless we're refactoring in the wrong direction
+
+* Make test suite work for ViewController URL transformations plus new FileReader ones
+  + sort of, ok for now
 
