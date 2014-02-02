@@ -1,6 +1,7 @@
 <?php
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
+
 class MetadataFileReader extends FileReader {
 
   /**
@@ -35,7 +36,7 @@ class MetadataFileReader extends FileReader {
           break;
       }
       // get the image metadata to calculate display properties
-      // $obj->orientation = self::getImageOrientation($obj);
+      $obj->orientation = 'x';
     }
     return $listing;
   }

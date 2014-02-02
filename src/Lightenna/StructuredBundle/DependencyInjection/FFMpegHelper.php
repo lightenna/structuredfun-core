@@ -2,7 +2,7 @@
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
 
-class FFmpegHelper
+class FFMpegHelper
 {
 	var $cache;
 	var $stats;

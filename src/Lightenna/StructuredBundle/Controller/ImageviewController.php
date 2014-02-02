@@ -21,7 +21,6 @@ class ImageviewController extends ViewController {
 
   public function prepareFetchImage($stats, $outputImage = true) {
     $imgdata = null;
-print_r($stats);
     $name = $stats[0]->name;
     $this->stats = $stats;
     // parse args to work out what to return
