@@ -3,7 +3,6 @@
 namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
-// use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 
 class FileviewController extends ViewController {
 
@@ -11,9 +10,6 @@ class FileviewController extends ViewController {
     // convert rawname to urlname and filename
     $filename = $this->convertRawToFilename($rawname);
     $name = self::convertRawToUrl($rawname);
-    if (DEBUG && false) {
-      print('name(' . $filename . ') type(' . self::getExtension($filename) . ') -> ' . file_exists($filename));
-    }
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
     $mfr = new MetadataFileReader($filename);
     if ($mfr->isExisting()) {

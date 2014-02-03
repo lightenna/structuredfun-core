@@ -78,3 +78,6 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 
 * Make Fileview work using FileReader family classes
 
+* Try getListing on single file
+  + should just return that file
+

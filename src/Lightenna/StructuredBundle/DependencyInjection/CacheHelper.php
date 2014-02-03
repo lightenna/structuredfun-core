@@ -18,9 +18,9 @@ class CacheHelper
 	 * @return string A cache key based on the file's metadata
 	 */
 	public function getKey($stats, $args = null) {
-		$cachestring = $stats['file'];
+		$cachestring = $stats->file;
 		$cachestring .= self::flattenKeyArgs($args);
-		$key = md5($cachestring).'.'.$stats['ext'];
+		$key = md5($cachestring).'.'.$stats->ext;
 		return $key;
 	}
 

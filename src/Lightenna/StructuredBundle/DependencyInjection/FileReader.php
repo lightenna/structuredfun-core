@@ -1,7 +1,6 @@
 <?php
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
-
 class FileReader {
 
   // parts of filename
@@ -9,6 +8,8 @@ class FileReader {
   var $file_part = null;
   var $zip_part_path = null;
   var $zip_part_leaf = null;
+  var $file_part_path = null;
+  var $file_part_leaf = null;
 
   // file listing if this is a folder
   var $listing = null;
@@ -24,26 +25,11 @@ class FileReader {
       $this->file_part = substr($filename, 0, $zip_pos);
       // store zip_part without preceding slash
       $this->zip_part = ltrim(substr($filename, $zip_pos), DIR_SEPARATOR);
-      // detect if the zip_part has a file bit, detect the last dot (filename)
-      if (($dot_pos = strrpos($this->zip_part, '.')) !== false) {
-        // detect if the zip_part has a directory path, find preceding slash
-        if (($slash_pos = strrpos(substr($this->zip_part, 0, $dot_pos), DIR_SEPARATOR)) !== false) {
-          // if so split into path and leaf
-          $this->zip_part_path = substr($this->zip_part, 0, $slash_pos);
-          $this->zip_part_leaf = substr($this->zip_part, $slash_pos + 1);
-        }
-        else {
-          // treat whole thing as leaf
-          $this->zip_part_leaf = $this->zip_part;
-        }
-      }
-      else {
-        // treat the whole thing as a path
-        $this->zip_part_path = $this->zip_part;
-      }
+      list($this->zip_part_path, $this->zip_part_leaf) = $this->splitPathLeaf($this->zip_part);
     }
     else {
       $this->file_part = $filename;
+      list($this->file_part_path, $this->file_part_leaf) = $this->splitPathLeaf($this->file_part);
     }
   }
 
@@ -143,7 +129,16 @@ class FileReader {
       }
     }
     else {
-      $listing = scandir($this->file_part);
+      // if it's a directory, scan it
+      if (is_dir($this->file_part)) {
+        $listing = scandir($this->file_part);
+      }
+      // if it's a file, make it up
+      else {
+        $listing = array(
+          $this->file_part_leaf,
+        );
+      }
     }
     foreach ($listing as $k => $v) {
       if ($v == '.' || $v == '..') {
@@ -153,8 +148,15 @@ class FileReader {
       // create an object (stdClass is outside of namespace)
       $obj = new \stdClass();
       $obj->{'name'} = $v;
-      if ($this->file_part !== null) {
+      // if listing just a file
+      if ($this->file_part_leaf !== null) {
+        $obj->{'path'} = $this->file_part_path;
+        $obj->{'file'} = $this->file_part . DIR_SEPARATOR . $obj->{'name'};
+      }
+      // if listing a directory/zip
+      else if ($this->file_part !== null) {
         $obj->{'path'} = $this->file_part;
+        $obj->{'file'} = $this->file_part;
       }
       // assume it's a generic file
       $obj->{'type'} = 'genfile';
@@ -170,6 +172,24 @@ class FileReader {
     return $listing;
   }
 
+  /**
+   * @return File entry for first item in listing (if directory) or only item (file)
+   */
+  public function getStats() {
+    if ($this->listing === null) {
+      $this->getListing();
+    }
+    return reset($this->listing);
+  }
+  
+  /**
+   * @return string Contents of file
+   */
+  public function get() {
+    // START HERE
+    return 'xdxdxd';
+  }
+  
   /**
    * ----------------
    * HELPER functions
@@ -225,4 +245,34 @@ class FileReader {
     return ($this->zip_part !== null);
   }
 
+  /**
+   * Split a filename into leaf and path
+   * @param string $fullstr Full input filename
+   * @return array(string, string) Path and leaf
+   */
+
+  public function splitPathLeaf($fullstr) {
+    $path = $leaf = null;
+    // detect if the zip_part has a file bit, detect the last dot (filename)
+    if (($dot_pos = strrpos($fullstr, '.')) !== false) {
+      // detect if the zip_part has a directory path, find preceding slash
+      if (($slash_pos = strrpos(substr($fullstr, 0, $dot_pos), DIR_SEPARATOR)) !== false) {
+        // if so split into path and leaf
+        $path = substr($fullstr, 0, $slash_pos);
+        $leaf = substr($fullstr, $slash_pos + 1);
+      }
+      else {
+        // treat whole thing as leaf
+        $leaf = $fullstr;
+      }
+    }
+    else {
+      // treat the whole thing as a path
+      $path = $fullstr;
+    }
+    return array(
+      $path,
+      $leaf
+    );
+  }
 }

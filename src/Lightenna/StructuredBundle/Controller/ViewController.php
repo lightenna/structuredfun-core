@@ -69,6 +69,14 @@ class ViewController extends Controller {
   }
 
   /**
+   * @return array Settings
+   */
+
+  public function getSettings() {
+    return $this->settings;
+  }
+
+  /**
    * parse settings array, look for and return shares
    * @param  Array $arr to search
    * @todo could insert validation here to check values
@@ -215,7 +223,8 @@ class ViewController extends Controller {
       if (isset($_SERVER['PHPRC'])) {
         // use php conf directory, which should be consistent across both
         $filename = rtrim($_SERVER['PHPRC'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 2);
-      } else {
+      }
+      else {
         if (isset($_SERVER['PWD'])) {
           // use php pwd
           $filename = rtrim($_SERVER['PWD'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 2);
@@ -449,9 +458,11 @@ class ViewController extends Controller {
   static function getImageOrientation($obj) {
     // @todo rewrite when we have a database layer
     $vc = new ImageviewController();
-    $basicList = array( 0 => $obj );
+    $basicList = array(
+      0 => $obj
+    );
     $imgdata = $vc->prepareFetchImage($basicList);
-var_dump($imgdata);
+    var_dump($imgdata);
     if ($imgdata == null)
       return 'x';
     $img = imagecreatefromstring($imgdata);
@@ -459,5 +470,5 @@ var_dump($imgdata);
       return 'y';
     return 'x';
   }
-  
+
 }
