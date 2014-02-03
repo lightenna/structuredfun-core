@@ -1,4 +1,4 @@
-<html class="flow-{{ direction }}">
+<html{% if (direction is defined) %} class="flow-{{ direction }}"{% endif %}>
 <head>
 <title>Directory {{ title }} - StructuredFun</title>
 <script type="text/javascript" src="/chrome/vendor/jquery/jquery-2.0.3.min.js"></script>

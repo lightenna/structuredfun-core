@@ -21,6 +21,18 @@ class MetadataFileReaderTest extends WebTestCase {
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested'));
     $first = reset($mfr->getListing());
     $this->assertEquals($first->{'name'}, '00980006.JPG');
+    // get listing for a single file
+    $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'));
+    $first = reset($mfr->getListing());
+    $this->assertEquals($first->{'name'}, '00980001.JPG');    
+    // get listing for a single file in a zip
+    $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip'));
+    $first = reset($mfr->getListing());
+    $this->assertEquals($first->{'name'}, '00980001.JPG');    
+    // get listing for a single file in a nested folder in a zip
+    $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested'));
+    $first = reset($mfr->getListing());
+    $this->assertEquals($first->{'name'}, '00980006.JPG');    
   }
 
   public function testIsExisting() {

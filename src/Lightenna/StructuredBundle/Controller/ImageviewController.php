@@ -3,72 +3,36 @@
 namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\FFmpegHelper;
-use Lightenna\StructuredBundle\DependencyInjection\CacheHelper;
+use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 class ImageviewController extends ViewController {
   // @param Array image metadata array
   private $stats;
   // @param Array URL arguments array
   private $args;
+  // @param FileReader object
+  private $mfr;
 
   public function indexAction($rawname) {
+    // convert rawname to urlname and filename
+    $filename = $this->convertRawToFilename($rawname);
     $name = self::convertRawToUrl($rawname);
-    // build a basic listing object a la file view in $stats[0]
-    $basicList = array( 0 => $name);
-    $stats = self::processListing(null, $basicList);
-    $this->prepareFetchImage($stats, true);
-  }
-
-  public function prepareFetchImage($stats, $outputImage = true) {
-    $imgdata = null;
-    $name = $stats[0]->name;
-    $this->stats = $stats;
-    // parse args to work out what to return
-    $this->args = self::getArgsFromPath($name);
-    // convert urlname to fs filename
-    $filefull = $this->convertRawToFilename(self::getFileBitFromPath($name));
-    // search path for any zip directories
-    if (self::detectZipInPath($name) !== false) {
-      // convert path to zip to full path to zip
-      $zipfull = self::getZipBitFromZipPath($filefull);
-      // open up the zip file
-      $zip = new \ZipArchive;
-      if ($zip->open($zipfull) === true) {
-        // work out the filename within the zip
-        $fileInZip = self::getFileBitFromZipPath($filefull);
-        // build up minimum information about this file
-        $this->stats += $zip->statName($fileInZip);
-        // include abstract 'file' full name for reference (e.g. caching)...
-        $this->stats['file'] = $filefull;
-        // ...but we actually use 'filezip' for access
-        $this->stats['filezip'] = $zip;
-        $this->stats['ext'] = strtolower(self::getExtension($this->stats['name']));
-        $imgdata = $this->fetchImage();
-        $zip->close();
-      }
+    // get file reader object
+    $this->mfr = new CachedMetadataFileReader($filename, $this);
+    // read metadata
+    $listing = $this->mfr->getListing();
+    // file is first element in returned listing array
+    $this->stats = reset($listing);
+print_r($this->stats);
+    // get image and return
+    $imgdata = $this->fetchImage();
+    if ($imgdata !== null) {
+      // print image to output stream
+      self::returnImage($imgdata);
     }
     else {
-      // check that the file exists
-      if (file_exists($filefull)) {
-        // pull minimum information about this file
-        $this->stats += array(
-          'name' => $filefull,
-          'file' => $filefull,
-          'ext' => strtolower(self::getExtension($filefull)),
-          'size' => filesize($filefull),
-          'mtime' => filemtime($filefull),
-        );
-        // process the picture
-        $imgdata = $this->fetchImage();
-      }
-    }
-    if ($imgdata !== null) {
-      // print image to output stream, or return for internal use
-      if ($outputImage) {
-        self::returnImage($imgdata);
-      } else {
-        return $imgdata;
-      }
+      // implied else
+      return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
     }
   }
 
@@ -79,6 +43,14 @@ class ImageviewController extends ViewController {
 
   public function setArgs($a) {
     $this->args = $a;
+  }
+
+  /**
+   * @return array arguments array
+   */
+
+  public function getArgs() {
+    return $this->args;
   }
 
   /**
@@ -94,42 +66,41 @@ class ImageviewController extends ViewController {
    */
 
   public function fetchImage() {
-    $listing = $this->stats[0];
-    $this->cache = new CacheHelper($this->settings, $this);
-    $this->stats['cachekey'] = $this->cache->getKey($this->stats, $this->args);
-    // if the image file exists in the cache at the requested size, return it
-    if ($this->cache->exists($this->stats['cachekey'])) {
-      return $this->cache->get($this->stats['cachekey']);
+    // @todo come back to caching
+    /**
+    if ($this->mfr->isCached()) {
+      return $this->mfr->get();
     }
     else {
-      // generate image based on media type
-      switch ($listing->type) {
-        case 'video':
-        // override the extension to return an image
-          $this->stats['ext'] = 'jpg';
-          // does the full-res image exist in the cache
-          $fullres_cachekey = $this->cache->getKey($this->stats, null) . '_fullres.' . $this->stats['ext'];
-          if ($this->cache->exists($fullres_cachekey)) {
-            return $this->filterImage($this->cache->get($fullres_cachekey));
+    }
+     */
+    // generate image based on media type
+    switch ($this->stats->type) {
+      case 'video':
+      // override the extension to return an image
+        $this->stats->ext = 'jpg';
+        // does the full-res image exist in the cache
+        $fullres_cachekey = $this->cache->getKey($this->stats, null) . '_fullres.' . $this->stats->{'ext'};
+        if ($this->cache->exists($fullres_cachekey)) {
+          return $this->filterImage($this->cache->get($fullres_cachekey));
+        }
+        else {
+          // fetch full-res image
+          $ff = new FFmpegHelper($this->stats, $this->cache, $this);
+          // update stats array with new location of image in cache
+          $returnedFile = $ff->takeSnapshot('00:00:10.0', $this->cache->getFilename($fullres_cachekey));
+          // if no image produced (e.g. video corrupted or stored in zip)
+          if ($returnedFile === false) {
+            return $this->filterImage($this->loadErrorImage());
           }
-          else {
-            // fetch full-res image
-            $ff = new FFmpegHelper($this->stats, $this->cache, $this);
-            // update stats array with new location of image in cache
-            $returnedFile = $ff->takeSnapshot('00:00:10.0', $this->cache->getFilename($fullres_cachekey));
-            // if no image produced (e.g. video corrupted or stored in zip)
-            if ($returnedFile === false) {
-              return $this->filterImage($this->loadErrorImage());
-            }
-            $this->stats['file'] = $returnedFile;
-            return $this->loadAndFilterImage();
-          }
-          break;
-        default:
-        case 'image':
+          $this->stats->{'file'} = $returnedFile;
           return $this->loadAndFilterImage();
-          break;
-      }
+        }
+        break;
+      default:
+      case 'image':
+        return $this->loadAndFilterImage();
+        break;
     }
   }
 
@@ -139,7 +110,7 @@ class ImageviewController extends ViewController {
    */
 
   public function returnImage($imgdata) {
-    header("Content-Type: image/" . $this->stats['ext']);
+    header("Content-Type: image/" . $this->stats->{'ext'});
     header("Content-Length: " . strlen($imgdata));
     echo $imgdata;
     exit;
@@ -179,8 +150,8 @@ class ImageviewController extends ViewController {
         if ($oldimg === null) {
           $oldimg = imagecreatefromstring($imgdata);
         }
-        $this->stats['newwidth'] = $this->args['clipwidth'];
-        $this->stats['newheight'] = $this->args['clipheight'];
+        $this->stats->{'newwidth'} = $this->args['clipwidth'];
+        $this->stats->{'newheight'} = $this->args['clipheight'];
         $img = $this->clipImage($oldimg);
         // store image in oldimg for process symmetry
         $oldimg = $img;
@@ -224,12 +195,7 @@ class ImageviewController extends ViewController {
    **/
 
   public function loadImage() {
-    if (isset($this->stats['filezip'])) {
-      return $this->stats['filezip']->getFromName($this->stats['name']);
-    }
-    else {
-      return file_get_contents($this->stats['file']);
-    }
+    return $this->mfr->get();
   }
 
   /**
@@ -249,8 +215,8 @@ class ImageviewController extends ViewController {
 
   public function resizeImage($img) {
     // create a new image the correct shape and size
-    $newimg = imagecreatetruecolor($this->stats['newwidth'], $this->stats['newheight']);
-    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->stats['newwidth'], $this->stats['newheight'], $this->stats['width'], $this->stats['height']);
+    $newimg = imagecreatetruecolor($this->stats->{'newwidth'}, $this->stats->{'newheight'});
+    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->stats->{'newwidth'}, $this->stats->{'newheight'}, $this->stats->{'width'}, $this->stats->{'height'});
     return $newimg;
   }
 
@@ -262,10 +228,10 @@ class ImageviewController extends ViewController {
 
   public function clipImage($img) {
     // create a new image the correct shape and size
-    $newimg = imagecreatetruecolor($this->stats['newwidth'], $this->stats['newheight']);
-    $sx = imagesx($img) / 2 - $this->stats['newwidth'] / 2;
-    $sy = imagesy($img) / 2 - $this->stats['newheight'] / 2;
-    imagecopy($newimg, $img, 0, 0, $sx, $sy, $this->stats['newwidth'], $this->stats['newheight']);
+    $newimg = imagecreatetruecolor($this->stats->{'newwidth'}, $this->stats->{'newheight'});
+    $sx = imagesx($img) / 2 - $this->stats->{'newwidth'} / 2;
+    $sy = imagesy($img) / 2 - $this->stats->{'newheight'} / 2;
+    imagecopy($newimg, $img, 0, 0, $sx, $sy, $this->stats->{'newwidth'}, $this->stats->{'newheight'});
     return $newimg;
   }
 
@@ -279,13 +245,13 @@ class ImageviewController extends ViewController {
 
   public function imageCalcNewSize($img) {
     // clear old calculations
-    unset($this->stats['newwidth']);
-    unset($this->stats['newheight']);
+    unset($this->stats->{'newwidth'});
+    unset($this->stats->{'newheight'});
     // find image orientation
-    $this->stats['width'] = imagesx($img);
-    $this->stats['height'] = imagesy($img);
+    $this->stats->{'width'} = imagesx($img);
+    $this->stats->{'height'} = imagesy($img);
     $portrait = false;
-    if ($this->stats['height'] > $this->stats['width']) {
+    if ($this->stats->{'height'} > $this->stats->{'width'}) {
       $portrait = true;
     }
     // resize based on longest edge and args
@@ -293,62 +259,62 @@ class ImageviewController extends ViewController {
     if ($portrait) {
       // use either max(width|height) as determinant, but don't set both (hence else if)
       if (isset($this->args['maxheight'])) {
-        $this->stats['newheight'] = $this->args['maxheight'];
+        $this->stats->{'newheight'} = $this->args['maxheight'];
       }
       else if (isset($this->args['maxlongest'])) {
         // set the height to be maxlongest
         // allow newwidth to be derived
-        $this->stats['newheight'] = $this->args['maxlongest'];
+        $this->stats->{'newheight'} = $this->args['maxlongest'];
       }
       else if (isset($this->args['maxshortest'])) {
         // set the width to be maxshortest
         // allow newheight to be derived
-        $this->stats['newwidth'] = $this->args['maxshortest'];
+        $this->stats->{'newwidth'} = $this->args['maxshortest'];
       }
       else if (isset($this->args['maxwidth'])) {
         // cover odd portrait case where only width is restricted (maxwidth defined, but maxheight unset)
-        $this->stats['newwidth'] = $this->args['maxwidth'];
+        $this->stats->{'newwidth'} = $this->args['maxwidth'];
       }
     }
     else {
       if (isset($this->args['maxwidth'])) {
-        $this->stats['newwidth'] = $this->args['maxwidth'];
+        $this->stats->{'newwidth'} = $this->args['maxwidth'];
       }
       else if (isset($this->args['maxlongest'])) {
         // set the width to be maxlongest
         // allow newheight to be derived
-        $this->stats['newwidth'] = $this->args['maxlongest'];
+        $this->stats->{'newwidth'} = $this->args['maxlongest'];
       }
       else if (isset($this->args['maxshortest'])) {
         // set the height to be maxshortest
         // allow newwidth to be derived
-        $this->stats['newheight'] = $this->args['maxshortest'];
+        $this->stats->{'newheight'} = $this->args['maxshortest'];
       }
       else if (isset($this->args['maxheight'])) {
         // cover odd landscape case where only height is restricted (maxheight defined, but maxwidth unset)
-        $this->stats['newheight'] = $this->args['maxheight'];
+        $this->stats->{'newheight'} = $this->args['maxheight'];
       }
     }
     // don't allow image to exceed original at 200%
     $factor = 2;
-    if (isset($this->stats['newwidth']) && $this->stats['newwidth'] > $factor * $this->stats['width']) {
-      $this->stats['newwidth'] = $factor * $this->stats['height'];
+    if (isset($this->stats->{'newwidth'}) && $this->stats->{'newwidth'} > $factor * $this->stats->{'width'}) {
+      $this->stats->{'newwidth'} = $factor * $this->stats->{'height'};
     }
-    if (isset($this->stats['newheight']) && $this->stats['newheight'] > $factor * $this->stats['width']) {
-      $this->stats['newheight'] = $factor * $this->stats['height'];
+    if (isset($this->stats->{'newheight'}) && $this->stats->{'newheight'} > $factor * $this->stats->{'width'}) {
+      $this->stats->{'newheight'} = $factor * $this->stats->{'height'};
     }
     // catch case where we haven't restricted either dimension
-    if (!isset($this->stats['newwidth']) && !isset($this->stats['newheight'])) {
-      $this->stats['newwidth'] = $this->stats['width'];
-      $this->stats['newheight'] = $this->stats['height'];
+    if (!isset($this->stats->{'newwidth'}) && !isset($this->stats->{'newheight'})) {
+      $this->stats->{'newwidth'} = $this->stats->{'width'};
+      $this->stats->{'newheight'} = $this->stats->{'height'};
     }
     else {
       // derive unset dimension using restricted one
-      if (!isset($this->stats['newwidth'])) {
-        $this->stats['newwidth'] = $this->stats['newheight'] * $this->stats['width'] / $this->stats['height'];
+      if (!isset($this->stats->{'newwidth'})) {
+        $this->stats->{'newwidth'} = $this->stats->{'newheight'} * $this->stats->{'width'} / $this->stats->{'height'};
       }
-      if (!isset($this->stats['newheight'])) {
-        $this->stats['newheight'] = $this->stats['newwidth'] * $this->stats['height'] / $this->stats['width'];
+      if (!isset($this->stats->{'newheight'})) {
+        $this->stats->{'newheight'} = $this->stats->{'newwidth'} * $this->stats->{'height'} / $this->stats->{'width'};
       }
     }
   }
