@@ -2,6 +2,7 @@
 
 namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 /** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
@@ -13,7 +14,12 @@ define('ARG_SEPARATOR', '~args&');
 define('SUB_REGEX', '/\[([^\]]*)\]/');
 
 class ViewController extends Controller {
-  var $settings;
+
+  private $settings;
+  // @param Array URL arguments array
+  private $args;
+  // @param FileReader object
+  private $mfr;
 
   public function __construct() {
     $settings_file = $this->convertRawToInternalFilename('conf/structured.ini');
@@ -41,6 +47,23 @@ class ViewController extends Controller {
     }
     // process settings
     $this->processSettings();
+  }
+
+  /**
+   * overwrite the arguments array (used for testing)
+   * @param array $a new arguments array
+   */
+
+  public function setArgs($a) {
+    $this->args = $a;
+  }
+
+  /**
+   * @return array arguments array
+   */
+
+  public function getArgs() {
+    return $this->args;
   }
 
   /**
@@ -127,7 +150,7 @@ class ViewController extends Controller {
         $subname .= $addition;
         // find file using that path
         // strip trailing slash because findFind works off either a directory/zip
-        $matched_leaf = $this::findFile(rtrim($subname, DIR_SEPARATOR), $match[0]);
+        $matched_leaf = $this->findFile(rtrim($subname, DIR_SEPARATOR), $match[0]);
         // add found file to path
         if ($matched_leaf === false) {
           // fail, unable to find that file
@@ -155,16 +178,9 @@ class ViewController extends Controller {
    * @return string file leaf name, or false if failed
    */
 
-  static function findFile($filepath, $match) {
-    // get extension of last directory
-    $ext = self::getExtension($filepath);
-    // pull listing
-    if ($ext == ZIP_EXTMATCH) {
-      $listing = self::getZipListing(rtrim($filepath, '/'));
-    }
-    else {
-      $listing = self::getDirectoryListing($filepath);
-    }
+  public function findFile($filepath, $match) {
+    $this->mfr = new CachedMetadataFileReader($filepath, $this);
+    $listing = $this->mfr->getListing();
     // parse match to work out type
     switch ($match[0]) {
       case 'i':
@@ -447,8 +463,6 @@ class ViewController extends Controller {
             break;
         }
       }
-      // get the image metadata to calculate display properties
-      $obj->orientation = self::getImageOrientation($obj);
       // replace this entry in the array with the object we've just made
       $listing[$k] = $obj;
     }

@@ -11,10 +11,10 @@ class FileviewController extends ViewController {
     $filename = $this->convertRawToFilename($rawname);
     $name = self::convertRawToUrl($rawname);
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
-    $mfr = new MetadataFileReader($filename);
-    if ($mfr->isExisting()) {
-      if ($mfr->isDirectory()) {
-        $dirlisting = $mfr->getListing();
+    $this->mfr = new MetadataFileReader($filename);
+    if ($this->mfr->isExisting()) {
+      if ($this->mfr->isDirectory()) {
+        $dirlisting = $this->mfr->getListing();
         return $this
           ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
             array(

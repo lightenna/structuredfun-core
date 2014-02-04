@@ -8,10 +8,6 @@ use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 class ImageviewController extends ViewController {
   // @param Array image metadata array
   private $stats;
-  // @param Array URL arguments array
-  private $args;
-  // @param FileReader object
-  private $mfr;
 
   public function indexAction($rawname) {
     // convert rawname to urlname and filename
@@ -23,7 +19,7 @@ class ImageviewController extends ViewController {
     $listing = $this->mfr->getListing();
     // file is first element in returned listing array
     $this->stats = reset($listing);
-print_r($this->stats);
+    $this->args = self::getArgsFromPath($name);
     // get image and return
     $imgdata = $this->fetchImage();
     if ($imgdata !== null) {
@@ -34,23 +30,6 @@ print_r($this->stats);
       // implied else
       return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
     }
-  }
-
-  /**
-   * overwrite the arguments array (used for testing)
-   * @param array $a new arguments array
-   */
-
-  public function setArgs($a) {
-    $this->args = $a;
-  }
-
-  /**
-   * @return array arguments array
-   */
-
-  public function getArgs() {
-    return $this->args;
   }
 
   /**
@@ -66,14 +45,6 @@ print_r($this->stats);
    */
 
   public function fetchImage() {
-    // @todo come back to caching
-    /**
-    if ($this->mfr->isCached()) {
-      return $this->mfr->get();
-    }
-    else {
-    }
-     */
     // generate image based on media type
     switch ($this->stats->type) {
       case 'video':
@@ -81,7 +52,7 @@ print_r($this->stats);
         $this->stats->ext = 'jpg';
         // does the full-res image exist in the cache
         $fullres_cachekey = $this->cache->getKey($this->stats, null) . '_fullres.' . $this->stats->{'ext'};
-        if ($this->cache->exists($fullres_cachekey)) {
+        if ($this->cache->exists($fullres_cachekey) && !isset($args['nocache'])) {
           return $this->filterImage($this->cache->get($fullres_cachekey));
         }
         else {

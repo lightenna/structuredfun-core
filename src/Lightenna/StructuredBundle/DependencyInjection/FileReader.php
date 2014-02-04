@@ -20,15 +20,19 @@ class FileReader {
    */
 
   public function __construct($filename) {
+    // end before any arguments at the end of the URL
+    if (($end = strpos($filename, ARG_SEPARATOR)) === false) {
+      $end = strlen($filename);
+    }
     // parse filename for zip marker
     if (($zip_pos = self::detectZip($filename)) !== false) {
       $this->file_part = substr($filename, 0, $zip_pos);
       // store zip_part without preceding slash
-      $this->zip_part = ltrim(substr($filename, $zip_pos), DIR_SEPARATOR);
+      $this->zip_part = ltrim(substr($filename, $zip_pos, $end - $zip_pos), DIR_SEPARATOR);
       list($this->zip_part_path, $this->zip_part_leaf) = $this->splitPathLeaf($this->zip_part);
     }
     else {
-      $this->file_part = $filename;
+      $this->file_part = substr($filename, 0, $end);
       list($this->file_part_path, $this->file_part_leaf) = $this->splitPathLeaf($this->file_part);
     }
   }
@@ -186,8 +190,18 @@ class FileReader {
    * @return string Contents of file
    */
   public function get() {
-    // START HERE
-    return 'xdxdxd';
+    if ($this->inZip()) {
+      $zip = new \ZipArchive;
+      $zip->open($this->file_part);
+      if ($zip) {
+        $imgdata = $zip->getFromName($this->zip_part);
+      }
+      $zip->close();
+      return $imgdata;
+    }
+    else {
+      return file_get_contents($this->stats->{'file'});
+    }
   }
   
   /**
