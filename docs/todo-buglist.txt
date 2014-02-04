@@ -1,5 +1,5 @@
 
-* Make Imageview work using FileReader family
+* Get cache working again
 
 * Deprecate old ViewController code as using FileReader instead
 
@@ -80,4 +80,8 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 
 * Try getListing on single file
   + should just return that file
+
+* Fix zip_part being given all the args
+
+* Make Imageview work using FileReader family
 

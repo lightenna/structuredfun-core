@@ -75,8 +75,6 @@ class ViewControllerTest extends WebTestCase
 		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test'),array('test' => null));
 	}
 
-	/**
-	 * This requires the FileReader to be working
 	public function testPerformFilenameSubstitution() {
 		$t = new ViewController();
 		// test no substitution
@@ -91,13 +89,11 @@ class ViewControllerTest extends WebTestCase
 		$this->assertEquals($t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/[1]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/00980001.JPG'));
 		// test nth and zip extract
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/[3]/[1]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/00980001.JPG'));
-		// @todo this test fails because we haven't coded for this case yet
-		// test zip extract from nested folder [FAILS]
-		// $this->assertEquals($t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/nested/[1]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/00980001.JPG'));
+		// test zip extract from nested folder
+		$this->assertEquals($t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/nested/[1]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'));
 		// test nth from mixed folder
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980000.txt'));
 		// test nth-image from mixed folder
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[i1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980001.JPG'));
 	}
-	*/
 }

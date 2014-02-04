@@ -33,6 +33,10 @@ class MetadataFileReaderTest extends WebTestCase {
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested'));
     $first = reset($mfr->getListing());
     $this->assertEquals($first->{'name'}, '00980006.JPG');    
+    // get listing for a single file, but strip arguments
+    $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.ARG_SEPARATOR.'arg1=v1&arg2=v2'));
+    $first = reset($mfr->getListing());
+    $this->assertEquals($first->{'name'}, '00980001.JPG');    
   }
 
   public function testIsExisting() {
