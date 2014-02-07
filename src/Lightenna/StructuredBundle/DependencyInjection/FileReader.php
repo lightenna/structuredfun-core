@@ -1,6 +1,7 @@
 <?php
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
+
 class FileReader {
 
   // parts of filename

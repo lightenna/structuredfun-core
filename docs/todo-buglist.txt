@@ -1,10 +1,6 @@
 
 * Get cache working again
 
-* Deprecate old ViewController code as using FileReader instead
-
-* Weed out old tests
-
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 
@@ -84,4 +80,8 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 * Fix zip_part being given all the args
 
 * Make Imageview work using FileReader family
+
+* Weed out old tests
+
+* Deprecate old ViewController code as using FileReader instead
 
