@@ -1,7 +1,7 @@
 <?php
 
 namespace Lightenna\StructuredBundle\Tests\Controller;
-
+use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Lightenna\StructuredBundle\Controller\ViewController;
 
@@ -47,22 +47,6 @@ class ViewControllerTest extends WebTestCase
 		$this->assertEquals($t::convertRawToUrl('/fish/fowl/'),'/fish/fowl');
 	}
 
-	public function testGetExtension() {
-		$t = new ViewController();
-		// find an extension
-		$this->assertEquals($t::getExtension('data/ext_directory/myfile.ext'),'ext');
-		// find an upper case jpg
-		$this->assertEquals($t::getExtension('data/ext_directory/myfile.JPG'),'JPG');
-		// find no extension
-		$this->assertEquals($t::getExtension('data/ext_directory/myfile'),false);
-		// find no extension on a directory
-		$this->assertEquals($t::getExtension('data/ext_directory/myfile/'),false);
-		// find an extension when there are args
-		$this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.ARG_SEPARATOR.'test'),'jpg');
-		// find an extension when there are args (malformed)
-		$this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.ARG_SEPARATOR.''.ARG_SEPARATOR.'test'),'jpg');
-	}
-
 	public function testGetArgsFromPath() {
 		$t = new ViewController();
 		// test no args
@@ -96,4 +80,21 @@ class ViewControllerTest extends WebTestCase
 		// test nth-image from mixed folder
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[i1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980001.JPG'));
 	}
+
+	public function testGetExtension() {
+	  $t = new FileReader('data');
+	  // find an extension
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.ext'),'ext');
+	  // find an upper case jpg
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.JPG'),'JPG');
+	  // find no extension
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile'),false);
+	  // find no extension on a directory
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile/'),false);
+	  // find an extension when there are args
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.ARG_SEPARATOR.'test'),'jpg');
+	  // find an extension when there are args (malformed)
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.ARG_SEPARATOR.''.ARG_SEPARATOR.'test'),'jpg');
+	}
+	
 }
