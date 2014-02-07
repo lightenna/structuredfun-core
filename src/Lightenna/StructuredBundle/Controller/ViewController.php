@@ -17,7 +17,7 @@ class ViewController extends Controller {
 
   private $settings;
   // @param Array URL arguments array
-  private $args;
+  protected $args;
   // @param FileReader object
   private $mfr;
 

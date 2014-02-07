@@ -4,10 +4,17 @@ namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\FFmpegHelper;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 
 class ImageviewController extends ViewController {
   // @param Array image metadata array
-  private $stats;
+  private $stats = null;
+  
+  public function __construct() {
+    // initialise stats because may use/test class before indexAction() call
+    $this->stats = new \stdClass();
+    $this->args = array();
+  }
 
   public function indexAction($rawname) {
     // convert rawname to urlname and filename
