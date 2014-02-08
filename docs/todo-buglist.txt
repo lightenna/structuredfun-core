@@ -1,5 +1,7 @@
 
-* Get cache working again
+* Get cache working for video
+
+* Need to make mediacache directory for -linux install and enable for selinux
 
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0

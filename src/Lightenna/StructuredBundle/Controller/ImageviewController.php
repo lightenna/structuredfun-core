@@ -11,6 +11,7 @@ class ImageviewController extends ViewController {
   private $stats = null;
   
   public function __construct() {
+    parent::__construct();
     // initialise stats because may use/test class before indexAction() call
     $this->stats = new \stdClass();
     $this->args = array();
@@ -49,24 +50,23 @@ class ImageviewController extends ViewController {
 
   /**
    * fetch a thumbnail image from the file (video/image)
+   * - by this point, we've had a cache miss on the thumbnail/specific-resolution request
    */
 
   public function fetchImage() {
     // generate image based on media type
     switch ($this->stats->type) {
       case 'video':
-      // override the extension to return an image
+        // override the extension to return an image
         $this->stats->ext = 'jpg';
-        // does the full-res image exist in the cache
-        $fullres_cachekey = $this->cache->getKey($this->stats, null) . '_fullres.' . $this->stats->{'ext'};
-        if ($this->cache->exists($fullres_cachekey) && !isset($args['nocache'])) {
-          return $this->filterImage($this->cache->get($fullres_cachekey));
-        }
-        else {
-          // fetch full-res image
-          $ff = new FFmpegHelper($this->stats, $this->cache, $this);
+        $key = CachedMetadataFileReader::hash($this->stats->file).'_videofullres'.'.'.$this->stats->ext;
+        $localmfr = new CachedMetadataFileReader($key, $this);
+        if ($localmfr->isCached()) {
+          // just filter the image
+          return $this->filterImage($this->get($key));
+        } else {
           // update stats array with new location of image in cache
-          $returnedFile = $ff->takeSnapshot('00:00:10.0', $this->cache->getFilename($fullres_cachekey));
+          $returnedFile = $this->takeSnapshot('00:00:10.0', $localmfr->getFilename($key));
           // if no image produced (e.g. video corrupted or stored in zip)
           if ($returnedFile === false) {
             return $this->filterImage($this->loadErrorImage());
@@ -82,6 +82,30 @@ class ImageviewController extends ViewController {
     }
   }
 
+  /**
+   * Use FFmpeg to take a snapshot of part of this video
+   * @param  string $time timecode [HH:MM:SS.MS]
+   * @param  string $outputname name of file to write to
+   * @return string name of file written to, or false on failure
+   */
+  public function takeSnapshot($time, $outputname) {
+    $path_ffmpeg = self::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
+    // escape arguments
+    $shell_filename = escapeshellarg($this->stats->file);
+    $shell_output = escapeshellarg($outputname);
+    $shell_time = escapeshellarg($time);
+    // extract a thumbnail from the video and store in the mediacache
+    @shell_exec("{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$outputname}");
+    // check that an output file was created
+// START HERE
+// for some reason it's not being executed
+// could be no ffmpeg
+    if (!file_exists($outputname)) {
+      return false;
+    }
+    return $outputname;
+  }
+  
   /**
    * Output an image with correct headers
    * @param string $imgdata Raw image data as a string
