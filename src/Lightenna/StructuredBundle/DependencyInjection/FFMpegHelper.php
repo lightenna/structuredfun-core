@@ -4,13 +4,11 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 
 class FFMpegHelper
 {
-	var $cache;
 	var $stats;
 	var $path_ffmpeg;
 
-	public function __construct($st, $ca, $parentController) {
+	public function __construct($st, $parentController) {
 		$this->stats = $st;
-		$this->cache = $ca;
 		$this->path_ffmpeg = $parentController::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
 	}
 
@@ -21,12 +19,13 @@ class FFMpegHelper
 	 * @return string name of file written to, or false on failure
 	 */
 	public function takeSnapshot($time, $outputname) {
-		// escape arguments
+		$path_ffmpeg = self::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
+	  // escape arguments
 		$shell_filename = escapeshellarg($this->stats['file']);
 		$shell_output = escapeshellarg($outputname);
 		$shell_time = escapeshellarg($time);
 		// extract a thumbnail from the video and store in the mediacache
-		@shell_exec("{$this->path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$outputname}");
+		@shell_exec("{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$outputname}");
 		// check that an output file was created
 		if (!file_exists($outputname)) {
 			return false;

@@ -15,11 +15,11 @@ define('SUB_REGEX', '/\[([^\]]*)\]/');
 
 class ViewController extends Controller {
 
-  private $settings;
+  protected $settings;
   // @param Array URL arguments array
   protected $args;
   // @param FileReader object
-  private $mfr;
+  protected $mfr;
 
   public function __construct() {
     $settings_file = $this->convertRawToInternalFilename('conf/structured.ini');
