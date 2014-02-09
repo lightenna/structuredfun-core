@@ -89,7 +89,7 @@ class ImageviewController extends ViewController {
    * @return string name of file written to, or false on failure
    */
   public function takeSnapshot($time, $outputname) {
-    $path_ffmpeg = self::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
+    $path_ffmpeg = $this->settings['path_ffmpeg'];
     // escape arguments
     $shell_filename = escapeshellarg($this->stats->file);
     $shell_output = escapeshellarg($outputname);
@@ -97,9 +97,6 @@ class ImageviewController extends ViewController {
     // extract a thumbnail from the video and store in the mediacache
     @shell_exec("{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$outputname}");
     // check that an output file was created
-// START HERE
-// for some reason it's not being executed
-// could be no ffmpeg
     if (!file_exists($outputname)) {
       return false;
     }

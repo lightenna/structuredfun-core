@@ -71,6 +71,7 @@ class ViewController extends Controller {
    */
 
   public function processSettings() {
+    // identify and attach shares
     $this->settings['shares'] = self::findShares($this->settings);
     $attach = array();
     if (is_array($this->settings['shares'])) {
@@ -89,6 +90,10 @@ class ViewController extends Controller {
       }
     }
     $this->settings['attach'] = $attach;
+    // fill in missing paths
+    if (!isset($this->settings['path_ffmpeg'])) {
+      $this->settings['path_ffmpeg'] = self::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
+    }
   }
 
   /**
