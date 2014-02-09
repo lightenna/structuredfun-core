@@ -3,6 +3,13 @@
 namespace Lightenna\StructuredBundle\DependencyInjection;
 class MetadataFileReader extends FileReader {
 
+  protected $controller;
+
+  public function __construct($filename, $con) {
+    parent::__construct($filename);
+    $this->controller = $con;
+  }
+  
   /**
    * Overriden getListing function that adds metadata to the elements
    * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
@@ -46,7 +53,25 @@ class MetadataFileReader extends FileReader {
         break;
     }
     // get the image metadata to calculate display properties
-    $obj->orientation = 'x';
+    $obj->orientation = $this->getOrientation($obj);
     return $obj;
   }
+
+  /**
+   * Work out the orientation of the image
+   * @return string orientation (x|y)
+   */
+
+  public function getOrientation($obj) {
+    $imgdata = null;
+    // $localmfr = new CachedMetadataFileReader($obj->file, $this->controller);
+    // $imgdata = $localmfr->get();
+    if ($imgdata == null)
+      return 'x';
+    $img = imagecreatefromstring($imgdata);
+    if (imagesx($img) < imagesy($img))
+      return 'y';
+    return 'x';
+  }
+
 }

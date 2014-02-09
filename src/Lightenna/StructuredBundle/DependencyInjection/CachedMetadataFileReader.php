@@ -9,18 +9,18 @@ class CachedMetadataFileReader extends MetadataFileReader {
   var $stats;
   var $args;
 
-  public function __construct($filename, $controller) {
-    parent::__construct($filename);
+  public function __construct($filename, $con) {
+    parent::__construct($filename, $con);
     $this->getListing();
-    $this->cache = new CacheHelper($controller->getSettings(), $controller);
-    $settings = $controller->getSettings();
-    $this->cachedir = $controller->convertRawToInternalFilename($settings['mediacache']['path']);
+    $settings = $this->controller->getSettings();
+    $this->cache = new CacheHelper($settings, $this->controller);
+    $this->cachedir = $this->controller->convertRawToInternalFilename($settings['mediacache']['path']);
     // create cache directory if it's not already present
     if (!is_dir($this->cachedir)) {
       mkdir($this->cachedir);
     }
     $this->stats = $this->getStats();
-    $this->args = $controller->getArgs();
+    $this->args = $this->controller->getArgs();
     $this->stats->cachekey = $this->cache->getKey($this->stats, $this->args);
   }
 
