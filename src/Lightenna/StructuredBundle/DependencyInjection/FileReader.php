@@ -156,7 +156,7 @@ class FileReader {
       // if listing just a file
       if ($this->file_part_leaf !== null) {
         $obj->{'path'} = $this->file_part_path;
-        $obj->{'file'} = $this->file_part . DIR_SEPARATOR . $obj->{'name'};
+        $obj->{'file'} = $this->file_part_path . DIR_SEPARATOR . $obj->{'name'};
       }
       // if listing a directory/zip
       else if ($this->file_part !== null) {
