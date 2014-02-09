@@ -11,7 +11,7 @@ class FileviewController extends ViewController {
     $filename = $this->convertRawToFilename($rawname);
     $name = self::convertRawToUrl($rawname);
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
-    $this->mfr = new MetadataFileReader($filename);
+    $this->mfr = new MetadataFileReader($filename, $this);
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
         $dirlisting = $this->mfr->getListing();

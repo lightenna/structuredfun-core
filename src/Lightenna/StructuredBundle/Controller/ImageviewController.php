@@ -4,7 +4,6 @@ namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\FFmpegHelper;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
-use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 
 class ImageviewController extends ViewController {
   // @param Array image metadata array

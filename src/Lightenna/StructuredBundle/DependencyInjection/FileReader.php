@@ -3,10 +3,14 @@
 namespace Lightenna\StructuredBundle\DependencyInjection;
 
 class FileReader {
-
+  
   // parts of filename
   var $zip_part = null;
   var $file_part = null;
+  
+  /**
+   * @var $zip_part_{path|leaf} Null for unset, empty string for set but empty (e.g. '/')
+   */
   var $zip_part_path = null;
   var $zip_part_leaf = null;
   var $file_part_path = null;
@@ -115,7 +119,7 @@ class FileReader {
       // if zip_part_path is set and has characters
       if (($this->zip_part_path !== null) && ($len = strlen($this->zip_part_path)) > 0) {
         foreach ($listing as $k => $item) {
-          // crop zip entries based on directory path (zip_part_path)
+          // crop [parent] zip entries based on directory path (zip_part_path)
           if (!(substr($item, 0, $len) === $this->zip_part_path)) {
             unset($listing[$k]);
           }
@@ -130,6 +134,7 @@ class FileReader {
               $listing[$k] = $remains;
             }
           }
+          // @todo crop [child] zip entries based on directory path
         }
       }
     }
@@ -262,28 +267,39 @@ class FileReader {
 
   /**
    * Split a filename into leaf and path
+   * @assumption Filenames all contain a ., e.g. .htaccess or file.jpg
    * @param string $fullstr Full input filename
    * @return array(string, string) Path and leaf
    */
 
   public function splitPathLeaf($fullstr) {
     $path = $leaf = null;
-    // detect if the zip_part has a file bit, detect the last dot (filename)
-    if (($dot_pos = strrpos($fullstr, '.')) !== false) {
-      // detect if the zip_part has a directory path, find preceding slash
-      if (($slash_pos = strrpos(substr($fullstr, 0, $dot_pos), DIR_SEPARATOR)) !== false) {
+    // detect the final slash
+    if (($slash_pos = strrpos(substr($fullstr, 0), DIR_SEPARATOR)) !== false) {
+      // then work out if there's a . in the last component
+      if (($dot_pos = strrpos($fullstr, '.', $slash_pos)) !== false) {
         // if so split into path and leaf
         $path = substr($fullstr, 0, $slash_pos);
         $leaf = substr($fullstr, $slash_pos + 1);
       }
       else {
-        // treat whole thing as leaf
-        $leaf = $fullstr;
+        // no dot, treat whole thing as a path
+        $path = $fullstr;
+        $leaf = null;
       }
     }
     else {
-      // treat the whole thing as a path
-      $path = $fullstr;
+      // no slash
+      if (($dot_pos = strrpos($fullstr, '.', $slash_pos)) !== false) {
+        // treat whole thing as leaf
+        $leaf = $fullstr;
+        $path = '';
+      }
+      else {
+        // no dot, treat whole thing as path
+        $leaf = null;
+        $path = $fullstr;
+      }
     }
     return array(
       $path,
