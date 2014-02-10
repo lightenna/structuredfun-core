@@ -1,12 +1,9 @@
 
-* write more tests for FileReader
-  + crop child as well as crop parent within zip
-  + e.g. http://sfun.elan/file/data/alice%20eve.zip/ is wrong
-
-* add super-short video to test suits
-
 * add test to check that two different timecodes produce two different frames
   + and same timecode produces identical frame
+
+* add flatten zip setting
+  + nice to treat all images in zips as flat by default
 
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
@@ -99,4 +96,10 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 * Need to make mediacache directory for -linux install and enable for selinux
 
 * ../ bug in splitFilePath
+
+* write more tests for FileReader
+  + crop child as well as crop parent within zip
+  + e.g. http://sfun.elan/file/data/alice%20eve.zip/ is wrong
+
+* add super-short video to test suite
 

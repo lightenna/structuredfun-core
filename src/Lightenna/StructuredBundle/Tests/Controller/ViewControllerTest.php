@@ -79,6 +79,12 @@ class ViewControllerTest extends WebTestCase
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980000.txt'));
 		// test nth-image from mixed folder
 		$this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[i1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980001.JPG'));
+		try {
+  	  // check that we don't show nested results in top-level folder (e.g. nested/00980006.JPG)
+      $this->assertNotEquals($t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/[7]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'));
+		} catch (\Exception $e) {
+		  $this->assertNotEquals(strlen($e->getMessage()), 0);
+		}
 	}
 
 	public function testGetExtension() {
