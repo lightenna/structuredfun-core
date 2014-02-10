@@ -20,6 +20,10 @@ class FileReaderTest extends WebTestCase {
     $this->assertEquals($fr->splitPathLeaf('fish/'), array('fish/',null));
     // test file no path
     $this->assertEquals($fr->splitPathLeaf('fish.ext'), array('','fish.ext'));
+    // test multi-part path file split
+    $this->assertEquals($fr->splitPathLeaf('fish/guppi/cod/herring/fowl.ext'), array('fish/guppi/cod/herring','fowl.ext'));
+    // test multi-part path no file split
+    $this->assertEquals($fr->splitPathLeaf('fish/guppi/cod/herring'), array('fish/guppi/cod/herring',null));
   }
 
 }

@@ -120,11 +120,8 @@ class FileReader {
       if (($this->zip_part_path !== null) && ($len = strlen($this->zip_part_path)) > 0) {
         foreach ($listing as $k => $item) {
           // crop [parent] zip entries based on directory path (zip_part_path)
-          if (!(substr($item, 0, $len) === $this->zip_part_path)) {
-            unset($listing[$k]);
-          }
-          // for each valid entry, remove the zip_part_path and slash
-          else {
+          if (substr($item, 0, $len) === $this->zip_part_path) {
+            // for each valid entry, remove the zip_part_path and slash
             $remains = substr($item, $len + 1);
             if ($remains == false) {
               // dump entry if there's nothing left after stripping
@@ -134,7 +131,19 @@ class FileReader {
               $listing[$k] = $remains;
             }
           }
-          // @todo crop [child] zip entries based on directory path
+          else {
+            unset($listing[$k]);
+          }
+        }
+      }
+      // crop downstream [child] zip subfolders, based on output from upstream crop & strip
+      foreach ($listing as $k => $item) {
+        // if this entry features a slash
+        if (($slash_pos = strpos($item, DIR_SEPARATOR)) !== false) {
+          // followed by a character (i.e. a filename, not just a slash terminated directory name)
+          if (strlen($item) > ($slash_pos+1)) {
+            unset($listing[$k]);
+          }
         }
       }
     }
