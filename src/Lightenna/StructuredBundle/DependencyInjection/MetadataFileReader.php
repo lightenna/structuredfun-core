@@ -68,9 +68,9 @@ class MetadataFileReader extends FileReader {
     // $imgdata = $localmfr->get();
     if ($imgdata == null)
       return 'x';
-    $img = imagecreatefromstring($imgdata);
-    if (imagesx($img) < imagesy($img))
-      return 'y';
+    // $img = imagecreatefromstring($imgdata);
+    // if (imagesx($img) < imagesy($img))
+      // return 'y';
     return 'x';
   }
 

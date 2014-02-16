@@ -71,6 +71,12 @@ class ViewController extends Controller {
    */
 
   public function processSettings() {
+    // if memory limit set, apply
+    if (isset($this->settings['general']['memory_limit'])) {
+      if (!ini_set('memory_limit', $this->settings['general']['memory_limit'])) {
+        throw new \Exception('Your system does not have enough free RAM to allocate the amount of memory specified in your settings file.');
+      }
+    }
     // identify and attach shares
     $this->settings['shares'] = self::findShares($this->settings);
     $attach = array();
@@ -91,8 +97,8 @@ class ViewController extends Controller {
     }
     $this->settings['attach'] = $attach;
     // fill in missing paths
-    if (!isset($this->settings['path_ffmpeg'])) {
-      $this->settings['path_ffmpeg'] = self::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
+    if (!isset($this->settings['general']['path_ffmpeg'])) {
+      $this->settings['general']['path_ffmpeg'] = self::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
     }
   }
 
