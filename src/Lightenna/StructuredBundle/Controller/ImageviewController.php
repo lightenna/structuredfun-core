@@ -16,7 +16,7 @@ class ImageviewController extends ViewController {
     $this->args = array();
   }
 
-  public function indexAction($rawname) {
+  public function indexAction($rawname, $output = true) {
     // convert rawname to urlname and filename
     $filename = $this->convertRawToFilename($rawname);
     $name = self::convertRawToUrl($rawname);
@@ -29,6 +29,10 @@ class ImageviewController extends ViewController {
     $this->args = self::getArgsFromPath($name);
     // get image and return
     $imgdata = $this->fetchImage();
+    // catch test case
+    if (!$output) {
+      return $imgdata;
+    }
     if ($imgdata !== null) {
       // print image to output stream
       self::returnImage($imgdata);
@@ -88,13 +92,16 @@ class ImageviewController extends ViewController {
    * @return string name of file written to, or false on failure
    */
   public function takeSnapshot($time, $outputname) {
-    $path_ffmpeg = $this->settings['path_ffmpeg'];
+    $path_ffmpeg = $this->settings['general']['path_ffmpeg'];
     // escape arguments
     $shell_filename = escapeshellarg($this->stats->file);
     $shell_output = escapeshellarg($outputname);
     $shell_time = escapeshellarg($time);
+    // setup command to run ffmpeg and relay output to /dev/null
+    $command = "{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$outputname} 2>&1 > /dev/null";
+    // print($command);
     // extract a thumbnail from the video and store in the mediacache
-    @shell_exec("{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$outputname}");
+    @shell_exec($command);
     // check that an output file was created
     if (!file_exists($outputname)) {
       return false;
@@ -130,10 +137,13 @@ class ImageviewController extends ViewController {
 
   /**
    * filter image based on its arguments
+   * @param $imgdata image data as a string
    */
 
-  public function filterImage($imgdata) {
+  public function filterImage(&$imgdata) {
     if ($this->argsSayFilterImage()) {
+      // test image datastream size before trying to process
+      $this->checkImageDatastream($imgdata);
       // always load the image and calculate its new size (at least reads width & height from img)
       $oldimg = imagecreatefromstring($imgdata);
       $this->imageCalcNewSize($oldimg);
@@ -156,6 +166,8 @@ class ImageviewController extends ViewController {
       }
       // fetch new imgdata
       $imgdata = self::getImageData($oldimg);
+      // after we've extracted the image as a string, destroy redundant image resource
+      imagedestroy($oldimg);
     }
     return $imgdata;
   }
@@ -207,29 +219,35 @@ class ImageviewController extends ViewController {
 
   /**
    * resize image to width/height or both based on args
+   * Note: this destroys the old image to avoid memory leaks
    * @param resource $img The image
    * @return resource 
    */
 
-  public function resizeImage($img) {
+  public function resizeImage(&$img) {
     // create a new image the correct shape and size
     $newimg = imagecreatetruecolor($this->stats->{'newwidth'}, $this->stats->{'newheight'});
     imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->stats->{'newwidth'}, $this->stats->{'newheight'}, $this->stats->{'width'}, $this->stats->{'height'});
+    // clean up old image
+    imagedestroy($img);
     return $newimg;
   }
 
   /**
    * clip image to width/height or both based on args
+   * Note: this destroys the old image to avoid memory leaks
    * @param resource $img The image
    * @return resource 
    */
 
-  public function clipImage($img) {
+  public function clipImage(&$img) {
     // create a new image the correct shape and size
     $newimg = imagecreatetruecolor($this->stats->{'newwidth'}, $this->stats->{'newheight'});
     $sx = imagesx($img) / 2 - $this->stats->{'newwidth'} / 2;
     $sy = imagesy($img) / 2 - $this->stats->{'newheight'} / 2;
     imagecopy($newimg, $img, 0, 0, $sx, $sy, $this->stats->{'newwidth'}, $this->stats->{'newheight'});
+    // clean up old image
+    imagedestroy($img);
     return $newimg;
   }
 
@@ -241,7 +259,7 @@ class ImageviewController extends ViewController {
    * clip(width|height) - clip image independently of max(width|height|longest|shortest) settings
    */
 
-  public function imageCalcNewSize($img) {
+  public function imageCalcNewSize(&$img) {
     // clear old calculations
     unset($this->stats->{'newwidth'});
     unset($this->stats->{'newheight'});
@@ -317,11 +335,21 @@ class ImageviewController extends ViewController {
     }
   }
 
+  public function checkImageDatastream(&$imgdata) {
+    // can't test length because it could be highly compressed/compressible
+    // try and create an image with the data
+    try {
+      @imagecreatefromstring($imgdata);
+    } catch (\Exception $e) {
+      print ('ping');
+    }
+  }
+  
   /**
    * Nasty function to get the image data from an image resource
    */
 
-  static function getImageData($img) {
+  static function getImageData(&$img) {
     ob_start();
     imagejpeg($img);
     return ob_get_clean();
