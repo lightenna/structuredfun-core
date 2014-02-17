@@ -8,7 +8,7 @@ use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 class ImageviewController extends ViewController {
   // @param Array image metadata array
   private $stats = null;
-  
+
   public function __construct() {
     parent::__construct();
     // initialise stats because may use/test class before indexAction() call
@@ -60,19 +60,21 @@ class ImageviewController extends ViewController {
     // generate image based on media type
     switch ($this->stats->type) {
       case 'video':
-        // override the extension to return an image
+      // override the extension to return an image
         $this->stats->ext = 'jpg';
-        $key = CachedMetadataFileReader::hash($this->stats->file).'_videofullres'.'.'.$this->stats->ext;
+        $key = CachedMetadataFileReader::hash($this->stats->file) . '_videofullres' . '.' . $this->stats->ext;
         $localmfr = new CachedMetadataFileReader($key, $this);
         if ($localmfr->isCached()) {
           // just filter the image
           return $this->filterImage($this->get($key));
-        } else {
+        }
+        else {
           // update stats array with new location of image in cache
           $returnedFile = $this->takeSnapshot('00:00:10.0', $localmfr->getFilename($key));
           // if no image produced (e.g. video corrupted or stored in zip)
           if ($returnedFile === false) {
-            return $this->filterImage($this->loadErrorImage());
+            $errorimgdata = $this->loadErrorImage();
+            return $this->filterImage($errorimgdata);
           }
           $this->stats->{'file'} = $returnedFile;
           return $this->loadAndFilterImage();
@@ -91,6 +93,7 @@ class ImageviewController extends ViewController {
    * @param  string $outputname name of file to write to
    * @return string name of file written to, or false on failure
    */
+
   public function takeSnapshot($time, $outputname) {
     $path_ffmpeg = $this->settings['general']['path_ffmpeg'];
     // escape arguments
@@ -108,7 +111,7 @@ class ImageviewController extends ViewController {
     }
     return $outputname;
   }
-  
+
   /**
    * Output an image with correct headers
    * @param string $imgdata Raw image data as a string
@@ -143,8 +146,13 @@ class ImageviewController extends ViewController {
   public function filterImage(&$imgdata) {
     if ($this->argsSayFilterImage()) {
       // test image datastream size before trying to process
-      $this->checkImageDatastream($imgdata);
-      // always load the image and calculate its new size (at least reads width & height from img)
+      if (!$this->checkImageDatastream($imgdata)) {
+        // destroy massive imgdata string as can't load
+        $imgdata = null;
+        // return 'not found' image
+        $imgdata = $this->loadErrorImage();
+      }
+      // always calculate new image size (at least reads width & height from img)
       $oldimg = imagecreatefromstring($imgdata);
       $this->imageCalcNewSize($oldimg);
       // first [optionally] resize
@@ -335,16 +343,45 @@ class ImageviewController extends ViewController {
     }
   }
 
+  /**
+   * Guess if we're going to have enough memory to load the image
+   *  can't test length because it could be highly compressed/compressible
+   *  try catch doesn't throw an exception
+   *  set_error_handler not fired in time for fatal exception
+   * @param string $imgdata
+   * @return boolean True if we can load the image
+   */
+
   public function checkImageDatastream(&$imgdata) {
-    // can't test length because it could be highly compressed/compressible
-    // try and create an image with the data
-    try {
-      @imagecreatefromstring($imgdata);
-    } catch (\Exception $e) {
-      print ('ping');
+    // can't use getimagesizefromstring as php > 5.4.0, so redirect via file wrapper
+    $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
+    $mdata = getimagesize($uri);
+    // calculate image size in megapixels
+    $mp = $mdata[0] * $mdata[1];
+    // get memory limit (MB)
+    $mlim = intval(ini_get('memory_limit'));
+    if ($mlim <= 128) {
+      // 24MP cut-off
+      if ($mp > 24 * 1000 * 1000) {
+        return false;
+      }
     }
+    else if ($mlim <= 256) {
+      // 50MP cut-off
+      if ($mp > 50 * 1000 * 1000) {
+        return false;
+      }
+
+    }
+    else if ($mlim <= 512) {
+      // 100MP cut-off
+      if ($mp > 100 * 1000 * 1000) {
+        return false;
+      }
+    }
+    return true;
   }
-  
+
   /**
    * Nasty function to get the image data from an image resource
    */
