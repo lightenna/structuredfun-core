@@ -2,7 +2,7 @@
 * add test to check that two different timecodes produce two different frames
   + and same timecode produces identical frame
 
-* handle large images sanely
+* fix missing video thumbnails
 
 * add flatten zip setting
   + nice to treat all images in zips as flat by default
@@ -107,4 +107,6 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
   + e.g. http://sfun.elan/file/data/alice%20eve.zip/ is wrong
 
 * add super-short video to test suite
+
+* handle large images sanely
 
