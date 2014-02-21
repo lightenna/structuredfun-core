@@ -183,6 +183,8 @@ class FileReader {
       if (is_dir($this->file_part . DIR_SEPARATOR . $v)) {
         $obj->{'type'} = 'directory';
       }
+      // duplicate file ref incase we redirect
+      $obj->{'file_original'} = $obj->{'file'};
       // replace this entry in the array with the object we've just made
       $listing[$k] = $obj;
     }
