@@ -122,15 +122,19 @@ class ImageviewControllerTest extends WebTestCase {
 
   public function testTakeSnapshot() {
     $t = new ImageviewController();
-    // prime the controller with the video URL
-    $t->indexAction('structured/tests/data/40-video_folder/nasa-solar-flare-64x64.m4v', false);
+    // prime the controller with the video URL, generate thumbnail at 00:00:10.0
+    $frame10s = $t->indexAction('structured/tests/data/40-video_folder/nasa-solar-flare-64x64.m4v', false);
     // create an MFR to get cache directory path
-    $leaf = 'test-nasa-solar-flare-64x64-t001000.jpg';
+    $leaf = 'test-nasa-solar-flare-64x64-t000900.jpg';
     $localmfr = new CachedMetadataFileReader($leaf, $t);
-    // START HERE
-    // problem is that indexAction rewrites the stats->file var to be the cached image		
     $outputname = $t->takeSnapshot('00:00:09.0', $localmfr->getFilename($leaf));
-
+    // read the snapshot from 00:00:09.0
+    $frame9s = file_get_contents($outputname);
+    $this->assertNotEquals($frame10s, $frame9s);
+    // check that both snapshots are not the error image
+    $errorimg = $t->filterImage($t->loadErrorImage());
+    $this->assertNotEquals($frame10s, $errorimg);
+    $this->assertNotEquals($frame9s, $errorimg);
   }
 
   public function testPlatformImageLimits() {

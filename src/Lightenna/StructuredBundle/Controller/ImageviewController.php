@@ -73,10 +73,14 @@ class ImageviewController extends ViewController {
           $returnedFile = $this->takeSnapshot('00:00:10.0', $localmfr->getFilename($key));
           // if no image produced (e.g. video corrupted or stored in zip)
           if ($returnedFile === false) {
+print('returnedFile is false');
+exit;
             $errorimgdata = $this->loadErrorImage();
             return $this->filterImage($errorimgdata);
           }
           $this->stats->{'file'} = $returnedFile;
+print('returning proper image');
+exit;
           return $this->loadAndFilterImage();
         }
         break;
@@ -89,6 +93,7 @@ class ImageviewController extends ViewController {
 
   /**
    * Use FFmpeg to take a snapshot of part of this video
+   * It always uses the original filename, not the redirected stats->{file}
    * @param  string $time timecode [HH:MM:SS.MS]
    * @param  string $outputname name of file to write to
    * @return string name of file written to, or false on failure
@@ -97,21 +102,24 @@ class ImageviewController extends ViewController {
   public function takeSnapshot($time, $outputname) {
     $path_ffmpeg = $this->settings['general']['path_ffmpeg'];
     // escape arguments
-    $shell_filename = escapeshellarg($this->stats->file);
+    $shell_filename = escapeshellarg($this->stats->file_original);
     $shell_output = escapeshellarg($outputname);
     $shell_time = escapeshellarg($time);
     // setup command to run ffmpeg and relay output to /dev/null
-    $command = "{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$outputname} 2>&1 > /dev/null";
-    // print($command);
+    $command = "{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$shell_output} 2>&1 > /dev/null";
+print($command."<br />\r\n");
     // extract a thumbnail from the video and store in the mediacache
     @shell_exec($command);
     // check that an output file was created
+print($outputname);
+var_dump(file_exists($outputname));
+exit;
     if (!file_exists($outputname)) {
       return false;
     }
     return $outputname;
   }
-
+  
   /**
    * Output an image with correct headers
    * @param string $imgdata Raw image data as a string
