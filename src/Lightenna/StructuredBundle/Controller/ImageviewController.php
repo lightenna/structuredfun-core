@@ -173,8 +173,8 @@ class ImageviewController extends ViewController {
         // store image in oldimg for process symmetry
         $oldimg = $img;
       }
-      // fetch new imgdata
-      $imgdata = self::getImageData($oldimg);
+      // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
+      $imgdata = self::getImageData($oldimg, isset($this->stats->{'ext'}) ? $this->stats->{'ext'} : 'jpg');
       // after we've extracted the image as a string, destroy redundant image resource
       imagedestroy($oldimg);
     }
@@ -387,9 +387,20 @@ class ImageviewController extends ViewController {
    * Nasty function to get the image data from an image resource
    */
 
-  static function getImageData(&$img) {
+  static function getImageData(&$img, $type = 'jpg') {
     ob_start();
-    imagejpeg($img);
+    switch(strtolower($type)) {
+      case 'jpeg' :
+      case 'jpg' :
+        imagejpeg($img);
+        break;
+      case 'png' :
+        imagepng($img);
+        break;
+      case 'gif' :
+        imagegif($img);
+        break;
+    }
     return ob_get_clean();
   }
 }
