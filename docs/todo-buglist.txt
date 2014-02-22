@@ -1,6 +1,4 @@
 
-* add support for .png
-
 * add flatten zip setting
   + nice to treat all images in zips as flat by default
   + could generically treat as flatten anything
@@ -110,4 +108,7 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 
 * fix missing video thumbnails
   + it's SELinux
+
+* add support for .png
+  + process png as png, not jpeg
 

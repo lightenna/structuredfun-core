@@ -37,6 +37,7 @@ class MetadataFileReader extends FileReader {
     }
     // type image based on extension
     switch (strtolower($obj->{'ext'})) {
+      case 'png':
       case 'jpeg':
       case 'jpg':
       case 'gif':

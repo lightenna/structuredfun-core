@@ -21,7 +21,7 @@ class FileReader {
 
   /**
    * @param string $filename
-   * Filenames for files must have dots (e.g. fish.jpg) 
+   * Filenames for files must have dots (e.g. fish.ext) 
    */
 
   public function __construct($filename) {
@@ -278,7 +278,7 @@ class FileReader {
 
   /**
    * Split a filename into leaf and path
-   * @assumption Filenames all contain a ., e.g. .htaccess or file.jpg
+   * @assumption Filenames all contain a ., e.g. .htaccess or file.ext
    * @param string $fullstr Full input filename
    * @return array(string, string) Path and leaf
    */
