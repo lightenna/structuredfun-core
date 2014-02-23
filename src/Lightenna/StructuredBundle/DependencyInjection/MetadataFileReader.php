@@ -53,8 +53,16 @@ class MetadataFileReader extends FileReader {
         $obj->{'type'} = 'directory';
         break;
     }
-    // get the image metadata to calculate display properties
-    $obj->orientation = $this->getOrientation($obj);
+    switch ($obj->{'type'}) {
+      case 'image' :
+      // case 'video' :
+        // get the image metadata to calculate display properties
+        $obj->orientation = $this->getOrientation($obj);
+        break;
+      default:
+        $obj->orientation = 'x';
+        break;
+    }
     return $obj;
   }
 
@@ -65,13 +73,19 @@ class MetadataFileReader extends FileReader {
 
   public function getOrientation($obj) {
     $imgdata = null;
-    // $localmfr = new CachedMetadataFileReader($obj->file, $this->controller);
-    // $imgdata = $localmfr->get();
+// print('X');
+// print_r($obj);
+//    return 'x';
+    $localmfr = new FileReader($obj->file, $this->controller);
+    $imgdata = $localmfr->get();
+    return 'x';
     if ($imgdata == null)
       return 'x';
-    // $img = imagecreatefromstring($imgdata);
-    // if (imagesx($img) < imagesy($img))
-      // return 'y';
+    if (!$localmfr::checkImageDatastream($imgdata))
+      return 'x';
+    $img = imagecreatefromstring($imgdata);
+    if (imagesx($img) < imagesy($img))
+      return 'y';
     return 'x';
   }
 

@@ -124,9 +124,10 @@ class ImageviewControllerTest extends WebTestCase {
     $t = new ImageviewController();
     // prime the controller with the video URL, generate thumbnail at 00:00:10.0
     $frame10s = $t->indexAction('structured/tests/data/40-video_folder/nasa-solar-flare-64x64.m4v', false);
-    // create an MFR to get cache directory path
     $leaf = 'test-nasa-solar-flare-64x64-t000900.jpg';
-    $localmfr = new CachedMetadataFileReader($leaf, $t);
+    // create an MFR to get cache directory path
+    $localmfr = new CachedMetadataFileReader(null, $t);
+    // take snapshot at 00:00:09.0
     $outputname = $t->takeSnapshot('00:00:09.0', $localmfr->getFilename($leaf));
     // read the snapshot from 00:00:09.0
     $frame9s = file_get_contents($outputname);

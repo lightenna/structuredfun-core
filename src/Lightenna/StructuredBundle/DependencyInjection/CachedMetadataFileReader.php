@@ -10,9 +10,11 @@ class CachedMetadataFileReader extends MetadataFileReader {
   var $args;
   var $settings;
 
-  public function __construct($filename, $con) {
+  public function __construct($filename = null, $con) {
     parent::__construct($filename, $con);
-    $this->getListing();
+    if (!is_null($filename)) {
+      $this->getListing();
+    }
     $this->settings = $this->controller->getSettings();
     $this->cache = new CacheHelper($this->settings, $this->controller);
     $this->cachedir = $this->controller->convertRawToInternalFilename($this->settings['mediacache']['path']);
@@ -36,8 +38,13 @@ class CachedMetadataFileReader extends MetadataFileReader {
     return true;
   }
   
+  public function existsInCache() {
+    // if the image file exists in the (enabled) cache, return it
+    return $this->cacheIsEnabled() && file_exists($this->stats->file);
+  }
+  
   public function isCached() {
-    // if the image file exists in the (enabled) cache at the requested size, return it
+    // if the image file is cached at the requested size, return it
     return $this->cacheIsEnabled() && $this->cache->exists($this->stats->cachekey);
   }
   
@@ -49,6 +56,15 @@ class CachedMetadataFileReader extends MetadataFileReader {
     }
   }
 
+  /**
+   * Rewrite the current file's path
+   */
+  public function rewrite($newname) {
+    parent::rewrite($newname);
+    $this->stats->{'file'} = $newname;
+    return $newname;
+  }
+  
   /**
    * @param  string $key cache key
    * @return string full path filename of this key'd asset
