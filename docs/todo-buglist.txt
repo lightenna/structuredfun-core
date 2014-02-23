@@ -1,8 +1,4 @@
 
-* add flatten zip setting
-  + nice to treat all images in zips as flat by default
-  + could generically treat as flatten anything
-
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 

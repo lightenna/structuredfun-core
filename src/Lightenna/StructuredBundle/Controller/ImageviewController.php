@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\FFmpegHelper;
+use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 class ImageviewController extends ViewController {
@@ -60,13 +61,20 @@ class ImageviewController extends ViewController {
     // generate image based on media type
     switch ($this->stats->type) {
       case 'video':
-      // override the extension to return an image
+        // override the extension to return an image
         $this->stats->ext = 'jpg';
+        // prepend the cache location
         $key = CachedMetadataFileReader::hash($this->stats->file) . '_videofullres' . '.' . $this->stats->ext;
-        $localmfr = new CachedMetadataFileReader($key, $this);
-        if ($localmfr->isCached()) {
+        // create mfr in two stages, because we need to point at the image file in the cache
+        $localmfr = new CachedMetadataFileReader(null, $this);
+        $localmfr->rewrite($localmfr->getFilename($key));
+        if ($localmfr->existsInCache()) {
+          // update the file location
+          $this->mfr->rewrite($localmfr->getFilename($key));
+          // pull image from cache
+          $imgdata = $localmfr->get();
           // just filter the image
-          return $this->filterImage($this->get($key));
+          return $this->filterImage($imgdata);
         }
         else {
           // update stats array with new location of image in cache
@@ -76,7 +84,8 @@ class ImageviewController extends ViewController {
             $errorimgdata = $this->loadErrorImage();
             return $this->filterImage($errorimgdata);
           }
-          $this->stats->{'file'} = $returnedFile;
+          // update $this->stats->{'file'} using mfr rewrite
+          $this->mfr->rewrite($returnedFile);
           return $this->loadAndFilterImage();
         }
         break;
@@ -147,7 +156,7 @@ class ImageviewController extends ViewController {
   public function filterImage(&$imgdata) {
     if ($this->argsSayFilterImage()) {
       // test image datastream size before trying to process
-      if (!$this->checkImageDatastream($imgdata)) {
+      if (!FileReader::checkImageDatastream($imgdata)) {
         // destroy massive imgdata string as can't load
         $imgdata = null;
         // return 'not found' image
@@ -342,45 +351,6 @@ class ImageviewController extends ViewController {
         $this->stats->{'newheight'} = $this->stats->{'newwidth'} * $this->stats->{'height'} / $this->stats->{'width'};
       }
     }
-  }
-
-  /**
-   * Guess if we're going to have enough memory to load the image
-   *  can't test length because it could be highly compressed/compressible
-   *  try catch doesn't throw an exception
-   *  set_error_handler not fired in time for fatal exception
-   * @param string $imgdata
-   * @return boolean True if we can load the image
-   */
-
-  public function checkImageDatastream(&$imgdata) {
-    // can't use getimagesizefromstring as php > 5.4.0, so redirect via file wrapper
-    $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
-    $mdata = getimagesize($uri);
-    // calculate image size in megapixels
-    $mp = $mdata[0] * $mdata[1];
-    // get memory limit (MB)
-    $mlim = intval(ini_get('memory_limit'));
-    if ($mlim <= 128) {
-      // 24MP cut-off
-      if ($mp > 24 * 1000 * 1000) {
-        return false;
-      }
-    }
-    else if ($mlim <= 256) {
-      // 50MP cut-off
-      if ($mp > 50 * 1000 * 1000) {
-        return false;
-      }
-
-    }
-    else if ($mlim <= 512) {
-      // 100MP cut-off
-      if ($mp > 100 * 1000 * 1000) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /**

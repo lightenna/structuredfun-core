@@ -217,8 +217,16 @@ class FileReader {
       return $imgdata;
     }
     else {
-      return file_get_contents($this->stats->{'file'});
+      return file_get_contents($this->file_part);
     }
+  }
+  
+  /**
+   * Rewrite the current file's path
+   */
+  public function rewrite($newname) {
+    $this->file_part = $newname;
+    return $newname;
   }
   
   /**
@@ -317,4 +325,44 @@ class FileReader {
       $leaf
     );
   }
+  
+  /**
+   * Guess if we're going to have enough memory to load the image
+   *  can't test length because it could be highly compressed/compressible
+   *  try catch doesn't throw an exception
+   *  set_error_handler not fired in time for fatal exception
+   * @param string $imgdata
+   * @return boolean True if we can load the image
+   */
+  
+  static function checkImageDatastream(&$imgdata) {
+    // can't use getimagesizefromstring as php > 5.4.0, so redirect via file wrapper
+    $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
+    $mdata = getimagesize($uri);
+    // calculate image size in megapixels
+    $mp = $mdata[0] * $mdata[1];
+    // get memory limit (MB)
+    $mlim = intval(ini_get('memory_limit'));
+    if ($mlim <= 128) {
+      // 24MP cut-off
+      if ($mp > 24 * 1000 * 1000) {
+        return false;
+      }
+    }
+    else if ($mlim <= 256) {
+      // 50MP cut-off
+      if ($mp > 50 * 1000 * 1000) {
+        return false;
+      }
+  
+    }
+    else if ($mlim <= 512) {
+      // 100MP cut-off
+      if ($mp > 100 * 1000 * 1000) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }
