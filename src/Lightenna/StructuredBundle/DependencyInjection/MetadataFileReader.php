@@ -26,7 +26,6 @@ class MetadataFileReader extends FileReader {
       foreach ($listing as $obj) {
         $this->parseDirectoryEntry($obj);
       }
-      // print($this->file_part_path.':'.$this->file_part_leaf);
     }
     return $listing;
   }
