@@ -1,13 +1,12 @@
 <?php
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
-
 class FileReader {
-  
+
   // parts of filename
   var $zip_part = null;
   var $file_part = null;
-  
+
   /**
    * @var $zip_part_{path|leaf} Null for unset, empty string for set but empty (e.g. '/')
    */
@@ -48,8 +47,10 @@ class FileReader {
 
   public function isExisting() {
     if ($this->inZip()) {
-      // get the zip's listing, then scan for file entry
-      $this->getListing();
+      // get the zip's listing (if we don't have it), then scan for file entry
+      if (is_null($this->listing)) {
+        $this->getListing();
+      }
       // if we're not looking for anything inside the zip, [the zip] does exist
       if ($this->zip_part == '') {
         return true;
@@ -90,8 +91,12 @@ class FileReader {
       return false;
     }
     else {
-      // use filesystem to detect type
-      return is_dir($this->file_part);
+      // if there's no leaf
+      if ($this->file_part_leaf === null) {
+        // check the file part is a directory
+        return is_dir($this->file_part);
+      }
+      return false;
     }
   }
 
@@ -141,7 +146,7 @@ class FileReader {
         // if this entry features a slash
         if (($slash_pos = strpos($item, DIR_SEPARATOR)) !== false) {
           // followed by a character (i.e. a filename, not just a slash terminated directory name)
-          if (strlen($item) > ($slash_pos+1)) {
+          if (strlen($item) > ($slash_pos + 1)) {
             unset($listing[$k]);
           }
         }
@@ -174,8 +179,14 @@ class FileReader {
       }
       // if listing a directory/zip
       else if ($this->file_part !== null) {
+        // capture file part
         $obj->{'path'} = $this->file_part;
         $obj->{'file'} = $this->file_part;
+        // if we cropped a zip path
+        if (($this->zip_part_path !== null) && ($len = strlen($this->zip_part_path)) > 0) {
+          // store cropped bit
+          $obj->{'zip_path'} = $this->zip_part_path;
+        }
       }
       // assume it's a generic file
       $obj->{'type'} = 'genfile';
@@ -196,16 +207,18 @@ class FileReader {
   /**
    * @return File entry for first item in listing (if directory) or only item (file)
    */
+
   public function getStats() {
     if ($this->listing === null) {
       $this->getListing();
     }
     return reset($this->listing);
   }
-  
+
   /**
    * @return string Contents of file
    */
+
   public function get() {
     if ($this->inZip()) {
       $zip = new \ZipArchive;
@@ -220,15 +233,34 @@ class FileReader {
       return file_get_contents($this->file_part);
     }
   }
+
+  /**
+   * @param $obj directory entry object
+   * @return Full filename reconstituted from directory entry
+   */
   
+  public function getFullname($obj) {
+    $fullname = $obj->file;
+    // if obj contains a zip path
+    if (isset($obj->{'zip_path'}) && ($obj->zip_path)) {
+      $fullname .= ZIP_SEPARATOR . $obj->zip_path;
+    }
+    // if obj contains a leaf name, append it
+    if (isset($obj->{'name'}) && ($obj->name)) {
+      $fullname .= DIR_SEPARATOR . $obj->name;
+    }
+    return $fullname;
+  }
+
   /**
    * Rewrite the current file's path
    */
+
   public function rewrite($newname) {
     $this->file_part = $newname;
     return $newname;
   }
-  
+
   /**
    * ----------------
    * HELPER functions
@@ -325,7 +357,7 @@ class FileReader {
       $leaf
     );
   }
-  
+
   /**
    * Guess if we're going to have enough memory to load the image
    *  can't test length because it could be highly compressed/compressible
@@ -334,7 +366,7 @@ class FileReader {
    * @param string $imgdata
    * @return boolean True if we can load the image
    */
-  
+
   static function checkImageDatastream(&$imgdata) {
     // can't use getimagesizefromstring as php > 5.4.0, so redirect via file wrapper
     $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
@@ -354,7 +386,7 @@ class FileReader {
       if ($mp > 50 * 1000 * 1000) {
         return false;
       }
-  
+
     }
     else if ($mlim <= 512) {
       // 100MP cut-off

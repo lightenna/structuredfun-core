@@ -1,4 +1,6 @@
 
+* Fail nicely when a file/directory/path element doesn't exist
+
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 
@@ -107,4 +109,9 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 
 * add support for .png
   + process png as png, not jpeg
+
+* mfr bug for test suite
+  + whenever we open a zip
+    + stats->file is the zip folder name
+    + stats->name is the file name
 
