@@ -9,7 +9,7 @@ class MetadataFileReader extends FileReader {
     parent::__construct($filename);
     $this->controller = $con;
   }
-  
+
   /**
    * Overriden getListing function that adds metadata to the elements
    * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
@@ -20,6 +20,13 @@ class MetadataFileReader extends FileReader {
     // loop through each obj (object refs have implicit &$obj)
     foreach ($listing as $obj) {
       $this->parseObject($obj);
+    }
+    if ($this->isDirectory()) {
+      // if we're processing a directory, loop through files and pull their metadata 
+      foreach ($listing as $obj) {
+        $this->parseDirectoryEntry($obj);
+      }
+      // print($this->file_part_path.':'.$this->file_part_leaf);
     }
     return $listing;
   }
@@ -53,10 +60,20 @@ class MetadataFileReader extends FileReader {
         $obj->{'type'} = 'directory';
         break;
     }
+    return $obj;
+  }
+
+  /**
+   * Add metadata fields to directory entries
+   * @param Object $obj Listing object
+   */
+
+  public function parseDirectoryEntry($obj) {
     switch ($obj->{'type'}) {
-      case 'image' :
-      // case 'video' :
-        // get the image metadata to calculate display properties
+      case 'image':
+      case 'video':
+      // get the image metadata to calculate display properties
+      // @todo this is slow, but it's not a problem yet
         $obj->orientation = $this->getOrientation($obj);
         break;
       default:
@@ -67,22 +84,26 @@ class MetadataFileReader extends FileReader {
   }
 
   /**
-   * Work out the orientation of the image
+   * Work out the orientation of the current or a named image
    * @return string orientation (x|y)
    */
 
-  public function getOrientation($obj) {
-    $imgdata = null;
-// print('X');
-// print_r($obj);
-//    return 'x';
-    $localmfr = new FileReader($obj->file, $this->controller);
-    $imgdata = $localmfr->get();
-    return 'x';
+  public function getOrientation($obj = null) {
+    if (is_null($obj)) {
+      $imgdata = $this->get();
+    }
+    else {
+      $imgdata = null;
+      $filename = $this->getFullname($obj);
+      $localmfr = new FileReader($filename, $this->controller);
+      $imgdata = $localmfr->get();
+    }
+    // assume landscape if there's a problem reading
     if ($imgdata == null)
       return 'x';
-    if (!$localmfr::checkImageDatastream($imgdata))
+    if (!self::checkImageDatastream($imgdata))
       return 'x';
+    // create an image, then read out the width and height
     $img = imagecreatefromstring($imgdata);
     if (imagesx($img) < imagesy($img))
       return 'y';
