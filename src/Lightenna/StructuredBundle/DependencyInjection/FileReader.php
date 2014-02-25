@@ -171,7 +171,7 @@ class FileReader {
       }
       // create an object (stdClass is outside of namespace)
       $obj = new \stdClass();
-      $obj->{'name'} = $v;
+      $obj->{'name'} = rtrim($v,'/');
       // if listing just a file
       if ($this->file_part_leaf !== null) {
         $obj->{'path'} = $this->file_part_path;
@@ -191,8 +191,17 @@ class FileReader {
       // assume it's a generic file
       $obj->{'type'} = 'genfile';
       $obj->{'hidden'} = false;
-      if (is_dir($this->file_part . DIR_SEPARATOR . $v)) {
-        $obj->{'type'} = 'directory';
+      if ($this->inZip()) {
+        // crude test for zip folders (trailing slash)
+        if (substr($v, -1) == '/') {
+          $obj->{'type'} = 'directory';
+        }
+      }
+      else {
+        // test using filesystem
+        if (is_dir($this->file_part . DIR_SEPARATOR . $v)) {
+          $obj->{'type'} = 'directory';
+        }
       }
       // duplicate file ref incase we redirect
       $obj->{'file_original'} = $obj->{'file'};
@@ -238,7 +247,7 @@ class FileReader {
    * @param $obj directory entry object
    * @return Full filename reconstituted from directory entry
    */
-  
+
   public function getFullname($obj) {
     $fullname = $obj->file;
     // if obj contains a zip path

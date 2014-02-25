@@ -12,9 +12,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function __construct($filename = null, $con) {
     parent::__construct($filename, $con);
-    if (!is_null($filename)) {
-      $this->getListing();
-    }
+    $this->stats = new \stdClass();
     $this->settings = $this->controller->getSettings();
     $this->cache = new CacheHelper($this->settings, $this->controller);
     $this->cachedir = $this->controller->convertRawToInternalFilename($this->settings['mediacache']['path']);
@@ -22,9 +20,12 @@ class CachedMetadataFileReader extends MetadataFileReader {
     if (!is_dir($this->cachedir)) {
       mkdir($this->cachedir);
     }
-    $this->stats = $this->getStats();
+    if (!is_null($filename)) {
+      $this->getListing();
+      $this->stats = $this->getStats();
+      $this->stats->cachekey = $this->cache->getKey($this->stats, $this->args);
+    }
     $this->args = $this->controller->getArgs();
-    $this->stats->cachekey = $this->cache->getKey($this->stats, $this->args);
   }
 
   /**
@@ -45,7 +46,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
   
   public function isCached() {
     // if the image file is cached at the requested size, return it
-    return $this->cacheIsEnabled() && $this->cache->exists($this->stats->cachekey);
+    return $this->cacheIsEnabled() && isset($this->stats->{'cachekey'}) && $this->cache->exists($this->stats->cachekey);
   }
   
   public function get() {

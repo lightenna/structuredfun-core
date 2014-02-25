@@ -70,10 +70,13 @@ class MetadataFileReader extends FileReader {
   public function parseDirectoryEntry($obj) {
     switch ($obj->{'type'}) {
       case 'image':
+        $obj->orientation = 'none';
+        // getting the image metadata by reading file is too slow to calculate display properties
+        // $obj->orientation = $this->getOrientation($obj);
+        break;
       case 'video':
-      // get the image metadata to calculate display properties
-      // @todo this is slow, but it's not a problem yet
-        $obj->orientation = $this->getOrientation($obj);
+        // assume all video is landscape
+        $obj->orientation = 'x';
         break;
       default:
         $obj->orientation = 'x';

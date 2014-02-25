@@ -1,4 +1,9 @@
 
+* Reading all the files for resolution/shape is too slow
+  + introduce caching
+
+* Directory collapsing in zips
+
 * Fail nicely when a file/directory/path element doesn't exist
 
 * Using Project sheet in Google drive for major functional items
@@ -114,4 +119,7 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
   + whenever we open a zip
     + stats->file is the zip folder name
     + stats->name is the file name
+
+* Nested folders in zips should be links
+  + then think about collapsing
 
