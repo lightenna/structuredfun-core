@@ -1,8 +1,11 @@
 
 * Reading all the files for resolution/shape is too slow
-  + introduce caching
+  + introduce caching by default
 
-* Directory collapsing in zips
+* Javascript resolution check and class apply
+  + x-bound and y-bound
+
+* Generic directory collapsing starting in zips
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -122,4 +125,6 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
 
 * Nested folders in zips should be links
   + then think about collapsing
+
+* factor out CacheHelper
 

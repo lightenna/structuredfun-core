@@ -70,7 +70,8 @@ class MetadataFileReader extends FileReader {
   public function parseDirectoryEntry($obj) {
     switch ($obj->{'type'}) {
       case 'image':
-        $obj->orientation = 'none';
+        // assume portrait for images, then verify/change in javascript
+        $obj->orientation = 'y';
         // getting the image metadata by reading file is too slow to calculate display properties
         // $obj->orientation = $this->getOrientation($obj);
         break;
