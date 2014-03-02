@@ -70,10 +70,9 @@ class MetadataFileReader extends FileReader {
   public function parseDirectoryEntry($obj) {
     switch ($obj->{'type'}) {
       case 'image':
-        // assume portrait for images, then verify/change in javascript
-        $obj->orientation = 'y';
-        // getting the image metadata by reading file is too slow to calculate display properties
-        // $obj->orientation = $this->getOrientation($obj);
+        // get the image metadata by reading (cached-only) file
+        // fast enough (110ms for 91 images)
+        $obj->orientation = $this->getOrientation($obj);
         break;
       case 'video':
         // assume all video is landscape
@@ -98,12 +97,14 @@ class MetadataFileReader extends FileReader {
     else {
       $imgdata = null;
       $filename = $this->getFullname($obj);
-      $localmfr = new FileReader($filename, $this->controller);
-      $imgdata = $localmfr->get();
+      $localmfr = new CachedMetadataFileReader($filename, $this->controller);
+      $imgdata = $localmfr->getOnlyIfCached();
     }
     // assume landscape if there's a problem reading
     if ($imgdata == null)
-      return 'x';
+      return 'y';
+// START HERE
+// have temporarily forced to 'y' so we can check the javascript-class version is working
     if (!self::checkImageDatastream($imgdata))
       return 'x';
     // create an image, then read out the width and height

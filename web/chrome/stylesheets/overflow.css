@@ -1,20 +1,3 @@
 /**
  * StructuredFun CSS
  */
-.thumb {
-	
-}
-
-.folder {
-	background: #ffffff url('/chrome/images/fullres/folder_back.png')
-		no-repeat left top;
-	background-size: contain;
-}
-
-a .folder img.overlay {
-	width: 100%;
-}
-
-.direntry {
-	
-}
