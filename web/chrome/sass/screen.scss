@@ -26,16 +26,46 @@ html.flow-y {
   .content {
     background-color: #00ff00;
 
-    .flow-em .cell {
+    .flow-em > .cell {
       width: 20em;
       height: 20em;
       
-      img.width-bound {
-        width: 100%;
+      a > img {
+        .x-bound {
+          width: 100%;
+        }
+      
+        .y-bound {
+          height: 100%;
+        }
       }
       
-      img.height-bound {
-        height: 100%;
+      a > .folder {
+        background: #ffffff url('/chrome/images/fullres/folder_back.png') no-repeat left top;
+        background-size: contain;
+
+        > .preview {
+          width: 25%;
+          height: 20%;
+          margin-right: 3%;
+        }
+        
+        .preview-1, .preview-3 {
+          margin-left: 24%;
+        }
+        
+        .preview-1, .preview-2  {
+          margin-top: 10%;
+        }
+
+        .preview-3, .preview-4  {
+          margin-top: 2%;
+        }
+        
+        .overlay {
+          width: 100%;
+          margin-top: -52%;
+        }
       }
     }
 

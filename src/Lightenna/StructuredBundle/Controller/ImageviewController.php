@@ -21,13 +21,14 @@ class ImageviewController extends ViewController {
     // convert rawname to urlname and filename
     $filename = $this->convertRawToFilename($rawname);
     $name = self::convertRawToUrl($rawname);
+    // pull arguments from URL
+    $this->args = self::getArgsFromPath($name);
     // get file reader object
     $this->mfr = new CachedMetadataFileReader($filename, $this);
     // read metadata
     $listing = $this->mfr->getListing();
     // file is first element in returned listing array
     $this->stats = reset($listing);
-    $this->args = self::getArgsFromPath($name);
     // get image and return
     $imgdata = $this->fetchImage();
     // catch test case
@@ -35,6 +36,10 @@ class ImageviewController extends ViewController {
       return $imgdata;
     }
     if ($imgdata !== null) {
+      // cache image if cache enabled and we've done some kind of transformation to it
+      if (count($this->args)) {
+        $this->mfr->cache($imgdata);
+      }
       // print image to output stream
       self::returnImage($imgdata);
     }

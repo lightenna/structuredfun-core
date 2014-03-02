@@ -1,9 +1,8 @@
 
-* Reading all the files for resolution/shape is too slow
-  + introduce caching by default
+* 100% height on directory background
+  + if that's possible
 
-* Javascript resolution check and class apply
-  + x-bound and y-bound
+* send out transparent gif/png for missing previews
 
 * Generic directory collapsing starting in zips
 
@@ -127,4 +126,38 @@ php -c conf bin\composer.phar create-project symfony/framework-standard-edition 
   + then think about collapsing
 
 * factor out CacheHelper
+
+* Reading all the files for resolution/shape is too slow
+  + introduce caching by default
+
+* Javascript resolution check and class apply
+  + x-bound and y-bound
+    + have temporarily disabled cache to apply this
+logic check
+cr/ir
+portrait container 200x300 ratio = 2/3 = 0.66
+wide image = 300x200 ratio = 3/2 = 1.5
+bound, 0.66/1.5 = 0.4 = <=1 = x
+
+portrait image = 200x300 ratio = 2/3 = 0.66
+bound, 0.66/0.66 = 1.0 = <=1 = x
+
+v-portrait container 150x300 ratio = 1.5/3 = 0.5
+bound, 0.66/0.5 = 1.33 = >1 = y
+
+v-wide container 400x200 ratio = 4/2 = 2.0
+wide image = 300x200 ratio = 3/2 = 1.33
+bound, 2.0/1.33 = 1.66 = >1 = y
+
+square image = 200x200 ratio = 2/2 = 1.0
+bound, 2.0/1.0 = 2.0 = >1 = y
+
+portrait image = 100x200 ratio = 0.5
+bound, 2.0/0.5 = 4.0 = >1 = y
+
+* not 100% on mini-pictures in folder
+  + probably 20%
+
+* folder image and overlay
+  + small image alignment
 

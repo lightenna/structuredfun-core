@@ -121,6 +121,16 @@ class FileReader {
         }
         zip_close($zip);
       }
+      // if zip_part_leaf is set and has characters
+      if (($this->zip_part_leaf !== null) && ($len = strlen($this->zip_part_leaf)) > 0) {
+        foreach ($listing as $k => $item) {
+          if ($this->zip_part === $item) {
+            // leave in
+          } else {
+            unset($listing[$k]);
+          }
+        }
+      }
       // if zip_part_path is set and has characters
       if (($this->zip_part_path !== null) && ($len = strlen($this->zip_part_path)) > 0) {
         foreach ($listing as $k => $item) {

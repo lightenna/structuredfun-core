@@ -9,24 +9,41 @@
   this.init = function() {
     var that = this;
     $(document).ready(function(){
+      // find all imagebind containers, setup images to listen for load and bind
+      $('.cell').each(function() {
+        // read container width/height
+        var cx = $(this).width(), cy = $(this).height();
+        var cratio = cx / cy;
+        // bind to image's loaded event
+        $(this).find('img').load(function() {
+          // detect if the image is bound by width/height in this container
+          var ix = $(this).width(), iy = $(this).height();
+          var iratio = ix / iy;
+          // console.log('cx['+cx+'] cy['+cy+'] cratio['+cratio+'], ix['+ix+'] iy['+iy+'] iratio['+iratio+']: '+(cratio / iratio).toPrecision(3)+'= '+direction+'-bound');
+          var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
+          var invdir = (direction == 'x' ? 'y' : 'x');
+          // apply class to image
+          $(this).addClass(direction+'-bound').removeClass(invdir+'-bound');
+        });
+      });
       // find all screenpc elements, extract pc and store as data- attribute
       $('.screenpc-width').each(function() {
-        return generate_data_pc($(this), 'width');
+        return that.generate_data_pc($(this), 'width');
       });
       $('.screenpc-height').each(function() {
         // can't simply use css('height') because it returns height in px not %
         // console.log($(this).css('height'));
-        return generate_data_pc($(this), 'height');
+        return that.generate_data_pc($(this), 'height');
       });
       // call refresh function to apply widths/heights
       refresh();
       // attach listener to window for resize (rare, but should update)
       $(window).resize(function() {
         // if we're already timing out, delay for another x milliseconds
-        if (this.resizeTimeout != null) {
+        if (that.resizeTimeout != null) {
           clearTimeout(this.resizeTimeout);
         }
-        this.resizeTimeout = setTimeout(function() {
+        that.resizeTimeout = setTimeout(function() {
           that.refresh();
         }, 30);
       });
@@ -68,7 +85,7 @@
     elemid = jq.attr('id');
     if (elemid != undefined) {
       // parse stylesheets for class(n):width
-      elempc = lookupSelectorProp('#'+elemid, axis, '%');
+      elempc = this.lookupSelectorProp('#'+elemid, axis, '%');
     }
     if (elempc != undefined) {
       // found width on #id, apply to data
@@ -80,7 +97,7 @@
       for (var i=0 ; i<elemclass.length ; i++) {
         var elemc = elemclass[i];
         // lookup class in style sheets to find width definition
-        elempc = lookupSelectorProp('.'+elemc, axis, '%');
+        elempc = this.lookupSelectorProp('.'+elemc, axis, '%');
         if (elempc != undefined) {
           // found property, store in data tag
           jq.data('screenpc-'+axis, elempc).addClass('screenpc-ready');
