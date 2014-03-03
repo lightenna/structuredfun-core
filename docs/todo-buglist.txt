@@ -1,7 +1,4 @@
 
-* 100% height on directory background
-  + if that's possible
-
 * send out transparent gif/png for missing previews
 
 * Generic directory collapsing starting in zips
@@ -160,4 +157,7 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * folder image and overlay
   + small image alignment
+
+* 100% height on directory background
+  + if that's possible
 
