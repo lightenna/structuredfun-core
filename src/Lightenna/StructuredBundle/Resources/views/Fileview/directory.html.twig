@@ -4,7 +4,7 @@
 <ul class="flow flow-{{ direction }} flow-{{ celltype }} {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">
   {% for file in dirlisting %}
     {% if file.type == 'directory' %}
-  <li class="cell"><a href="/file{{ linkpath }}{{ file.name }}/">
+  <li class="cell screenpc-width"><a href="/file{{ linkpath }}{{ file.name }}/">
     <div class="folder">
       {% for img_prev_n in 1..4 %}<img class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=62&clipwidth=62&clipheight=50" alt="directory preview thumbnail" />{% endfor %}
       <img class="overlay" src="/chrome/images/fullres/folder_overlay.png" alt="directory semi-opaque front" />
@@ -12,15 +12,15 @@
     <span class="title">{{ file.name|e }}</span>
   </a></li>
     {% elseif file.type == 'image' %}
-  <li class="cell"><a href="/image{{ linkpath }}{{ file.name }}">
+  <li class="cell screenpc-width"><a href="/image{{ linkpath }}{{ file.name }}">
     <img class="{{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
   </a></li>
     {% elseif file.type == 'video' %}
-  <li class="cell"><a href="/image{{ linkpath }}{{ file.name }}">
+  <li class="cell screenpc-width"><a href="/image{{ linkpath }}{{ file.name }}">
     <img class="{{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" />
   </a></li>
     {% else %}
-  <li class="cell">{{ file.name }}</li>
+  <li class="cell screenpc-width">{{ file.name }}</li>
     {% endif %}
     {% endfor %}
 </ul>

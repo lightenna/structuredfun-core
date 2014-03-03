@@ -7,29 +7,58 @@
 /* -------------------------------------------------------------------------*/
 /* Layout */
 
-html.flow-x {
+html.flexbox.flow-x {
   overflow-x: scroll;
+
+  .page .content {
+    // row-major order
+    .flow-x {
+      display: -webkit-flex;
+      -webkit-flex-flow: column wrap;
+      display: flex;
+      flex-flow: column wrap;
+      height: 100%;
+    }
+  }
 }
 
-html.flow-y {
+// flow y, only option for no-flexbox browsers
+html.flow-y, html.no-flexbox.flow-x {
   overflow-y: scroll;
+
+  // column-major order
+  .page .content {
+    li {
+      float: left;
+    }
+  }
 }
 
 .page {
+  height: 100%;
 
   // header and footer are full-width by default.
-  .header, .footer { 
+  .header, .footer {
     clear: both;
     background-color: #ff0000;
+    height: 10%;
   }
 
   .content {
     background-color: #00ff00;
+    height: 80%;
 
     .flow-em > .cell {
       width: 20em;
       height: 20em;
-      
+    }
+
+    .flow-pc > .cell {
+      width: 25%;
+      height: 50%;
+    }
+
+    .flow > .cell {
       a > img {
         .x-bound {
           width: 100%;
@@ -40,9 +69,10 @@ html.flow-y {
         }
       }
       
+      // folders with preview images
       a > .folder {
         background: #ffffff url('/chrome/images/fullres/folder_back.png') no-repeat left top;
-        background-size: contain;
+        background-size: 100% 100%;
 
         > .preview {
           width: 25%;
@@ -64,30 +94,13 @@ html.flow-y {
         
         .overlay {
           width: 100%;
-          margin-top: -52%;
+          height: 80%;
+          margin-top: -32%;
         }
       }
     }
 
-    /**
-     * Row major order
-     */
-    .flow-x {
-      display: -webkit-flex;
-      -webkit-flex-flow: column wrap;
-      display: flex;
-      flex-flow: column wrap;
-      height: 100%;
-    }
-
-    /**
-     * Column major order
-     */
-    .flow-y li {
-      float: left;
-    }
-
   }
-
 }
+
 
