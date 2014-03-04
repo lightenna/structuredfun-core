@@ -18,8 +18,14 @@ class ImageviewController extends ViewController {
   }
 
   public function indexAction($rawname, $output = true) {
-    // convert rawname to urlname and filename
-    $filename = $this->convertRawToFilename($rawname);
+    try {
+      // convert rawname to urlname and filename
+      $filename = $this->convertRawToFilename($rawname);
+    } catch (\Exception $e) {
+      // if there was a problem, return a small transparent image
+      $rawname = '/chrome/images/fullres/transparent.png';
+      $filename = $this->convertRawToInternalFilename('htdocs/web'.$rawname);
+    }
     $name = self::convertRawToUrl($rawname);
     // pull arguments from URL
     $this->args = self::getArgsFromPath($name);
