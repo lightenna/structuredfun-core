@@ -15,8 +15,14 @@ html.flexbox.flow-x {
     .flow-x {
       display: -webkit-flex;
       -webkit-flex-flow: column wrap;
+      -webkit-align-items: center;
+      -webkit-justify-content: flex-start;
+      -webkit-align-content: flex-start;
       display: flex;
       flex-flow: column wrap;
+      align-items: center;
+      justify-content: flex-start;
+      align-content: flex-start;
       height: 100%;
     }
   }
@@ -41,12 +47,12 @@ html.flow-y, html.no-flexbox.flow-x {
   .header, .footer {
     clear: both;
     background-color: #ff0000;
-    height: 10%;
+    height: 5%;
   }
 
   .content {
     background-color: #00ff00;
-    height: 80%;
+    height: 90%;
 
     .flow-em > .cell {
       width: 20em;
@@ -59,47 +65,60 @@ html.flow-y, html.no-flexbox.flow-x {
     }
 
     .flow > .cell {
-      a > img {
-        .x-bound {
+      a {
+      
+        > img.x-bound {
           width: 100%;
         }
       
-        .y-bound {
+        > img.y-bound {
           height: 100%;
         }
-      }
-      
-      // folders with preview images
-      a > .folder {
-        background: #ffffff url('/chrome/images/fullres/folder_back.png') no-repeat left top;
-        background-size: 100% 100%;
 
-        > .preview {
-          width: 25%;
-          height: 20%;
-          margin-right: 3%;
-        }
-        
-        .preview-1, .preview-3 {
-          margin-left: 24%;
-        }
-        
-        .preview-1, .preview-2  {
-          margin-top: 10%;
+        .title {
+          height: 0;
+          line-height: 0;
+          top: -1.0em;
+          position: relative;
         }
 
-        .preview-3, .preview-4  {
-          margin-top: 2%;
-        }
-        
-        .overlay {
+        // folders with preview images
+        > .folder {
+          background: #ffffff url('/chrome/images/fullres/folder_back.png') no-repeat left top;
+          background-size: 100% 100%;
           width: 100%;
-          height: 80%;
-          margin-top: -32%;
+          height: 100%;
+          display: block;
+  
+          > .overlay {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            top: -69%;
+          }
+  
+          > .preview {
+            width: 25%;
+            height: 34.5%;
+            position: relative;
+            margin-right: 3%;
+          }
+          
+          .preview-1, .preview-3 {
+            margin-left: 24%;
+          }
+          
+          .preview-1, .preview-2  {
+            // have to use 'top' because 'margin-top' percentage calculated on element width!
+            top: 15%;
+          }
+  
+          .preview-3, .preview-4  {
+            top: 17%;
+          }        
         }
       }
     }
-
   }
 }
 

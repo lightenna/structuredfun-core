@@ -20,7 +20,7 @@ class FileviewController extends ViewController {
             array(
               'dirname' => $name,
               'direction' => 'x',
-              'celltype' => 'em',
+              'celltype' => 'pc',
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
               'argsbase' => ARG_SEPARATOR . 'thumb=true&',
               'argsdefault' => 'maxlongest=200&',
