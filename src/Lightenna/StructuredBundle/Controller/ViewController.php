@@ -82,11 +82,15 @@ class ViewController extends Controller {
     $attach = array();
     if (is_array($this->settings['shares'])) {
       // build array of attach points
-      foreach ($this->settings['shares'] as &$sh) {
-        if (isset($sh['enabled']) && ($sh['enabled'] == false)) {
+      foreach ($this->settings['shares'] as $k => &$sh) {
+        if (isset($sh['enabled']) && ($sh['enabled'] === false)) {
           // ignore disabled shares
           continue;
         }
+        // trim first slash from attach point
+        $sh['attach'] = ltrim($sh['attach'], DIR_SEPARATOR);
+        // combine attach and name for matching later
+        $sh['attachname'] = ltrim($sh['attach'] . DIR_SEPARATOR .  $sh['name'], DIR_SEPARATOR); 
         // define each unique attach point as an array
         if (!isset($attach[$sh['attach']])) {
           $attach[$sh['attach']] = array();
@@ -133,7 +137,17 @@ class ViewController extends Controller {
    * @return string filename with substitutions
    */
 
-  public function performFilenameSubstitution($filename) {
+  public function performFilenameSubstitution($name, $filename) {
+    if (isset($this->settings['shares'])) {
+      // try and match name against an attached share
+      foreach ($this->settings['shares'] as $k => $share) {
+        if ($share['attachname'] == substr($name, 0, strlen($share['attachname']))) {
+          // rewrite filename to use share path instead
+          print ('bingo');
+          print_r($share);
+        }
+      }
+    }
     // search string for nth references [1]
     $matches = array();
     // if there are no matches, substitution is same as input
@@ -259,7 +273,7 @@ class ViewController extends Controller {
       }
     }
     $filename .= DIR_SEPARATOR . ltrim($name, DIR_SEPARATOR);
-    return $this->performFilenameSubstitution($filename);
+    return $this->performFilenameSubstitution($name, $filename);
   }
 
   /**

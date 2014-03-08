@@ -64,8 +64,35 @@ html.flow-y, html.no-flexbox.flow-x {
       height: 50%;
     }
 
+
     .flow > .cell {
-      a {
+      border-left: 1px solid #999999;
+      // add border to the top, but offset with margin to allow full percentage height
+      border-top: 1px solid #999999;
+      margin-top: -1px;
+      text-align: center;
+      
+      // unknown-height vertical centering using ghost
+      // http://css-tricks.com/centering-in-the-unknown/
+/*
+      & :before {
+        content: '';
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        // adjusts for spacing
+        margin-right: -0.25em;
+      }
+*/
+      a {      
+        > img {
+          display: inline-block;
+          vertical-align: middle;
+          margin-left: auto;
+          margin-right: auto;
+          margin-top: auto;
+          margin-bottom: auto;
+        }
       
         > img.x-bound {
           width: 100%;
@@ -89,6 +116,7 @@ html.flow-y, html.no-flexbox.flow-x {
           width: 100%;
           height: 100%;
           display: block;
+          text-align: left;
   
           > .overlay {
             width: 100%;

@@ -182,6 +182,7 @@ class FileReader {
       // create an object (stdClass is outside of namespace)
       $obj = new \stdClass();
       $obj->{'name'} = rtrim($v,'/');
+      $obj->{'alias'} = $obj->{'name'};
       // if listing just a file
       if ($this->file_part_leaf !== null) {
         $obj->{'path'} = $this->file_part_path;

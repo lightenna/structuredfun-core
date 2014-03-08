@@ -8,6 +8,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
   var $stats;
   var $args;
   var $settings;
+  var $name = null;
 
   public function __construct($filename = null, $con) {
     parent::__construct($filename, $con);
@@ -24,6 +25,34 @@ class CachedMetadataFileReader extends MetadataFileReader {
       $this->stats = $this->getStats();
       $this->stats->cachekey = $this->getKey();
     }
+  }
+
+  public function injectShares($n) {
+    $this->name = $n;
+  }
+  
+  /**
+   * Overriden getListing function that adds metadata to the elements
+   * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
+   */
+
+  public function getListing() {
+    $listing = parent::getListing();
+    // add in shares within this folder
+    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)])) {
+      $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)];
+      foreach ($shares as $k => &$sh) {
+        $newentry = array(
+          'name' => $sh['name'],
+          'alias' => $sh['alias'],
+          'type' => 'directory',
+          'orientation' => 'x',
+        );
+        $newentry['path'] = $newentry['file'] = $newentry['file_original'] = $sh['path'];
+        $listing[] = $newentry;
+      }
+    }
+    return $listing;
   }
 
   /**

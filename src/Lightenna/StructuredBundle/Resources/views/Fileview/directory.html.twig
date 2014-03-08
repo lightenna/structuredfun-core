@@ -9,18 +9,18 @@
       {% for img_prev_n in 1..4 %}<img class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=62&clipwidth=62&clipheight=50" alt="directory preview thumbnail" />{% endfor %}
       <img class="overlay" src="/chrome/images/fullres/folder_overlay.png" alt="directory semi-opaque front" />
     </div>
-    <span class="title">{{ file.name|e }}</span>
+    <span class="title">{{ file.alias|e }}</span>
   </a></li>
     {% elseif file.type == 'image' %}
   <li class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}"><a href="/image{{ linkpath }}{{ file.name }}">
-    <img class="{{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
+    <img class="{{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" data-native-width="1000" data-native-height="1500" data-loaded-width="133" data-loaded-height="200" />
   </a></li>
     {% elseif file.type == 'video' %}
   <li class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}"><a href="/image{{ linkpath }}{{ file.name }}">
-    <img class="{{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.name}}" />
+    <img class="{{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" />
   </a></li>
     {% else %}
-  <li class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">{{ file.name }}</li>
+  <li class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">{{ file.alias }}</li>
     {% endif %}
     {% endfor %}
 </ul>
