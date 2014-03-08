@@ -118,52 +118,79 @@ html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   width: 25%;
   height: 50%;
 }
-/* line 70, ../sass/screen.scss */
+/* line 68, ../sass/screen.scss */
+.page .content .flow > .cell {
+  border-left: 1px solid #999999;
+  border-top: 1px solid #999999;
+  margin-top: -1px;
+  text-align: center;
+  /*
+        & :before {
+          content: '';
+          display: inline-block;
+          height: 100%;
+          vertical-align: middle;
+          // adjusts for spacing
+          margin-right: -0.25em;
+        }
+  */
+}
+/* line 88, ../sass/screen.scss */
+.page .content .flow > .cell a > img {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+/* line 97, ../sass/screen.scss */
 .page .content .flow > .cell a > img.x-bound {
   width: 100%;
 }
-/* line 74, ../sass/screen.scss */
+/* line 101, ../sass/screen.scss */
 .page .content .flow > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 78, ../sass/screen.scss */
+/* line 105, ../sass/screen.scss */
 .page .content .flow > .cell a .title {
   height: 0;
   line-height: 0;
   top: -1.0em;
   position: relative;
 }
-/* line 86, ../sass/screen.scss */
+/* line 113, ../sass/screen.scss */
 .page .content .flow > .cell a > .folder {
   background: white url("/chrome/images/fullres/folder_back.png") no-repeat left top;
   background-size: 100% 100%;
   width: 100%;
   height: 100%;
   display: block;
+  text-align: left;
 }
-/* line 93, ../sass/screen.scss */
+/* line 121, ../sass/screen.scss */
 .page .content .flow > .cell a > .folder > .overlay {
   width: 100%;
   height: 100%;
   position: relative;
   top: -69%;
 }
-/* line 100, ../sass/screen.scss */
+/* line 128, ../sass/screen.scss */
 .page .content .flow > .cell a > .folder > .preview {
   width: 25%;
   height: 34.5%;
   position: relative;
   margin-right: 3%;
 }
-/* line 107, ../sass/screen.scss */
+/* line 135, ../sass/screen.scss */
 .page .content .flow > .cell a > .folder .preview-1, .page .content .flow > .cell a > .folder .preview-3 {
   margin-left: 24%;
 }
-/* line 111, ../sass/screen.scss */
+/* line 139, ../sass/screen.scss */
 .page .content .flow > .cell a > .folder .preview-1, .page .content .flow > .cell a > .folder .preview-2 {
   top: 15%;
 }
-/* line 116, ../sass/screen.scss */
+/* line 144, ../sass/screen.scss */
 .page .content .flow > .cell a > .folder .preview-3, .page .content .flow > .cell a > .folder .preview-4 {
   top: 17%;
 }

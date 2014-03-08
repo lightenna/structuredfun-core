@@ -1,7 +1,8 @@
 
-* send out transparent gif/png for missing previews
-
-* Generic directory collapsing starting in zips
+* javascript image classes failing
+  + works on refresh, but not always on first load
+    + disable caching to debug
+      + doesn't happen reliably, needs more investigation
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -160,4 +161,6 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * 100% height on directory background
   + if that's possible
+
+* send out transparent gif/png for missing previews
 
