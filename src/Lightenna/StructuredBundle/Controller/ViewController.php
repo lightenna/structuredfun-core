@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 
 /** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
@@ -32,8 +33,8 @@ class ViewController extends Controller {
         // check the directory exists
         if (is_dir($confdirname)) {
           // process settings if found
-          $listing = scandir($confdirname);
-          self::processListing($confdirname, $listing);
+          $localmfr = new MetadataFileReader($confdirname, $this);
+          $listing = $localmfr->getListing();
           // parse each .ini file
           foreach ($listing as $entry) {
             if (strtolower($entry->ext) == 'ini') {
@@ -83,14 +84,15 @@ class ViewController extends Controller {
     if (is_array($this->settings['shares'])) {
       // build array of attach points
       foreach ($this->settings['shares'] as $k => &$sh) {
-        if (isset($sh['enabled']) && ($sh['enabled'] === false)) {
+        if (isset($sh['enabled']) && ($sh['enabled'] == false)) {
           // ignore disabled shares
+          unset($this->settings['shares'][$k]);
           continue;
         }
         // trim first slash from attach point
         $sh['attach'] = ltrim($sh['attach'], DIR_SEPARATOR);
         // combine attach and name for matching later
-        $sh['attachname'] = ltrim($sh['attach'] . DIR_SEPARATOR .  $sh['name'], DIR_SEPARATOR); 
+        $sh['attachname'] = ltrim($sh['attach'] . DIR_SEPARATOR . $sh['name'], DIR_SEPARATOR);
         // define each unique attach point as an array
         if (!isset($attach[$sh['attach']])) {
           $attach[$sh['attach']] = array();
@@ -102,7 +104,7 @@ class ViewController extends Controller {
     $this->settings['attach'] = $attach;
     // fill in missing paths
     if (!isset($this->settings['general']['path_ffmpeg'])) {
-      $this->settings['general']['path_ffmpeg'] = self::convertRawToInternalFilename('vendor/ffmpeg/bin').'/';
+      $this->settings['general']['path_ffmpeg'] = self::convertRawToInternalFilename('vendor/ffmpeg/bin') . '/';
     }
   }
 
@@ -138,13 +140,13 @@ class ViewController extends Controller {
    */
 
   public function performFilenameSubstitution($name, $filename) {
+    // substitute 'share' name for share path
     if (isset($this->settings['shares'])) {
       // try and match name against an attached share
       foreach ($this->settings['shares'] as $k => $share) {
         if ($share['attachname'] == substr($name, 0, strlen($share['attachname']))) {
           // rewrite filename to use share path instead
-          print ('bingo');
-          print_r($share);
+          $filename = rtrim($share['path'], DIR_SEPARATOR) . DIR_SEPARATOR . ltrim(substr($name, strlen($share['attachname'])), DIR_SEPARATOR);
         }
       }
     }
@@ -317,6 +319,5 @@ class ViewController extends Controller {
     }
     return $args;
   }
-
 
 }
