@@ -44,7 +44,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
       foreach ($shares as $k => &$sh) {
         $newentry = array(
           'name' => $sh['name'],
-          'alias' => $sh['alias'],
+          'alias' => (isset($sh['alias']) ? $sh['alias'] : $sh['name']),
           'type' => 'directory',
           'orientation' => 'x',
         );
