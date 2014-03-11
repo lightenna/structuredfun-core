@@ -1,4 +1,11 @@
 
+* every page is too high
+  + being given a redundant vertical scollbar
+
+* image vertical centering
+
+* back to directory view doesn't bound images properly
+-- same as --
 * javascript image classes failing
   + works on refresh, but not always on first load
     + disable caching to debug
@@ -163,4 +170,9 @@ bound, 2.0/0.5 = 4.0 = >1 = y
   + if that's possible
 
 * send out transparent gif/png for missing previews
+
+* strange thumbnail zooming thing
+  + thumbnails getting big and blurry
+    + because the point we store back to the cache is after cropping
+    + change mfr->cache() call point or add clipwidth/height to cache keys
 

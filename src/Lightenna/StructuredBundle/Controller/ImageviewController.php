@@ -42,10 +42,6 @@ class ImageviewController extends ViewController {
       return $imgdata;
     }
     if ($imgdata !== null) {
-      // cache image if cache enabled and we've done some kind of transformation to it
-      if (count($this->args)) {
-        $this->mfr->cache($imgdata);
-      }
       // print image to output stream
       self::returnImage($imgdata);
     }
@@ -181,6 +177,12 @@ class ImageviewController extends ViewController {
         $img = $this->resizeImage($oldimg);
         // store image in oldimg for process symmetry
         $oldimg = $img;
+      }
+      // cache image if cache enabled and we've done some kind of transformation to it
+      if (count($this->args)) {
+        // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
+        $imgdata = self::getImageData($oldimg, isset($this->stats->{'ext'}) ? $this->stats->{'ext'} : 'jpg');
+        $this->mfr->cache($imgdata);
       }
       // then [optionally] clip
       if ($this->argsSayClipImage()) {

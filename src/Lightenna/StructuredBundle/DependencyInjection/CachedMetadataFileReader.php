@@ -194,6 +194,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
       'maxwidth',
       'maxheight',
       'maxlongest',
+      'maxshortest',
     );
     foreach ($keys as $key) {
       if (isset($args[$key])) {
