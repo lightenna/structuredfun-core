@@ -71,34 +71,26 @@ html.flow-y, html.no-flexbox.flow-x {
       border-top: 1px solid #999999;
       margin-top: -1px;
       text-align: center;
-      
-      // unknown-height vertical centering using ghost
-      // http://css-tricks.com/centering-in-the-unknown/
-/*
-      & :before {
-        content: '';
-        display: inline-block;
-        height: 100%;
-        vertical-align: middle;
-        // adjusts for spacing
-        margin-right: -0.25em;
-      }
-*/
 
-      a {      
+      a { 
+        // relative parent required for x-bound images
+        position: relative;
+              
         > img {
-          display: inline-block;
-          vertical-align: middle;
-          margin-left: auto;
-          margin-right: auto;
-          margin-top: auto;
-          margin-bottom: auto;
+        
         }
       
+        // landscape images
         > img.x-bound {
+          position: relative;
           width: 100%;
+          top: 50%;
+          transform: translate(0, -50%);
+          -ms-transform: translate(0, -50%);
+          -webkit-transform: translate(0, -50%);
         }
       
+        // portrait images
         > img.y-bound {
           height: 100%;
         }
@@ -111,22 +103,25 @@ html.flow-y, html.no-flexbox.flow-x {
         }
 
         // folders with preview images
-        > .folder {
+        .folder {
           background: #ffffff url('/chrome/images/fullres/folder_back.png') no-repeat left top;
           background-size: 100% 100%;
           width: 100%;
           height: 100%;
           display: block;
           text-align: left;
+          position: relative;
   
-          > .overlay {
+          .overlay {
             width: 100%;
             height: 100%;
-            position: relative;
-            top: -69%;
+            display: inline-block;
+            // absolute position within relative container to do overlay with no effective height
+            position: absolute;
+            top: 0;
           }
   
-          > .preview {
+          .preview {
             width: 25%;
             height: 34.5%;
             position: relative;
