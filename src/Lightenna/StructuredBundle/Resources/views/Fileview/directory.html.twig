@@ -6,8 +6,10 @@
     {% if file.type == 'directory' %}
   <li class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}"><a href="/file{{ linkpath }}{{ file.name }}/">
     <div class="folder">
-      {% for img_prev_n in 1..4 %}<img class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=62&clipwidth=62&clipheight=50" alt="directory preview thumbnail" />{% endfor %}
       <img class="overlay" src="/chrome/images/fullres/folder_overlay.png" alt="directory semi-opaque front" />
+<!--
+-->
+      {% for img_prev_n in 1..4 %}<img class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=62&clipwidth=62&clipheight=50" alt="directory preview thumbnail" />{% endfor %}
     </div>
     <span class="title">{{ file.alias|e }}</span>
   </a></li>
