@@ -23,8 +23,11 @@ class MetadataFileReader extends FileReader {
     }
     if ($this->isDirectory()) {
       // if we're processing a directory, loop through files and pull their metadata 
+      $seq = 0;
       foreach ($listing as $obj) {
         $this->parseDirectoryEntry($obj);
+        // add sequence number
+        $obj->{'seq'} = $seq++;
       }
     }
     return $listing;

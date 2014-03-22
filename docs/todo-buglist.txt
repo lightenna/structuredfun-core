@@ -1,10 +1,5 @@
 
-* back to directory view doesn't bound images properly
--- same as --
-* javascript image classes failing
-  + works on refresh, but not always on first load
-    + disable caching to debug
-      + doesn't happen reliably, needs more investigation
+* javascript re-assess x-bound or y-bound on resize
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -176,4 +171,11 @@ bound, 2.0/0.5 = 4.0 = >1 = y
     + try making Symfony use production version
 
 * image vertical centering
+
+* back to directory view doesn't bound images properly
+-- same as --
+* javascript image classes failing
+  + works on refresh, but not always on first load
+    + disable caching to debug
+      + doesn't happen reliably, needs more investigation
 
