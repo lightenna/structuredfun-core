@@ -1,5 +1,12 @@
 
-* javascript re-assess x-bound or y-bound on resize
+* Repeated horizontal (flow-y) resize
+  + slightly funny stuff going on
+    + jitters between 2 and 3 rows
+    ? could be finding a % in the id because we set one? 
+
+* Think of a way to store data-native-width and data-native-height in the cached image metadata
+  + worth finding ways to store and retreive image metadata anyway
+    + plus it enables re-res
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -178,4 +185,15 @@ bound, 2.0/0.5 = 4.0 = >1 = y
   + works on refresh, but not always on first load
     + disable caching to debug
       + doesn't happen reliably, needs more investigation
+
+* javascript re-assess x-bound or y-bound on resize
+
+* tweak sfac on js y->x scrolling
+
+* set screen-x/y as percentage
+  + covers pre-update scenario to fix quirky drags
+* check chrome re-bound
+
+* mac dragging around the edge messes up sideways scroll
+  = solved by stopping bubble
 

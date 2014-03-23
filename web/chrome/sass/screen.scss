@@ -31,15 +31,6 @@ html {
   background-color: $background_html_light;
 }
 
-html.dark {
-  background-color: $background_html_dark;
-
-  .flow > .cell {
-    border-color: $background_grid_dark; 
-  }
-}
-
-
 html.flexbox.flow-x {
   overflow-x: scroll;
 
@@ -203,5 +194,16 @@ html.flow-y, html.no-flexbox.flow-x {
     }
   }
 }
+
+// Theme variants
+
+html.dark {
+  background-color: $background_html_dark;
+
+  .page .content .flow > .cell {
+    border-color: $background_grid_dark; 
+  }
+}
+
 
 
