@@ -4,55 +4,20 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 
 class CachedMetadataFileReader extends MetadataFileReader {
 
-  var $cache;
-  var $stats;
-  var $args;
-  var $settings;
-  var $name = null;
+  protected $cache;
+  protected $cachedir;
 
   public function __construct($filename = null, $con) {
     parent::__construct($filename, $con);
-    $this->args = $this->controller->getArgs();
-    $this->stats = new \stdClass();
-    $this->settings = $this->controller->getSettings();
     $this->cachedir = $this->controller->convertRawToInternalFilename($this->settings['mediacache']['path']);
     // create cache directory if it's not already present
     if (!is_dir($this->cachedir)) {
       mkdir($this->cachedir);
     }
+    $this->stats->cachekey = null;
     if (!is_null($filename)) {
-      $this->getListing();
-      $this->stats = $this->getStats();
       $this->stats->cachekey = $this->getKey();
     }
-  }
-
-  public function injectShares($n) {
-    $this->name = $n;
-  }
-  
-  /**
-   * Overriden getListing function that adds metadata to the elements
-   * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
-   */
-
-  public function getListing() {
-    $listing = parent::getListing();
-    // add in shares within this folder
-    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)])) {
-      $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)];
-      foreach ($shares as $k => &$sh) {
-        $newentry = array(
-          'name' => $sh['name'],
-          'alias' => (isset($sh['alias']) ? $sh['alias'] : $sh['name']),
-          'type' => 'directory',
-          'orientation' => 'x',
-        );
-        $newentry['path'] = $newentry['file'] = $newentry['file_original'] = $sh['path'];
-        $listing[] = $newentry;
-      }
-    }
-    return $listing;
   }
 
   /**
@@ -61,7 +26,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
 
   public function cacheIsEnabled() {
-    if (isset($this->settings['general']['nocache']) || isset($this->args['nocache'])) {
+    if (isset($this->settings['general']['nocache']) || isset($this->args->{'nocache'}) || is_null($this->stats->cachekey)) {
       return false;
     }
     return true;
@@ -77,7 +42,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function isCached() {
     // if the image file is cached at the requested size, return it
-    return isset($this->stats->{'cachekey'}) && $this->existsInCache($this->getFilename($this->stats->cachekey));
+    return !is_null($this->stats->{'cachekey'}) && $this->existsInCache($this->getFilename($this->stats->cachekey));
   }
 
   /**
@@ -124,18 +89,16 @@ class CachedMetadataFileReader extends MetadataFileReader {
   
   /**
    * Get the contents of a file, ideally from the cache
+   * Can't save to cache here because the image hasn't been filtered (resized/cropped etc.)
    * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::get()
    */
   public function get() {
     if ($this->isCached()) {
-      return file_get_contents($this->getFilename($this->stats->cachekey));
+      // redirect to use file from cache
+      $this->file_part = $this->getFilename($this->stats->cachekey);
     }
-    else {
-      $imgdata = parent::get();
-      // can't cache here because the image hasn't been filtered (resized/cropped etc.)
-      // $this->cache($imgdata);
-      return $imgdata;
-    }
+    $imgdata = parent::get();
+    return $imgdata;
   }
 
   /**
@@ -158,8 +121,6 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function rewrite($newname) {
     parent::rewrite($newname);
-    $this->stats->file = $newname;
-    $this->stats->ext = self::getExtension($this->stats->file);
     // update cache key
     $this->stats->cachekey = $this->getKey();
     return $newname;
@@ -180,7 +141,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   /**
    * Create a string to uniquely identify these image arguments
-   * @param  array $args URL arguments
+   * @param object $args URL arguments
    * @return string arguments as a string
    */
 
@@ -197,8 +158,8 @@ class CachedMetadataFileReader extends MetadataFileReader {
       'maxshortest',
     );
     foreach ($keys as $key) {
-      if (isset($args[$key])) {
-        $output .= $key . '=' . $args[$key];
+      if (isset($args->{$key})) {
+        $output .= $key . '=' . $args->{$key};
       }
     }
     return $output;

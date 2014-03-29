@@ -3,13 +3,37 @@
 namespace Lightenna\StructuredBundle\DependencyInjection;
 class MetadataFileReader extends FileReader {
 
+  protected $stats;
+  protected $args;
+  protected $settings;
   protected $controller;
-
+  protected $name = null;
+  
   public function __construct($filename, $con) {
     parent::__construct($filename);
     $this->controller = $con;
+    $this->args = $this->controller->getArgs();
+    $this->stats = new \stdClass();
+    $this->settings = $this->controller->getSettings();
+    if (!is_null($filename)) {
+      $this->getListing();
+      $this->stats = $this->getStats();
+    }
   }
 
+  /**
+   * Get the contents of a file, then load available metadata
+   * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::get()
+   */
+  public function get() {
+    $imgdata = parent::get();
+    return $imgdata;
+  }
+
+  public function injectShares($n) {
+    $this->name = $n;
+  }
+  
   /**
    * Overriden getListing function that adds metadata to the elements
    * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
@@ -28,6 +52,20 @@ class MetadataFileReader extends FileReader {
         $this->parseDirectoryEntry($obj);
         // add sequence number
         $obj->{'seq'} = $seq++;
+      }
+    }
+    // add in shares within this folder
+    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)])) {
+      $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)];
+      foreach ($shares as $k => &$sh) {
+        $newentry = array(
+          'name' => $sh['name'],
+          'alias' => (isset($sh['alias']) ? $sh['alias'] : $sh['name']),
+          'type' => 'directory',
+          'orientation' => 'x',
+        );
+        $newentry['path'] = $newentry['file'] = $newentry['file_original'] = $sh['path'];
+        $listing[] = $newentry;
       }
     }
     return $listing;
@@ -105,9 +143,7 @@ class MetadataFileReader extends FileReader {
     }
     // assume landscape if there's a problem reading
     if ($imgdata == null)
-      return 'y';
-// START HERE
-// have temporarily forced to 'y' so we can check the javascript-class version is working
+      return 'x';
     if (!self::checkImageDatastream($imgdata))
       return 'x';
     // create an image, then read out the width and height
@@ -117,4 +153,16 @@ class MetadataFileReader extends FileReader {
     return 'x';
   }
 
+  /**
+   * Rewrite the current file's path
+   * @todo may need to tweak for things in zips
+   */
+  
+  public function rewrite($newname) {
+    parent::rewrite($newname);
+    $this->stats->file = $newname;
+    $this->stats->ext = self::getExtension($this->stats->file);
+    return $newname;
+  }
+  
 }

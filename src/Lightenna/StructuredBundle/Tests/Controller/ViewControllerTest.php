@@ -50,13 +50,13 @@ class ViewControllerTest extends WebTestCase
 	public function testGetArgsFromPath() {
 		$t = new ViewController();
 		// test no args
-		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'),array());
+		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'),(object)array());
 		// test 1 arg
-		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test=1'),array('test' => 1));
+		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test=1'),(object)array('test' => 1));
 		// test 2 args
-		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test=1&k=v'),array('test' => 1, 'k' => 'v'));
+		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test=1&k=v'),(object)array('test' => 1, 'k' => 'v'));
 		// test bad arg
-		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test'),array('test' => null));
+		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test'),(object)array('test' => null));
 	}
 
 	public function testPerformFilenameSubstitution() {

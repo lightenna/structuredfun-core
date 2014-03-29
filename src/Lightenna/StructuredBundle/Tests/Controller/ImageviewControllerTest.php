@@ -17,7 +17,7 @@ class ImageviewControllerTest extends WebTestCase {
     $wide = imagecreatetruecolor($long, $short);
     $tall = imagecreatetruecolor($short, $long);
     // test width-limited landscape resize
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'maxwidth' => $restricted
       ));
     $t->imageCalcNewSize($wide);
@@ -25,7 +25,7 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertEquals($stats->{'newwidth'}, $restricted);
     $this->assertEquals($stats->{'newheight'} < $restricted, true);
     // test height-limited portrait resize
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'maxheight' => $restricted
       ));
     $t->imageCalcNewSize($tall);
@@ -33,13 +33,13 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertEquals($stats->{'newwidth'} < $restricted, true);
     $this->assertEquals($stats->{'newheight'}, $restricted);
     // test unrestricted resize
-    $t->setArgs(array());
+    $t->setArgsByArray(array());
     $t->imageCalcNewSize($wide);
     $stats = $t->getStats();
     $this->assertEquals($stats->{'newwidth'}, $long);
     $this->assertEquals($stats->{'newheight'}, $short);
     // test weird width-limited portrait resize
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'maxwidth' => $restricted
       ));
     $t->imageCalcNewSize($tall);
@@ -47,7 +47,7 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertEquals($stats->{'newwidth'}, $restricted);
     $this->assertEquals($stats->{'newheight'} > $restricted, true);
     // test width-limited landscape resize using longest
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'maxlongest' => $restricted
       ));
     $t->imageCalcNewSize($wide);
@@ -55,7 +55,7 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertEquals($stats->{'newwidth'}, $restricted);
     $this->assertEquals($stats->{'newheight'} < $restricted, true);
     // test height-bound landscape resize using shortest
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'maxshortest' => $restricted
       ));
     $t->imageCalcNewSize($wide);
@@ -63,7 +63,7 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertEquals($stats->{'newwidth'} > $restricted, true);
     $this->assertEquals($stats->{'newheight'} == $restricted, true);
     // test height-limited portrait resize using longest
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'maxlongest' => $restricted
       ));
     $t->imageCalcNewSize($tall);
@@ -85,7 +85,7 @@ class ImageviewControllerTest extends WebTestCase {
     $wide = imagecreatetruecolor($long, $short);
     $tall = imagecreatetruecolor($short, $long);
     // test raw clipping
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'clipwidth' => $restricted,
         'clipheight' => $restricted
       ));
@@ -95,7 +95,7 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertEquals($stats->{'newwidth'} == $restricted, true);
     $this->assertEquals($stats->{'newheight'} == $restricted, true);
     // test expanding using clipping functions [not really supported]
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'clipwidth' => $restricted,
         'clipheight' => 2 * $long
       ));
@@ -105,7 +105,7 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertEquals($stats->{'newwidth'} == $restricted, true);
     $this->assertEquals($stats->{'newheight'} == 2 * $long, true);
     // test height-bound landscape resize using shortest, followed by a clip
-    $t->setArgs(array(
+    $t->setArgsByArray(array(
         'maxshortest' => $restricted,
         'clipwidth' => $restricted,
         'clipheight' => $restricted
@@ -190,6 +190,7 @@ class ImageviewControllerTest extends WebTestCase {
     $img = $t->indexAction('structured/tests/data/50-fail_image_folder/[1]~args&thumb=true&maxlongest=200&', false);
     // load error image at same size (using $t's args from first call) and compare to massive image (error response)
     $errorimg = $t->filterImage($t->loadErrorImage());
+    file_put_contents('/home/lightenn/img_error.jpg', $errorimg);
     $this->assertEquals($img, $errorimg);
     // load a normal (smaller) image and check that it's not an error
     $img = imagecreatefromstring($t->indexAction('structured/tests/data/20-image_folder/[i1]~args&thumb=true&maxlongest=200&', false));

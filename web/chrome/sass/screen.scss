@@ -76,6 +76,10 @@ html.flow-y, html.no-flexbox.flow-x {
     position: fixed;
     z-index: 2;
     overflow: hidden;
+    
+    p {
+      float: left;
+    }
   }
 
   .header:hover, .footer:hover {
@@ -197,7 +201,7 @@ html.flow-y, html.no-flexbox.flow-x {
 
 // Theme variants
 
-html.dark {
+html.theme-dark {
   background-color: $background_html_dark;
 
   .page .content .flow > .cell {
