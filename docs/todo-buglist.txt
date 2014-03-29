@@ -1,19 +1,22 @@
 
+* Think of a way to store data-native-width and data-native-height in the cached image metadata
+  + worth finding ways to store and retreive image metadata anyway
+    + plus it enables re-res
+
 * Repeated horizontal (flow-y) resize
   + slightly funny stuff going on
     + jitters between 2 and 3 rows
     ? could be finding a % in the id because we set one? 
-
-* Think of a way to store data-native-width and data-native-height in the cached image metadata
-  + worth finding ways to store and retreive image metadata anyway
-    + plus it enables re-res
 
 * Fail nicely when a file/directory/path element doesn't exist
 
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
 
+
+
 Done
+----
 
 * setup paths bin
 
@@ -196,4 +199,13 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * mac dragging around the edge messes up sideways scroll
   = solved by stopping bubble
+
+* Either move $this->stats down to MetadataFileReader
+  + or rename as AwareFileReader
+  = refactored, much neater now
+
+* Convert args to object
+
+* Don't cache error img
+  + test suite failing because error image comparison fails
 

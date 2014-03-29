@@ -246,11 +246,21 @@
    */
   this['bindToHeaderLinks'] = function() {
     var that = this;
-    $('#flow-x').click(function() {
+    $('#flow-x').click(function(event) {
       that.setDirection('x');
+      event.preventDefault();
     });
-    $('#flow-y').click(function() {
+    $('#flow-y').click(function(event) {
       that.setDirection('y');
+      event.preventDefault();
+    });
+    $('#theme-light').click(function(event) {
+      $('html').removeClass('theme-dark');
+      event.preventDefault();
+    });
+    $('#theme-dark').click(function(event) {
+      $('html').addClass('theme-dark');
+      event.preventDefault();
     });
   };
 

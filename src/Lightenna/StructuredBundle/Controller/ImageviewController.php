@@ -4,6 +4,7 @@ namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\FFmpegHelper;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
+use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 class ImageviewController extends ViewController {
@@ -13,8 +14,9 @@ class ImageviewController extends ViewController {
   public function __construct() {
     parent::__construct();
     // initialise stats because may use/test class before indexAction() call
+    $this->args = new \stdClass();
+    $this->mfr = new CachedMetadataFileReader(null, $this);
     $this->stats = new \stdClass();
-    $this->args = array();
   }
 
   public function indexAction($rawname, $output = true) {
@@ -178,19 +180,16 @@ class ImageviewController extends ViewController {
         // store image in oldimg for process symmetry
         $oldimg = $img;
       }
-      // cache image if cache enabled and we've done some kind of transformation to it
-      if (count($this->args)) {
-        // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
-        $imgdata = self::getImageData($oldimg, isset($this->stats->{'ext'}) ? $this->stats->{'ext'} : 'jpg');
-        $this->mfr->cache($imgdata);
-      }
+      // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
+      $imgdata = self::getImageData($oldimg, isset($this->stats->{'ext'}) ? $this->stats->{'ext'} : 'jpg');
+      $this->mfr->cache($imgdata);
       // then [optionally] clip
       if ($this->argsSayClipImage()) {
         if ($oldimg === null) {
           $oldimg = imagecreatefromstring($imgdata);
         }
-        $this->stats->{'newwidth'} = $this->args['clipwidth'];
-        $this->stats->{'newheight'} = $this->args['clipheight'];
+        $this->stats->{'newwidth'} = $this->args->{'clipwidth'};
+        $this->stats->{'newheight'} = $this->args->{'clipheight'};
         $img = $this->clipImage($oldimg);
         // store image in oldimg for process symmetry
         $oldimg = $img;
@@ -218,7 +217,7 @@ class ImageviewController extends ViewController {
    */
 
   public function argsSayResizeImage() {
-    return (isset($this->args['maxwidth']) || isset($this->args['maxheight']) || isset($this->args['maxlongest']) || isset($this->args['maxshortest']));
+    return (isset($this->args->{'maxwidth'}) || isset($this->args->{'maxheight'}) || isset($this->args->{'maxlongest'}) || isset($this->args->{'maxshortest'}));
   }
 
   /**
@@ -227,7 +226,7 @@ class ImageviewController extends ViewController {
    */
 
   public function argsSayClipImage() {
-    return (isset($this->args['clipwidth']) || isset($this->args['clipheight']));
+    return (isset($this->args->{'clipwidth'}) || isset($this->args->{'clipheight'}));
   }
 
   /**
@@ -245,6 +244,9 @@ class ImageviewController extends ViewController {
    */
 
   public function loadErrorImage() {
+    // disable caching
+    $this->args->{'nocache'} = true;
+    // return error image
     return file_get_contents($this->convertRawToInternalFilename('htdocs/web/chrome/images/fullres/missing_image.jpg'));
   }
 
@@ -305,41 +307,41 @@ class ImageviewController extends ViewController {
     // exactly 1 restriction is always set
     if ($portrait) {
       // use either max(width|height) as determinant, but don't set both (hence else if)
-      if (isset($this->args['maxheight'])) {
-        $this->stats->{'newheight'} = $this->args['maxheight'];
+      if (isset($this->args->{'maxheight'})) {
+        $this->stats->{'newheight'} = $this->args->{'maxheight'};
       }
-      else if (isset($this->args['maxlongest'])) {
+      else if (isset($this->args->{'maxlongest'})) {
         // set the height to be maxlongest
         // allow newwidth to be derived
-        $this->stats->{'newheight'} = $this->args['maxlongest'];
+        $this->stats->{'newheight'} = $this->args->{'maxlongest'};
       }
-      else if (isset($this->args['maxshortest'])) {
+      else if (isset($this->args->{'maxshortest'})) {
         // set the width to be maxshortest
         // allow newheight to be derived
-        $this->stats->{'newwidth'} = $this->args['maxshortest'];
+        $this->stats->{'newwidth'} = $this->args->{'maxshortest'};
       }
-      else if (isset($this->args['maxwidth'])) {
+      else if (isset($this->args->{'maxwidth'})) {
         // cover odd portrait case where only width is restricted (maxwidth defined, but maxheight unset)
-        $this->stats->{'newwidth'} = $this->args['maxwidth'];
+        $this->stats->{'newwidth'} = $this->args->{'maxwidth'};
       }
     }
     else {
-      if (isset($this->args['maxwidth'])) {
-        $this->stats->{'newwidth'} = $this->args['maxwidth'];
+      if (isset($this->args->{'maxwidth'})) {
+        $this->stats->{'newwidth'} = $this->args->{'maxwidth'};
       }
-      else if (isset($this->args['maxlongest'])) {
+      else if (isset($this->args->{'maxlongest'})) {
         // set the width to be maxlongest
         // allow newheight to be derived
-        $this->stats->{'newwidth'} = $this->args['maxlongest'];
+        $this->stats->{'newwidth'} = $this->args->{'maxlongest'};
       }
-      else if (isset($this->args['maxshortest'])) {
+      else if (isset($this->args->{'maxshortest'})) {
         // set the height to be maxshortest
         // allow newwidth to be derived
-        $this->stats->{'newheight'} = $this->args['maxshortest'];
+        $this->stats->{'newheight'} = $this->args->{'maxshortest'};
       }
-      else if (isset($this->args['maxheight'])) {
+      else if (isset($this->args->{'maxheight'})) {
         // cover odd landscape case where only height is restricted (maxheight defined, but maxwidth unset)
-        $this->stats->{'newheight'} = $this->args['maxheight'];
+        $this->stats->{'newheight'} = $this->args->{'maxheight'};
       }
     }
     // don't allow image to exceed original at 200%

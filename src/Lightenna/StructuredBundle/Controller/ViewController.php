@@ -17,7 +17,7 @@ define('SUB_REGEX', '/\[([^\]]*)\]/');
 class ViewController extends Controller {
 
   protected $settings;
-  // @param Array URL arguments array
+  // @param object URL arguments
   protected $args;
   // @param FileReader object
   protected $mfr;
@@ -51,8 +51,8 @@ class ViewController extends Controller {
   }
 
   /**
-   * overwrite the arguments array (used for testing)
-   * @param array $a new arguments array
+   * overwrite the arguments (used for testing)
+   * @param object $a new arguments
    */
 
   public function setArgs($a) {
@@ -60,7 +60,16 @@ class ViewController extends Controller {
   }
 
   /**
-   * @return array arguments array
+   * overwrite the arguments (used for testing)
+   * @param array $a new arguments
+   */
+
+  public function setArgsByArray($a) {
+    $this->args = (object)$a;
+  }
+
+  /**
+   * @return object arguments array
    */
 
   public function getArgs() {
@@ -297,10 +306,11 @@ class ViewController extends Controller {
   /**
    * get any arguments that feature on the filename
    * @param $name full path
+   * @return object
    */
 
   static function getArgsFromPath($name) {
-    $args = array();
+    $args = new \stdClass();
     // strip args if present
     $arg_pos = strpos($name, ARG_SEPARATOR);
     if ($arg_pos === false) {
@@ -309,12 +319,15 @@ class ViewController extends Controller {
     else {
       $char_split = explode('&', substr($name, $arg_pos + strlen(ARG_SEPARATOR)));
       foreach ($char_split as $char_var) {
+        if ($char_var == '') {
+          continue;
+        }
         if (strpos($char_var, '=') === false) {
-          $args[$char_var] = null;
+          $args->{$char_var} = null;
           continue;
         }
         list($k, $v) = explode('=', $char_var);
-        $args[$k] = $v;
+        $args->{$k} = $v;
       }
     }
     return $args;

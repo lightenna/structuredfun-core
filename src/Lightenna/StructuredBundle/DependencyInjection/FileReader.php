@@ -175,7 +175,8 @@ class FileReader {
       }
     }
     foreach ($listing as $k => $v) {
-      if ($v == '.' || $v == '..') {
+      // ignore directory references or empty file names
+      if ($v == '.' || $v == '..' || $v == '') {
         unset($listing[$k]);
         continue;
       }
