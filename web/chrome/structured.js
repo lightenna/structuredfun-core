@@ -74,35 +74,47 @@
     if (yardy.length) {
       wh = yardy.height();
     }
-    if (debug) {
+    if (debug && false) {
       console.log('viewport w[' + ww + '] h[' + wh + ']');
     }
     // loop through all 'ready' elements
     $('.screenpc-ready').each(
         function() {
+          var pxval, pcval;
           // read data-screen-pc-width|height if set
           pcwidth = $(this).data('screenpc-width');
           pcheight = $(this).data('screenpc-height');
-          // apply screen percentage as px or document pc, transformed from window pc
-          if (pcwidth) {
-            var pxval = ww * pcwidth / 100;
-            var pcval = (pxval * 100 / dw) + '%';
-            $(this).width(that.setScreenPcUsing == 'pc' ? pcval : pxval);
+          // resize cells as applicable
+          if (that.setScreenPcUsing == 'pc') {
+            // don't re-apply same pc every refresh
+          } else {
+            // apply screen percentage as pixels (px) or document percentage (dpc), transformed from window pc
+            if (pcwidth) {
+              pxval = ww * pcwidth / 100;
+              pcval = (pxval * 100 / dw) + '%';
+              $(this).width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
+              if (debug && false) {
+                console.log('ww[' + ww + '] dw['+ dw +'] pcwidth[' + pcwidth + '] pxval[' + pxval + '] pcval[' + pcval + ']');
+              }
+            }
+            if (pcheight) {
+              pxval = wh * pcheight / 100;
+              pcval = (pxval * 100 / dh) + '%';
+              $(this).height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
+              if (debug && false) {
+                console.log('wh[' + wh + '] dh[' + dh + '] pcheight[' + pcheight + '] pxval[' + pxval + '] pcval[' + pcval + ']');
+              }
+            }
+            if (debug && false) {
+              console.log('post-set screenpc[' + $(this).attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ $(this).width() + '] h[' + $(this).height() + ']');
+            }
           }
-          if (pcheight) {
-            var pxval = wh * pcheight / 100;
-            var pcval = (pxval * 100 / dh) + '%';
-            $(this).height(that.setScreenPcUsing == 'pc' ? pcval : pxval);
-          }
-          if (debug && false) {
-            console.log('screenpc[' + $(this).attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ $(this).width() + '] h[' + $(this).height() + ']');
-          }
-          // after resizing elements:
-          // 1. look to see if the x-bound/y-bound has changed
-          // 2. change out the image for a better resolution
+          // after resizing cells
           if (pcwidth || pcheight) {
             var jqImg = $(this).find('img.bounded');
+            // 1. look to see if the x-bound/y-bound has changed
             that.checkImageBound($(this), jqImg);
+            // 2. change out the image for a better resolution
             that.checkImageRes(jqImg);
           }
         });
@@ -238,7 +250,7 @@
    * Check the display resolution of the image and swap out src if higher res available 
    */
   this['checkImageRes'] = function(jqImg) {
-    console.log('checking '+jqImg.attr('id'));
+    // console.log('checking '+jqImg.attr('id'));
   };
   
   /**
@@ -246,6 +258,15 @@
    */
   this['bindToHeaderLinks'] = function() {
     var that = this;
+    // fade out header, then setup hover listeners
+    $('.header').css('opacity', 0.5).hover(function(event) {
+      // animate header open to full screen width
+      $(this).stop(true, false).animate( { width: '100%', opacity: 1.0 }, 100);
+      event.preventDefault();      
+    }, function(event) {
+      // leave header up for 2s, then collapse back down
+      $(this).stop(true, false).delay(2000).animate( { width: '2.0em', opacity: 0.5 }, 100);
+    });
     $('#flow-x').click(function(event) {
       that.setDirection('x');
       event.preventDefault();
