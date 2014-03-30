@@ -88,11 +88,13 @@ html {
   background-color: white;
 }
 
-/* line 34, ../sass/screen.scss */
+/* -------------------------------------------------------------------------*/
+/* Modernizr variants */
+/* line 37, ../sass/screen.scss */
 html.flexbox.flow-x {
   overflow-x: scroll;
 }
-/* line 39, ../sass/screen.scss */
+/* line 42, ../sass/screen.scss */
 html.flexbox.flow-x .page .content .flow-x {
   display: -webkit-flex;
   -webkit-flex-flow: column wrap;
@@ -107,20 +109,27 @@ html.flexbox.flow-x .page .content .flow-x {
   height: 100%;
 }
 
-/* line 56, ../sass/screen.scss */
+/* line 59, ../sass/screen.scss */
 html.flow-y, html.no-flexbox.flow-x {
   overflow-y: scroll;
 }
-/* line 61, ../sass/screen.scss */
+/* line 64, ../sass/screen.scss */
 html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   float: left;
 }
 
-/* line 67, ../sass/screen.scss */
+/* line 72, ../sass/screen.scss */
+html.no-js .header:hover, html.no-js .footer:hover {
+  width: 100%;
+}
+
+/* -------------------------------------------------------------------------*/
+/* Page */
+/* line 80, ../sass/screen.scss */
 .page {
   height: 100%;
 }
-/* line 71, ../sass/screen.scss */
+/* line 84, ../sass/screen.scss */
 .page .header, .page .footer {
   clear: both;
   background-color: #ff0000;
@@ -130,37 +139,33 @@ html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   z-index: 2;
   overflow: hidden;
 }
-/* line 80, ../sass/screen.scss */
+/* line 93, ../sass/screen.scss */
 .page .header p, .page .footer p {
   float: left;
 }
-/* line 85, ../sass/screen.scss */
-.page .header:hover, .page .footer:hover {
-  width: 100%;
-}
-/* line 89, ../sass/screen.scss */
+/* line 98, ../sass/screen.scss */
 .page .header {
   top: 0;
 }
-/* line 94, ../sass/screen.scss */
+/* line 103, ../sass/screen.scss */
 .page .footer {
   bottom: 0;
 }
-/* line 98, ../sass/screen.scss */
+/* line 107, ../sass/screen.scss */
 .page .content {
   height: 100%;
 }
-/* line 101, ../sass/screen.scss */
+/* line 110, ../sass/screen.scss */
 .page .content .flow-em > .cell {
   width: 20em;
   height: 20em;
 }
-/* line 106, ../sass/screen.scss */
+/* line 115, ../sass/screen.scss */
 .page .content .flow-pc > .cell {
   width: 25%;
   height: 50%;
 }
-/* line 111, ../sass/screen.scss */
+/* line 120, ../sass/screen.scss */
 .page .content .flow > .cell {
   border-style: solid;
   border-color: #eeeeee;
@@ -176,11 +181,11 @@ html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   -ms-user-select: none;
   user-select: none;
 }
-/* line 129, ../sass/screen.scss */
+/* line 138, ../sass/screen.scss */
 .page .content .flow > .cell a {
   position: relative;
 }
-/* line 137, ../sass/screen.scss */
+/* line 146, ../sass/screen.scss */
 .page .content .flow > .cell a > img.x-bound {
   position: relative;
   width: 100%;
@@ -189,18 +194,18 @@ html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 147, ../sass/screen.scss */
+/* line 156, ../sass/screen.scss */
 .page .content .flow > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 151, ../sass/screen.scss */
+/* line 160, ../sass/screen.scss */
 .page .content .flow > .cell a .title {
   height: 0;
   line-height: 0;
   top: -1.0em;
   position: relative;
 }
-/* line 159, ../sass/screen.scss */
+/* line 168, ../sass/screen.scss */
 .page .content .flow > .cell a .folder {
   background: url("/chrome/images/fullres/folder_back.png") no-repeat left top;
   background-size: 100% 100%;
@@ -210,7 +215,7 @@ html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   text-align: left;
   position: relative;
 }
-/* line 168, ../sass/screen.scss */
+/* line 177, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .overlay {
   width: 100%;
   height: 100%;
@@ -218,31 +223,33 @@ html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   position: absolute;
   top: 0;
 }
-/* line 177, ../sass/screen.scss */
+/* line 186, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview {
   width: 25%;
   height: 34.5%;
   position: relative;
   margin-right: 3%;
 }
-/* line 184, ../sass/screen.scss */
+/* line 193, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview-1, .page .content .flow > .cell a .folder .preview-3 {
   margin-left: 24%;
 }
-/* line 188, ../sass/screen.scss */
+/* line 197, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview-1, .page .content .flow > .cell a .folder .preview-2 {
   top: 15%;
 }
-/* line 193, ../sass/screen.scss */
+/* line 202, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview-3, .page .content .flow > .cell a .folder .preview-4 {
   top: 17%;
 }
 
-/* line 204, ../sass/screen.scss */
+/* -------------------------------------------------------------------------*/
+/* Theme variants */
+/* line 214, ../sass/screen.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 207, ../sass/screen.scss */
+/* line 217, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell {
   border-color: #333333;
 }

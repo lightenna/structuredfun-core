@@ -31,6 +31,9 @@ html {
   background-color: $background_html_light;
 }
 
+/* -------------------------------------------------------------------------*/
+/* Modernizr variants */
+
 html.flexbox.flow-x {
   overflow-x: scroll;
 
@@ -64,6 +67,16 @@ html.flow-y, html.no-flexbox.flow-x {
   }
 }
 
+// use CSS hover if no javascript
+html.no-js {
+  .header:hover, .footer:hover {
+    width: 100%;
+  }
+}
+
+/* -------------------------------------------------------------------------*/
+/* Page */
+
 .page {
   height: 100%;
 
@@ -82,10 +95,6 @@ html.flow-y, html.no-flexbox.flow-x {
     }
   }
 
-  .header:hover, .footer:hover {
-    width: 100%;
-  }
-  
   .header {
     top: 0;
   }
@@ -199,7 +208,8 @@ html.flow-y, html.no-flexbox.flow-x {
   }
 }
 
-// Theme variants
+/* -------------------------------------------------------------------------*/
+/* Theme variants */
 
 html.theme-dark {
   background-color: $background_html_dark;

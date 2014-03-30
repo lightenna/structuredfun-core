@@ -3,11 +3,6 @@
   + worth finding ways to store and retreive image metadata anyway
     + plus it enables re-res
 
-* Repeated horizontal (flow-y) resize
-  + slightly funny stuff going on
-    + jitters between 2 and 3 rows
-    ? could be finding a % in the id because we set one? 
-
 * Fail nicely when a file/directory/path element doesn't exist
 
 * Using Project sheet in Google drive for major functional items
@@ -208,4 +203,11 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * Don't cache error img
   + test suite failing because error image comparison fails
+
+* Repeated vertical (flow-y) resize toggles between rows
+  + slightly funny stuff going on
+    + jitters between 2 and 3 rows
+    ? could be finding a % in the id because we set one?
+  + test drag behaviours
+  = not perfect, but good enough
 
