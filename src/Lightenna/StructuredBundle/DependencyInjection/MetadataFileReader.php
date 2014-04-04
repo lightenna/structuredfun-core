@@ -30,6 +30,10 @@ class MetadataFileReader extends FileReader {
     return $imgdata;
   }
 
+  /**
+   * Can't remember what this does
+   * @param string $n URL name
+   */
   public function injectShares($n) {
     $this->name = $n;
   }
@@ -63,6 +67,9 @@ class MetadataFileReader extends FileReader {
           'alias' => (isset($sh['alias']) ? $sh['alias'] : $sh['name']),
           'type' => 'directory',
           'orientation' => 'x',
+          'hidden' => '',
+          'ext' => '',
+          'seq' => $seq++,
         );
         $newentry['path'] = $newentry['file'] = $newentry['file_original'] = $sh['path'];
         $listing[] = $newentry;
