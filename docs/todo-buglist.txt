@@ -3,7 +3,7 @@
   + worth finding ways to store and retreive image metadata anyway
     + plus it enables re-res
 
-* Windows test suite errors
+* Add ../ up arrow to directory listings
 
 * Folders on dark background
 
@@ -227,4 +227,6 @@ bound, 2.0/0.5 = 4.0 = >1 = y
     ? could be finding a % in the id because we set one?
   + test drag behaviours
   = not perfect, but good enough
+
+* Windows test suite errors
 
