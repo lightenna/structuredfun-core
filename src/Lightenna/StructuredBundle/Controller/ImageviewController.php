@@ -120,7 +120,9 @@ class ImageviewController extends ViewController {
     $shell_output = escapeshellarg($outputname);
     $shell_time = escapeshellarg($time);
     // remove output file if it exists already
-    unlink($outputname);
+    if (file_exists($outputname)) {
+      unlink($outputname);      
+    }
     // setup command to run ffmpeg and relay output to /dev/null
     $command = "{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$shell_output} ";
     // 2>&1 >/dev/null
