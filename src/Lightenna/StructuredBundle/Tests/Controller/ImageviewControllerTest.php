@@ -133,7 +133,8 @@ class ImageviewControllerTest extends WebTestCase {
     $frame9s = file_get_contents($outputname);
     $this->assertNotEquals($frame10s, $frame9s);
     // check that both snapshots are not the error image
-    $errorimg = $t->filterImage($t->loadErrorImage());
+    $rawerrorimg = $t->loadErrorImage();
+    $errorimg = $t->filterImage($rawerrorimg);
     $this->assertNotEquals($frame10s, $errorimg);
     $this->assertNotEquals($frame9s, $errorimg);
   }
@@ -189,8 +190,8 @@ class ImageviewControllerTest extends WebTestCase {
     // prime the controller with the image's URL
     $img = $t->indexAction('structured/tests/data/50-fail_image_folder/[1]~args&thumb=true&maxlongest=200&', false);
     // load error image at same size (using $t's args from first call) and compare to massive image (error response)
-    $errorimg = $t->filterImage($t->loadErrorImage());
-    file_put_contents('/home/lightenn/img_error.jpg', $errorimg);
+    $rawerrorimg = $t->loadErrorImage();
+    $errorimg = $t->filterImage($rawerrorimg);
     $this->assertEquals($img, $errorimg);
     // load a normal (smaller) image and check that it's not an error
     $img = imagecreatefromstring($t->indexAction('structured/tests/data/20-image_folder/[i1]~args&thumb=true&maxlongest=200&', false));
