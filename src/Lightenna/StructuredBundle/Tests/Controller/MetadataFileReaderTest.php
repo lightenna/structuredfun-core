@@ -11,31 +11,38 @@ class MetadataFileReaderTest extends WebTestCase {
     $t = new ViewController();
     // read first entry in standard folder
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data'), $t);
-    $first = reset($mfr->getListing());
+    $all = $mfr->getListing();
+    $first = reset($all);
     $this->assertEquals($first->{'name'}, '10-file_folder');
     // read first entry in zip folder
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip'), $t);
-    $first = reset($mfr->getListing());
+    $all = $mfr->getListing();
+    $first = reset($all);
     $this->assertEquals($first->{'name'}, '00980001.JPG');
     // read first entry in folder inside zip folder
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested'), $t);
-    $first = reset($mfr->getListing());
+    $all = $mfr->getListing();
+    $first = reset($all);
     $this->assertEquals($first->{'name'}, '00980006.JPG');
     // get listing for a single file
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'), $t);
-    $first = reset($mfr->getListing());
+    $all = $mfr->getListing();
+    $first = reset($all);
     $this->assertEquals($first->{'name'}, '00980001.JPG');    
     // get listing for a single file in a zip
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip'), $t);
-    $first = reset($mfr->getListing());
+    $all = $mfr->getListing();
+    $first = reset($all);
     $this->assertEquals($first->{'name'}, '00980001.JPG');    
     // get listing for a single file in a nested folder in a zip
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested'), $t);
-    $first = reset($mfr->getListing());
+    $all = $mfr->getListing();
+    $first = reset($all);
     $this->assertEquals($first->{'name'}, '00980006.JPG');    
     // get listing for a single file, but strip arguments
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
-    $first = reset($mfr->getListing());
+    $all = $mfr->getListing();
+    $first = reset($all);
     $this->assertEquals($first->{'name'}, '00980001.JPG');    
   }
 
