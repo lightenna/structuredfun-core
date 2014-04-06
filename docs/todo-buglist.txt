@@ -3,6 +3,8 @@
   + worth finding ways to store and retreive image metadata anyway
     + plus it enables re-res
 
+* Re-do folder from ai to produce authoritative psd
+
 * Add ../ up arrow to directory listings
 
 * Folders on dark background

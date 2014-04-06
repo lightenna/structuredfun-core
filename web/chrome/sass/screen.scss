@@ -166,7 +166,7 @@ html.no-js {
 
         // folders with preview images
         .folder {
-          background: url('/chrome/images/fullres/folder_back.png') no-repeat left top;
+          background: url('/chrome/images/fullres/folder_back_light.png') no-repeat left top;
           background-size: 100% 100%;
           width: 100%;
           height: 100%;
@@ -181,6 +181,7 @@ html.no-js {
             // absolute position within relative container to do overlay with no effective height
             position: absolute;
             top: 0;
+            z-index: 1;
           }
   
           .preview {
@@ -196,11 +197,11 @@ html.no-js {
           
           .preview-1, .preview-2  {
             // have to use 'top' because 'margin-top' percentage calculated on element width!
-            top: 15%;
+            top: 17%;
           }
   
           .preview-3, .preview-4  {
-            top: 17%;
+            top: 19%;
           }        
         }
       }
@@ -216,6 +217,10 @@ html.theme-dark {
 
   .page .content .flow > .cell {
     border-color: $background_grid_dark; 
+    
+    .folder {
+      background-image: url('/chrome/images/fullres/folder_back_dark.png');
+    }
   }
 }
 
