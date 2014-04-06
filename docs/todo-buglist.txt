@@ -3,6 +3,23 @@
   + worth finding ways to store and retreive image metadata anyway
     + plus it enables re-res
 
+* Windows test suite errors
+
+* Folders on dark background
+
+* Folders maintain square aspect in landscape cells
+
+* Folders need proper title overlay
+  + correctly positioned
+
+* Nice looking header icon (sf in circle)
+
+* Horizontal/verical icon
+
+* Light/dark icon
+
+* staged jQuery scroll for number of images wide/high
+
 * Fail nicely when a file/directory/path element doesn't exist
 
 * Using Project sheet in Google drive for major functional items
