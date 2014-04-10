@@ -226,22 +226,22 @@ html.no-js .header:hover, html.no-js .footer:hover {
 }
 /* line 187, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview {
-  width: 25%;
-  height: 34.5%;
+  width: 42.7%;
+  height: 38%;
   position: relative;
   margin-right: 3%;
 }
 /* line 194, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview-1, .page .content .flow > .cell a .folder .preview-3 {
-  margin-left: 24%;
+  margin-left: 6%;
 }
 /* line 198, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview-1, .page .content .flow > .cell a .folder .preview-2 {
-  top: 17%;
+  top: 13%;
 }
 /* line 203, ../sass/screen.scss */
 .page .content .flow > .cell a .folder .preview-3, .page .content .flow > .cell a .folder .preview-4 {
-  top: 19%;
+  top: 16.4%;
 }
 
 /* -------------------------------------------------------------------------*/
