@@ -1,9 +1,20 @@
 
+* Debug image
+  + turns out to be a artefact of an image -> in a zip -> in a shared folder
+    + equally only applies to thumbnails (which is very strange)
+
+* Create a test share and mount it into the structured tests directory
+  + that way it should never affect users
+    + and can provide 
+
 * Think of a way to store data-native-width and data-native-height in the cached image metadata
   + worth finding ways to store and retreive image metadata anyway
     + plus it enables re-res
 
-* Re-do folder from ai to produce authoritative psd
+* Extra scollbar, git too much margin somewhere
+  + seems to be a function of folders
+
+* Fix nasty selection bug
 
 * Add ../ up arrow to directory listings
 
@@ -21,6 +32,8 @@
 * Light/dark icon
 
 * staged jQuery scroll for number of images wide/high
+
+* create file icon
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -231,4 +244,7 @@ bound, 2.0/0.5 = 4.0 = >1 = y
   = not perfect, but good enough
 
 * Windows test suite errors
+
+* Re-do folder from ai to produce authoritative psd
+  = not psd, but exported from ai
 
