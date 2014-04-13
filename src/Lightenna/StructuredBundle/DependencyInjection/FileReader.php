@@ -24,6 +24,15 @@ class FileReader {
    */
 
   public function __construct($filename) {
+    $this->parseFilename($filename);
+  }
+
+  /**
+   * Pull out all the different parts of the filename
+   * @param string $filename
+   */
+
+  private function parseFilename($filename) {
     // end before any arguments at the end of the URL
     if (($end = strpos($filename, ARG_SEPARATOR)) === false) {
       $end = strlen($filename);
@@ -38,6 +47,7 @@ class FileReader {
     else {
       $this->file_part = substr($filename, 0, $end);
       list($this->file_part_path, $this->file_part_leaf) = $this->splitPathLeaf($this->file_part);
+      $this->zip_part = $this->zip_part_path = $this->zip_part_leaf = null;
     }
   }
 
@@ -126,7 +136,8 @@ class FileReader {
         foreach ($listing as $k => $item) {
           if ($this->zip_part === $item) {
             // leave in
-          } else {
+          }
+          else {
             unset($listing[$k]);
           }
         }
@@ -182,7 +193,7 @@ class FileReader {
       }
       // create an object (stdClass is outside of namespace)
       $obj = new \stdClass();
-      $obj->{'name'} = rtrim($v,'/');
+      $obj->{'name'} = rtrim($v, '/');
       $obj->{'alias'} = $obj->{'name'};
       // if listing just a file
       if ($this->file_part_leaf !== null) {
@@ -278,7 +289,8 @@ class FileReader {
    */
 
   public function rewrite($newname) {
-    $this->file_part = $newname;
+    $this->parseFilename($newname);
+    // $this->file_part = $newname;
     return $newname;
   }
 

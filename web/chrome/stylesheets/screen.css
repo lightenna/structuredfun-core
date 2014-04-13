@@ -206,7 +206,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   position: relative;
 }
 /* line 168, ../sass/screen.scss */
-.page .content .flow > .cell a .folder {
+.page .content .flow > .cell a div.folder {
   background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
   background-size: 100% 100%;
   width: 100%;
@@ -216,7 +216,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   position: relative;
 }
 /* line 177, ../sass/screen.scss */
-.page .content .flow > .cell a .folder .overlay {
+.page .content .flow > .cell a div.folder .overlay {
   width: 100%;
   height: 100%;
   display: inline-block;
@@ -225,36 +225,58 @@ html.no-js .header:hover, html.no-js .footer:hover {
   z-index: 1;
 }
 /* line 187, ../sass/screen.scss */
-.page .content .flow > .cell a .folder .preview {
+.page .content .flow > .cell a div.folder .preview {
   width: 42.7%;
   height: 38%;
   position: relative;
   margin-right: 3%;
 }
 /* line 194, ../sass/screen.scss */
-.page .content .flow > .cell a .folder .preview-1, .page .content .flow > .cell a .folder .preview-3 {
+.page .content .flow > .cell a div.folder .preview-1, .page .content .flow > .cell a div.folder .preview-3 {
   margin-left: 6%;
 }
 /* line 198, ../sass/screen.scss */
-.page .content .flow > .cell a .folder .preview-1, .page .content .flow > .cell a .folder .preview-2 {
+.page .content .flow > .cell a div.folder .preview-1, .page .content .flow > .cell a div.folder .preview-2 {
   top: 13%;
 }
 /* line 203, ../sass/screen.scss */
-.page .content .flow > .cell a .folder .preview-3, .page .content .flow > .cell a .folder .preview-4 {
+.page .content .flow > .cell a div.folder .preview-3, .page .content .flow > .cell a div.folder .preview-4 {
   top: 16.4%;
+}
+/* line 211, ../sass/screen.scss */
+.page .content .flow > .cell div.dummy1 {
+  height: 50%;
+}
+/* line 215, ../sass/screen.scss */
+.page .content .flow > .cell a.folder-container {
+  display: inline-block;
+  width: 100%;
+  margin-top: -50%;
+}
+/* line 220, ../sass/screen.scss */
+.page .content .flow > .cell a.folder-container .dummy2 {
+  padding-top: 100%;
+}
+/* line 224, ../sass/screen.scss */
+.page .content .flow > .cell a.folder-container div.folder {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 /* -------------------------------------------------------------------------*/
 /* Theme variants */
-/* line 215, ../sass/screen.scss */
+/* line 241, ../sass/screen.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 218, ../sass/screen.scss */
+/* line 244, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell {
   border-color: #333333;
 }
-/* line 221, ../sass/screen.scss */
+/* line 247, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell .folder {
   background-image: url("/chrome/images/fullres/folder_back_dark.png");
 }

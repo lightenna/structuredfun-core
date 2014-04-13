@@ -95,7 +95,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
   public function get() {
     if ($this->isCached()) {
       // redirect to use file from cache
-      $this->file_part = $this->getFilename($this->stats->cachekey);
+      $this->rewrite($this->getFilename($this->stats->cachekey));
     }
     $imgdata = parent::get();
     return $imgdata;

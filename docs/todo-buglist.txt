@@ -1,15 +1,6 @@
 
-* Debug image
-  + turns out to be a artefact of an image -> in a zip -> in a shared folder
-    + equally only applies to thumbnails (which is very strange)
-
-* Create a test share and mount it into the structured tests directory
-  + that way it should never affect users
-    + and can provide 
-
-* Think of a way to store data-native-width and data-native-height in the cached image metadata
-  + worth finding ways to store and retreive image metadata anyway
-    + plus it enables re-res
+* Folders maintain square aspect in landscape cells
+  + make x-bound
 
 * Extra scollbar, git too much margin somewhere
   + seems to be a function of folders
@@ -18,9 +9,9 @@
 
 * Add ../ up arrow to directory listings
 
-* Folders on dark background
-
-* Folders maintain square aspect in landscape cells
+* Think of a way to store data-native-width and data-native-height in the cached image metadata
+  + worth finding ways to store and retreive image metadata anyway
+    + plus it enables re-res
 
 * Folders need proper title overlay
   + correctly positioned
@@ -247,4 +238,17 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * Re-do folder from ai to produce authoritative psd
   = not psd, but exported from ai
+
+* Debug image
+  + turns out to be a artefact of an image -> in a zip -> in a shared folder
+    + equally only applies to thumbnails (which is very strange)
+
+* Create a test share and mount it into the structured tests directory
+  + that way it should never affect users
+    + and can provide that
+
+* Folders on dark background
+
+* Folders (part 1) maintain square aspect in landscape cells
+  + fix positioning
 

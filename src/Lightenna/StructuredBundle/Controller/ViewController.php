@@ -88,16 +88,11 @@ class ViewController extends Controller {
       }
     }
     // identify and attach shares
-    $this->settings['shares'] = self::findShares($this->settings);
+    $this->settings['shares'] = $this->findShares($this->settings);
     $attach = array();
     if (is_array($this->settings['shares'])) {
       // build array of attach points
       foreach ($this->settings['shares'] as $k => &$sh) {
-        if (isset($sh['enabled']) && ($sh['enabled'] == false)) {
-          // ignore disabled shares
-          unset($this->settings['shares'][$k]);
-          continue;
-        }
         // trim first slash from attach point
         $sh['attach'] = ltrim($sh['attach'], DIR_SEPARATOR);
         // combine attach and name for matching later
@@ -132,10 +127,23 @@ class ViewController extends Controller {
    * @return Array shares
    */
 
-  static function findShares($arr) {
+  private function findShares($arr) {
     $shares = array();
     foreach ($arr as &$entry) {
       if (isset($entry['type']) && ($entry['type'] == 'share')) {
+        if (isset($entry['enabled']) && ($entry['enabled'] == false)) {
+          // ignore disabled shares
+          continue;
+        }
+        // test existance of each folder
+        if (!file_exists($entry['path'])) {
+          // try as relative path
+          $newpath = $this->convertRawToFilename($entry['path']);
+          if (file_exists($newpath)) {
+            $entry['path'] = $newpath;
+          }
+        }
+        // add to shares array
         $shares[] = &$entry;
       }
     }
@@ -148,7 +156,7 @@ class ViewController extends Controller {
    * @return string filename with substitutions
    */
 
-  public function performFilenameSubstitution($name, $filename) {
+  private function performFilenameSubstitution($name, $filename) {
     // substitute 'share' name for share path
     if (isset($this->settings['shares'])) {
       // try and match name against an attached share

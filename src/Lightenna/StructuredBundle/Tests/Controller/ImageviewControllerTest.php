@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\Tests\Controller;
 use Lightenna\StructuredBundle\Controller\ImageviewController;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ImageviewControllerTest extends WebTestCase {
@@ -196,6 +197,17 @@ class ImageviewControllerTest extends WebTestCase {
     // load a normal (smaller) image and check that it's not an error
     $img = imagecreatefromstring($t->indexAction('structured/tests/data/20-image_folder/[i1]~args&thumb=true&maxlongest=200&', false));
     $this->assertNotEquals($img, $errorimg);
+  }
+
+  public function testImageFromTestshare() {
+    $t = new ImageviewController();
+    // load image via testshare (required controller)
+    $imgdata = $t->indexAction('structured/testshare/30-zip_folder.zip/nested/00980006.JPG', false);
+    // load the same image from a direct path for comparison
+    $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'), $t);
+    $this->assertEquals($mfr->isExisting(), true);
+    // compare images
+    $this->assertEquals($mfr->get(), $imgdata);
   }
   
 }
