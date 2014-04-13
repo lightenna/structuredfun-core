@@ -163,9 +163,9 @@ html.no-js {
           top: -1.0em;
           position: relative;
         }
-
+        
         // folders with preview images
-        .folder {
+        div.folder {
           background: url('/chrome/images/fullres/folder_back_light.png') no-repeat left top;
           background-size: 100% 100%;
           width: 100%;
@@ -205,6 +205,32 @@ html.no-js {
           }        
         }
       }
+
+      // use CSS trick to make folders maintain aspect ratio, in combination with vertical centring
+      // http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio
+      div.dummy1 {
+        height: 50%;
+      }
+
+      a.folder-container {
+        display: inline-block;
+        width: 100%;
+        margin-top: -50%;
+        
+        .dummy2 {
+          padding-top: 100%;
+        }
+        
+        div.folder {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+        }
+
+      }
+      
     }
   }
 }

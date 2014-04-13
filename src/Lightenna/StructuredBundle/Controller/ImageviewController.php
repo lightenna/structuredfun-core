@@ -142,8 +142,8 @@ class ImageviewController extends ViewController {
    */
 
   public function returnImage($imgdata) {
-    // header("Content-Type: image/" . $this->stats->{'ext'});
-    // header("Content-Length: " . strlen($imgdata));
+    header("Content-Type: image/" . $this->stats->{'ext'});
+    header("Content-Length: " . strlen($imgdata));
     echo $imgdata;
     exit;
   }
