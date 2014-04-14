@@ -106,6 +106,13 @@ html.no-js {
 
   .content {
     height: 100%;
+    // everything in content is unselectable
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 
     .flow-em > .cell {
       width: 20em;
@@ -127,13 +134,6 @@ html.no-js {
       margin-left: -1px;
       // centre
       text-align: center;
-      // all images are unselectable
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
 
       a { 
         // relative parent required for x-bound images
@@ -215,10 +215,12 @@ html.no-js {
       a.folder-container {
         display: inline-block;
         width: 100%;
-        margin-top: -50%;
+        margin-top: -37.5%; // 4:3 / 2
+        // margin-top: -28.125%; // 16:9 / 2
         
         .dummy2 {
-          padding-top: 100%;
+          padding-top: 75%; // 4:3
+          // padding-top: 56.25%; // 16:9
         }
         
         div.folder {
