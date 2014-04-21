@@ -46,17 +46,24 @@ class CachedMetadataFileReader extends MetadataFileReader {
   }
 
   /**
-   * Store the imgdata in the cache
+   * Store the imgdata in the cache if the cache is enabled
    * @param string $imgdata
-   * @return string the source image data, passed through
+   * @return true if written to cache
    */
   public function cache(&$imgdata) {
     if ($this->cacheIsEnabled()) {
       $filename = $this->getFilename($this->stats->cachekey);
-      return file_put_contents($filename, $imgdata);
-    } else {
-      return false;
+      // only cache the file if it's not already in the cache
+      if (!$this->existsInCache($filename)) {
+        file_put_contents($filename, $imgdata);
+        // @todo make sure this isn't a double write
+        $iptc = new IptcWriter($filename);
+        $iptc->set(IPTC_SPECIAL_INSTRUCTIONS, serialize($this->stats));
+        $iptc->save();
+        return true;
+      }
     }
+    return false;
   }
   
   /**
@@ -94,8 +101,8 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
   public function get() {
     if ($this->isCached()) {
-      // redirect to use file from cache
-      $this->rewrite($this->getFilename($this->stats->cachekey));
+      // redirect to use file from cache, but don't change cache key
+      $this->rewrite($this->getFilename($this->stats->cachekey), false);
     }
     $imgdata = parent::get();
     return $imgdata;
@@ -119,10 +126,12 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @todo may need to tweak for things in zips
    */
 
-  public function rewrite($newname) {
+  public function rewrite($newname, $updateCacheKey = true) {
     parent::rewrite($newname);
-    // update cache key
-    $this->stats->cachekey = $this->getKey();
+    // only update cache key if we're not rewriting from the cache
+    if ($updateCacheKey) {
+      $this->stats->cachekey = $this->getKey();    
+    }
     return $newname;
   }
 

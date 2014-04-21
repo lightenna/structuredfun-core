@@ -1,6 +1,18 @@
 
-* Fix nasty selection bug
-  = test, done I think
+* Think of a way to store data-native-width and data-native-height in the cached image metadata
+  + worth finding ways to store and retreive image metadata anyway
+    + plus it enables re-res
+  + start with cache function
+    + write in native-width/height
+* Use cached data to write native width/height into data fields
+
+* Cachekey not set for directory listing from zip
+  + except first entry
+  + cache is being used for all the images
+    + but for some reason their cachekey isn't making it into the directory listing
+    + that may not be a problem, but worth investigating
+
+* Round newwidth/height
 
 * Folders maintain square aspect in landscape cells
   + make x-bound
@@ -18,17 +30,13 @@
 * Add ../ up arrow to directory listings
 * create file icon
 
-* Think of a way to store data-native-width and data-native-height in the cached image metadata
-  + worth finding ways to store and retreive image metadata anyway
-    + plus it enables re-res
-
 * Nice looking header icon (sf in circle with chunk bitten out)
 * Rotate header icon on rollover header expand
 
 * Horizontal/verical icon
 * Light/dark icon
 
-* staged jQueryUI scroller for number of images wide/high
+* snameed jQueryUI scroller for number of images wide/high
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -215,7 +223,7 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * tweak sfac on js y->x scrolling
 
-* set screen-x/y as percentage
+* set screen-x/y as percennamee
   + covers pre-update scenario to fix quirky drags
 * check chrome re-bound
 
@@ -255,4 +263,14 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * Folders (part 1) maintain square aspect in landscape cells
   + fix positioning
+
+* Fix nasty selection bug
+  = test, done I think
+
+* Producing two cache entries for a single image
+  + don't save to cache if this image was loaded from the cache
+    + ah ha, might be already protected for that
+    - mmm, not
+  = fixed by ensuring that we don't always generate a new cache key
+    + which isn't necessary when rewriting from the cache
 

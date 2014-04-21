@@ -27,6 +27,23 @@ class MetadataFileReader extends FileReader {
    */
   public function get() {
     $imgdata = parent::get();
+    // read metadata
+    $info = array();
+    if (function_exists('getimagesizefromstring')) {
+      // read from stream; more efficient but requires php 5.4
+      getimagesizefromstring($imgdata, $info);
+    } else {
+      // php 5 where image is stored as a file
+      if (!$this->inZip()) {
+        getimagesize($this->file_part, $info);
+      }
+    }
+    // if metadata has IPTC fields
+    if (isset($info['APP13'])) {
+      $iptc = new IptcWriter();
+      $iptc->prime(iptcparse($info['APP13']));
+      $this->stats->{'meta'} = unserialize($iptc->get(IPTC_SPECIAL_INSTRUCTIONS));
+    }
     return $imgdata;
   }
 
