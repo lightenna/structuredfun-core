@@ -16,6 +16,9 @@ class FileviewController extends ViewController {
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
         $dirlisting = $this->mfr->getListing();
+// START HERE
+// print_r($dirlisting);
+// exit;
         return $this
           ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
             array(
