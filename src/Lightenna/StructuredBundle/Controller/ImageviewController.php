@@ -78,8 +78,8 @@ class ImageviewController extends ViewController {
         $localmfr = new CachedMetadataFileReader(null, $this);
         $localmfr->rewrite($localmfr->getFilename($key));
         if ($localmfr->existsInCache()) {
-          // update the file location
-          $this->mfr->rewrite($localmfr->getFilename($key));
+          // update the file location and cache key
+          $this->mfr->rewrite($localmfr->getFilename($key), true);
           // pull image from cache
           $imgdata = $localmfr->get();
           // just filter the image

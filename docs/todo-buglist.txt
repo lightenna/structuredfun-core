@@ -1,16 +1,22 @@
 
+* Cachekey not set for directory listing
+  + except first entry
+  + cache is being used for all the images
+    + but for some reason their cachekey isn't making it into the directory listing
+    + that may not be a problem, but worth investigating
+  + this is true for both zips and normal directory listings
+    + it means we're not finding cached entries
+      + which in turn means we never fetch metadata for dir entries
+  + actually weren't putting any cachekeys in
+    + trick is to use the right cache key
+      + always the one for the file in situ, not in the cache
+
 * Think of a way to store data-native-width and data-native-height in the cached image metadata
   + worth finding ways to store and retreive image metadata anyway
     + plus it enables re-res
   + start with cache function
     + write in native-width/height
 * Use cached data to write native width/height into data fields
-
-* Cachekey not set for directory listing from zip
-  + except first entry
-  + cache is being used for all the images
-    + but for some reason their cachekey isn't making it into the directory listing
-    + that may not be a problem, but worth investigating
 
 * Round newwidth/height
 

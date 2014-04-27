@@ -27,6 +27,15 @@ class MetadataFileReader extends FileReader {
    */
   public function get() {
     $imgdata = parent::get();
+    $this->getImageMetadata();
+    return $imgdata;
+  }
+
+  /**
+   * Pull metadata from this file and store in stats
+   */
+  public function getImageMetadata() {
+// print('***CALLED***');
     // read metadata
     $info = array();
     if (function_exists('getimagesizefromstring')) {
@@ -44,9 +53,8 @@ class MetadataFileReader extends FileReader {
       $iptc->prime(iptcparse($info['APP13']));
       $this->stats->{'meta'} = unserialize($iptc->get(IPTC_SPECIAL_INSTRUCTIONS));
     }
-    return $imgdata;
   }
-
+  
   /**
    * Can't remember what this does
    * @param string $n URL name
@@ -164,6 +172,7 @@ class MetadataFileReader extends FileReader {
       $filename = $this->getFullname($obj);
       $localmfr = new CachedMetadataFileReader($filename, $this->controller);
       $imgdata = $localmfr->getOnlyIfCached();
+// print_r($localmfr->getStats());
     }
     // assume landscape if there's a problem reading
     if ($imgdata == null)

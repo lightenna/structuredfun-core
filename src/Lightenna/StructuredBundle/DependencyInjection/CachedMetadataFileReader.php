@@ -14,9 +14,11 @@ class CachedMetadataFileReader extends MetadataFileReader {
     if (!is_dir($this->cachedir)) {
       mkdir($this->cachedir);
     }
-    $this->stats->cachekey = null;
-    if (!is_null($filename)) {
-      $this->stats->cachekey = $this->getKey();
+    if (!$this->isDirectory()) {
+      $this->stats->cachekey = null;
+      if (!is_null($filename)) {
+        $this->stats->cachekey = $this->getKey();
+      }
     }
   }
 
@@ -100,6 +102,9 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::get()
    */
   public function get() {
+// var_dump($this->getFullname());
+// var_dump($this->stats->cachekey);
+// exit;
     if ($this->isCached()) {
       // redirect to use file from cache, but don't change cache key
       $this->rewrite($this->getFilename($this->stats->cachekey), false);
@@ -114,6 +119,9 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
   public function getOnlyIfCached() {
     if ($this->isCached()) {
+      // pull metadata manually
+      $this->getImageMetadata();
+      // not calling parent::get() because want to read cache
       return file_get_contents($this->getFilename($this->stats->cachekey));
     }
     else {
