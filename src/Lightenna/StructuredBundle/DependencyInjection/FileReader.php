@@ -277,6 +277,11 @@ class FileReader {
     if (isset($obj->{'zip_path'}) && ($obj->zip_path)) {
       $fullname .= ZIP_SEPARATOR . $obj->zip_path;
     }
+// START HERE
+// find all calls of getFullname
+// we're using it in two contexts
+//   directories and files
+// which means sometimes we're double appending the filename
     // if obj contains a leaf name, append it
     if (isset($obj->{'name'}) && ($obj->name)) {
       $fullname .= DIR_SEPARATOR . $obj->name;
