@@ -58,6 +58,10 @@ class IptcWriter {
     return isset($this->meta['2#'.$name]) ? $this->meta['2#'.$name][0] : false;
   }
 
+  public function getAll() {
+    return $this->meta;
+  }
+  
   public function reload($path) {
     $img = getimagesize($path, $info);
     if (isset($info['APP13'])) {

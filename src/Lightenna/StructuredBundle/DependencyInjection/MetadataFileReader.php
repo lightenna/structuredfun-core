@@ -1,6 +1,7 @@
 <?php
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
+use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 class MetadataFileReader extends FileReader {
 
   protected $stats;
@@ -12,8 +13,8 @@ class MetadataFileReader extends FileReader {
   public function __construct($filename, $con) {
     parent::__construct($filename);
     $this->controller = $con;
-    $this->args = $this->controller->getArgs();
     $this->stats = new \stdClass();
+    $this->setArgs($this->controller->getArgs());
     $this->settings = $this->controller->getSettings();
     if (!is_null($filename)) {
       $this->getListing();
@@ -27,40 +28,42 @@ class MetadataFileReader extends FileReader {
    */
   public function get() {
     $imgdata = parent::get();
-    $this->getImageMetadata();
+    if ($imgdata) {
+      $this->getImageMetadata($imgdata);
+    }
     return $imgdata;
   }
 
   /**
    * Pull metadata from this file and store in stats
+   * @param string $imgdata Image file as a string
    */
-  public function getImageMetadata() {
-// print('***CALLED***');
+  public function getImageMetadata($imgdata) {
     // read metadata
     $info = array();
     if (function_exists('getimagesizefromstring')) {
-      // read from stream; more efficient but requires php 5.4
+      // read from stream; more efficient but requires php >= 5.4
       getimagesizefromstring($imgdata, $info);
     } else {
-      // php 5 where image is stored as a file
+      // php < 5.4 and we have a file to read
       if (!$this->inZip()) {
-        getimagesize($this->file_part, $info);
+        getimagesize($this->getFilename(), $info);
       }
     }
+    $this->processRawMetadata($info);
+  }
+
+  /**
+   * Process raw output from getimagesize()
+   * @param array $info
+   */
+  function processRawMetadata($info) {
     // if metadata has IPTC fields
     if (isset($info['APP13'])) {
       $iptc = new IptcWriter();
       $iptc->prime(iptcparse($info['APP13']));
       $this->stats->{'meta'} = unserialize($iptc->get(IPTC_SPECIAL_INSTRUCTIONS));
     }
-  }
-  
-  /**
-   * Can't remember what this does
-   * @param string $n URL name
-   */
-  public function injectShares($n) {
-    $this->name = $n;
   }
   
   /**
@@ -103,6 +106,53 @@ class MetadataFileReader extends FileReader {
     return $listing;
   }
 
+  /**
+   * Work out the orientation of the current or a named image
+   * @return string orientation (x|y)
+   */
+
+  public function getOrientation($obj = null) {
+    if (is_null($obj)) {
+      $imgdata = $this->get();
+    }
+    else {
+      $imgdata = null;
+      $filename = $this->getFullname($obj);
+      $localmfr = new CachedMetadataFileReader($filename, $this->controller);
+      // local reader needs to use this reader's args (to get correctly size-cached thumbnails) 
+      $localmfr->setArgs($this->args);
+      $imgdata = $localmfr->getOnlyIfCached();
+      // @todo this print_r exposes that we're calling it twice
+      // print_r($localmfr->getStats());
+      $localstats = $localmfr->getStats();
+      // transfer metadata from cached copy to this directory entry
+      if (isset($localstats->{'cachekey'})) {
+        $obj->cachekey = $localstats->{'cachekey'};
+      }
+      if (isset($localstats->{'meta'})) {
+        $obj->meta = $localstats->meta;
+      }
+    }
+    // assume landscape if there's a problem reading
+    if ($imgdata == null)
+      return 'x';
+    if (!self::checkImageDatastream($imgdata))
+      return 'x';
+    // create an image, then read out the width and height
+    $img = imagecreatefromstring($imgdata);
+    if (imagesx($img) < imagesy($img))
+      return 'y';
+    return 'x';
+  }
+
+  /**
+   * Can't remember what this does
+   * @param string $n URL name
+   */
+  public function injectShares($n) {
+    $this->name = $n;
+  }
+  
   /**
    * Add metadata fields to object
    * @param Object $obj Listing object
@@ -159,33 +209,22 @@ class MetadataFileReader extends FileReader {
   }
 
   /**
-   * Work out the orientation of the current or a named image
-   * @return string orientation (x|y)
+   * Set the arguments for this file reader
+   * @param object $args
    */
-
-  public function getOrientation($obj = null) {
-    if (is_null($obj)) {
-      $imgdata = $this->get();
-    }
-    else {
-      $imgdata = null;
-      $filename = $this->getFullname($obj);
-      $localmfr = new CachedMetadataFileReader($filename, $this->controller);
-      $imgdata = $localmfr->getOnlyIfCached();
-// print_r($localmfr->getStats());
-    }
-    // assume landscape if there's a problem reading
-    if ($imgdata == null)
-      return 'x';
-    if (!self::checkImageDatastream($imgdata))
-      return 'x';
-    // create an image, then read out the width and height
-    $img = imagecreatefromstring($imgdata);
-    if (imagesx($img) < imagesy($img))
-      return 'y';
-    return 'x';
+  public function setArgs($args) {
+    $this->args = $args;
   }
-
+  
+  /**
+   * Add arguments to our argument array
+   * Arguments influence the cachestring in the CachedMetadataFileReader
+   * @param object $args
+   */
+  public function injectArgs($args) {
+    $this->args = (object) array_merge((array) $this->args, (array) $args);
+  }
+  
   /**
    * Rewrite the current file's path
    * @todo may need to tweak for things in zips
@@ -196,6 +235,20 @@ class MetadataFileReader extends FileReader {
     $this->stats->file = $newname;
     $this->stats->ext = self::getExtension($this->stats->file);
     return $newname;
+  }
+
+  /**
+   * Select and rename a few of the stats fields for storing as image metadata
+   * @param object $in
+   * @return object Filtered and renamed metadata
+   */
+  public function filterStatsForMetadata($in) {
+    $out = new \stdClass();
+    $out->width_original = $in->width;
+    $out->height_original = $in->height;
+    $out->width_loaded = $in->newwidth;
+    $out->height_loaded = $in->newheight;
+    return $out;
   }
   
 }

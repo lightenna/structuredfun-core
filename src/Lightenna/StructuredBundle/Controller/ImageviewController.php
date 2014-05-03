@@ -352,10 +352,10 @@ class ImageviewController extends ViewController {
     // don't allow image to exceed original at 200%
     $factor = 2;
     if (isset($this->stats->{'newwidth'}) && $this->stats->{'newwidth'} > $factor * $this->stats->{'width'}) {
-      $this->stats->{'newwidth'} = $factor * $this->stats->{'height'};
+      $this->stats->{'newwidth'} = round($factor * $this->stats->{'height'},1);
     }
     if (isset($this->stats->{'newheight'}) && $this->stats->{'newheight'} > $factor * $this->stats->{'width'}) {
-      $this->stats->{'newheight'} = $factor * $this->stats->{'height'};
+      $this->stats->{'newheight'} = round($factor * $this->stats->{'height'},1);
     }
     // catch case where we haven't restricted either dimension
     if (!isset($this->stats->{'newwidth'}) && !isset($this->stats->{'newheight'})) {
@@ -365,10 +365,10 @@ class ImageviewController extends ViewController {
     else {
       // derive unset dimension using restricted one
       if (!isset($this->stats->{'newwidth'})) {
-        $this->stats->{'newwidth'} = $this->stats->{'newheight'} * $this->stats->{'width'} / $this->stats->{'height'};
+        $this->stats->{'newwidth'} = round($this->stats->{'newheight'} * $this->stats->{'width'} / $this->stats->{'height'},1);
       }
       if (!isset($this->stats->{'newheight'})) {
-        $this->stats->{'newheight'} = $this->stats->{'newwidth'} * $this->stats->{'height'} / $this->stats->{'width'};
+        $this->stats->{'newheight'} = round($this->stats->{'newwidth'} * $this->stats->{'height'} / $this->stats->{'width'},1);
       }
     }
   }
