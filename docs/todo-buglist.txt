@@ -1,24 +1,10 @@
 
-* Cachekey not set for directory listing
-  + except first entry
-  + cache is being used for all the images
-    + but for some reason their cachekey isn't making it into the directory listing
-    + that may not be a problem, but worth investigating
-  + this is true for both zips and normal directory listings
-    + it means we're not finding cached entries
-      + which in turn means we never fetch metadata for dir entries
-  + actually weren't putting any cachekeys in
-    + trick is to use the right cache key
-      + always the one for the file in situ, not in the cache
+* write getFilename and getFullname tests for test suite
+  + important to have a record somewhere of what these functions should return
 
-* Think of a way to store data-native-width and data-native-height in the cached image metadata
-  + worth finding ways to store and retreive image metadata anyway
-    + plus it enables re-res
-  + start with cache function
-    + write in native-width/height
-* Use cached data to write native width/height into data fields
+* video thumbnails need metadata too
 
-* Round newwidth/height
+--
 
 * Folders maintain square aspect in landscape cells
   + make x-bound
@@ -279,4 +265,37 @@ bound, 2.0/0.5 = 4.0 = >1 = y
     - mmm, not
   = fixed by ensuring that we don't always generate a new cache key
     + which isn't necessary when rewriting from the cache
+
+* Cachekey not set for directory listing
+  + except first entry
+  + cache is being used for all the images
+    + but for some reason their cachekey isn't making it into the directory listing
+    + that may not be a problem, but worth investigating
+  + this is true for both zips and normal directory listings
+    + it means we're not finding cached entries
+      + which in turn means we never fetch metadata for dir entries
+  + actually weren't putting any cachekeys in
+    + trick is to use the right cache key
+      + always the one for the file in situ, not in the cache
+  + right, now we're getting different cachekeys because
+    1. actually image is a restricted thumbnail, so uses args
+    2. is just an image path, so has no args
+    + verify that's true
+
+* Clean up metadata that gets stored in cache files
+  + don't need all the spurious stuff
+  + rewrite names
+    + width_original
+    + height_original
+
+* Think of a way to store data-native-width and data-native-height in the cached image metadata
+  + worth finding ways to store and retreive image metadata anyway
+    + plus it enables re-res
+  + start with cache function
+    + write in native-width/height
+* Use cached data to write native width/height into data fields
+
+* Round newwidth/height
+
+* Fix test suite errors
 

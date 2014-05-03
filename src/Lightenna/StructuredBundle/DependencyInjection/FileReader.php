@@ -267,21 +267,27 @@ class FileReader {
   }
 
   /**
+   * Gets a simple file name for this entity
+   * Works on both directories and files
+   * @return Full filename
+   */
+  public function getFilename() {
+    $filename = $this->file_part;
+    return $filename;
+  }
+  
+  /**
+   * Gets a compound file name for a single directory entry
+   * Should only be called on directories, never files
    * @param $obj directory entry object
    * @return Full filename reconstituted from directory entry
    */
-
   public function getFullname($obj) {
     $fullname = $obj->file;
     // if obj contains a zip path
     if (isset($obj->{'zip_path'}) && ($obj->zip_path)) {
       $fullname .= ZIP_SEPARATOR . $obj->zip_path;
     }
-// START HERE
-// find all calls of getFullname
-// we're using it in two contexts
-//   directories and files
-// which means sometimes we're double appending the filename
     // if obj contains a leaf name, append it
     if (isset($obj->{'name'}) && ($obj->name)) {
       $fullname .= DIR_SEPARATOR . $obj->name;

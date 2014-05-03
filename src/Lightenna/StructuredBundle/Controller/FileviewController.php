@@ -13,6 +13,9 @@ class FileviewController extends ViewController {
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
     $this->mfr = new CachedMetadataFileReader($filename, $this);
     $this->mfr->injectShares($name);
+    $thumbargs = new \stdClass();
+    $thumbargs->{'maxlongest'} = 200;
+    $this->mfr->injectArgs($thumbargs);
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
         $dirlisting = $this->mfr->getListing();
@@ -27,7 +30,7 @@ class FileviewController extends ViewController {
               'celltype' => 'pc',
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
               'argsbase' => ARG_SEPARATOR . 'thumb=true&',
-              'argsdefault' => 'maxlongest=200&',
+              'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
               'dirlisting' => $dirlisting
             ));
       } else {
