@@ -1,7 +1,4 @@
 
-* write getFilename and getFullname tests for test suite
-  + important to have a record somewhere of what these functions should return
-
 * video thumbnails need metadata too
 
 --
@@ -298,4 +295,7 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 * Round newwidth/height
 
 * Fix test suite errors
+
+* write getFilename and getFullname tests for test suite
+  + important to have a record somewhere of what these functions should return
 

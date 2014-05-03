@@ -104,23 +104,29 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
 
   public function getKey() {
-    $cachestring = $this->getFilename();
+    $cachestring = $this->getFullname();
     $argstring = self::flattenKeyArgs($this->args);
     if ($argstring != '') {
       $cachestring .= ARG_SEPARATOR . $argstring;
     }
+    // var_dump($cachestring);
     $key = self::hash($cachestring) . '.' . $this->stats->ext;
     return $key;
   }
 
   /**
    * Returns a simple filename for the current file, or its cached alias if key set
-   * @param  string $key cache key
+   * @param  string $key cache key, false not to use, true to use pre-existing
    * @return string full path filename of this key'd asset
    */
 
-  public function getFilename($key = null) {
-    if (is_null($key)) {
+  public function getFilename($key = false) {
+    if ($key === true && isset($this->stats->cachekey)) {
+      $key = $this->stats->cachekey;
+    }
+    // if we don't have a cachekey, are reading a directory, or pulling a directory from a zip
+    if ($key === false || $this->isDirectory() || ($this->inZip() && $this->zip_part_leaf == null)) {
+      // just return the file part
       $fullname = parent::getFilename();
     } else {
       $fullname = $this->cachedir . '/' . $key; 
@@ -129,6 +135,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
   }
 
   /**
+   * Return the full name of this file, or file within zip, or entry within directory
    * @param $obj directory entry object or null/blank to get our fullname 
    * @return Full filename reconstituted from directory entry
    */
@@ -190,6 +197,13 @@ class CachedMetadataFileReader extends MetadataFileReader {
     $this->processRawMetadata($info);
   }
 
+  /**
+   * @return path to cache directory
+   */
+  public function getCachePath() {
+    return $this->cachedir;
+  }
+  
   /**
    * Rewrite the current file's path
    * @todo may need to tweak for things in zips

@@ -283,14 +283,18 @@ class FileReader {
    * @return Full filename reconstituted from directory entry
    */
   public function getFullname($obj) {
-    $fullname = $obj->file;
     // if obj contains a zip path
     if (isset($obj->{'zip_path'}) && ($obj->zip_path)) {
-      $fullname .= ZIP_SEPARATOR . $obj->zip_path;
+      $fullname = $obj->file . ZIP_SEPARATOR . $obj->zip_path;
+    } else {
+      $fullname = $obj->file;
     }
-    // if obj contains a leaf name, append it
-    if (isset($obj->{'name'}) && ($obj->name)) {
-      $fullname .= DIR_SEPARATOR . $obj->name;
+    // if it's a directory or a zip file, append leaf from entry ($obj/stats)
+    if ($this->isDirectory() || $this->inZip()) {
+      // if obj contains a leaf name, append it
+      if (isset($obj->{'name'}) && ($obj->name)) {
+        $fullname .= DIR_SEPARATOR . $obj->name;
+      }
     }
     return $fullname;
   }
