@@ -1,8 +1,4 @@
 
-* video thumbnails need metadata too
-
---
-
 * Folders maintain square aspect in landscape cells
   + make x-bound
     + write javascript to detect div.folder width and flip class
@@ -298,4 +294,6 @@ bound, 2.0/0.5 = 4.0 = >1 = y
 
 * write getFilename and getFullname tests for test suite
   + important to have a record somewhere of what these functions should return
+
+* video thumbnails need metadata too
 
