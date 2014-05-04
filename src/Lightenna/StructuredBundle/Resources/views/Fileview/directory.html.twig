@@ -18,7 +18,7 @@
   </a></li>
     {% elseif file.type == 'image' %}
   <li id="seq-{{ file.seq }}" class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}"><a href="/image{{ linkpath }}{{ file.name }}">
-    <img class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" {% if file.meta.width_original is defined %}data-native-width="{{ file.meta.width_original }}" {% endif %}{% if file.meta.height_original is defined %}data-native-height="{{ file.meta.height_original }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} />
+    <img class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} />
   </a></li>
     {% elseif file.type == 'video' %}
   <li id="seq-{{ file.seq }}" class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}"><a href="/image{{ linkpath }}{{ file.name }}">

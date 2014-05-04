@@ -244,8 +244,8 @@ class MetadataFileReader extends FileReader {
    */
   public function filterStatsForMetadata($in) {
     $out = new \stdClass();
-    $out->width_original = $in->width;
-    $out->height_original = $in->height;
+    $out->width = $in->width;
+    $out->height = $in->height;
     $out->width_loaded = $in->newwidth;
     $out->height_loaded = $in->newheight;
     return $out;
