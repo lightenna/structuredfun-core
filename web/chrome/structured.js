@@ -282,15 +282,9 @@
         if (brackHeight > loadedHeight) {
           this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxheight='+brackHeight);
         }
-
       }
-
-      // duplicates
-      // then fix retina display
-      // then show percentage
-      
     }
-    console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+    // console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
   };
   
   /**
@@ -308,6 +302,19 @@
       // store loaded width and height
       jqImg.data('loaded-width', this.width);
       jqImg.data('loaded-height', this.height);
+      // find the imgmetric if it's set
+      var met = jqImg.parents('li').find('.imgmetric');
+      if (met.length) {
+        // update with width and height
+        met.find('span.loaded-width').html(this.width);
+        met.find('span.loaded-height').html(this.height);
+        // analyse to see if we're over/under the native res
+        if (this.width > jqImg.data('native-width') || this.height > jqImg.data('native-height')) {
+          met.removeClass('super').addClass('sub');
+        } else {
+          met.removeClass('sub').addClass('super');          
+        }
+      }
       // console.log('loaded imageWidth['+this.width+'] imageHeight['+this.height+'] src['+$(this).attr('src')+']');        
     }).each(function() {
       if(this.complete) $(this).load();
