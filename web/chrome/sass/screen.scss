@@ -135,6 +135,24 @@ html.no-js {
       // centre
       text-align: center;
 
+      p.imgmetric {
+        line-height: 1.0em;
+        position: absolute;
+        z-index: 1;
+        font-size: 0.6em;
+        white-space: nowrap;
+        
+        &.super {
+          background-color: #009900;        
+          color: #BBFFBB;
+        }
+        
+        &.sub {
+          background-color: #990000;        
+          color: #FFBBBB;
+        }
+      }
+
       a { 
         // relative parent required for x-bound images
         position: relative;

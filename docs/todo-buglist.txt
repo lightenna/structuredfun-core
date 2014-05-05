@@ -4,6 +4,13 @@ probably caused by
 http://sfun.elan/image/data/alice%20eve.zip/alice%20eve/alice-eve-jiggle-ibbZy7SI8fCxXB.gif~args&thumb=true&maxlongest=200&
 http://sfun.elan/file/data/alice%20eve.zip/alice%20eve/
 getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/structured/htdocs/src/Lightenna/StructuredBundle/DependencyInjection/CachedMetadataFileReader.php on line 194 
++ cache is producing bad gif
+  + need to make it produce a gif, but a wrapped jpg
+
+* Safari sometimes-sometimes-not resizing images
+  + see iPad
+
+* Firefox scaling factor
 
 * Folders maintain square aspect in landscape cells
   + make x-bound

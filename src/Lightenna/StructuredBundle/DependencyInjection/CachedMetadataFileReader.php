@@ -179,25 +179,6 @@ class CachedMetadataFileReader extends MetadataFileReader {
   }
   
   /**
-   * Pull metadata from the cached version of this file and store in stats
-   * @see \Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader::getImageMetadata()
-   */
-  public function getImageMetadata($imgdata) {
-    // read metadata
-    $info = array();
-    if (function_exists('getimagesizefromstring')) {
-      // read from stream; more efficient but requires php >= 5.4
-      getimagesizefromstring($imgdata, $info);
-    } else {
-      // php < 5.4 and we have a cached version of the file
-      if ($this->isCached()) {
-        getimagesize($this->getFilename($this->stats->cachekey), $info);
-      }
-    }
-    $this->processRawMetadata($info);
-  }
-
-  /**
    * @return path to cache directory
    */
   public function getCachePath() {

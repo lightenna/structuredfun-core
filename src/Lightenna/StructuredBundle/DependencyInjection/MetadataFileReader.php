@@ -41,15 +41,9 @@ class MetadataFileReader extends FileReader {
   public function getImageMetadata($imgdata) {
     // read metadata
     $info = array();
-    if (function_exists('getimagesizefromstring')) {
-      // read from stream; more efficient but requires php >= 5.4
-      getimagesizefromstring($imgdata, $info);
-    } else {
-      // php < 5.4 and we have a file to read
-      if (!$this->inZip()) {
-        getimagesize($this->getFilename(), $info);
-      }
-    }
+    // can't use getimagesizefromstring as php > 5.4.0, so redirect via file wrapper
+    $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
+    $mdata = getimagesize($uri, $info);
     $this->processRawMetadata($info);
   }
 
