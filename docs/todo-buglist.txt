@@ -1,12 +1,16 @@
 
+* bug
+probably caused by
+http://sfun.elan/image/data/alice%20eve.zip/alice%20eve/alice-eve-jiggle-ibbZy7SI8fCxXB.gif~args&thumb=true&maxlongest=200&
+http://sfun.elan/file/data/alice%20eve.zip/alice%20eve/
+getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/structured/htdocs/src/Lightenna/StructuredBundle/DependencyInjection/CachedMetadataFileReader.php on line 194 
+
 * Folders maintain square aspect in landscape cells
   + make x-bound
     + write javascript to detect div.folder width and flip class
     + write y-bound class specifically for div.folder
 
-* Folders need proper title overlay
-  + correctly positioned
-* Extra scollbar, git too much margin somewhere
+* Extra scollbar, bit too much margin somewhere
   + seems to be a function of folders
 
 * Redraw folders at 1440x1080

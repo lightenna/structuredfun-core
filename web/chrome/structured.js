@@ -25,11 +25,14 @@
       // find all imagebind containers, setup images to listen for load and bind
       $('.cell').each(function() {
         var jqCell = $(this);
-        // bind to image's loaded event
-        $(this).find('img.bounded').load(function() {
+        // bind to image's first loaded event
+        $(this).find('img.bounded').one('load', function() {
           // check its binding, then resolution
           that.checkImageBound(jqCell, $(this));
           that.checkImageRes($(this));
+          // console.log('loaded image w['+$(this).width()+'] h['+$(this).height()+']');
+        }).each(function() {
+          if(this.complete) $(this).load();
         });
       });
       // find all screenpc elements, extract pc and store as data- attribute
@@ -79,45 +82,46 @@
     }
     // loop through all 'ready' elements
     $('.screenpc-ready').each(
-        function() {
-          var pxval, pcval;
-          // read data-screen-pc-width|height if set
-          pcwidth = $(this).data('screenpc-width');
-          pcheight = $(this).data('screenpc-height');
-          // resize cells as applicable
-          if (that.setScreenPcUsing == 'pc') {
-            // don't re-apply same pc every refresh
-          } else {
-            // apply screen percentage as pixels (px) or document percentage (dpc), transformed from window pc
-            if (pcwidth) {
-              pxval = ww * pcwidth / 100;
-              pcval = (pxval * 100 / dw) + '%';
-              $(this).width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
-              if (debug && false) {
-                console.log('ww[' + ww + '] dw['+ dw +'] pcwidth[' + pcwidth + '] pxval[' + pxval + '] pcval[' + pcval + ']');
-              }
-            }
-            if (pcheight) {
-              pxval = wh * pcheight / 100;
-              pcval = (pxval * 100 / dh) + '%';
-              $(this).height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
-              if (debug && false) {
-                console.log('wh[' + wh + '] dh[' + dh + '] pcheight[' + pcheight + '] pxval[' + pxval + '] pcval[' + pcval + ']');
-              }
-            }
+      function() {
+        var pxval, pcval;
+        // read data-screen-pc-width|height if set
+        pcwidth = $(this).data('screenpc-width');
+        pcheight = $(this).data('screenpc-height');
+        // resize cells as applicable
+        if (that.setScreenPcUsing == 'pc') {
+          // don't re-apply same pc every refresh
+        } else {
+          // apply screen percentage as pixels (px) or document percentage (dpc), transformed from window pc
+          if (pcwidth) {
+            pxval = ww * pcwidth / 100;
+            pcval = (pxval * 100 / dw) + '%';
+            $(this).width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
             if (debug && false) {
-              console.log('post-set screenpc[' + $(this).attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ $(this).width() + '] h[' + $(this).height() + ']');
+              console.log('ww[' + ww + '] dw['+ dw +'] pcwidth[' + pcwidth + '] pxval[' + pxval + '] pcval[' + pcval + ']');
             }
           }
-          // after resizing cells
-          if (pcwidth || pcheight) {
-            var jqImg = $(this).find('img.bounded');
-            // 1. look to see if the x-bound/y-bound has changed
-            that.checkImageBound($(this), jqImg);
-            // 2. change out the image for a better resolution
-            that.checkImageRes(jqImg);
+          if (pcheight) {
+            pxval = wh * pcheight / 100;
+            pcval = (pxval * 100 / dh) + '%';
+            $(this).height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
+            if (debug && false) {
+              console.log('wh[' + wh + '] dh[' + dh + '] pcheight[' + pcheight + '] pxval[' + pxval + '] pcval[' + pcval + ']');
+            }
           }
-        });
+          if (debug && false) {
+            console.log('post-set screenpc[' + $(this).attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ $(this).width() + '] h[' + $(this).height() + ']');
+          }
+        }
+        // after resizing cells
+        if (pcwidth || pcheight) {
+          var jqImg = $(this).find('img.bounded');
+          // 1. look to see if the x-bound/y-bound has changed
+          that.checkImageBound($(this), jqImg);
+          // 2. change out the image for a better resolution
+          that.checkImageRes(jqImg);
+        }
+      }
+    );
   };
 
   /**
@@ -250,7 +254,65 @@
    * Check the display resolution of the image and swap out src if higher res available 
    */
   this['checkImageRes'] = function(jqImg) {
-    // console.log('checking '+jqImg.attr('id'));
+    var resbracket = 250, brackWidth, brackHeight;
+    var imageWidth = jqImg.width() * window.devicePixelRatio;
+    var imageHeight = jqImg.height() * window.devicePixelRatio;
+    var loadedWidth = jqImg.data('loaded-width');
+    var loadedHeight = jqImg.data('loaded-height');
+    var nativeWidth = jqImg.data('native-width');
+    var nativeHeight = jqImg.data('native-height');
+    var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
+    var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
+    // test to see if we're displaying an image at more than 100%
+    if (bigger && available) {
+      // only need to think about one dimension, because ratio of image is fixed
+      var majorw = (imageWidth >= imageHeight);
+      // but that dimension has to be the major dimension 
+      if (majorw) {
+        // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
+        brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
+        // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
+        if (brackWidth > loadedWidth) {
+          this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxwidth='+brackWidth);
+          // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
+        }
+      } else {
+        // same but pivot on height rather than width
+        brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
+        if (brackHeight > loadedHeight) {
+          this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxheight='+brackHeight);
+        }
+
+      }
+
+      // duplicates
+      // then fix retina display
+      // then show percentage
+      
+    }
+    console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+  };
+  
+  /**
+   * Swap out image using a temporary image (to get triggered on load event)
+   * Can't just switch src on jqImg, because that image is already loaded
+   * Firebug doesn't show the updated data- attributes, but they are updated
+   */
+  this['swapImageOut'] = function(jqImg, path) {
+    // create temporary image container
+    var img = $('<img id="dynamic" />');
+    // attach listener to catch when the new image has loaded
+    img.attr('src', path).one('load', function() {
+      // now that it's pre-cached by the temp, apply to original image
+      jqImg.attr('src', path);
+      // store loaded width and height
+      jqImg.data('loaded-width', this.width);
+      jqImg.data('loaded-height', this.height);
+      // console.log('loaded imageWidth['+this.width+'] imageHeight['+this.height+'] src['+$(this).attr('src')+']');        
+    }).each(function() {
+      if(this.complete) $(this).load();
+    });
+    // console.log('swapped path['+path+']');
   };
   
   /**
