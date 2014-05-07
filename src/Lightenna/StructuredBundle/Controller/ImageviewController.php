@@ -8,7 +8,7 @@ use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 class ImageviewController extends ViewController {
-  // @param Array image metadata array
+  // @param Array image metadata array, shared object reference with MetadataFileReader
   private $stats = null;
 
   public function __construct() {
@@ -20,6 +20,37 @@ class ImageviewController extends ViewController {
   }
 
   public function indexAction($rawname, $output = true) {
+    $this->populate($rawname);
+    // get image and return
+    $imgdata = $this->fetchImage();
+    // catch test case
+    if (!$output) {
+      return $imgdata;
+    }
+    if ($imgdata !== null) {
+      // print image to output stream
+      self::returnImage($imgdata);
+    }
+    else {
+      // implied else
+      return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
+    }
+  }
+
+  public function metaAction($rawname, $output = true) {
+    $this->populate($rawname);
+    // request image from cache (including metadata)
+    $imgdata = $this->mfr->getOnlyIfCached();
+    // encode as json
+    print(json_encode($this->stats));
+    exit;
+  }
+
+  /**
+   * Process input and setup local objects
+   * @param string $rawname Raw input from URL routing
+   */
+  public function populate($rawname) {
     try {
       // convert rawname to urlname and filename
       $filename = $this->convertRawToFilename($rawname);
@@ -37,22 +68,8 @@ class ImageviewController extends ViewController {
     $listing = $this->mfr->getListing();
     // file is first element in returned listing array
     $this->stats = reset($listing);
-    // get image and return
-    $imgdata = $this->fetchImage();
-    // catch test case
-    if (!$output) {
-      return $imgdata;
-    }
-    if ($imgdata !== null) {
-      // print image to output stream
-      self::returnImage($imgdata);
-    }
-    else {
-      // implied else
-      return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
-    }
   }
-
+  
   /**
    * @return array stats (metadata) array
    */
@@ -171,8 +188,10 @@ class ImageviewController extends ViewController {
    */
 
   public function returnImage($imgdata) {
-    header("Content-Type: image/" . $this->stats->{'ext'});
-    header("Content-Length: " . strlen($imgdata));
+    if (!headers_sent()) {
+      header("Content-Type: image/" . $this->stats->{'ext'});
+      header("Content-Length: " . strlen($imgdata));
+    }
     echo $imgdata;
     exit;
   }

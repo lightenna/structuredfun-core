@@ -239,7 +239,6 @@ class FileReader {
   /**
    * @return File entry for first item in listing (if directory) or only item (file)
    */
-
   public function getStats() {
     if ($this->listing === null) {
       $this->getListing();
@@ -250,7 +249,6 @@ class FileReader {
   /**
    * @return string Contents of file
    */
-
   public function get() {
     if ($this->inZip()) {
       $zip = new \ZipArchive;

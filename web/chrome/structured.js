@@ -261,30 +261,65 @@
     var loadedHeight = jqImg.data('loaded-height');
     var nativeWidth = jqImg.data('native-width');
     var nativeHeight = jqImg.data('native-height');
-    var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
-    var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
-    // test to see if we're displaying an image at more than 100%
-    if (bigger && available) {
-      // only need to think about one dimension, because ratio of image is fixed
-      var majorw = (imageWidth >= imageHeight);
-      // but that dimension has to be the major dimension 
-      if (majorw) {
-        // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
-        brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
-        // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
-        if (brackWidth > loadedWidth) {
-          this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxwidth='+brackWidth);
-          // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
-        }
-      } else {
-        // same but pivot on height rather than width
-        brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
-        if (brackHeight > loadedHeight) {
-          this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxheight='+brackHeight);
+    if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
+      // fire request for metadata, then recheck
+      this.checkMetadata(jqImg);
+    } else {
+      var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
+      var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
+      // test to see if we're displaying an image at more than 100%
+      if (bigger && available) {
+        // only need to think about one dimension, because ratio of image is fixed
+        var majorw = (imageWidth >= imageHeight);
+        // but that dimension has to be the major dimension 
+        if (majorw) {
+          // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
+          brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
+          // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
+          if (brackWidth > loadedWidth) {
+            this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxwidth='+brackWidth);
+            // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
+          }
+        } else {
+          // same but pivot on height rather than width
+          brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
+          if (brackHeight > loadedHeight) {
+            this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxheight='+brackHeight);
+          }
         }
       }
+      // console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');      
     }
-    // console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+  };
+  
+  /**
+   * Request metadata about this image from the server
+   */
+  this['checkMetadata'] = function(jqImg) {
+    var that = this;
+    $.ajax({
+      url: jqImg.attr('src').replace('image','imagemeta'),
+      dataType: 'json',
+    })
+    .done(function( data ) {
+      that.processMetadata(jqImg, data);
+    });
+  };
+
+  /**
+   * Store processed metadata in data- attributes if returned
+   */
+  this['processMetadata'] = function(jqImg, data) {
+    if (typeof(data.meta) != 'undefined') {
+      jqImg.data('native-width', data.meta.width);
+      jqImg.data('native-height', data.meta.height);
+      // trigger image resolution check again now that we've updated data- attributes
+      console.log(jqImg.data('native-height'));
+      this.checkImageRes(jqImg);
+    } else {
+      console.log('metadata returned without meta');     
+    }
+// START HERE
   };
   
   /**
