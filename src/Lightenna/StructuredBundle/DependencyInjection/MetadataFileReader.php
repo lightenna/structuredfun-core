@@ -37,6 +37,7 @@ class MetadataFileReader extends FileReader {
   /**
    * Pull metadata from this file and store in stats
    * @param string $imgdata Image file as a string
+   * @return object processed metadata object
    */
   public function getImageMetadata($imgdata) {
     // read metadata
