@@ -263,6 +263,9 @@
     var nativeHeight = jqImg.data('native-height');
     var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
     var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
+    // check imgmetric display
+    var met = jqImg.parents('li').find('.imgmetric');
+
     // test to see if we're displaying an image at more than 100%
     if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
       // fire request for metadata, then recheck
@@ -294,6 +297,36 @@
     }
     // console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
   };
+
+  /**
+   * Request metadata about this image from the server
+   */
+  this['checkMetadata'] = function(jqImg) {
+    var that = this;
+    $.ajax({
+      url: jqImg.attr('src').replace('image','imagemeta'),
+      dataType: 'json',
+    })
+    .done(function( data ) {
+      that.processMetadata(jqImg, data);
+    });
+  };
+
+  /**
+   * Store processed metadata in data- attributes if returned
+   */
+  this['processMetadata'] = function(jqImg, data) {
+    if (typeof(data.meta) != 'undefined') {
+      jqImg.data('native-width', data.meta.width);
+      jqImg.data('native-height', data.meta.height);
+      // trigger image resolution check again now that we've updated data- attributes
+      console.log(jqImg.data('native-height'));
+      this.checkImageRes(jqImg);
+    } else {
+      console.log('metadata returned without meta');
+    }
+    // START HERE
+  };
   
   /**
    * Swap out image using a temporary image (to get triggered on load event)
@@ -314,8 +347,7 @@
       var met = jqImg.parents('li').find('.imgmetric');
       if (met.length) {
         // update with width and height
-        met.find('span.loaded-width').html(this.width);
-        met.find('span.loaded-height').html(this.height);
+        met.find('span.perc').html(Math.round(this.width * this.height * 100 / jqImg.data('native-width') * jqImg.data('native-height'), 1));
         // analyse to see if we're over/under the native res
         if (this.width > jqImg.data('native-width') || this.height > jqImg.data('native-height')) {
           met.removeClass('super').addClass('sub');
