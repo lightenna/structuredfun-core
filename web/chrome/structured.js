@@ -264,23 +264,31 @@
     var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
     var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
     // test to see if we're displaying an image at more than 100%
-    if (bigger && available) {
-      // only need to think about one dimension, because ratio of image is fixed
-      var majorw = (imageWidth >= imageHeight);
-      // but that dimension has to be the major dimension 
-      if (majorw) {
-        // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
-        brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
-        // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
-        if (brackWidth > loadedWidth) {
-          this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxwidth='+brackWidth);
-          // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
-        }
-      } else {
-        // same but pivot on height rather than width
-        brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
-        if (brackHeight > loadedHeight) {
-          this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxheight='+brackHeight);
+    if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
+      // fire request for metadata, then recheck
+      this.checkMetadata(jqImg);
+    } else {
+      var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
+      var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
+      // test to see if we're displaying an image at more than 100%
+      if (bigger && available) {
+        // only need to think about one dimension, because ratio of image is fixed
+        var majorw = (imageWidth >= imageHeight);
+        // but that dimension has to be the major dimension 
+        if (majorw) {
+          // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
+          brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
+          // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
+          if (brackWidth > loadedWidth) {
+            this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxwidth='+brackWidth);
+            // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
+          }
+        } else {
+          // same but pivot on height rather than width
+          brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
+          if (brackHeight > loadedHeight) {
+            this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxheight='+brackHeight);
+          }
         }
       }
     }
