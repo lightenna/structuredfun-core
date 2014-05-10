@@ -339,7 +339,7 @@ class FileReader {
     }
     // pull out extension
     $ext = substr($name, $pos + 1, $len);
-    return $ext;
+    return strtolower($ext);
   }
 
   /**
