@@ -1,6 +1,8 @@
 
-* test out showing display-size in imgmetric in js
-  + then come back to html
+* bug: imagemeta is requested for each image twice
+  + look at Firebug Net tab
+--o-- could be related
+* bug: imagemeta doesn't request images at right (bigger) size
 
 * Safari sometimes-sometimes-not resizing images
   + see iPad
@@ -310,4 +312,13 @@ http://sfun.elan/file/data/alice%20eve.zip/alice%20eve/
 getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/structured/htdocs/src/Lightenna/StructuredBundle/DependencyInjection/CachedMetadataFileReader.php on line 194 
 + cache is producing bad gif
   + need to make it produce a gif, but a wrapped jpg
+
+* test out showing display-size in imgmetric in js
+  + then come back to html
+
+* get relative position of image within parent container
+  + then apply to imgmetric
+    + parent container is shared parent of both img and imgmetric
+  = did using absolute coords
+    - relative (using jquery.position() instead of offset) doesn't put it anywhere close
 

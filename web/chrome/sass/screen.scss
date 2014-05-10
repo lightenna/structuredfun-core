@@ -142,6 +142,10 @@ html.no-js {
         font-size: 0.6em;
         white-space: nowrap;
         
+        .size {
+          display: none;
+        }
+
         &.super {
           background-color: #009900;        
           color: #BBFFBB;
