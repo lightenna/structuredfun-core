@@ -83,10 +83,11 @@
     // loop through all 'ready' elements
     $('.screenpc-ready').each(
       function() {
+        var jqCell = $(this);
         var pxval, pcval;
         // read data-screen-pc-width|height if set
-        pcwidth = $(this).data('screenpc-width');
-        pcheight = $(this).data('screenpc-height');
+        pcwidth = jqCell.data('screenpc-width');
+        pcheight = jqCell.data('screenpc-height');
         // resize cells as applicable
         if (that.setScreenPcUsing == 'pc') {
           // don't re-apply same pc every refresh
@@ -95,7 +96,7 @@
           if (pcwidth) {
             pxval = ww * pcwidth / 100;
             pcval = (pxval * 100 / dw) + '%';
-            $(this).width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
+            jqCell.width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
             if (debug && false) {
               console.log('ww[' + ww + '] dw['+ dw +'] pcwidth[' + pcwidth + '] pxval[' + pxval + '] pcval[' + pcval + ']');
             }
@@ -103,26 +104,24 @@
           if (pcheight) {
             pxval = wh * pcheight / 100;
             pcval = (pxval * 100 / dh) + '%';
-            $(this).height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
+            jqCell.height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
             if (debug && false) {
               console.log('wh[' + wh + '] dh[' + dh + '] pcheight[' + pcheight + '] pxval[' + pxval + '] pcval[' + pcval + ']');
             }
           }
           if (debug && false) {
-            console.log('post-set screenpc[' + $(this).attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ $(this).width() + '] h[' + $(this).height() + ']');
+            console.log('post-set screenpc[' + jqCell.attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ jqCell.width() + '] h[' + jqCell.height() + ']');
           }
         }
         // after resizing cells
         if (pcwidth || pcheight) {
-          var jqImg = $(this).find('img.bounded');
-          // 1. look to see if the x-bound/y-bound has changed
-          that.checkImageBound($(this), jqImg);
-          // 2. change out the image for a better resolution
-          // START HERE
-          // somehow jqImg doesn't have a src or id
-          // it's clearly not the image we're after
-          // but not sure how that's happening here
-          that.checkImageRes(jqImg);
+          // if there's an image inside
+          var jqImg = jqCell.find('img.bounded').each(function(){
+            // 1. look to see if the x-bound/y-bound has changed
+            that.checkImageBound(jqCell, $(this));
+            // 2. change out the image for a better resolution
+            that.checkImageRes($(this));
+          });
         }
       }
     );
@@ -267,13 +266,12 @@
     var nativeHeight = jqImg.data('native-height');
     var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
     var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
-    // check imgmetric display
-    var met = jqImg.parents('li').find('.imgmetric');
-console.log(jqImg.attr('id'));
+    var swappedOut = false, metaedOut = false;
     // test to see if we're displaying an image at more than 100%
     if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
-      // fire request for metadata, then recheck
+      // fire request for metadata, then callback this (checkImageRes) function later
       this.checkMetadata(jqImg);
+      metaedOut = true;
     } else {
       var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
@@ -288,6 +286,7 @@ console.log(jqImg.attr('id'));
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
             this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxwidth='+brackWidth);
+            swappedOut = true;
             // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
           }
         } else {
@@ -295,9 +294,14 @@ console.log(jqImg.attr('id'));
           brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
             this.swapImageOut(jqImg, jqImg.data('base-src') + 'maxheight='+brackHeight);
+            swappedOut = true;
           }
         }
       }
+    }
+    // if we didn't swap out this image or go off to check its metadata, update imgmetric
+    if (!swappedOut && !metaedOut) {
+      this.imgmetricUpdate(jqImg);
     }
     // console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
   };
@@ -306,7 +310,6 @@ console.log(jqImg.attr('id'));
    * Request metadata about this image from the server
    */
   this['checkMetadata'] = function(jqImg) {
-    console.log(jqImg.attr('id'));
     var that = this;
     $.ajax({
       url: jqImg.attr('src').replace('image','imagemeta'),
@@ -325,12 +328,11 @@ console.log(jqImg.attr('id'));
       jqImg.data('native-width', data.meta.width);
       jqImg.data('native-height', data.meta.height);
       // trigger image resolution check again now that we've updated data- attributes
-      console.log(jqImg.data('native-height'));
       this.checkImageRes(jqImg);
     } else {
-      console.log('metadata returned without meta');
+      // START HERE
+      console.log('metadata returned without meta substructure');
     }
-    // START HERE
   };
   
   /**
@@ -339,6 +341,7 @@ console.log(jqImg.attr('id'));
    * Firebug doesn't show the updated data- attributes, but they are updated
    */
   this['swapImageOut'] = function(jqImg, path) {
+    var that = this;
     // create temporary image container
     var img = $('<img id="dynamic" />');
     // attach listener to catch when the new image has loaded
@@ -348,24 +351,47 @@ console.log(jqImg.attr('id'));
       // store loaded width and height
       jqImg.data('loaded-width', this.width);
       jqImg.data('loaded-height', this.height);
-      // find the imgmetric if it's set
-      var met = jqImg.parents('li').find('.imgmetric');
-      if (met.length) {
-        // update with width and height
-        met.find('span.perc').html(Math.round(this.width * this.height * 100 / jqImg.data('native-width') * jqImg.data('native-height'), 1));
-        // analyse to see if we're over/under the native res
-        if (this.width > jqImg.data('native-width') || this.height > jqImg.data('native-height')) {
-          met.removeClass('super').addClass('sub');
-        } else {
-          met.removeClass('sub').addClass('super');          
-        }
-      }
+      that.imgmetricUpdate(jqImg);
       // console.log('loaded imageWidth['+this.width+'] imageHeight['+this.height+'] src['+$(this).attr('src')+']');        
     }).each(function() {
       if(this.complete) $(this).load();
     });
     // console.log('swapped path['+path+']');
   };
+
+  /**
+   * Read data about the image and update metric display
+   * @param  {object} jqImg jQuery object for image
+   */
+  this['imgmetricUpdate'] = function(jqImg) {
+    // find the imgmetric if it's set
+    var common_parent = jqImg.parents('li');
+    var imgpos = jqImg.offset();
+    var met = common_parent.find('.imgmetric');
+    var width_current = jqImg.width(), height_current = jqImg.height();
+    var width_native = jqImg.data('native-width'), height_native = jqImg.data('native-height');
+    if (met.length) {
+      if (debug) {
+        // show the size of the image that's been loaded into this img container
+        met.find('span.width').html(Math.round(jqImg.data('loaded-width')));
+        met.find('span.height').html(Math.round(jqImg.data('loaded-height')));
+        met.find('span.size').show();
+      } else {
+        // update with current image width and height
+        met.find('span.width').html(Math.round(width_current));
+        met.find('span.height').html(Math.round(height_current));
+      }
+      met.find('span.perc').html(Math.round((width_current * height_current) * 100 / (width_native * height_native))+'%');
+      // analyse to see if we're over/under the native res
+      if (width_current > width_native || height_current > height_native) {
+        met.removeClass('super').addClass('sub');
+      } else {
+        met.removeClass('sub').addClass('super');          
+      }
+      // move the metric to the corner of the image using absolute coords
+      met.css( { 'top': imgpos.top, 'left': imgpos.left });
+    }
+  }
   
   /**
    * turn header links into clickable buttons
@@ -417,6 +443,7 @@ console.log(jqImg.attr('id'));
    * set all 'flow' elements to flow in the direction
    */
   this['setDirection'] = function(direction) {
+    var that = this;
     var invdir = (direction == 'x' ? 'y' : 'x');
     $('.flow').addClass('flow-' + direction).removeClass('flow-' + invdir);
     // remove old handler
@@ -427,6 +454,16 @@ console.log(jqImg.attr('id'));
     if (this.direction == 'x') {
       $(window).mousewheel(this.mousewheelHandler);
     }
+    // re-check images
+    $('.cell').each(function() {
+      var jqCell = $(this);
+      var jqImg = $(this).find('img.bounded').each(function(){
+        // 1. look to see if the x-bound/y-bound has changed
+        that.checkImageBound(jqCell, $(this));
+        // 2. change out the image for a better resolution
+        that.checkImageRes($(this));
+      });
+    });
   };
 
   /**
