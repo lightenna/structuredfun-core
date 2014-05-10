@@ -118,6 +118,10 @@
           // 1. look to see if the x-bound/y-bound has changed
           that.checkImageBound($(this), jqImg);
           // 2. change out the image for a better resolution
+          // START HERE
+          // somehow jqImg doesn't have a src or id
+          // it's clearly not the image we're after
+          // but not sure how that's happening here
           that.checkImageRes(jqImg);
         }
       }
@@ -265,7 +269,7 @@
     var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
     // check imgmetric display
     var met = jqImg.parents('li').find('.imgmetric');
-
+console.log(jqImg.attr('id'));
     // test to see if we're displaying an image at more than 100%
     if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
       // fire request for metadata, then recheck
@@ -302,6 +306,7 @@
    * Request metadata about this image from the server
    */
   this['checkMetadata'] = function(jqImg) {
+    console.log(jqImg.attr('id'));
     var that = this;
     $.ajax({
       url: jqImg.attr('src').replace('image','imagemeta'),

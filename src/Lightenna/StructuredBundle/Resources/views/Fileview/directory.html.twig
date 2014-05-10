@@ -12,7 +12,7 @@
     <div class="dummy2"></div>
     <div class="folder bounded x-bound">
       {# <img class="overlay" src="/chrome/images/fullres/folder_front_dark.png" alt="directory semi-opaque front" /> #}
-      {% for img_prev_n in 1..4 %}<img class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=62&clipwidth=62&clipheight=50" alt="directory preview thumbnail" />{% endfor %}
+      {% for img_prev_n in 1..4 %}<img id="imgseq-{{ file.seq }}-{{ img_prev_n }}"class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=62&clipwidth=62&clipheight=50" alt="directory preview thumbnail" />{% endfor %}
     </div>
     <span class="title">{{ file.alias|e }}</span>
   </a></li>
@@ -20,12 +20,12 @@
   <li id="seq-{{ file.seq }}" class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">
     <p class="imgmetric super"><span class="width">{% if file.meta.width_loaded is defined %}{{ file.meta.width_loaded }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.height_loaded is defined %}{{ file.meta.height_loaded }}{% else %}-{% endif %}</span> @ <span class="perc">x%</span></p>
     <a href="/image{{ linkpath }}{{ file.name }}">
-      <img class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} />
+      <img id="imgseq-{{ file.seq }}" class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} />
     </a>
   </li>
     {% elseif file.type == 'video' %}
   <li id="seq-{{ file.seq }}" class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}"><a href="/image{{ linkpath }}{{ file.name }}">
-    <img class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" />
+    <img id="imgseq-{{ file.seq }}" class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" />
   </a></li>
     {% else %}
   <li id="seq-{{ file.seq }}" class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">{{ file.alias }}</li>
