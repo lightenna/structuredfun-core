@@ -22,30 +22,21 @@
       that.bindToHeaderLinks();
       // calculate scroll direction
       that.direction = that.getDirection();
-      // find all imagebind containers, setup images to listen for load and bind
-      $('.cell').each(function() {
-        var jqCell = $(this);
-        // bind to image's first loaded event
-        $(this).find('img.bounded').one('load', function() {
-          // check its binding, then resolution
-          that.checkImageBound(jqCell, $(this));
-          that.checkImageRes($(this));
-          // console.log('loaded image w['+$(this).width()+'] h['+$(this).height()+']');
-        }).each(function() {
-          if(this.complete) $(this).load();
-        });
-      });
       // find all screenpc elements, extract pc and store as data- attribute
       $('.screenpc-width').each(function() {
         return that.generate_data_pc($(this), 'width');
-      });
-      $('.screenpc-height').each(function() {
-        // can't simply use css('height') because it returns height in px not %
-        // console.log($(this).css('height'));
-        return that.generate_data_pc($(this), 'height');
-      });
-      // call refresh function to apply widths/heights
-      refresh();
+      }).promise().done(function() {
+        $('.screenpc-height').each(function() {
+          // can't simply use css('height') because it returns height in px not %
+          // console.log($(this).css('height'));
+          return that.generate_data_pc($(this), 'height');
+        });
+      }).promise().done(function() {
+        // call refresh function to apply cell widths/heights
+        refreshCells();
+        // find all images and attach load listener
+        that.checkImages(true);
+      })
       // attach listener to window for resize (rare, but should update)
       $(window).resize(function() {
         // if we're already timing out, delay for another x milliseconds
@@ -53,7 +44,8 @@
           clearTimeout(this.resizeTimeout);
         }
         that.resizeTimeout = setTimeout(function() {
-          that.refresh();
+          that.refreshCells();
+          that.checkImages(false);
         }, 50); // 50 ms
       });
       // if we're sideways scrolling, bind to scroll event
@@ -64,7 +56,7 @@
   /**
    * Refresh element width/heights when screen size changes
    */
-  this['refresh'] = function() {
+  this['refreshCells'] = function() {
     var that = this;
     var win = $(window), doc = $(document);
     var ww = win.width(), wh = win.height(), dw = doc.width(), dh = doc.height();
@@ -112,16 +104,6 @@
           if (debug && false) {
             console.log('post-set screenpc[' + jqCell.attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ jqCell.width() + '] h[' + jqCell.height() + ']');
           }
-        }
-        // after resizing cells
-        if (pcwidth || pcheight) {
-          // if there's an image inside
-          var jqImg = jqCell.find('img.bounded').each(function(){
-            // 1. look to see if the x-bound/y-bound has changed
-            that.checkImageBound(jqCell, $(this));
-            // 2. change out the image for a better resolution
-            that.checkImageRes($(this));
-          });
         }
       }
     );
@@ -227,6 +209,31 @@
     // roll on ECMAScript 6
     return haystack.indexOf(needle, haystack.length - needle.length) !== -1;
   };
+
+  /**
+   * Check through all the images in this gallery for size/ratio/bounding/metadata
+   */
+  this['checkImages'] = function(waitForLoad) {
+    var that = this;
+    // re-check images
+    $('.cell').each(function() {
+      var jqCell = $(this);
+      var callback = function(){
+        // 1. look to see if the x-bound/y-bound has changed
+        that.checkImageBound(jqCell, $(this));
+        // 2. change out the image for a better resolution
+        that.checkImageRes($(this));
+      };
+      // either we can check now, or check when the image loads
+      if (waitForLoad) {
+        $(this).find('img.bounded').one('load', callback).each(function() {
+          if(this.complete) $(this).load();
+        });
+      } else {
+        $(this).find('img.bounded').each(callback);
+      }
+    });
+  }
 
   /**
    * update (x/y)-bound on image
@@ -409,10 +416,12 @@
     });
     $('#flow-x').click(function(event) {
       that.setDirection('x');
+      this.checkImages(false);
       event.preventDefault();
     });
     $('#flow-y').click(function(event) {
       that.setDirection('y');
+      this.checkImages(false);
       event.preventDefault();
     });
     $('#theme-light').click(function(event) {
@@ -454,16 +463,6 @@
     if (this.direction == 'x') {
       $(window).mousewheel(this.mousewheelHandler);
     }
-    // re-check images
-    $('.cell').each(function() {
-      var jqCell = $(this);
-      var jqImg = $(this).find('img.bounded').each(function(){
-        // 1. look to see if the x-bound/y-bound has changed
-        that.checkImageBound(jqCell, $(this));
-        // 2. change out the image for a better resolution
-        that.checkImageRes($(this));
-      });
-    });
   };
 
   /**
