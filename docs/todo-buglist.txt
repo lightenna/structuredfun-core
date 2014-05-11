@@ -1,8 +1,6 @@
 
-* bug: imagemeta is requested for each image twice
-  + look at Firebug Net tab
---o-- could be related
 * bug: imagemeta doesn't request images at right (bigger) size
+  + got to sort of pass waitForLoad right through the chain
 
 * Safari sometimes-sometimes-not resizing images
   + see iPad
@@ -321,4 +319,7 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + parent container is shared parent of both img and imgmetric
   = did using absolute coords
     - relative (using jquery.position() instead of offset) doesn't put it anywhere close
+
+* bug: imagemeta is requested for each image twice
+  + look at Firebug Net tab
 
