@@ -25,6 +25,7 @@ class FileviewController extends ViewController {
               'dirname' => $name,
               'direction' => 'x',
               'celltype' => 'pc',
+              'breadth' => 2,
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
               'argsbase' => ARG_SEPARATOR . 'thumb=true&',
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
