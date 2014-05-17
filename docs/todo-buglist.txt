@@ -1,9 +1,21 @@
 
-* Safari sometimes-sometimes-not resizing images
-  + see iPad
+* Single entry in folder
+  + or fewer entries that a single column
+  + align left, not centre
+    + which will mean it doesn't matter if we turn off border-left
 
 * Firefox scaling factor
   + for scroll-x
+
+* funny things happening with the percentages
+  + for large image sets
+
+* cookie header options
+  + to remember what we were looking at
+  + think about hash-bang/url change too
+
+* Safari sometimes-sometimes-not resizing images
+  + see iPad
 
 * Folders maintain square aspect in landscape cells
   + make x-bound
