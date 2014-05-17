@@ -226,6 +226,7 @@
       };
       // either we can check now, or check when the image loads
       if (waitForLoad) {
+        // note callback in the args to one(), each is only a pusher
         $(this).find('img.bounded').one('load', callback).each(function() {
           if(this.complete) $(this).load();
         });
@@ -247,8 +248,14 @@
     // read container width/height
     var cx = jqCell.width(), cy = jqCell.height();
     var cratio = cx / cy;
+    // update loaded resolution
+    var im = new Image();
+    im.src = jqImg.attr('src');
+    jqImg.data('loaded-width', im.width);
+    jqImg.data('loaded-height', im.height);
+    im = null;
     // detect if the image is bound by width/height in this container
-    var ix = jqImg.width(), iy = jqImg.height();
+    var ix = jqImg.data('loaded-width'), iy = jqImg.data('loaded-height');
     var iratio = ix / iy;
     var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
     var invdir = (direction == 'x' ? 'y' : 'x');
@@ -334,6 +341,7 @@
     if (typeof(data.meta) != 'undefined') {
       jqImg.data('native-width', data.meta.width);
       jqImg.data('native-height', data.meta.height);
+      // console.log('received metadata width['+jqImg.data('native-width')+']');
       // trigger image resolution check again now that we've updated data- attributes
       this.checkImageRes(jqImg);
     } else {
@@ -375,9 +383,13 @@
     var common_parent = jqImg.parents('li');
     var imgpos = jqImg.offset();
     var met = common_parent.find('.imgmetric');
-    var width_current = jqImg.width(), height_current = jqImg.height();
-    var width_native = jqImg.data('native-width'), height_native = jqImg.data('native-height');
+    var perc;
     if (met.length) {
+      var width_current = jqImg.width(), height_current = jqImg.height();
+      var width_native = jqImg.data('native-width'), height_native = jqImg.data('native-height');
+      // calculate percentage based on image area, or width
+      // perc = Math.round((width_current * height_current) * 100 / (width_native * height_native));
+      perc = Math.round(width_current * 100 / width_native);
       if (debug) {
         // show the size of the image that's been loaded into this img container
         met.find('span.width').html(Math.round(jqImg.data('loaded-width')));
@@ -388,7 +400,7 @@
         met.find('span.width').html(Math.round(width_current));
         met.find('span.height').html(Math.round(height_current));
       }
-      met.find('span.perc').html(Math.round((width_current * height_current) * 100 / (width_native * height_native))+'%');
+      met.find('span.perc').html(perc+'%');
       // analyse to see if we're over/under the native res
       if (width_current > width_native || height_current > height_native) {
         met.removeClass('super').addClass('sub');
