@@ -1,11 +1,9 @@
 
-* bug: imagemeta doesn't request images at right (bigger) size
-  + got to sort of pass waitForLoad right through the chain
-
 * Safari sometimes-sometimes-not resizing images
   + see iPad
 
 * Firefox scaling factor
+  + for scroll-x
 
 * Folders maintain square aspect in landscape cells
   + make x-bound
@@ -322,4 +320,7 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * bug: imagemeta is requested for each image twice
   + look at Firebug Net tab
+
+* bug: imagemeta doesn't request images at right (bigger) size
+  + got to sort of pass waitForLoad right through the chain
 
