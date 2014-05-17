@@ -4,11 +4,17 @@
 @import "compass/reset";
 @import "base";
 
+// light theme colours
 $background_grid_light: #eeeeee;
 $background_html_light: #ffffff;
 
+// dark theme colours
 $background_grid_dark: #333333;
 $background_html_dark: #222222;
+
+// transition points between media queries
+$wide1: 1600px;
+$wide2: 2400px;
 
 /* -------------------------------------------------------------------------*/
 /* Layout */
@@ -119,9 +125,86 @@ html.no-js {
       height: 20em;
     }
 
-    .flow-pc > .cell {
-      width: 25%;
-      height: 50%;
+    // 1x1 is orientation-agnostic
+    .flow-pc.flow-1 > .cell {
+      width: 100%;
+      height: 100%;
+    }
+
+    // portrait (*2)
+    @media screen and (orientation:portrait) {
+      // 2x4, default
+      .flow-pc.flow-2 > .cell {
+        width: (100% / 2);
+        height: (100% / 4);
+      }
+      // 4x8
+      .flow-pc.flow-4 > .cell {
+        width: (100% / 4);
+        height: (100% / 8);
+      }
+      // 8x16
+      .flow-pc.flow-8 > .cell {
+        width: (100% / 8);
+        height: (100% / 16);
+      }
+    }
+
+    // widescreen (*2)
+    @media screen and (orientation:landscape) and (max-width: $wide1) {
+      // 4x2, default
+      .flow-pc.flow-2 > .cell {
+        width: (100% / 4);
+        height: (100% / 2);
+      }
+      // 8x4
+      .flow-pc.flow-4 > .cell {
+        width: (100% / 8);
+        height: (100% / 4);
+      }
+      // 16x8
+      .flow-pc.flow-8 > .cell {
+        width: (100% / 16);
+        height: (100% / 8);
+      }
+    }
+
+    // widescreen (*3)
+    @media screen and (orientation:landscape) and (min-width: ($wide1+1)) and (max-width: ($wide2)) {
+      // 6x2, default
+      .flow-pc.flow-2 > .cell {
+        width: (100% / 6);
+        height: (100% / 2);
+      }
+      // 12x4
+      .flow-pc.flow-4 > .cell {
+        width: (100% / 12);
+        height: (100% / 4);
+      }
+      // 24x8
+      .flow-pc.flow-8 > .cell {
+        width: (100% / 24);
+        height: (100% / 8);
+      }
+    }
+
+    // widescreen (*4)
+    @media screen and (orientation:landscape) and (min-width: ($wide2)) {
+      // 8x2, default
+      .flow-pc.flow-2 > .cell {
+        width: (100% / 8);
+        height: (100% / 2);
+      }
+      // 16x4
+      .flow-pc.flow-4 > .cell {
+        width: (100% / 16);
+        height: (100% / 4);
+      }
+      // 32x8
+      .flow-pc.flow-8 > .cell {
+        width: (100% / 32);
+        height: (100% / 8);
+      }
     }
 
     .flow > .cell {

@@ -3,7 +3,7 @@
 <div id="yardstick-y" class="yardstick"></div>
 
 <div class="content">
-<ul class="flow flow-{{ direction }} flow-{{ celltype }}">
+<ul class="flow flow-{{ direction }} flow-{{ celltype }} flow-{{ breadth }}">
   {% for file in dirlisting %}
     {% if file.type == 'directory' %}
   <li id="seq-{{ file.seq }}" class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">

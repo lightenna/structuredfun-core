@@ -170,27 +170,29 @@
       // iterate over rules within current stylesheet
       for ( var i = 0; i < rules.length; i++) {
         var rule = rules[i];
-        // test rule name against elem
-        if (endswith(rule.selectorText, elem)) {
-          if (debug && false) {
-            console.log('matched rule[' + rule.selectorText + '] against elem[' + elem + ']');
-          }
-          var elempc = rule.style.getPropertyValue(prop);
-          // if we actually found that property in this stylesheet class
-          if (elempc != undefined) {
-            // if we're suppose to match and strip characters from the end
-            if (matchstrip != undefined) {
-              // if the characters are there
-              if (elempc.indexOf(matchstrip) !== -1) {
-                // if we can match it, strip it
-                elempc = elempc.replace(matchstrip, '');
-              }
-              else {
-                // but if we can't match it, don't return it at all
-                continue;
-              }
+        if (typeof(rule.selectorText) != 'undefined') {
+          // test rule name against elem
+          if (endswith(rule.selectorText, elem)) {
+            if (debug && false) {
+              console.log('matched rule[' + rule.selectorText + '] against elem[' + elem + ']');
             }
-            return elempc;
+            var elempc = rule.style.getPropertyValue(prop);
+            // if we actually found that property in this stylesheet class
+            if (elempc != undefined) {
+              // if we're suppose to match and strip characters from the end
+              if (matchstrip != undefined) {
+                // if the characters are there
+                if (elempc.indexOf(matchstrip) !== -1) {
+                  // if we can match it, strip it
+                  elempc = elempc.replace(matchstrip, '');
+                }
+                else {
+                  // but if we can't match it, don't return it at all
+                  continue;
+                }
+              }
+              return elempc;
+            }
           }
         }
       }
@@ -426,16 +428,18 @@
       // leave header up for 2s, then collapse back down
       $(this).stop(true, false).delay(2000).animate( { width: '2.0em', opacity: 0.5 }, 100);
     });
+    // horizontal or vertical layout
     $('#flow-x').click(function(event) {
       that.setDirection('x');
-      this.checkImages(false);
+      that.checkImages(false);
       event.preventDefault();
     });
     $('#flow-y').click(function(event) {
       that.setDirection('y');
-      this.checkImages(false);
+      that.checkImages(false);
       event.preventDefault();
     });
+    // light or dark theme
     $('#theme-light').click(function(event) {
       $('html').removeClass('theme-dark');
       event.preventDefault();
@@ -444,6 +448,28 @@
       $('html').addClass('theme-dark');
       event.preventDefault();
     });
+    // 1x, 2x, 4x, or 8x
+    $('#flow-1').click(function(event) {
+      that.setFlowBreadth(1);
+      that.checkImages(false);
+      event.preventDefault();
+    });
+    $('#flow-2').click(function(event) {
+      that.setFlowBreadth(2);
+      that.checkImages(false);
+      event.preventDefault();
+    });
+    $('#flow-4').click(function(event) {
+      that.setFlowBreadth(4);
+      that.checkImages(false);
+      event.preventDefault();
+    });
+    $('#flow-8').click(function(event) {
+      that.setFlowBreadth(8);
+      that.checkImages(false);
+      event.preventDefault();
+    });
+    
   };
 
   /**
@@ -464,7 +490,6 @@
    * set all 'flow' elements to flow in the direction
    */
   this['setDirection'] = function(direction) {
-    var that = this;
     var invdir = (direction == 'x' ? 'y' : 'x');
     $('.flow').addClass('flow-' + direction).removeClass('flow-' + invdir);
     // remove old handler
@@ -475,6 +500,22 @@
     if (this.direction == 'x') {
       $(window).mousewheel(this.mousewheelHandler);
     }
+  };
+
+  /**
+   * set the width of the screen flow
+   * e.g. number of cells vertically if in vertical mode
+   */
+  this['setFlowBreadth'] = function(breadth) {
+    // remove all the other breadths
+    for (var i=1 ; i <= 8 ; i=i*2) {
+      // don't remove the breadth we're setting
+      if (i == breadth) {
+        continue;
+      }
+      $('.flow').removeClass('flow-'+i);
+    }
+    $('.flow').addClass('flow-' + breadth);
   };
 
   /**
