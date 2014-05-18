@@ -1,29 +1,64 @@
 
-* Single entry in folder
+* use js to re-write all image URLs to local hashbangs
+
+* right-arrow, down-arrow
+  + go one frame right
+
+* click goes to flow-1
+  + and jumps to that image
+
+* win-only error
+http://10.12.1.120:8097/file/structured/tests/data/30-zip_folder.zip/
+  + fine on linux
+http://10.12.1.160:8097/file/structured/tests/data/30-zip_folder.zip/
+
+* see if we can catch page up/down and ctrl+home/ctrl+end
+
+* show video entries in directory thumbnails
+
+* re-res directory thumbnails as per normal images
+
+* show imgmetric on videos
+
+* single entry in folder
   + or fewer entries that a single column
   + align left, not centre
     + which will mean it doesn't matter if we turn off border-left
 
-* Firefox scaling factor
+* never show thumbnails on mediacache
+
+* shuffle directories to top
+  + like in windows
+
+* introduce HTML for labels
+  + directories/images/files
+  + but don't worry too much about 
+
+* shuffle non-image files to bottom
+  + just for convenience
+
+* extra scollbar, bit too much margin somewhere
+  http://10.12.1.160:8097/file/data/alice%20eve.zip/alice%20eve/
+
+* firefox scaling factor
   + for scroll-x
 
-* funny things happening with the percentages
-  + for large image sets
+* test using app.php for everything
+  + is it possible to make elan an exception (and use app_dev.php)
+
+* think about javascript changing cell percentage based on mean row height/column width
 
 * cookie header options
   + to remember what we were looking at
   + think about hash-bang/url change too
 
-* Safari sometimes-sometimes-not resizing images
+* safari sometimes-sometimes-not resizing images
   + see iPad
 
-* Folders maintain square aspect in landscape cells
+* folders maintain square aspect in landscape cells
   + make x-bound
     + write javascript to detect div.folder width and flip class
     + write y-bound class specifically for div.folder
-
-* Extra scollbar, bit too much margin somewhere
-  + seems to be a function of folders
 
 * Redraw folders at 1440x1080
   + 4:3

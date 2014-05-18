@@ -275,7 +275,14 @@ html.no-js .header:hover, html.no-js .footer:hover {
 .page .content .flow > .cell a {
   position: relative;
 }
-/* line 251, ../sass/screen.scss */
+/* line 247, ../sass/screen.scss */
+.page .content .flow > .cell a > img.selected {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border: 1px solid #ff00ff;
+}
+/* line 256, ../sass/screen.scss */
 .page .content .flow > .cell a > img.x-bound {
   position: relative;
   width: 100%;
@@ -284,18 +291,18 @@ html.no-js .header:hover, html.no-js .footer:hover {
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 261, ../sass/screen.scss */
+/* line 266, ../sass/screen.scss */
 .page .content .flow > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 265, ../sass/screen.scss */
+/* line 270, ../sass/screen.scss */
 .page .content .flow > .cell a .title {
   height: 0;
   line-height: 0;
   top: -1.0em;
   position: relative;
 }
-/* line 273, ../sass/screen.scss */
+/* line 278, ../sass/screen.scss */
 .page .content .flow > .cell a div.folder {
   background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
   background-size: 100% 100%;
@@ -305,7 +312,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   text-align: left;
   position: relative;
 }
-/* line 282, ../sass/screen.scss */
+/* line 287, ../sass/screen.scss */
 .page .content .flow > .cell a div.folder .overlay {
   width: 100%;
   height: 100%;
@@ -314,40 +321,40 @@ html.no-js .header:hover, html.no-js .footer:hover {
   top: 0;
   z-index: 1;
 }
-/* line 292, ../sass/screen.scss */
+/* line 297, ../sass/screen.scss */
 .page .content .flow > .cell a div.folder .preview {
   width: 42.7%;
   height: 38%;
   position: relative;
   margin-right: 3%;
 }
-/* line 299, ../sass/screen.scss */
+/* line 304, ../sass/screen.scss */
 .page .content .flow > .cell a div.folder .preview-1, .page .content .flow > .cell a div.folder .preview-3 {
   margin-left: 6%;
 }
-/* line 303, ../sass/screen.scss */
+/* line 308, ../sass/screen.scss */
 .page .content .flow > .cell a div.folder .preview-1, .page .content .flow > .cell a div.folder .preview-2 {
   top: 13%;
 }
-/* line 308, ../sass/screen.scss */
+/* line 313, ../sass/screen.scss */
 .page .content .flow > .cell a div.folder .preview-3, .page .content .flow > .cell a div.folder .preview-4 {
   top: 16.4%;
 }
-/* line 316, ../sass/screen.scss */
+/* line 321, ../sass/screen.scss */
 .page .content .flow > .cell div.dummy1 {
   height: 50%;
 }
-/* line 320, ../sass/screen.scss */
+/* line 325, ../sass/screen.scss */
 .page .content .flow > .cell a.folder-container {
   display: inline-block;
   width: 100%;
   margin-top: -37.5%;
 }
-/* line 326, ../sass/screen.scss */
+/* line 331, ../sass/screen.scss */
 .page .content .flow > .cell a.folder-container .dummy2 {
   padding-top: 75%;
 }
-/* line 331, ../sass/screen.scss */
+/* line 336, ../sass/screen.scss */
 .page .content .flow > .cell a.folder-container div.folder {
   position: absolute;
   top: 0;
@@ -358,15 +365,15 @@ html.no-js .header:hover, html.no-js .footer:hover {
 
 /* -------------------------------------------------------------------------*/
 /* Theme variants */
-/* line 348, ../sass/screen.scss */
+/* line 353, ../sass/screen.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 351, ../sass/screen.scss */
+/* line 356, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell {
   border-color: #333333;
 }
-/* line 354, ../sass/screen.scss */
+/* line 359, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell .folder {
   background-image: url("/chrome/images/fullres/folder_back_dark.png");
 }
