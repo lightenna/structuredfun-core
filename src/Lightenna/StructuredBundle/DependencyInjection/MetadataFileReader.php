@@ -77,7 +77,7 @@ class MetadataFileReader extends FileReader {
       $seq = 0;
       foreach ($listing as $obj) {
         $this->parseDirectoryEntry($obj);
-        // add sequence number
+        // add sequence number (zero-based; dense, not sparse; includes non-images)
         $obj->{'seq'} = $seq++;
       }
     }

@@ -19,8 +19,8 @@
     {% elseif file.type == 'image' %}
   <li id="seq-{{ file.seq }}" class="cell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}">
     <p class="imgmetric super"><span class="size"><span class="width">{% if file.meta.width_loaded is defined %}{{ file.meta.width_loaded }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.height_loaded is defined %}{{ file.meta.height_loaded }}{% else %}-{% endif %}</span> @ </span><span class="perc">x%</span></p>
-    <a class="image-container" name="aseq-{{ file.seq }}" data-seq="{{ file.seq }}" href="/image{{ linkpath }}{{ file.name }}">
-      <img id="imgseq-{{ file.seq }}" class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} />
+    <a class="image-container" name="aseq-{{ file.seq }}" href="/image{{ linkpath }}{{ file.name }}">
+      <img id="imgseq-{{ file.seq }}" class="bounded {{ file.orientation }}-bound" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" class="thumb direntry" data-base-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} data-seq="{{ file.seq }}" />
     </a>
   </li>
     {% elseif file.type == 'video' %}

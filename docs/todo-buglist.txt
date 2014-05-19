@@ -1,11 +1,12 @@
 
-* use js to re-write all image URLs to local hashbangs
+* back to page without explicit breadth
+  + needs default
 
-* right-arrow, down-arrow
-  + go one frame right
+* scrollTo breaks click
 
-* click goes to flow-1
-  + and jumps to that image
+* need to detect if next/previous pushes us on to a new page
+  + e.g. always for 1 up
+  + only scrollTo() if advancing to new page
 
 * win-only error
 http://10.12.1.120:8097/file/structured/tests/data/30-zip_folder.zip/
@@ -370,4 +371,13 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * bug: imagemeta doesn't request images at right (bigger) size
   + got to sort of pass waitForLoad right through the chain
+
+* use js to re-write all image URLs to local hashbangs
+  + indirect via a handler rather than rewrite
+
+* right-arrow, down-arrow
+  + go one frame right
+
+* click goes to flow-1
+  + and jumps to that image
 
