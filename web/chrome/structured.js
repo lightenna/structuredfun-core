@@ -4,6 +4,8 @@
 (function($, undefined) {
 
   var debug = false;
+
+  // constants
   var KEY_ARROW_LEFT = 37;
   var KEY_ARROW_RIGHT = 39;
   var KEY_ARROW_UP = 38;
@@ -16,6 +18,12 @@
   var KEY_SHIFT = 16;
   var KEY_CTRL = 17;
   var KEY_ALT = 18;
+  var KEY_RETURN = 13;
+
+  // defaults
+  this.defaultImageSeq = 0;
+  this.defaultBreadth = null;
+  this.defaultDirection = null;
 
   // ms to wait after resize event before re-bound/re-res
   this.resizeTimeout = null;
@@ -36,8 +44,8 @@
     this.setScreenPcUsing = 'pc';
     $(document).ready(function() {
       // process state in page HTML next
-      that.direction = that.getDirection();
-      that.breadth = that.getBreadth();
+      that.defaultDirection = that.direction = that.getDirectionFromHTML();
+      that.defaultBreadth = that.breadth = that.getBreadthFromHTML();
       // bind to page
       that.bindToHeaderLinks();
       that.bindToHotKeys();
@@ -503,9 +511,11 @@
       switch (event.keyCode) {
         case KEY_ARROW_LEFT:
         case KEY_ARROW_UP:
-          // advance to previous image
-          that.advanceImage(-1);
-          event.preventDefault();
+          if (!event.altKey) {
+            // advance to previous image
+            that.advanceImage(-1);
+            event.preventDefault();
+          }
           break;
         case KEY_ARROW_RIGHT:
         case KEY_TAB:
@@ -528,6 +538,13 @@
 
           }
           break;
+        case KEY_RETURN:
+          if (that.breadth == 1) {
+            that.setBreadth(2);
+          } else {
+            that.setBreadth(1);
+          }
+          break;
       }
     });
   }
@@ -537,7 +554,7 @@
    * (needs flexbox)
    * @return current flow direction
    */
-  this['getDirection'] = function() {
+  this['getDirectionFromHTML'] = function() {
     var direction = 'y';
     if ($('html').hasClass('flexbox') && $('html').hasClass('flow-x')) {
       direction = 'x';
@@ -549,7 +566,7 @@
    * Get the flow breadth
    * @return current flow breadth
    */
-  this['getBreadth'] = function() {
+  this['getBreadthFromHTML'] = function() {
     var breadth = 2;
     var jq = $('ul.flow');
     if (jq.hasClass('flow-1')) breadth = 1;
@@ -567,7 +584,7 @@
     // remove old handler
     $(window).unbind('mousewheel', this.mousewheelHandler);
     // store new direction
-    this.direction = this.getDirection();
+    this.direction = this.getDirectionFromHTML();
     // attach new handler if required
     if (this.direction == 'x') {
       $(window).mousewheel(this.mousewheelHandler);
@@ -603,14 +620,8 @@
     // select new image
     jqCurrent = $('#imgseq-'+this.currentImageSeq);
     jqCurrent.addClass('selected');
-    // get coordinate of selected image's cell
-    position = jqCurrent.parents('li.cell').offset();
-    // if horizontal (flow-x), scroll horizontally
-    if (this.direction == 'x') {
-      window.scrollTo(position.left, 0);
-    } else {
-      window.scrollTo(0, position.top);
-    }
+    // make sure we can see the set image
+    this.ensureVisible(this.currentImageSeq);
   };
 
   /**
@@ -667,11 +678,16 @@
    * look for state in the URL hash
    */
   this['parseHash'] = function(hash) {
+    // apply defaults
+    this.breadth = this.defaultBreadth;
+    this.currentImageSeq = this.defaultImageSeq;
+    // look for hash arguments
     if (hash.length > 1) {
       // strip leading # if set
       if (hash[0] == '#') {
         hash = hash.substring(1);
       }
+      // override defaults if set
       var hashpairs = hash.split('&');
       for (var i=0 ; i<hashpairs.length ; ++i) {
         // var eqpos = hashpairs[i].indexOf('=');
@@ -679,16 +695,19 @@
         switch (components[0]) {
           // selected image
           case 'image' :
-            this.setCurrentImage(parseInt(components[1]));
+            this.currentImageSeq = parseInt(components[1]);
             break;
           // breadth
           case 'breadth' :
-            this.setBreadth(parseInt(components[1]));
-            this.checkImages(false);
+            this.breadth = parseInt(components[1]);
             break;
         }
       }
     }
+    // apply all in one go
+    this.setBreadth(this.breadth);
+    this.setCurrentImage(this.currentImageSeq);
+    this.checkImages(false);
   }
 
   /**
@@ -700,6 +719,29 @@
       History.pushState({}, null, '#image='+$(this).find('img').data('seq')+'&breadth=1');
       event.preventDefault();
     });
+  }
+
+  /** 
+   * ensure that a given image lies within the current viewport
+   * @param {int} seq image sequence number
+   */
+  this['ensureVisible'] = function(seq) {
+    var jq = $('#imgseq-'+seq);
+    // get coordinate of selected image's cell
+    position = jq.parents('li.cell').offset();
+    // if horizontal (flow-x), scroll horizontally
+    if (this.direction == 'x') {
+      if (position.left > 0 && position.left < $(window).width()) {
+        // visibile, do nothing
+      } else {
+        // scroll to show
+        window.scrollTo(position.left, 0);
+      }
+    } else {
+      if (position.top > 0 && position.top < $(window).height()) {
+        window.scrollTo(0, position.top);
+      }
+    }
   }
 
   // call init function
