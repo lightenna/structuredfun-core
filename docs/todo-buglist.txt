@@ -1,4 +1,11 @@
 
+* get state in one place
+  + URL: breadth, image seq, direction
+    + fall back to HTML if not set
+  + make nice functions that cascade
+  ? do we want to cache in javascript?
+    ? could this be a good time to embed a framework?
+
 * back to page without explicit breadth
   + needs default
 
