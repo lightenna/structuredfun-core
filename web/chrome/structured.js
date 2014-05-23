@@ -5,7 +5,10 @@
 
   var debug = false;
 
-  // constants
+  // ---------
+  // CONSTANTS
+  // ---------
+
   var KEY_ARROW_LEFT = 37;
   var KEY_ARROW_RIGHT = 39;
   var KEY_ARROW_UP = 38;
@@ -21,22 +24,26 @@
   var KEY_RETURN = 13;
 
   // defaults
-  this.defaultImageSeq = 0;
+  this.defaultSeq = 0;
   this.defaultBreadth = null;
   this.defaultDirection = null;
 
   // ms to wait after resize event before re-bound/re-res
   this.resizeTimeout = null;
-  
   // for screenpc width/height, set using px/pc
   this.setScreenPcUsing = null;
 
-  // real flow direction and breadth
-  this.direction = null;
-  this.breadth = null;
-  // current selected image
-  this.currentImageSeq = null;
+  // -----
+  // STATE
+  // - duplicated/cached from HTML
+  // + keep to a minimum
+  // -----
+
   this.totalEntries = null;
+
+  // ---------
+  // FUNCTIONS
+  // ---------
 
   this.init = function() {
     var that = this;
@@ -44,15 +51,15 @@
     this.setScreenPcUsing = 'pc';
     $(document).ready(function() {
       // process state in page HTML next
-      that.defaultDirection = that.direction = that.getDirectionFromHTML();
-      that.defaultBreadth = that.breadth = that.getBreadthFromHTML();
+      that.defaultDirection = that.getDirection();
+      that.defaultBreadth = that.getBreadth();
       // bind to page
       that.bindToHeaderLinks();
       that.bindToHotKeys();
       that.bindToHashChange();
       that.bindToImageLinks();
       // process state if set in URL (hash) first
-      that.parseHash(History.getHash());
+      that.hashAction(History.getHash());
       // find all screenpc elements, extract pc and store as data- attribute
       $('.screenpc-width').each(function() {
         return that.generate_data_pc($(this), 'width');
@@ -80,7 +87,7 @@
         }, 50); // 50 ms
       });
       // if we're sideways scrolling, bind to scroll event
-      that.setDirection(that.direction);
+      that.setDirection(that.getDirection());
     });
   };
 
@@ -258,6 +265,7 @@
         that.checkImageRes($(this));
         // 3. use this to count the number of images (remember zero-based)
         that.totalEntries = Math.max(that.totalEntries,  $(this).data('seq')+1);
+        // 4. change out folder thumbnails as images
       };
       // either we can check now, or check when the image loads
       if (waitForLoad) {
@@ -444,6 +452,10 @@
     }
   }
   
+  // ------------------
+  // FUNCTIONS: Binding
+  // ------------------
+
   /**
    * turn header links into clickable buttons
    */
@@ -513,7 +525,7 @@
         case KEY_ARROW_UP:
           if (!event.altKey) {
             // advance to previous image
-            that.advanceImage(-1);
+            that.imageAdvanceBy(-1);
             event.preventDefault();
           }
           break;
@@ -521,7 +533,7 @@
         case KEY_TAB:
         case KEY_ARROW_DOWN:
           // advance to next image
-          that.advanceImage(1);
+          that.imageAdvanceBy(1);
           event.preventDefault();
           break;
         case KEY_PAGE_UP:
@@ -529,32 +541,59 @@
         case KEY_PAGE_DOWN:
           break;
         case KEY_HOME:
-          if (e.ctrlKey) {
+          if (event.ctrlKey) {
 
           }
           break;
         case KEY_END:
-          if (e.ctrlKey) {
+          if (event.ctrlKey) {
 
           }
           break;
         case KEY_RETURN:
-          if (that.breadth == 1) {
-            that.setBreadth(2);
-          } else {
-            that.setBreadth(1);
-          }
+          that.imageToggleFullscreen();
           break;
       }
     });
   }
 
   /**
+   * listen for changes to the hash
+   * see https://github.com/browserstate/history.js
+   */
+  this['bindToHashChange'] = function() {
+    var that = this;
+    // bind to the hash change (not state hashes)
+    History.Adapter.bind(window, 'anchorchange', function() {
+      that.hashAction(History.getHash());
+    });
+  }
+
+  /**
+   *  if the image is clicked, redirect to in-page image
+   */
+  this['bindToImageLinks'] = function() {
+    var that = this;
+    $('.cell a.image-container').click(function(event) {
+      // select image, then toggle
+      var seq = $(this).find('img').data('seq');
+      // seq changes don't go into history
+      that.hashUpdate( { 'seq': seq }, false );
+      that.imageToggleFullscreen();
+      event.preventDefault();
+    });
+  }
+
+  // ------------------------------
+  // FUNCTIONS: getter then setters
+  // ------------------------------
+
+  /**
    * Get the real flow direction, not just what the class says because the browser might not support all directions
    * (needs flexbox)
    * @return current flow direction
    */
-  this['getDirectionFromHTML'] = function() {
+  this['getDirection'] = function() {
     var direction = 'y';
     if ($('html').hasClass('flexbox') && $('html').hasClass('flow-x')) {
       direction = 'x';
@@ -566,7 +605,7 @@
    * Get the flow breadth
    * @return current flow breadth
    */
-  this['getBreadthFromHTML'] = function() {
+  this['getBreadth'] = function() {
     var breadth = 2;
     var jq = $('ul.flow');
     if (jq.hasClass('flow-1')) breadth = 1;
@@ -576,6 +615,27 @@
   };
 
   /**
+   * @return {float} current size of cell along the major axis
+   */
+  this['getCellSize'] = function() {
+    // get first cell
+    var jq = $('ul.flow li:first');
+    if (this.getDirection() == 'x') {
+      return jq.width();
+    } else {
+      return jq.height();
+    }
+  }
+
+  /**
+   * @return {int} sequence number of currently selected image
+   */
+  this['getSeq'] = function() {
+    var jq = $('ul.flow li.cell img.selected')
+    return jq.data('seq');
+  }
+
+  /**
    * set all 'flow' elements to flow in the direction
    */
   this['setDirection'] = function(direction) {
@@ -583,10 +643,8 @@
     $('.flow').addClass('flow-' + direction).removeClass('flow-' + invdir);
     // remove old handler
     $(window).unbind('mousewheel', this.mousewheelHandler);
-    // store new direction
-    this.direction = this.getDirectionFromHTML();
     // attach new handler if required
-    if (this.direction == 'x') {
+    if (direction == 'x') {
       $(window).mousewheel(this.mousewheelHandler);
     }
   };
@@ -605,82 +663,152 @@
       $('.flow').removeClass('flow-'+i);
     }
     $('.flow').addClass('flow-' + breadth);
-    // store new breadth
-    this.breadth = breadth;
   };
 
   /**
    * @param int sequence number of image to make current
    */
-  this['setCurrentImage'] = function(seq) {
+  this['setSeq'] = function(seq) {
     var jqCurrent, position;
-    this.currentImageSeq = seq;
     // deselect old image
-    $('li.cell img.selected').removeClass('selected');
+    $('ul.flow li.cell img.selected').removeClass('selected');
     // select new image
-    jqCurrent = $('#imgseq-'+this.currentImageSeq);
+    jqCurrent = $('#imgseq-'+seq);
     jqCurrent.addClass('selected');
-    // make sure we can see the set image
-    this.ensureVisible(this.currentImageSeq);
   };
+
+  /** 
+   * ensure that a given image lies within the current viewport
+   * @param {int} seq image sequence number
+   */
+  this['setVisible'] = function(seq) {
+    var jq = $('#imgseq-'+seq);
+    var cellsize = getCellSize();
+    // get coordinate of selected image's cell
+    position = jq.parents('li.cell').offset();
+    // if we found the cell
+    if (jq.length) {
+      // if horizontal (flow-x), scroll horizontally
+      if (this.getDirection() == 'x') {
+        var min = $(window).scrollLeft();
+        var max = $(window).width() + $(window).scrollLeft() - cellsize;
+        if (position.left >= min && position.left <= max) {
+          // visibile, do nothing
+        } else {
+          // scroll to show
+          window.scrollTo(position.left, 0);
+        }
+      } else {
+        var min = $(window).scrollTop();
+        var max = $(window).height() + $(window).scrollTop() - cellsize;
+        if (position.top >= min && position.top <= max) {
+          window.scrollTo(0, position.top);
+        }
+      }      
+    }
+  }
+
+  // --------------------
+  // FUNCTIONS: image ops
+  // --------------------
 
   /**
    * advance to another image in sequence
    * @param {int} increment positive to go to next, negative for previous
    */
-  this['advanceImage'] = function(increment) {
+  this['imageAdvanceBy'] = function(increment) {
     // start with the current image
-    var seq = this.currentImageSeq;
-    // iterate to find next image
-    do {
-      seq = (seq+increment) % this.totalEntries;      
-      if ($('#imgseq-'+seq).length) {
-        this.currentImageSeq = seq;
-        break;
-      }
-    } while (seq != this.currentImageSeq);
-    History.replaceState({}, null, '#image='+seq+'&breadth='+this.breadth);
+    var seq = this.getSeq();
+    var startingPointSeq = seq;
+    if (seq >= 0 && (seq < this.totalEntries+1)) {
+      // iterate to find next image
+      do {
+        seq = (seq+increment) % this.totalEntries;
+        if ($('#imgseq-'+seq).length) {
+          break;
+        }
+      } while (seq != this.startingPointSeq);
+      // update using hash change
+      this.hashUpdate( { 'seq': seq }, false);
+    } else {
+      console.log('warning: erroneous seq('+seq+') returned by getseq');
+    }
   };
 
   /**
-   * process events generated by mouse wheel scrolling this function is executed to return a handler with context (that)
+   * switch between the default breadth and fullscreen
    */
-  this['mousewheelHandler'] = (function() {
-    var that = this;
-    return function(event) {
-      // 'this' scope is the jQuery object, not the class-wide 'that'
-      var xpos = $(this).scrollLeft();
-      // get current x position, increment and write back
-      $(this).scrollLeft(xpos + event.deltaFactor * (0 - event.deltaY));
-      if (debug) {
-        console.log('scroll dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
-      }
-      // stop even bubbling up, otherwise we get some weird diagonal scrolling
-      event.preventDefault();
-      return false;
-    };
-  })();
+  this['imageToggleFullscreen'] = function() {
+    // toggle using hash change
+    if (this.getBreadth() == 1) {
+      this.hashUpdate( { 'breadth': this.defaultBreadth }, true);
+    } else {
+      this.hashUpdate( { 'breadth': 1 }, true );
+    }
+  }
 
-  /**
-   * listen for changes to the hash
-   * see https://github.com/browserstate/history.js
-   */
-  this['bindToHashChange'] = function() {
-    var that = this;
-    // bind to the hash change (not state hashes)
-    History.Adapter.bind(window, 'anchorchange', function() {
-      var hash = History.getHash();
-      that.parseHash(hash);
-    });
+  // ---------------
+  // FUNCTIONS: Hash
+  // ---------------
+
+  this['hashUpdate'] = function(options, push) {
+    var hash = '';
+    // start with defaults
+    var obj = { 'breadth': this.defaultBreadth, 'seq': this.defaultSeq};
+    // overwrite with current hash values
+    fromHash = this.hashParse(History.getHash());
+    this.merge(obj, fromHash);
+    // overwrite with options
+    this.merge(obj, options);
+    // convert to hash string
+    hash = this.hashGenerate(obj);
+    if (push) {
+      History.pushState({}, null, hash);
+    } else {
+      History.replaceState({}, null, hash);
+    }
   }
 
   /**
    * look for state in the URL hash
    */
-  this['parseHash'] = function(hash) {
-    // apply defaults
-    this.breadth = this.defaultBreadth;
-    this.currentImageSeq = this.defaultImageSeq;
+  this['hashAction'] = function(hash) {
+    // start with defaults
+    var obj = { 'breadth': this.defaultBreadth, 'seq': this.defaultSeq};
+    // overwrite with current hash values
+    fromHash = this.hashParse(History.getHash());
+    this.merge(obj, fromHash);
+    // apply all in one go
+    this.setBreadth(obj.breadth);
+    this.setSeq(obj.seq);
+    this.checkImages(false);
+    this.setVisible(obj.seq);
+
+  }
+
+  /**
+   * convert an object to a hash string
+   * @param {object} values as an object
+   * @return {string} hash as string
+   */
+  this['hashGenerate'] = function(obj) {
+    var hash = '#';
+    for (var key in obj) {
+      if (hash != '#') {
+        hash += '&';
+      }
+      hash += key+'='+obj[key];
+    }
+    return hash;
+  }
+
+  /**
+   * parse out integers from hash attributes
+   * @param  {string} hash string
+   * @return {object} hash values as an object
+   */
+  this['hashParse'] = function(hash) {
+    var output = {};
     // look for hash arguments
     if (hash.length > 1) {
       // strip leading # if set
@@ -692,55 +820,48 @@
       for (var i=0 ; i<hashpairs.length ; ++i) {
         // var eqpos = hashpairs[i].indexOf('=');
         var components = hashpairs[i].split('=');
-        switch (components[0]) {
-          // selected image
-          case 'image' :
-            this.currentImageSeq = parseInt(components[1]);
-            break;
-          // breadth
-          case 'breadth' :
-            this.breadth = parseInt(components[1]);
-            break;
-        }
+        // adding elements to an object using array syntax (unknown name)
+        output[components[0]] = parseInt(components[1]);
       }
     }
-    // apply all in one go
-    this.setBreadth(this.breadth);
-    this.setCurrentImage(this.currentImageSeq);
-    this.checkImages(false);
+    return output;
   }
+
+
+  // ------------------
+  // FUNCTIONS: Helpers
+  // ------------------
 
   /**
-   *  if the image is clicked, redirect to in-page image
+   * process events generated by mouse wheel scrolling this function is executed to return a handler with context (that)
    */
-  this['bindToImageLinks'] = function() {
-    $('.cell a.image-container').click(function(event) {
-      // click adds a history item, so pushState
-      History.pushState({}, null, '#image='+$(this).find('img').data('seq')+'&breadth=1');
+  this['mousewheelHandler'] = (function() {
+    var that = this;
+    return function(event) {
+      // 'this' scope is the jQuery object, not the class-wide 'that'
+      var xpos = $(this).scrollLeft();
+      // get current cell size
+      var cellsize = that.getCellSize();
+      // get current x position, increment and write back
+      $(this).scrollLeft(xpos + (0 - event.deltaY) * cellsize);
+      if (debug) {
+        console.log('scroll dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
+      }
+      // stop even bubbling up, otherwise we get some weird diagonal scrolling
       event.preventDefault();
-    });
-  }
+      return false;
+    };
+  })();
 
-  /** 
-   * ensure that a given image lies within the current viewport
-   * @param {int} seq image sequence number
+  /**
+   * merge into obj1
+   * overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
+   * @param obj1
+   * @param obj2
    */
-  this['ensureVisible'] = function(seq) {
-    var jq = $('#imgseq-'+seq);
-    // get coordinate of selected image's cell
-    position = jq.parents('li.cell').offset();
-    // if horizontal (flow-x), scroll horizontally
-    if (this.direction == 'x') {
-      if (position.left > 0 && position.left < $(window).width()) {
-        // visibile, do nothing
-      } else {
-        // scroll to show
-        window.scrollTo(position.left, 0);
-      }
-    } else {
-      if (position.top > 0 && position.top < $(window).height()) {
-        window.scrollTo(0, position.top);
-      }
+  this['merge'] = function(obj1, obj2){
+    for (var attrname in obj2) {
+      obj1[attrname] = obj2[attrname];
     }
   }
 

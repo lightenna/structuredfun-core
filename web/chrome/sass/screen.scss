@@ -243,6 +243,10 @@ html.no-js {
       a { 
         // relative parent required for x-bound images
         position: relative;
+        text-align: right;
+        text-decoration: none;
+        font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
+        // font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
               
         > img.selected {
           // make borders appear inside to avoid pushing outside cell
@@ -268,10 +272,17 @@ html.no-js {
         }
 
         .title {
+          opacity:0.7;
+          filter:alpha(opacity=70); /* For IE8 and earlier */
           height: 0;
           line-height: 0;
-          top: -1.0em;
+          top: -4.0em;
           position: relative;
+          width: 100px;
+          background-color: $background_html_dark;
+          color: #ffffff;
+          margin: 0 10px 0 10px;
+          padding: 0.5em;
         }
         
         // folders with preview images
@@ -281,7 +292,6 @@ html.no-js {
           width: 100%;
           height: 100%;
           display: block;
-          text-align: left;
           position: relative;
   
           .overlay {
@@ -301,10 +311,19 @@ html.no-js {
             margin-right: 3%;
           }
           
+          /**
+           * disabled: currently aligning right
           .preview-1, .preview-3 {
+            // used for text-align: left in parent
             margin-left: 6%;
           }
-          
+           */
+
+          .preview-2, .preview-4 {
+            // used for text-align: right in parent
+            margin-right: 6%;
+          }
+
           .preview-1, .preview-2  {
             // have to use 'top' because 'margin-top' percentage calculated on element width!
             top: 13%;
@@ -312,7 +331,8 @@ html.no-js {
   
           .preview-3, .preview-4  {
             top: 16.4%;
-          }        
+          }
+
         }
       }
 
