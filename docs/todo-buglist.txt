@@ -1,4 +1,22 @@
 
+* 1 minor bug in linux test suite
+  + also just 1 (same 1) in windows
+
+* reduce apache to 2 concurrent threads
+  + should never use more than 2 cores
+    + see if that helps with the responsiveness of the page
+      - otherwise may need to use blank images
+  + working for windows
+    + apply to linux config too
+
+* return jumps back to previous image
+  + but doesn't always go back to 
+
+* only swap out visible images
+  + swapping them all is too intensive
+    + probably should try to avoid going over about 50 x 1000
+      + add as line in config file
+
 * time for a front-end test suite
   + introduce a basic QUnit
 

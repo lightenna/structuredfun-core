@@ -741,9 +741,9 @@
   this['imageToggleFullscreen'] = function() {
     // toggle using hash change
     if (this.getBreadth() == 1) {
-      this.hashUpdate( { 'breadth': this.defaultBreadth }, true);
+      this.hashUpdate( { 'breadth': this.defaultBreadth }, false);
     } else {
-      this.hashUpdate( { 'breadth': 1 }, true );
+      this.hashUpdate( { 'breadth': 1 }, false);
     }
   }
 
