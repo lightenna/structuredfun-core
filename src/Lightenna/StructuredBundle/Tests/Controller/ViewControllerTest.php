@@ -92,7 +92,7 @@ class ViewControllerTest extends WebTestCase
 	  // find an extension
 	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.ext'),'ext');
 	  // find an upper case jpg
-	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.JPG'),'JPG');
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.JPG'),'jpg');
 	  // find no extension
 	  $this->assertEquals($t::getExtension('data/ext_directory/myfile'),false);
 	  // find no extension on a directory
