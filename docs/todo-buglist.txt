@@ -1,19 +1,6 @@
 
-* get state in one place
-  + URL: breadth, image seq, direction
-    + fall back to HTML if not set
-  + make nice functions that cascade
-  ? do we want to cache in javascript?
-    ? could this be a good time to embed a framework?
-
-* back to page without explicit breadth
-  + needs default
-
-* scrollTo breaks click
-
-* need to detect if next/previous pushes us on to a new page
-  + e.g. always for 1 up
-  + only scrollTo() if advancing to new page
+* time for a front-end test suite
+  + introduce a basic QUnit
 
 * win-only error
 http://10.12.1.120:8097/file/structured/tests/data/30-zip_folder.zip/
@@ -23,8 +10,6 @@ http://10.12.1.160:8097/file/structured/tests/data/30-zip_folder.zip/
 * see if we can catch page up/down and ctrl+home/ctrl+end
 
 * show video entries in directory thumbnails
-
-* re-res directory thumbnails as per normal images
 
 * show imgmetric on videos
 
@@ -47,9 +32,6 @@ http://10.12.1.160:8097/file/structured/tests/data/30-zip_folder.zip/
 
 * extra scollbar, bit too much margin somewhere
   http://10.12.1.160:8097/file/data/alice%20eve.zip/alice%20eve/
-
-* firefox scaling factor
-  + for scroll-x
 
 * test using app.php for everything
   + is it possible to make elan an exception (and use app_dev.php)
@@ -387,4 +369,41 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * click goes to flow-1
   + and jumps to that image
+
+* firefox scaling factor
+  + for scroll-x
+
+* re-res directory thumbnails as per normal images
+  = decided not to re-res for jq load
+    + but have improved res to 200px
+
+* title on folders
+
+* get state in one place
+  + URL: breadth, image seq, direction
+    + fall back to HTML if not set
+  + make nice functions that cascade
+  ? do we want to cache in javascript?
+    ? could this be a good time to embed a framework?
+
+* back to page without explicit breadth
+  + needs default
+
+* clicking on an image pushes state
+  + but it should only do that if the URL is different
+  + otherwise the history queues up with duplicate entries
+    + which makes 'back' confusing
+
+* imageAdvance crashes browser
+
+* need to detect if next/previous pushes us on to a new page
+  + e.g. always for 1 up
+  + only scrollTo() if advancing to new page
+
+* scrollTo breaks click
+  + advance to a high image
+  + go fullscreen
+  + advance a few more (to about 3rd or 4th)
+  + go back to b2
+    + think this is just like the upper end crop
 
