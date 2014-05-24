@@ -13,8 +13,27 @@
   // ---------
 
   this.init = function() {
-    sfun.headerAddButton({ 'title': 'Test', 'template': this.getTemplate(), 'handler' : this.getClickHandler() });
+    var obj = {
+      'view': {
+        'title': 'Test'
+      },
+      'template': this.getTemplate(),
+      'callbackBind' : this.bindToTemplate()
+    };
+    sfun.headerAddButton(obj);
   };
+
+  this['getTemplate'] = function() {
+    var str = '<a href="" id="header-test">{{ title }}</a>';
+    return str;
+  }
+
+  this['bindToTemplate'] = function() {
+    var that = this;
+    return(function(obj) {
+      $('#header-test').click(this.getClickHandler());
+    });
+  }
 
   this['getClickHandler'] = function() {
     var that = this;
@@ -26,4 +45,4 @@
   // call init function
   this.init();
 
-})(jQuery, undefined);
+})(jQuery, window.sfun, undefined);

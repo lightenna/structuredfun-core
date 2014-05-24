@@ -1,13 +1,10 @@
 
-* 1 minor bug in linux test suite
-  + also just 1 (same 1) in windows
-
-* reduce apache to 2 concurrent threads
-  + should never use more than 2 cores
-    + see if that helps with the responsiveness of the page
-      - otherwise may need to use blank images
-  + working for windows
-    + apply to linux config too
+* time for a front-end test suite
+  + introduce a basic QUnit
+  + introduce a #test
+    + as a new button for the header in its own file
+  = half way through this
+    + press on with mustache template
 
 * return jumps back to previous image
   + but doesn't always go back to 
@@ -16,13 +13,6 @@
   + swapping them all is too intensive
     + probably should try to avoid going over about 50 x 1000
       + add as line in config file
-
-* time for a front-end test suite
-  + introduce a basic QUnit
-  + introduce a #test
-    + as a new button for the header in its own file
-  = half way through this
-    + press on with mustache template
 
 * win-only error
 http://10.12.1.120:8097/file/structured/tests/data/30-zip_folder.zip/
@@ -428,4 +418,14 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + advance a few more (to about 3rd or 4th)
   + go back to b2
     + think this is just like the upper end crop
+
+* 1 minor bug in linux test suite
+  + also just 1 (same 1) in windows
+
+* reduce apache to 2 concurrent threads
+  + should never use more than 2 cores
+    + see if that helps with the responsiveness of the page
+      - otherwise may need to use blank images
+  + working for windows
+    + not going to apply to linux config because we don't have the same whole-app
 
