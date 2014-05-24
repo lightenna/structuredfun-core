@@ -1,7 +1,7 @@
 /**
  * StructuredFun javascript
  */
-(function($, undefined) {
+window.sfun = (function($, undefined) {
 
   var debug = false;
 
@@ -22,6 +22,10 @@
   var KEY_CTRL = 17;
   var KEY_ALT = 18;
   var KEY_RETURN = 13;
+  var KEY_NUMBER_1 = 49;
+  var KEY_NUMBER_2 = 50;
+  var KEY_NUMBER_4 = 52;
+  var KEY_NUMBER_8 = 56;
 
   // defaults
   this.defaultSeq = 0;
@@ -457,8 +461,14 @@
   // Dynamic toolbar
   // -----------------
   
-  this['headerAddButton'] = function(view, callbackClick) {
-    $('.header').append()
+  this['headerAddButton'] = function(obj) {
+    var output;
+    Mustache.parse(obj.template);
+    output = Mustache.render(obj.template, obj.view);
+    // attach output to header
+    $('.header').append(output);
+    // allow element to bind its handlers
+    obj.callbackBind.call(this, obj);
   }
 
   // ------------------
@@ -561,6 +571,18 @@
           break;
         case KEY_RETURN:
           that.imageToggleFullscreen();
+          break;
+        case KEY_NUMBER_1:
+          that.imageBreadth(1);
+          break;
+        case KEY_NUMBER_2:
+          that.imageBreadth(2);
+          break;
+        case KEY_NUMBER_4:
+          that.imageBreadth(4);
+          break;
+        case KEY_NUMBER_8:
+          that.imageBreadth(8);
           break;
       }
     });
@@ -692,7 +714,7 @@
    */
   this['setVisible'] = function(seq) {
     var jq = $('#imgseq-'+seq);
-    var cellsize = getCellSize();
+    var cellsize = this.getCellSize();
     // get coordinate of selected image's cell
     position = jq.parents('li.cell').offset();
     // if we found the cell
