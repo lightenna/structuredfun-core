@@ -19,6 +19,10 @@
 
 * time for a front-end test suite
   + introduce a basic QUnit
+  + introduce a #test
+    + as a new button for the header in its own file
+  = half way through this
+    + press on with mustache template
 
 * win-only error
 http://10.12.1.120:8097/file/structured/tests/data/30-zip_folder.zip/
