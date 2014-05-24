@@ -451,7 +451,16 @@
       met.css( { 'top': imgpos.top, 'left': imgpos.left });
     }
   }
+
+  // -----------------
+  // FUNCTIONS: Header
+  // Dynamic toolbar
+  // -----------------
   
+  this['headerAddButton'] = function(view, callbackClick) {
+    $('.header').append()
+  }
+
   // ------------------
   // FUNCTIONS: Binding
   // ------------------

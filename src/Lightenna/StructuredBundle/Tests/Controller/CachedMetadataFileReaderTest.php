@@ -50,7 +50,7 @@ class CachedMetadataFileReaderTest extends WebTestCase {
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG')
       ) .
-      '.JPG'
+      '.jpg'
     );
     // get listing for a single file in a zip
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/00980002.JPG'), $t);
@@ -59,7 +59,7 @@ class CachedMetadataFileReaderTest extends WebTestCase {
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/00980002.JPG')
       ) .
-      '.JPG'
+      '.jpg'
     );
     // get listing for a single file in a nested folder in a zip
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980007.JPG'), $t);
@@ -68,7 +68,7 @@ class CachedMetadataFileReaderTest extends WebTestCase {
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980007.JPG')
       ) .
-      '.JPG'
+      '.jpg'
     );
     // get listing for a single file, but strip filtered arguments
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
@@ -77,7 +77,7 @@ class CachedMetadataFileReaderTest extends WebTestCase {
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG')
       ) .
-      '.JPG'
+      '.jpg'
     );
   }
   
