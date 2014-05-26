@@ -20,29 +20,48 @@
       'template': this.getTemplate(),
       'callbackBind' : this.bindToTemplate()
     };
-    sfun.headerAddButton(obj);
+    sfun.push('headerAddButton', obj);
   };
 
   this['getTemplate'] = function() {
-    var str = '<a href="" id="header-test">{{ title }}</a>';
+    var str = '<p><a href="#" id="header-test">{{ title }}</a></p>';
     return str;
   }
 
   this['bindToTemplate'] = function() {
     var that = this;
     return(function(obj) {
-      $('#header-test').click(this.getClickHandler());
+      $('#header-test').click(that.getClickHandler());
     });
   }
 
   this['getClickHandler'] = function() {
     var that = this;
     return(function(event) {
-      console.log('test button clicked');
+      // write QUnit harness into page
+      var qs = '<div id="qunit"></div><div id="qunit-fixture"></div>';
+      $('body').prepend(qs);
+      // execute tests
+      that.tests();
     });
   }
 
   // call init function
   this.init();
+
+  // -----
+  // TESTS
+  // -----
+
+  /**
+   * execute tests
+   */
+  this['tests'] = function() {
+    QUnit.init();
+    test( "hello test", function() {
+      ok( 1 == "1", "Passed!" );
+    });
+    QUnit.start();
+  }
 
 })(jQuery, window.sfun, undefined);

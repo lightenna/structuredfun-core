@@ -92,6 +92,8 @@ window.sfun = (function($, undefined) {
       });
       // if we're sideways scrolling, bind to scroll event
       that.setDirection(that.getDirection());
+      // execute queue of API calls
+      that.export.flush();
     });
   };
 
@@ -456,21 +458,6 @@ window.sfun = (function($, undefined) {
     }
   }
 
-  // -----------------
-  // FUNCTIONS: Header
-  // Dynamic toolbar
-  // -----------------
-  
-  this['headerAddButton'] = function(obj) {
-    var output;
-    Mustache.parse(obj.template);
-    output = Mustache.render(obj.template, obj.view);
-    // attach output to header
-    $('.header').append(output);
-    // allow element to bind its handlers
-    obj.callbackBind.call(this, obj);
-  }
-
   // ------------------
   // FUNCTIONS: Binding
   // ------------------
@@ -539,6 +526,7 @@ window.sfun = (function($, undefined) {
   this['bindToHotKeys'] = function() {
     var that = this;
     $(document).keydown(function(event){
+      console.log(event.keyCode);
       switch (event.keyCode) {
         case KEY_ARROW_LEFT:
         case KEY_ARROW_UP:
@@ -755,8 +743,13 @@ window.sfun = (function($, undefined) {
       // iterate to find next image
       do {
         seq = (seq+increment) % this.totalEntries;
+    console.log('seq'+seq);
         if ($('#imgseq-'+seq).length) {
+    console.log('found');
           break;
+        }
+        if (seq == 0 && increment < 0) {
+          seq = this.totalEntries;
         }
       } while (seq != this.startingPointSeq);
       // update using hash change
@@ -793,6 +786,7 @@ window.sfun = (function($, undefined) {
     this.merge(obj, options);
     // convert to hash string
     hash = this.hashGenerate(obj);
+console.log(hash);
     if (push) {
       History.pushState({}, null, hash);
     } else {
@@ -801,7 +795,7 @@ window.sfun = (function($, undefined) {
   }
 
   /**
-   * look for state in the URL hash
+   * apply hash state (+current values for those unset) to page
    */
   this['hashAction'] = function(hash) {
     // start with defaults
@@ -898,5 +892,55 @@ window.sfun = (function($, undefined) {
 
   // call init function
   this.init();
+
+  // -----------------
+  // FUNCTIONS: External API
+  // -----------------
+
+  this['export'] = {
+    // queue function calls until document ready
+    q: [],
+
+    /**
+     * execute a function
+     * @param  {string} name function name
+     * @param  {[type]} obj  function arguments
+     */
+    'push': function(name, obj) {
+      if (this.q == null) {
+        // execute function immediately
+      } else {
+        // push function and call later
+        this.q.push({ 'name': name, 'obj': obj });
+      }
+    },
+
+    /**
+     * execute contents of queue
+     */
+    'flush': function() {
+      for (var i=0 ; i<this.q.length ; ++i) {
+        // call queued function
+        this[this.q[i].name](this.q[i].obj);
+      }
+      // disable queue
+      this.q = null;
+    },
+
+    /**
+     * add a button to the header
+     * @param  {object} obj arguments
+     */
+    'headerAddButton': function(obj) {
+      var output;
+      Mustache.parse(obj.template);
+      output = Mustache.render(obj.template, obj.view);
+      // attach output to header
+      $('.header').append(output);
+      // allow element to bind its handlers
+      obj.callbackBind.call(this, obj);
+    }
+  };
+  return this['export'];
 
 })(jQuery, undefined);

@@ -394,3 +394,11 @@ html.theme-dark .page .content .flow > .cell {
 html.theme-dark .page .content .flow > .cell .folder {
   background-image: url("/chrome/images/fullres/folder_back_dark.png");
 }
+
+/* -------------------------------------------------------------------------*/
+/* Test suite */
+/* line 388, ../sass/screen.scss */
+#qunit {
+  position: absolute;
+  z-index: 999;
+}

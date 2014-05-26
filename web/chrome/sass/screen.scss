@@ -382,5 +382,12 @@ html.theme-dark {
   }
 }
 
+/* -------------------------------------------------------------------------*/
+/* Test suite */
 
+#qunit {
+  position: absolute;
+  // really not part of the typical page stack, well above
+  z-index: 999;
+}
 
