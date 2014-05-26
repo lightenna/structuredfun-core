@@ -1,13 +1,10 @@
 
-* time for a front-end test suite
-  + introduce a basic QUnit
-  + introduce a #test
-    + as a new button for the header in its own file
-  = half way through this
-    + press on with mustache template
+* after a click, need to focus on an element so we get keypresses
+  + try jquery focus
+  + seems like history.js is playing up
+    + get strange behaviour with advance (+/-) where it won't go one direction
 
-* return jumps back to previous image
-  + but doesn't always go back to 
+* ctrl+f5 refresh jumps to the hash, but then jumps back to top
 
 * only swap out visible images
   + swapping them all is too intensive
@@ -428,4 +425,16 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
       - otherwise may need to use blank images
   + working for windows
     + not going to apply to linux config because we don't have the same whole-app
+
+* time for a front-end test suite
+  + introduce a basic QUnit
+  + introduce a #test
+    + as a new button for the header in its own file
+  = half way through this
+    + press on with mustache template
+
+* return jumps back to previous image
+  + but doesn't always go back to
+  + seems to work ok
+    + will revive if I can replicate again
 
