@@ -1,9 +1,4 @@
 
-* after a click, need to focus on an element so we get keypresses
-  + try jquery focus
-  + seems like history.js is playing up
-    + get strange behaviour with advance (+/-) where it won't go one direction
-
 * ctrl+f5 refresh jumps to the hash, but then jumps back to top
 
 * only swap out visible images
@@ -74,6 +69,9 @@ http://10.12.1.160:8097/file/structured/tests/data/30-zip_folder.zip/
 * snameed jQueryUI scroller for number of images wide/high
 
 * Fail nicely when a file/directory/path element doesn't exist
+
+* scrolling needs to advance seq selection to the right image
+  + can leave until a bit later
 
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
@@ -437,4 +435,16 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + but doesn't always go back to
   + seems to work ok
     + will revive if I can replicate again
+
+* arrows get stuck sometimes
+  + seems like history.js is playing up
+    + get strange behaviour with advance (+/-) where it won't go one direction
+
+* advance should wrap around
+
+* after a click, need to focus on an element so we get keypresses
+  + try jquery focus
+    - it's not a focus
+    + left and right arrows work, but return does not
+    = just needed a preventDefault to stop the return triggering a URL refresh
 

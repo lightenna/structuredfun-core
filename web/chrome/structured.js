@@ -94,6 +94,7 @@ window.sfun = (function($, undefined) {
       that.setDirection(that.getDirection());
       // execute queue of API calls
       that.export.flush();
+      alert('fish');
     });
   };
 
@@ -559,6 +560,7 @@ window.sfun = (function($, undefined) {
           break;
         case KEY_RETURN:
           that.imageToggleFullscreen();
+          event.preventDefault();
           break;
         case KEY_NUMBER_1:
           that.imageBreadth(1);
@@ -598,6 +600,7 @@ window.sfun = (function($, undefined) {
       var seq = $(this).find('img').data('seq');
       // seq changes don't go into history
       that.hashUpdate( { 'seq': seq }, false );
+      // this is a bit nasty, because it's doing 2 hash updates in quick succession
       that.imageToggleFullscreen();
       event.preventDefault();
     });
@@ -739,17 +742,16 @@ window.sfun = (function($, undefined) {
     // start with the current image
     var seq = this.getSeq();
     var startingPointSeq = seq;
-    if (seq >= 0 && (seq < this.totalEntries+1)) {
+    if (seq >= 0 && seq <= this.totalEntries) {
       // iterate to find next image
       do {
         seq = (seq+increment) % this.totalEntries;
-    console.log('seq'+seq);
-        if ($('#imgseq-'+seq).length) {
-    console.log('found');
-          break;
+        // wrap around
+        if (seq < 0 && increment < 0) {
+          seq = this.totalEntries-1;
         }
-        if (seq == 0 && increment < 0) {
-          seq = this.totalEntries;
+        if ($('#imgseq-'+seq).length) {
+          break;
         }
       } while (seq != this.startingPointSeq);
       // update using hash change
@@ -786,11 +788,19 @@ window.sfun = (function($, undefined) {
     this.merge(obj, options);
     // convert to hash string
     hash = this.hashGenerate(obj);
-console.log(hash);
+    if (false) {
+      console.log(hash);
+    }
     if (push) {
       History.pushState({}, null, hash);
     } else {
-      History.replaceState({}, null, hash);
+      // -- doesn't always work!
+      History.replaceState({}, 'Image', hash);
+      // have to read it back and check
+      if (History.getHash() != hash) {
+        // -- leaves a messy history trail
+        window.location.hash = hash;
+      }
     }
   }
 
