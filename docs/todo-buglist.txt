@@ -1,9 +1,14 @@
 
-* blocker
-  + somehow linux version has got corrupted
-    + nothing's working
+* accelerate scroll catch-up
+    + working but needs to be quicker
 
-* see if we can catch page up/down and ctrl+home/ctrl+end
+* page up/down should advance to next image that partially off screen
+
+* vertical mode needs work
+  + catch up js with horizontal
+
+* change image seq to entity seq
+  + we want to be able to select folders
 
 * work on page load speed
 --o--
@@ -16,8 +21,6 @@
 http://10.12.1.120:8097/file/structured/tests/data/30-zip_folder.zip/
   + fine on linux
 http://10.12.1.160:8097/file/structured/tests/data/30-zip_folder.zip/
-
-* see if we can catch page up/down and ctrl+home/ctrl+end
 
 * show video entries in directory thumbnails
 
@@ -75,9 +78,6 @@ http://10.12.1.160:8097/file/structured/tests/data/30-zip_folder.zip/
 * snameed jQueryUI scroller for number of images wide/high
 
 * Fail nicely when a file/directory/path element doesn't exist
-
-* scrolling needs to advance seq selection to the right image
-  + can leave until a bit later
 
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
@@ -453,4 +453,9 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     - it's not a focus
     + left and right arrows work, but return does not
     = just needed a preventDefault to stop the return triggering a URL refresh
+
+* ctrl+home/ctrl+end
+
+* scrolling needs to advance seq selection to the right image
+  + important because we can't use page up/down or arrow keys after scrolling
 
