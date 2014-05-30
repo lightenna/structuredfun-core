@@ -217,6 +217,8 @@ html.no-js {
       margin-left: -1px;
       // centre
       text-align: center;
+      // don't allow anything to bleed over the edge (to avoid superfluous scrollbars)
+      overflow: hidden;
 
       p.imgmetric {
         line-height: 1.0em;
