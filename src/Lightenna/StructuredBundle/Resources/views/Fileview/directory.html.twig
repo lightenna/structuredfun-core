@@ -12,7 +12,7 @@
     <div class="dummy2"></div>
     <div class="folder bounded x-bound">
       {# <img class="overlay" src="/chrome/images/fullres/folder_front_dark.png" alt="directory semi-opaque front" /> #}
-      {% for img_prev_n in 1..4 %}<img id="imgseq-{{ file.seq }}-{{ img_prev_n }}"class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" />{% endfor %}
+      {% for img_prev_n in 1..4 %}<img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" />{% endfor %}
     </div>
     <span class="title">{{ file.alias|e }}</span>
   </a></li>
