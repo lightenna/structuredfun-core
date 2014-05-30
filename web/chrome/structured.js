@@ -94,7 +94,6 @@ window.sfun = (function($, undefined) {
       that.setDirection(that.getDirection());
       // execute queue of API calls
       that.export.flush();
-      alert('fish');
     });
   };
 
