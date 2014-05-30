@@ -1,6 +1,12 @@
 
-* ctrl+f5 refresh jumps to the hash, but then jumps back to top
+* blocker
+  + somehow linux version has got corrupted
+    + nothing's working
 
+* see if we can catch page up/down and ctrl+home/ctrl+end
+
+* work on page load speed
+--o--
 * only swap out visible images
   + swapping them all is too intensive
     + probably should try to avoid going over about 50 x 1000
