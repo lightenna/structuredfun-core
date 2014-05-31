@@ -1,4 +1,15 @@
 
+* probably need to invest time in the javascript test suite
+  + I keep exposing stuff that doesn't work on my non-test browser
+    + once I've started it will flow
+
+* checkBound is now async
+  + we need to do all the async stuff before trying to do the sync stuff
+    + build a loaded image size map on image reload
+    + build a cell size map on window resize
+  + it's another level of complexity
+    + it means we're partly reliant on the DOM, partly on js proxy objects
+--o--
 * accelerate scroll catch-up
     + working but needs to be quicker
 
@@ -458,4 +469,9 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * scrolling needs to advance seq selection to the right image
   + important because we can't use page up/down or arrow keys after scrolling
+
+* resize (refreshCells) event in Chrome
+  + creating a new image and then measuring its width and height doesn't work
+    + ix = iy = 0
+  + solved by using an onload
 
