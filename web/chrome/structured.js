@@ -5,28 +5,6 @@ window.sfun = (function($, undefined) {
 
   var debug = true;
 
-  // ---------
-  // CONSTANTS
-  // ---------
-
-  var KEY_ARROW_LEFT = 37;
-  var KEY_ARROW_RIGHT = 39;
-  var KEY_ARROW_UP = 38;
-  var KEY_ARROW_DOWN = 40;
-  var KEY_TAB = 9;
-  var KEY_HOME = 36;
-  var KEY_END = 35;
-  var KEY_PAGE_UP = 33;
-  var KEY_PAGE_DOWN = 34;
-  var KEY_SHIFT = 16;
-  var KEY_CTRL = 17;
-  var KEY_ALT = 18;
-  var KEY_RETURN = 13;
-  var KEY_NUMBER_1 = 49;
-  var KEY_NUMBER_2 = 50;
-  var KEY_NUMBER_4 = 52;
-  var KEY_NUMBER_8 = 56;
-
   // defaults
   this.defaultSeq = 0;
   this.defaultBreadth = null;
@@ -36,14 +14,6 @@ window.sfun = (function($, undefined) {
   this.resizeTimeout = null;
   // for screenpc width/height, set using px/pc
   this.setScreenPcUsing = null;
-
-  // -----
-  // STATE
-  // - duplicated/cached from HTML
-  // + keep to a minimum
-  // -----
-
-  this.totalEntries = null;
 
   // ---------
   // FUNCTIONS
@@ -270,8 +240,6 @@ window.sfun = (function($, undefined) {
         that.checkImageBound(jqCell, $(this));
         // 2. change out the image for a better resolution
         that.checkImageRes($(this));
-        // 3. use this to count the number of images (remember zero-based)
-        that.totalEntries = Math.max(that.totalEntries,  $(this).data('seq')+1);
         // 4. change out folder thumbnails as images
       };
       // either we can check now, or check when the image loads
@@ -300,21 +268,23 @@ window.sfun = (function($, undefined) {
     var cratio = cx / cy;
     // update loaded resolution
     var im = new Image();
-    im.src = jqImg.attr('src');
-    jqImg.data('loaded-width', im.width);
-    jqImg.data('loaded-height', im.height);
-    im = null;
-    // detect if the image is bound by width/height in this container
-    var ix = jqImg.data('loaded-width'), iy = jqImg.data('loaded-height');
-    var iratio = ix / iy;
-    var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
-    var invdir = (direction == 'x' ? 'y' : 'x');
-    if (debug && false) {
-      console.log('cx[' + cx + '] cy[' + cy + '] cratio[' + cratio + '], ix[' + ix + '] iy[' + iy + '] iratio['
-          + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
+    im.onload = function() {
+      jqImg.data('loaded-width', im.width);
+      jqImg.data('loaded-height', im.height);
+      im = null;
+      // detect if the image is bound by width/height in this container
+      var ix = jqImg.data('loaded-width'), iy = jqImg.data('loaded-height');
+      var iratio = ix / iy;
+      var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
+      var invdir = (direction == 'x' ? 'y' : 'x');
+      if (debug && false) {
+        console.log('cx[' + cx + '] cy[' + cy + '] cratio[' + cratio + '], ix[' + ix + '] iy[' + iy + '] iratio['
+            + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
+      }
+      // apply class to image
+      jqImg.addClass(direction + '-bound').removeClass(invdir + '-bound');
     }
-    // apply class to image
-    jqImg.addClass(direction + '-bound').removeClass(invdir + '-bound');
+    im.src = jqImg.attr('src');
   };
 
   /**
@@ -534,49 +504,51 @@ window.sfun = (function($, undefined) {
   this['bindToHotKeys'] = function() {
     var that = this;
     $(document).keydown(function(event){
-      // console.log(event.keyCode);
+      if (debug) {
+        console.log('keydown event code['+event.keyCode+']');
+      }
       switch (event.keyCode) {
-        case KEY_ARROW_LEFT:
-        case KEY_ARROW_UP:
+        case that.export.KEY_ARROW_LEFT:
+        case that.export.KEY_ARROW_UP:
           if (!event.altKey) {
             // advance to previous image
             that.imageAdvanceBy(-1);
             event.preventDefault();
           }
           break;
-        case KEY_ARROW_RIGHT:
-        case KEY_TAB:
-        case KEY_ARROW_DOWN:
+        case that.export.KEY_ARROW_RIGHT:
+        case that.export.KEY_TAB:
+        case that.export.KEY_ARROW_DOWN:
           // advance to next image
           that.imageAdvanceBy(1);
           event.preventDefault();
           break;
-        case KEY_PAGE_UP:
+        case that.export.KEY_PAGE_UP:
           break;
-        case KEY_PAGE_DOWN:
+        case that.export.KEY_PAGE_DOWN:
           break;
-        case KEY_HOME:
+        case that.export.KEY_HOME:
           that.imageAdvanceTo(0);
           event.preventDefault();
           break;
-        case KEY_END:
-          that.imageAdvanceTo(that.totalEntries-1);
+        case that.export.KEY_END:
+          that.imageAdvanceTo(that.getTotalEntries()-1);
           event.preventDefault();
           break;
-        case KEY_RETURN:
+        case that.export.KEY_RETURN:
           that.imageToggleFullscreen();
           event.preventDefault();
           break;
-        case KEY_NUMBER_1:
+        case that.export.KEY_NUMBER_1:
           that.imageBreadth(1);
           break;
-        case KEY_NUMBER_2:
+        case that.export.KEY_NUMBER_2:
           that.imageBreadth(2);
           break;
-        case KEY_NUMBER_4:
+        case that.export.KEY_NUMBER_4:
           that.imageBreadth(4);
           break;
-        case KEY_NUMBER_8:
+        case that.export.KEY_NUMBER_8:
           that.imageBreadth(8);
           break;
       }
@@ -663,6 +635,14 @@ window.sfun = (function($, undefined) {
   }
 
   /**
+   * @return {int} total number of entities (max entry seq+1)
+   */
+  this['getTotalEntries'] = function() {
+    var jq = $('ul.flow li.cell img:last')
+    return jq.data('seq')+1;
+  }
+
+  /**
    * set all 'flow' elements to flow in the direction
    */
   this['setDirection'] = function(direction) {
@@ -730,7 +710,7 @@ window.sfun = (function($, undefined) {
   this['imageAdvanceBy'] = function(increment) {
     // start with the current image
     var seq = this.getSeq();
-    if (seq >= 0 && seq <= this.totalEntries) {
+    if (seq >= 0 && seq <= this.getTotalEntries()) {
       // iterate to find next image
       if ((seq = this.getNextSeq(seq, increment)) !== false) {
         this.imageAdvanceTo(seq);
@@ -939,10 +919,10 @@ window.sfun = (function($, undefined) {
   this['getNextSeq'] = function(seq, increment) {
     var startingPointSeq = seq;
     do {
-      seq = (seq+increment) % this.totalEntries;
+      seq = (seq+increment) % this.getTotalEntries();
       // wrap around
       if (seq < 0 && increment < 0) {
-        seq = this.totalEntries-1;
+        seq = this.getTotalEntries()-1;
       }
       if ($('#imgseq-'+seq).length) {
         return seq;
@@ -955,6 +935,7 @@ window.sfun = (function($, undefined) {
   // FUNCTIONS: External API
   // -----------------
 
+  that = this;
   this['export'] = {
     // queue function calls until document ready
     q: [],
@@ -979,17 +960,39 @@ window.sfun = (function($, undefined) {
     'flush': function() {
       for (var i=0 ; i<this.q.length ; ++i) {
         // call queued function
-        this[this.q[i].name](this.q[i].obj);
+        this['api_'+this.q[i].name](this.q[i].obj);
       }
       // disable queue
       this.q = null;
     },
 
+    // ---------
+    // CONSTANTS
+    // ---------
+
+    KEY_ARROW_LEFT: 37,
+    KEY_ARROW_RIGHT: 39,
+    KEY_ARROW_UP: 38,
+    KEY_ARROW_DOWN: 40,
+    KEY_TAB: 9,
+    KEY_HOME: 36,
+    KEY_END: 35,
+    KEY_PAGE_UP: 33,
+    KEY_PAGE_DOWN: 34,
+    KEY_SHIFT: 16,
+    KEY_CTRL: 17,
+    KEY_ALT: 18,
+    KEY_RETURN: 13,
+    KEY_NUMBER_1: 49,
+    KEY_NUMBER_2: 50,
+    KEY_NUMBER_4: 52,
+    KEY_NUMBER_8: 56,
+
     /**
      * add a button to the header
      * @param  {object} obj arguments
      */
-    'headerAddButton': function(obj) {
+    'api_headerAddButton': function(obj) {
       var output;
       Mustache.parse(obj.template);
       output = Mustache.render(obj.template, obj.view);
@@ -997,7 +1000,32 @@ window.sfun = (function($, undefined) {
       $('.header').append(output);
       // allow element to bind its handlers
       obj.callbackBind.call(this, obj);
-    }
+    },
+
+    /**
+     * @return {int} breadth of current view
+     */
+    'api_getBreadth': function() {
+      return that.getBreadth();
+    },
+
+    /**
+     * @return {int} total number of entries
+     */
+    'api_getTotalEntries': function() {
+      return that.getTotalEntries();
+    },
+
+    /**
+     * helper function to make testing key presses easier
+     */
+    'api_triggerKeypress': function(key) {
+      var e = jQuery.Event( 'keydown', { which: key } );
+      $(document).trigger(e);
+    },
+
+    // no comma on last entry
+    lastEntry: true
   };
 
   // call init function then return API object
