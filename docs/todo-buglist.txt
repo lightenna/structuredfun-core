@@ -1,8 +1,4 @@
 
-* probably need to invest time in the javascript test suite
-  + I keep exposing stuff that doesn't work on my non-test browser
-    + once I've started it will flow
-
 * checkBound is now async
   + we need to do all the async stuff before trying to do the sync stuff
     + build a loaded image size map on image reload
@@ -474,4 +470,9 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + creating a new image and then measuring its width and height doesn't work
     + ix = iy = 0
   + solved by using an onload
+
+* probably need to invest time in the javascript test suite
+  + I keep exposing stuff that doesn't work on my non-test browser
+    + once I've started it will flow
+    = got something started
 

@@ -504,10 +504,10 @@ window.sfun = (function($, undefined) {
   this['bindToHotKeys'] = function() {
     var that = this;
     $(document).keydown(function(event){
-      if (debug) {
-        console.log('keydown event code['+event.keyCode+']');
+      if (debug && false) {
+        console.log('keydown event code['+event.which+']');
       }
-      switch (event.keyCode) {
+      switch (event.which) {
         case that.export.KEY_ARROW_LEFT:
         case that.export.KEY_ARROW_UP:
           if (!event.altKey) {
@@ -638,8 +638,8 @@ window.sfun = (function($, undefined) {
    * @return {int} total number of entities (max entry seq+1)
    */
   this['getTotalEntries'] = function() {
-    var jq = $('ul.flow li.cell img:last')
-    return jq.data('seq')+1;
+    var jq = $('ul.flow li.cell img.bounded:last')
+    return (parseInt(jq.data('seq'))+1);
   }
 
   /**
