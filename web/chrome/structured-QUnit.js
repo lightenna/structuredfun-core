@@ -58,12 +58,21 @@
   this['tests'] = function() {
     QUnit.init();
     /*
-     * top and tail each test with a hash clear
+     * top and tail each test with a hash clear (needs to be different to clear it)
      * 1. to reset the environment because tests can run in any order
      * 2. to drop us back at the top/left of the page after all tests finish
      */
     test( 'check image bounds', function() {
-      ok( 1 == "1", 'Pass' );
+      QUnit.stop();
+      $('ul.flow li.cell img.bounded').each(function() {
+        var imw = $(this).width(), imh = $(this).height();
+        var cellw = $(this).parents('li').width(), cellh = $(this).parents('li').height();
+        var withinWidth = (imw <= cellw);
+        var withinHeight = (imh <= cellh);
+        ok( withinWidth && withinHeight, 'image #'+$(this).data('seq')+' ('+imw+'x'+imh+') bounded within it\'s cell ('+cellw+'x'+cellh+')' );
+      }).promise().done(function() {
+        QUnit.start();
+      });
     });
 
     test( 'check enough images for test suite', function() {
@@ -71,7 +80,7 @@
     });
 
     test( 'image click #0', function() {
-      window.location.hash = '';
+      window.location.hash = 'image_click_0';
       $('#imgseq-0').parents('a').trigger('click');
       ok( sfun.api_getBreadth() == 1, 'Went to fullscreen mode' );
       ok( $('ul.flow li.cell img.selected').data('seq') == 0, 'Selected image zero');
@@ -79,12 +88,12 @@
     });
 
     test( 'image click #1, return, arrow next', function() {
-      window.location.hash = '';
+      window.location.hash = 'image_click_1';
       var initialBreadth = sfun.api_getBreadth();
       $('#imgseq-1').parents('a').trigger('click');
       sfun.api_triggerKeypress(sfun.KEY_RETURN);
-      ok( sfun.api_getBreadth() == initialBreadth, 'Returned to initial breadth value' );
-      sfun.api_triggerKeypress(sfun.KEY_RIGHT_ARROW);
+      ok( sfun.api_getBreadth() == initialBreadth, 'Returned to initial breadth value ('+initialBreadth+')' );
+      sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
       ok( $('ul.flow li.cell img.selected').data('seq') == 2, 'Right arrow selected #2 image (#1+1)' );
       window.location.hash = '';
     });
@@ -93,12 +102,10 @@
       window.location.hash = '';
       $('#imgseq-0').parents('a').trigger('click');
       sfun.api_triggerKeypress(sfun.KEY_END);
-console.log($('ul.flow li.cell img.selected').data('seq'));
-console.log(sfun.api_getTotalEntries()-1);
-      ok( $('ul.flow li.cell img.selected').data('seq') == sfun.api_getTotalEntries()-1, 'End selected last image' );
+      ok( $('ul.flow li.cell img.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
       sfun.api_triggerKeypress(sfun.KEY_HOME);
       ok( $('ul.flow li.cell img.selected').data('seq') == 0, 'Home selected #0 image' );
-      sfun.api_triggerKeypress(sfun.KEY_RIGHT_ARROW);
+      sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
       ok( $('ul.flow li.cell img.selected').data('seq') == 1, 'Right arrow selected #1 image' );
       window.location.hash = '';
     });
