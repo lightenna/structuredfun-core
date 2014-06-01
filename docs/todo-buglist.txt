@@ -1,33 +1,26 @@
 
-* checkBound is now async
-  + we need to do all the async stuff before trying to do the sync stuff
-    + build a loaded image size map on image reload
-    + build a cell size map on window resize
-  + it's another level of complexity
-    + it means we're partly reliant on the DOM, partly on js proxy objects
---o--
+* imgmetric scattered all over the page after switching from b=2 to b=1
+
+* current loading 250s en route to loading 500s
+  + suspect it's to do with image bounds
+  = debug on mm
+
+* not loading right image just in time
+  + in fullscreen mode
+    + loading one image behind
+
 * accelerate scroll catch-up
-    + working but needs to be quicker
+  + working but needs to be quicker
+  + may need new async/promise trick
 
 * page up/down should advance to next image that partially off screen
 
 * vertical mode needs work
   + catch up js with horizontal
+    + should work properly in test suite too
 
 * change image seq to entity seq
   + we want to be able to select folders
-
-* work on page load speed
---o--
-* only swap out visible images
-  + swapping them all is too intensive
-    + probably should try to avoid going over about 50 x 1000
-      + add as line in config file
-
-* win-only error
-http://10.12.1.120:8097/file/structured/tests/data/30-zip_folder.zip/
-  + fine on linux
-http://10.12.1.160:8097/file/structured/tests/data/30-zip_folder.zip/
 
 * show video entries in directory thumbnails
 
@@ -475,4 +468,27 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + I keep exposing stuff that doesn't work on my non-test browser
     + once I've started it will flow
     = got something started
+
+* only swap out visible images
+  + swapping them all is too intensive
+    + probably should try to avoid going over about 50 x 1000
+      + add as line in config file
+  + made progress on this
+    + may return to it
+
+* checkBound is now async
+  + we need to do all the async stuff before trying to do the sync stuff
+    + build a loaded image size map on image reload
+    + build a cell size map on window resize
+  + it's another level of complexity
+    + it means we're partly reliant on the DOM, partly on js proxy objects
+  + this is important
+    + we need to get some kind of promise setup
+
+* work on page load speed
+  + currently reloading all images (from cache) on every checkImageBounds
+    + solved using test
+
+* first load (uncached) makes a mess of image bounds
+  + it's because we've not got a loaded-width/height
 

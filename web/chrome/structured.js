@@ -47,7 +47,7 @@ window.sfun = (function($, undefined) {
       }).promise().done(function() {
         // call refresh function to apply cell widths/heights
         refreshCells();
-        // find all images and attach load listener
+        // find all images and attach load listener to check them (async)
         that.checkImages(true);
       })
       // attach listener to window for resize (rare, but should update)
@@ -234,13 +234,18 @@ window.sfun = (function($, undefined) {
     var that = this;
     // re-check images
     $('.cell').each(function() {
-      var jqCell = $(this);
       var callback = function(){
-        // 1. look to see if the x-bound/y-bound has changed
-        that.checkImageBound(jqCell, $(this));
-        // 2. change out the image for a better resolution
-        that.checkImageRes($(this));
-        // 4. change out folder thumbnails as images
+        // 1. look to see if the x-bound/y-bound has changed (note: async)
+        that.checkImageBound($(this))
+        .then(function(jqImg) {
+          // 2. change out the image for a better resolution if it's onscreen
+          if (that.isVisible(jqImg)) {
+            that.checkImageRes(jqImg);
+          }
+          // 3. check and update imgmetric
+          that.checkMetricPosition(jqImg);
+          // @todo change out folder thumbnails too
+        });
       };
       // either we can check now, or check when the image loads
       if (waitForLoad) {
@@ -262,18 +267,20 @@ window.sfun = (function($, undefined) {
    * @param jQuery
    *          object bounded image within
    */
-  this['checkImageBound'] = function(jqCell, jqImg) {
-    // read container width/height
-    var cx = jqCell.width(), cy = jqCell.height();
-    var cratio = cx / cy;
-    // update loaded resolution
-    var im = new Image();
-    im.onload = function() {
-      jqImg.data('loaded-width', im.width);
-      jqImg.data('loaded-height', im.height);
-      im = null;
+  this['checkImageBound'] = function(jqImg) {
+    // use jQuery deferred promises
+    var deferred = new $.Deferred();
+    // queue up the bound checking
+    deferred.then(function(jqImg) {
+      var jqCell = jqImg.parents('li');
+      // read container width/height
+      var cx = jqCell.width(), cy = jqCell.height();
+      var cratio = cx / cy;
       // detect if the image is bound by width/height in this container
       var ix = jqImg.data('loaded-width'), iy = jqImg.data('loaded-height');
+      if (debug) {
+        console.log('image '+jqImg.attr('id')+' ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
+      }
       var iratio = ix / iy;
       var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
       var invdir = (direction == 'x' ? 'y' : 'x');
@@ -283,8 +290,20 @@ window.sfun = (function($, undefined) {
       }
       // apply class to image
       jqImg.addClass(direction + '-bound').removeClass(invdir + '-bound');
+    });
+    // but update loaded resolution if necessary first
+    if (jqImg.data('loaded-width') == undefined || jqImg.data('loaded-height') == undefined) {
+      if (debug) {
+        console.log('image '+jqImg.attr('id')+' update loaded resolution');
+      }
+      this.getLoadedResolution(jqImg, deferred);
+    } else {
+      // either way flag that this image has loaded-width/height updated
+      deferred.resolve(jqImg);
     }
-    im.src = jqImg.attr('src');
+    // return object so that outside code can queue functions to get notified on resolve
+    // but restrict using promise() so we cannot interfere with it
+    return deferred.promise();
   };
 
   /**
@@ -301,6 +320,9 @@ window.sfun = (function($, undefined) {
     var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
     var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
     var swappedOut = false, metaedOut = false;
+    if (debug) {
+      console.log('image '+jqImg.attr('id')+': checking resolution');
+    }
     // test to see if we're displaying an image at more than 100%
     if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
       // fire request for metadata, then callback this (checkImageRes) function later
@@ -334,8 +356,9 @@ window.sfun = (function($, undefined) {
       }
     }
     // if we didn't swap out this image or go off to check its metadata, update imgmetric
+    // @todo maybe can comment this
     if (!swappedOut && !metaedOut) {
-      this.imgmetricUpdate(jqImg);
+      this.checkMetric(jqImg);
     }
     // console.log('checking '+jqImg.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
   };
@@ -383,7 +406,10 @@ window.sfun = (function($, undefined) {
       // store loaded width and height
       jqImg.data('loaded-width', this.width);
       jqImg.data('loaded-height', this.height);
-      that.imgmetricUpdate(jqImg);
+      if (debug) {
+        console.log('image '+jqImg.attr('id')+': swapped out for ('+jqImg.data('loaded-width')+','+jqImg.data('loaded-height')+')');
+      }
+      that.checkMetric(jqImg);
       // console.log('loaded imageWidth['+this.width+'] imageHeight['+this.height+'] src['+$(this).attr('src')+']');        
     }).each(function() {
       if(this.complete) $(this).load();
@@ -395,10 +421,9 @@ window.sfun = (function($, undefined) {
    * Read data about the image and update metric display
    * @param  {object} jqImg jQuery object for image
    */
-  this['imgmetricUpdate'] = function(jqImg) {
+  this['checkMetric'] = function(jqImg) {
     // find the imgmetric if it's set
     var common_parent = jqImg.parents('li');
-    var imgpos = jqImg.offset();
     var met = common_parent.find('.imgmetric');
     var perc;
     if (met.length) {
@@ -424,9 +449,17 @@ window.sfun = (function($, undefined) {
       } else {
         met.removeClass('sub').addClass('super');          
       }
-      // move the metric to the corner of the image using absolute coords
-      met.css( { 'top': imgpos.top, 'left': imgpos.left });
     }
+    this.checkMetricPosition(jqImg);
+  }
+
+  /**
+   * check that the image metric is in the right place
+   */
+  this['checkMetricPosition'] = function(jqImg) {
+    var met = jqImg.parents('li').find('.imgmetric');
+    // move the metric to the corner of the image using absolute coords
+    met.css( { 'top': jqImg.offset().top, 'left': jqImg.offset().left });
   }
 
   // ------------------
@@ -588,6 +621,24 @@ window.sfun = (function($, undefined) {
   // ------------------------------
 
   /**
+   * updated loaded-width and loaded-height data attributes
+   * @param  {jQuery object} jqImg image to check
+   * @param  {jQuery.deferred} deferred async queue
+   */
+  this['getLoadedResolution'] = function(jqImg, deferred) {
+    // update loaded resolution
+    var im = new Image();
+    im.onload = function() {
+      jqImg.data('loaded-width', im.width);
+      jqImg.data('loaded-height', im.height);
+      im = null;
+      // notify promise of resolution
+      deferred.resolve(jqImg);
+    }
+    im.src = jqImg.attr('src');
+  }
+
+  /**
    * Get the real flow direction, not just what the class says because the browser might not support all directions
    * (needs flexbox)
    * @return current flow direction
@@ -631,6 +682,7 @@ window.sfun = (function($, undefined) {
    */
   this['getSeq'] = function() {
     var jq = $('ul.flow li.cell img.selected')
+    // jq.data returns undefined (not 0) if not set, so first-run safe
     return jq.data('seq');
   }
 
@@ -655,6 +707,8 @@ window.sfun = (function($, undefined) {
    * e.g. number of cells vertically if in vertical mode
    */
   this['setBreadth'] = function(breadth) {
+    var changed = (this.getBreadth() !== breadth);
+    if (!changed) return false;
     // remove all the other breadths
     for (var i=1 ; i <= 8 ; i=i*2) {
       // don't remove the breadth we're setting
@@ -664,18 +718,22 @@ window.sfun = (function($, undefined) {
       $('.flow').removeClass('flow-'+i);
     }
     $('.flow').addClass('flow-' + breadth);
+    return changed;
   };
 
   /**
    * @param int sequence number of image to make current
    */
   this['setSeq'] = function(seq) {
+    var changed = (this.getSeq() !== seq);
+    if (!changed) return false;
     var jqCurrent, position;
     // deselect old image
     $('ul.flow li.cell img.selected').removeClass('selected');
     // select new image
     jqCurrent = $('#imgseq-'+seq);
     jqCurrent.addClass('selected');
+    return changed;
   };
 
   /** 
@@ -776,17 +834,28 @@ window.sfun = (function($, undefined) {
    * apply hash state (+current values for those unset) to page
    */
   this['hashAction'] = function(hash) {
+    var allImagesChanged = false;
+    var selectedImageChanged = false;
     // start with defaults
     var obj = { 'breadth': this.defaultBreadth, 'seq': this.defaultSeq};
     // overwrite with current hash values
     fromHash = this.hashParse(History.getHash());
     this.merge(obj, fromHash);
-    // apply all in one go
-    this.setBreadth(obj.breadth);
-    this.setSeq(obj.seq);
-    this.checkImages(false);
+    // stage 1: apply [hash] state to DOM
+    // breadth changes potentially affect all images
+    allImagesChanged |= this.setBreadth(obj.breadth);
+    // seq changes at most only affect the image being selected
+    selectedImageChanged |= this.setSeq(obj.seq);
+    // stage 2: DOM updates trigger async events (e.g. image loads)
+    if (allImagesChanged) {
+      // check all images are bounded properly, max res etc
+      this.checkImages(false);
+    }
+    if (selectedImageChanged) {
+      var jqImg = $('#imgseq-'+obj.seq);
+      this.checkMetric(jqImg);
+    }
     this.setVisible(obj.seq);
-
   }
 
   /**
