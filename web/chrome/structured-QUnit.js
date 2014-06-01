@@ -99,7 +99,7 @@
     });
 
     test( 'end select last, home select first, arrow next', function() {
-      window.location.hash = '';
+      window.location.hash = 'end_select_last';
       $('#imgseq-0').parents('a').trigger('click');
       sfun.api_triggerKeypress(sfun.KEY_END);
       ok( $('ul.flow li.cell img.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
@@ -107,6 +107,20 @@
       ok( $('ul.flow li.cell img.selected').data('seq') == 0, 'Home selected #0 image' );
       sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
       ok( $('ul.flow li.cell img.selected').data('seq') == 1, 'Right arrow selected #1 image' );
+      window.location.hash = '';
+    });
+
+    test( 'end arrow next wrap-around', function() {
+      var last = sfun.api_getTotalEntries()-1;
+      window.location.hash = 'end_arrow_next';
+      sfun.api_triggerKeypress(sfun.KEY_END);
+      ok( $('ul.flow li.cell img.selected').data('seq') == last, 'End selected last image' );
+      sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
+      ok( $('ul.flow li.cell img.selected').data('seq') == 0, 'Right arrow selected #0 image' );
+      sfun.api_triggerKeypress(sfun.KEY_END);
+      ok( $('ul.flow li.cell img.selected').data('seq') == last, 'End re-selected last image' );
+      sfun.api_triggerKeypress(sfun.KEY_HOME);
+      ok( $('ul.flow li.cell img.selected').data('seq') == 0, 'Home selected #0 image' );
       window.location.hash = '';
     });
     QUnit.start();
