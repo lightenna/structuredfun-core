@@ -1,9 +1,15 @@
 
-* imgmetric scattered all over the page after switching from b=2 to b=1
+* need to get an alpha online
+  + doesn't need to be a big release, but it does have to be a first release
 
-* current loading 250s en route to loading 500s
-  + suspect it's to do with image bounds
-  = debug on mm
+* dropping back from fullscreen, checkImageRes swaps out all the images
+  + not just the visible ones
+    + this is all to do with async stuff
+    + we need to wait for the hash updates to complete before doing a checkimg
+
+* need to add scroll handler
+  + at the moment we trap against mousewheel
+    + but it's possible to drag the scrollbar
 
 * not loading right image just in time
   + in fullscreen mode
@@ -12,6 +18,8 @@
 * accelerate scroll catch-up
   + working but needs to be quicker
   + may need new async/promise trick
+
+--- post first launch ---
 
 * page up/down should advance to next image that partially off screen
 
@@ -36,20 +44,19 @@
 * shuffle directories to top
   + like in windows
 
-* introduce HTML for labels
+* introduce HTML for markers
   + directories/images/files
-  + but don't worry too much about 
+  + but don't worry too much about what markers we insert to start with
 
 * shuffle non-image files to bottom
   + just for convenience
-
-* extra scollbar, bit too much margin somewhere
-  http://10.12.1.160:8097/file/data/alice%20eve.zip/alice%20eve/
 
 * test using app.php for everything
   + is it possible to make elan an exception (and use app_dev.php)
 
 * think about javascript changing cell percentage based on mean row height/column width
+  + alternative is dynamically reducing column cell widths, column by column
+    + alternative is better I think
 
 * cookie header options
   + to remember what we were looking at
@@ -491,4 +498,13 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * first load (uncached) makes a mess of image bounds
   + it's because we've not got a loaded-width/height
+
+* imgmetric scattered all over the page after switching from b=2 to b=1
+  = ok for now
+* current loading 250s en route to loading 500s
+  + suspect it's to do with image bounds
+  = ok for now
+
+* extra scollbar, bit too much margin somewhere
+  http://10.12.1.160:8097/file/data/alice%20eve.zip/alice%20eve/
 
