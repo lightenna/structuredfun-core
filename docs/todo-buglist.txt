@@ -1,15 +1,17 @@
 
-* need to get an alpha online
-  + doesn't need to be a big release, but it does have to be a first release
+* sort of moving everything out of init() now
+  + and triggering hash change instead
+
+* arrow-key / home after scroll
+
+* pull forward UI test suite
+
+* rewrite isVisible function to cope with partials
 
 * dropping back from fullscreen, checkImageRes swaps out all the images
   + not just the visible ones
     + this is all to do with async stuff
     + we need to wait for the hash updates to complete before doing a checkimg
-
-* need to add scroll handler
-  + at the moment we trap against mousewheel
-    + but it's possible to drag the scrollbar
 
 * not loading right image just in time
   + in fullscreen mode
@@ -18,6 +20,9 @@
 * accelerate scroll catch-up
   + working but needs to be quicker
   + may need new async/promise trick
+
+* need to get an alpha online
+  + doesn't need to be a big release, but it does have to be a first release
 
 --- post first launch ---
 
@@ -507,4 +512,18 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * extra scollbar, bit too much margin somewhere
   http://10.12.1.160:8097/file/data/alice%20eve.zip/alice%20eve/
+
+* protect handler_scroll from itself
+  - I think it's getting stuck searching for img.visible when there aren't any
+* handler_scroll shouldn't be called when the page loads
+
+* need to add scroll handler
+  + at the moment we trap against mousewheel
+    + but it's possible to drag the scrollbar
+
+* setVisibleByScroll
+  + tricky
+    + can't quite decide if it should just scroll and
+      + let the scroll handler sort out all the image
+    + I think yes
 
