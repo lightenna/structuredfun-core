@@ -1,6 +1,9 @@
 
-* sort of moving everything out of init() now
-  + and triggering hash change instead
+* something is triggering a scroll event to 0,0
+  + happens during page load
+  + e.g. http://10.12.1.120:8097/file/structured/tests/data/20-image_folder/#breadth=2&seq=9
+
+* change out all the clicks to be hash changes
 
 * arrow-key / home after scroll
 
@@ -526,4 +529,7 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + can't quite decide if it should just scroll and
       + let the scroll handler sort out all the image
     + I think yes
+
+* sort of moving everything out of init() now
+  + and triggering hash change instead
 
