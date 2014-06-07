@@ -47,10 +47,8 @@ window.sfun = (function($, undefined) {
       }).promise().done(function() {
         // call refresh function to apply cell widths/heights
         refreshCells();
-        // find all images and attach load listener to check them (async)
-        that.checkImages(true);
         // process state if set in URL (hash) first
-        that.handler_hashChanged({});
+        that.handler_hashChanged(History.getHash());
         // execute queue of API calls
         that.export.flush();
       })
@@ -62,7 +60,7 @@ window.sfun = (function($, undefined) {
         }
         that.resizeTimeout = setTimeout(function() {
           that.refreshCells();
-          that.checkImages(false);
+          that.refreshVisible(0);
         }, 50); // 50 ms
       });
     });
@@ -230,8 +228,10 @@ window.sfun = (function($, undefined) {
   /**
    * Check through all the images in this gallery for size/ratio/bounding/metadata
    */
-  this['checkImages'] = function(waitForLoad) {
+  this['checkVisibleImages'] = function(waitForLoad) {
     var that = this;
+    // try forcing all checks to waitForLoad
+    waitForLoad = true;
     // re-check images
     $('.cell').each(function() {
       var callback = function(){
@@ -239,12 +239,7 @@ window.sfun = (function($, undefined) {
         that.checkImageBound($(this))
         .then(function(jqImg) {
           // 2. change out the image for a better resolution if it's onscreen
-          if (that.isVisible(jqImg)) {
-            jqImg.addClass('visible');
-            that.checkImageRes(jqImg);
-          } else {
-            // no class put on not-visible images, tagged by omission
-          }
+          that.checkImageRes(jqImg);
           // 3. check and update imgmetric
           that.checkMetricPosition(jqImg);
           // @todo change out folder thumbnails too
@@ -253,11 +248,11 @@ window.sfun = (function($, undefined) {
       // either we can check now, or check when the image loads
       if (waitForLoad) {
         // note callback in the args to one(), each is only a pusher
-        $(this).find('img.bounded').one('load', callback).each(function() {
+        $(this).find('img.bounded.visible').one('load', callback).each(function() {
           if(this.complete) $(this).load();
         });
       } else {
-        $(this).find('img.bounded').each(callback);
+        $(this).find('img.bounded.visible').each(callback);
       }
     });
   }
@@ -474,11 +469,13 @@ window.sfun = (function($, undefined) {
    */
   this['bindToScroll'] = function() {
     var that = this;
-    $(document).scroll(function(event) {
+    $(window).scroll(function(event) {
       that.handler_scrolled(event);
+      event.preventDefault();
     });
     $(window).mousewheel(function(event) {
       that.handler_mouseWheeled(event);
+      event.preventDefault();
     });
   }
 
@@ -499,12 +496,12 @@ window.sfun = (function($, undefined) {
     // horizontal or vertical layout
     $('#flow-x').click(function(event) {
       that.setDirection('x');
-      that.checkImages(false);
+      that.checkVisibleImages(false);
       event.preventDefault();
     });
     $('#flow-y').click(function(event) {
       that.setDirection('y');
-      that.checkImages(false);
+      that.checkVisibleImages(false);
       event.preventDefault();
     });
     // light or dark theme
@@ -519,22 +516,22 @@ window.sfun = (function($, undefined) {
     // 1x, 2x, 4x, or 8x
     $('#flow-1').click(function(event) {
       that.setBreadth(1);
-      that.checkImages(false);
+      that.checkVisibleImages(false);
       event.preventDefault();
     });
     $('#flow-2').click(function(event) {
       that.setBreadth(2);
-      that.checkImages(false);
+      that.checkVisibleImages(false);
       event.preventDefault();
     });
     $('#flow-4').click(function(event) {
       that.setBreadth(4);
-      that.checkImages(false);
+      that.checkVisibleImages(false);
       event.preventDefault();
     });
     $('#flow-8').click(function(event) {
       that.setBreadth(8);
-      that.checkImages(false);
+      that.checkVisibleImages(false);
       event.preventDefault();
     });
     
@@ -772,14 +769,32 @@ window.sfun = (function($, undefined) {
           position = jq.parents('li.cell').offset();
           this.scrollUpdate(0, position.top);
         }
+      } else {
+        // manually refresh the visible images
+        this.refreshVisible(0);
       }
     }
   }
 
   /**
-   * Loop through images flagging those newly exposed as visible
-   * Protected against case where accidentally called too early
-   * i.e. before there are any visible images
+   * Loop through all images (synchronously)
+   * @return {[type]} [description]
+   */
+  this['setVisibleAll'] = function() {
+    var jqImg, total = this.getTotalEntries();
+    for (var seq = 0 ; seq < total ; seq++) {
+      jqImg = $('#imgseq-'+seq);
+      if (this.isVisible(jqImg)) {
+        if (!jqImg.hasClass('visible')) {
+          this.setVisibleImage(jqImg, true);
+        }        
+      }
+    }
+  }
+
+  /**
+   * Loop through those images newly exposed, flagging as visible
+   * Protected against case where accidentally called before there are any visible images
    * @param  {int} scrolldir scroll direction
    */
   this['setVisibleNewlyVisible'] = function(scrolldir) {
@@ -787,11 +802,7 @@ window.sfun = (function($, undefined) {
     var jqImg = $('ul.flow li.cell img.bounded.visible:'+(scrolldir > 0 ? 'last' : 'first'));
     // if there aren't visible images, start at zero
     if (!jqImg.length) {
-      // assume all images are visible, then try again
-      $('ul.flow li.cell img.bounded').addClass('visible');
-      jqImg = $('ul.flow li.cell img.bounded.visible:'+(scrolldir > 0 ? 'last' : 'first'));
-      // bail if we can't find any images
-      if (!jqImg.length) return;
+      return this.setVisibleAll();
     }
     // initial sequence number is the one after the last visible, or before the first visible
     var initialSeq = jqImg.data('seq');
@@ -804,12 +815,7 @@ window.sfun = (function($, undefined) {
     while (this.isVisible(jqImg) && (seq !== false)) {
       // but it wasn't previously
       if (!jqImg.hasClass('visible')) {
-        if (debug && false) {
-          console.log('making image '+seq+' visible');
-        }
-        // make it visible and swap it out
-        jqImg.addClass('visible');
-        this.checkImageRes(jqImg);
+        this.setVisibleImage(jqImg, true);
       }
       // identify next image
       seq = this.getNextSeq(jqImg.data('seq'), scrolldir > 0 ? 1 : -1);
@@ -825,11 +831,16 @@ window.sfun = (function($, undefined) {
 
   /**
    * Loop through images flagging those scrolled out of view as not-visible
+   * Protected against case where accidentally called before there are any visible images
    * @param  {int} scrolldir scroll direction
    */
   this['setVisibleNewlyHidden'] = function(scrolldir) {
     // find first hidden image in opposite-scroll direction by finding first visible
     var jqImg = $('ul.flow li.cell img.bounded.visible:'+(scrolldir > 0 ? 'first' : 'last'));
+    // if there aren't visible images, start at zero
+    if (!jqImg.length) {
+      return this.setVisibleAll();
+    }
     // initial sequence number is the one after the last visible, or before the first visible
     var initialSeq = seq = jqImg.data('seq');
     if (debug && false) {
@@ -839,11 +850,7 @@ window.sfun = (function($, undefined) {
     while (!this.isVisible(jqImg) && (seq !== false)) {
       // but it was previously
       if (jqImg.hasClass('visible')) {
-        if (debug && false) {
-          console.log('making image '+seq+' not-visible');
-        }
-        // make it not-visible
-        jqImg.removeClass('visible');
+        this.setVisibleImage(jqImg, false);
       }
       // prepare to check next image (in scrolldir because started at furthest back)
       seq = this.getNextSeq(jqImg.data('seq'), scrolldir > 0 ? 1 : -1);
@@ -861,6 +868,29 @@ window.sfun = (function($, undefined) {
       that.imageAdvanceTo(jqImg.data('seq'), true);
     }
   };
+
+  /**
+   * either flag an image as visible or not visible
+   * @param  {jQuery} jqImg image
+   * @param  {boolean} vis  true to make visible, false not
+   */
+  this['setVisibleImage'] = function(jqImg, vis) {
+    if (vis) {
+      if (debug && false) {
+        console.log('making image '+jqImg.data('seq')+' visible');
+      }
+      // make it visible and swap it out
+      jqImg.addClass('visible');
+      this.checkImageRes(jqImg);
+      that.checkMetricPosition(jqImg);    
+    } else {
+      if (debug && false) {
+        console.log('making image '+seq+' not-visible');
+      }
+      // make it not-visible
+      jqImg.removeClass('visible');
+    }
+  }
 
   // --------------------
   // FUNCTIONS: image ops
@@ -1080,7 +1110,7 @@ window.sfun = (function($, undefined) {
       // start with defaults
       var obj = { 'breadth': this.defaultBreadth, 'seq': this.defaultSeq};
       // overwrite with current hash values
-      fromHash = this.hashParse(History.getHash());
+      fromHash = this.hashParse(hash);
       // check the hash values are valid, fallback to defaults if not
       if (!this.hashValidate(fromHash)) {
         console.log('illegal hash values, falling back to defaults');
@@ -1095,12 +1125,13 @@ window.sfun = (function($, undefined) {
       // // stage 2: DOM updates trigger async events (e.g. image loads)
       // if (allImagesChanged) {
       //   // check all images are bounded properly, max res etc
-      //   this.checkImages(false);
+      //   this.checkVisibleImages(false);
       // }
       // if (selectedImageChanged) {
       //   var jqImg = $('#imgseq-'+obj.seq);
       //   this.checkMetric(jqImg);
       // }
+      // 
       this.setVisibleByScrolling(obj.seq);
     }
   }
@@ -1121,8 +1152,6 @@ window.sfun = (function($, undefined) {
       if (debug && false) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
-      // stop even bubbling up, otherwise we get some weird diagonal scrolling
-      event.preventDefault();
     }
   }
 
@@ -1152,6 +1181,19 @@ window.sfun = (function($, undefined) {
       }
       // see if scroll has made any new images visible
       var scrolldir = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 0 - event.deltaX : 0 - event.deltaY);
+      this.refreshVisible(scrolldir);
+    }
+  }
+
+  /**
+   * refresh the img.visible status on all/some of the images
+   * @param  {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
+   */
+  this['refreshVisible'] = function(scrolldir) {
+    if (scrolldir == 0) {
+      // if no scroll direction, refresh test all images for visibility
+      this.setVisibleAll();
+    } else {
       this.setVisibleNewlyVisible(scrolldir);
       this.setVisibleNewlyHidden(scrolldir);
     }
