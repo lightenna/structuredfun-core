@@ -90,13 +90,11 @@ class ImageviewController extends ViewController {
         // override the extension to return an image
         $this->stats->ext = 'jpg';
         // prepend the cache location
-        $key = CachedMetadataFileReader::hash($this->stats->file) . '_videofullres' . '.' . $this->stats->ext;
+        $key = CachedMetadataFileReader::hash($this->stats->file) . '_videofullres' . '.' . 'dat';
         // create mfr in two stages, because we need to point at the image file in the cache
         $localmfr = new CachedMetadataFileReader(null, $this);
         $localmfr->rewrite($localmfr->getFilename($key));
         if ($localmfr->existsInCache()) {
-          // update the file location and cache key
-          $this->mfr->rewrite($localmfr->getFilename($key), true);
           // pull image from cache
           $imgdata = $localmfr->get();
           // just filter the image
@@ -110,9 +108,12 @@ class ImageviewController extends ViewController {
             $errorimgdata = $this->loadErrorImage();
             return $this->filterImage($errorimgdata);
           }
-          // update $this->stats->{'file'} using mfr rewrite
-          $this->mfr->rewrite($returnedFile);
-          return $this->loadAndFilterImage();
+          // point the local reader at the returned file
+          $localmfr->rewrite($returnedFile);
+          // pull image from cache
+          $imgdata = $localmfr->get();
+          // just filter the image
+          return $this->filterImage($imgdata);
         }
         break;
       default:

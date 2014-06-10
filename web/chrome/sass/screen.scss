@@ -250,7 +250,7 @@ html.no-js {
         font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
         // font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
               
-        > img.selected {
+        &.selected, > img.selected {
           // make borders appear inside to avoid pushing outside cell
           box-sizing: border-box;
           -moz-box-sizing: border-box;
@@ -283,7 +283,7 @@ html.no-js {
           width: 100px;
           background-color: $background_html_dark;
           color: #ffffff;
-          margin: 0 2.3% 0 2.7%;
+          margin: 0 2.4% 0 2.7%;
           padding: 0.5em;
         }
         
