@@ -1,9 +1,18 @@
 
-* something is triggering a scroll event to 0,0
-  + happens during page load
-  + e.g. http://10.12.1.120:8097/file/structured/tests/data/20-image_folder/#breadth=2&seq=9
+* could be double-loading the metadata
 
-* change out all the clicks to be hash changes
+* right arrow from sMAXb1
+  + should wrap around to show s0b1
+  - but get error
+
+* treat direction as another piece of hash state
+  + where a hash value is the same as
+    + NOT what's in document 
+      + because it changes
+    + the default value from the last page load
+
+* res change needs to fresh metric positions
+  + could tie that into refreshCells
 
 * arrow-key / home after scroll
 
@@ -34,9 +43,6 @@
 * vertical mode needs work
   + catch up js with horizontal
     + should work properly in test suite too
-
-* change image seq to entity seq
-  + we want to be able to select folders
 
 * show video entries in directory thumbnails
 
@@ -532,4 +538,34 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * sort of moving everything out of init() now
   + and triggering hash change instead
+
+* something is triggering a scroll event to 0,0
+  + happens during page load
+  + e.g. http://10.12.1.120:8097/file/structured/tests/data/20-image_folder/#breadth=2&seq=9
+  + may not actually be resolvable
+  = have inserted a jump-back using ignored scroll:0,0 event
+
+* change out all the clicks to be hash changes
+  = done most of them
+
+* change image seq to entity seq
+  + we want to be able to select folders
+  + throws error on 
+    + http://10.12.1.120:8097/file/playspace
+  + because directory features in middle of images
+  = not without issues but working pretty well
+
+* change cache file extension into .dat
+  + avoid mediacache leak
+
+* test suite error
+  + only occurs when running a second time
+  + it's a cache error
+  + need to keep hold of the original extension
+
+* first load after cache clear
+  + not reresing images
+  + seems like we're not waiting for image load before firing imagemeta request
+
+*** have set a cache clear every run! ***
 

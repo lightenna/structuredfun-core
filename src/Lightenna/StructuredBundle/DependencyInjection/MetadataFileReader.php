@@ -228,7 +228,8 @@ class MetadataFileReader extends FileReader {
   public function rewrite($newname) {
     parent::rewrite($newname);
     $this->stats->file = $newname;
-    $this->stats->ext = self::getExtension($this->stats->file);
+    // don't rewrite its extension because we don't use that for file access, only for type detection
+    // $this->stats->ext = self::getExtension($this->stats->file);
     return $newname;
   }
 

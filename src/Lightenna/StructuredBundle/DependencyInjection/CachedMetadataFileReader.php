@@ -38,10 +38,19 @@ class CachedMetadataFileReader extends MetadataFileReader {
   }
 
   /**
+   * called on first instance of cmfr for optional debugging ops
+   */
+  public function processDebugSettings() {
+    if (isset($this->settings['mediacache']['cleareverytime']) && $this->settings['mediacache']['cleareverytime']) {
+      // scrub cache directory
+      self::scrubDirectoryContents($this->cachedir);
+    }
+  }
+
+  /**
    * Test to see if we can use the cache
    * @return boolean True if cache is enabled
    */
-
   public function cacheIsEnabled() {
     if (isset($this->settings['general']['nocache']) || isset($this->args->{'nocache'}) || is_null($this->stats->cachekey)) {
       return false;
@@ -116,6 +125,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
     switch ($this->stats->ext) {
       case 'jpeg' :
       case 'jpg' :
+      default :
         return true;
       case 'gif' :
         return false;
@@ -135,7 +145,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
       $cachestring .= ARG_SEPARATOR . $argstring;
     }
     // var_dump($cachestring);
-    $key = self::hash($cachestring) . '.' . $this->stats->ext;
+    $key = self::hash($cachestring) . '.' . 'dat';
     return $key;
   }
 
@@ -293,4 +303,17 @@ class CachedMetadataFileReader extends MetadataFileReader {
     return $output;
   }
 
+  static function scrubDirectoryContents($dir) {
+    // get directory listing
+    $listing = scandir($dir);
+    foreach ($listing as $k => $v) {
+      // ignore directory references or empty file names
+      if ($v == '.' || $v == '..' || $v == '') {
+        unset($listing[$k]);
+        continue;
+      }
+      // delete the file
+      unlink($dir.DIR_SEPARATOR.$v);
+    }
+  }
 }

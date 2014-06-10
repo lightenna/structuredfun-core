@@ -13,6 +13,7 @@ class FileviewController extends ViewController {
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
     $this->mfr = new CachedMetadataFileReader($filename, $this);
     $this->mfr->injectShares($name);
+    $this->mfr->processDebugSettings();
     $thumbargs = new \stdClass();
     $thumbargs->{'maxlongest'} = 200;
     $this->mfr->injectArgs($thumbargs);
