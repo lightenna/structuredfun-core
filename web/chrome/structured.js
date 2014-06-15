@@ -802,24 +802,6 @@ console.log('refreshImage from refreshVisibles '+($(this).data('seq')));
     return changed;
   };
 
-  /**
-   * remove img src attribute to avoid loading a range of images
-   * @param  {int} min sequence number of start image
-   * @param  {int} max sequence number of max image
-   */
-  this['setDesrc'] = function(min, max) {
-    var jqEnt;
-    for (var i = min ; i <= max ; ++i) {
-      jqEnt = $('#selseq-'+i);
-      if (this.getType(jqEnt) == 'image') {
-        jqEnt.data('desrc', jqEnt.attr('src')).removeAttr('src');
-        if (debug) {
-          console.log('desrc image selseq-'+i);
-        }
-      }
-    }
-  }
-
   /** 
    * ensure that a given image lies within the current viewport
    * @param {int} seq image sequence number
@@ -850,31 +832,18 @@ console.log('refreshImage from refreshVisibles '+($(this).data('seq')));
    * @return {[type]} [description]
    */
   this['setVisibleAll'] = function() {
-    var maxSeq = this.getTotalEntries()-1;
-    var that = this, minSeqVisible = maxSeq, maxSeqVisible = 0;
+    var that = this;
     $('ul.flow li.cell .selectable').each(function() {
       var jqEnt = $(this);
       if (that.isVisible(jqEnt)) {
         if (!jqEnt.hasClass('visible')) {
           that.setVisibleImage(jqEnt, true);
         }
-        minSeqVisible = Math.min(minSeqVisible, jqEnt.data('seq'));
-        maxSeqVisible = Math.max(maxSeqVisible, jqEnt.data('seq'));
       } else {
+        // don't test, because setVis(false) is just a .removeClass()
         that.setVisibleImage(jqEnt, false);
       }
     });
-    if (debug && false) {
-      console.log('seqVisible min['+minSeqVisible+'] max['+maxSeqVisible+']');
-    }
-    // see if there are images far away that we could avoid rendering thumbnails for
-    if (minSeqVisible > this.export.pullImgSrcTHRESHOLD) {
-      // desrc images far away
-      this.setDesrc(0, minSeqVisible - this.export.pullImgSrcTHRESHOLD);
-    }
-    if (maxSeqVisible + this.export.pullImgSrcTHRESHOLD < maxSeq) {
-      this.setDesrc(maxSeqVisible + this.export.pullImgSrcTHRESHOLD, maxSeq);
-    }
   }
 
   /**
