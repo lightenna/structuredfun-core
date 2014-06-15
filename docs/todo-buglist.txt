@@ -5,6 +5,7 @@
   + also doesn't work
   + need to do it the lazy loading way
     + http://www.appelsiini.net/projects/lazyload
+    + start by implementing noscript version
 
 * dragging in very large image set
   - jumps back to zero every drag
