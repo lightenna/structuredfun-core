@@ -62,7 +62,6 @@ window.sfun = (function($, undefined) {
         that.resizeTimeout = setTimeout(function() {
           that.refreshCells();
           that.refreshVisibility(0);
-          that.refreshVisibles();
         }, 50); // 50 ms
       });
     });
@@ -158,30 +157,6 @@ window.sfun = (function($, undefined) {
     }
     return undefined;
   };
-
-  /**
-   * Check through all the images in this gallery for size/ratio/bounding/metadata
-   */
-  this['checkVisibleImages'] = function(waitForLoad) {
-    var that = this;
-    // try forcing all checks to waitForLoad
-    waitForLoad = true;
-    // re-check images
-    $('.cell').each(function() {
-      var callback = function() {
-        that.refreshImage($(this));
-      };
-      // either we can check now, or check when the image loads
-      if (waitForLoad) {
-        // note callback in the args to one(), each is only a pusher
-        $(this).find('.selectable.visible').one('load', callback).each(function() {
-          if(this.complete) $(this).load();
-        });
-      } else {
-        $(this).find('.selectable.visible').each(callback);
-      }
-    });
-  }
 
   /**
    * update (x/y)-bound on image
@@ -311,7 +286,7 @@ window.sfun = (function($, undefined) {
     if (typeof(data.meta) != 'undefined') {
       jqEnt.data('native-width', data.meta.width);
       jqEnt.data('native-height', data.meta.height);
-      // console.log('received metadata width['+jqEnt.data('native-width')+']');
+      console.log('received metadata width['+jqEnt.data('native-width')+'] height['+jqEnt.data('native-height')+']');
       // trigger image resolution check again now that we've updated data- attributes
       this.checkImageRes(jqEnt);
     }
@@ -419,7 +394,7 @@ window.sfun = (function($, undefined) {
       // calculate percentage based on image area, or width
       // perc = Math.round((width_current * height_current) * 100 / (width_native * height_native));
       perc = Math.round(width_current * 100 / width_native);
-      if (debug) {
+      if (debug && false) {
         // show the size of the image that's been loaded into this img container
         met.find('span.width').html(Math.round(jqEnt.data('loaded-width')));
         met.find('span.height').html(Math.round(jqEnt.data('loaded-height')));
@@ -429,7 +404,9 @@ window.sfun = (function($, undefined) {
         met.find('span.width').html(Math.round(width_current));
         met.find('span.height').html(Math.round(height_current));
       }
-      met.find('span.perc').html(perc+'%');
+      if (!isNaN(perc)) {
+        met.find('span.perc').html(perc+'%').show();
+      }
       // analyse to see if we're over/under the native res
       if (width_current > width_native || height_current > height_native) {
         met.removeClass('super').addClass('sub');
@@ -458,7 +435,19 @@ window.sfun = (function($, undefined) {
       this.setVisibleAll();
     } else {
       this.setVisibleNewlyVisible(scrolldir);
-      this.setVisibleNewlyHidden(scrolldir);
+    }
+    // check to see if the selected image is now no longer visible
+    jqEnt = $('ul.flow li.cell .selectable.selected');
+    if (!jqEnt.hasClass('visible')) {
+      if (debug && false) {
+        console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
+      }
+      // find the next visible one in the scroll direction
+      jqEnt = $('ul.flow li.cell .selectable.visible:'+(scrolldir > 0 ? 'first' : 'last'));
+      if (jqEnt.length) {
+        // use hash to select new and deselect old, but numb listener
+        that.imageAdvanceTo(jqEnt.data('seq'), true);
+      }
     }
   }
 
@@ -468,12 +457,13 @@ window.sfun = (function($, undefined) {
   this['refreshVisibles'] = function() {
     var that = this;
     $('ul.flow li.cell .selectable.visible').each(function() {
+console.log('refreshImage from refreshVisibles '+($(this).data('seq')));
       that.refreshImage($(this));
     })
   }
 
   /**
-   * refresh a single image, ensure that it's loaded first
+   * refresh a single image, but ensure that it's loaded first
    * @param  {jQuery} jqEnt image
    */
   this['refreshImage'] = function(jqEnt) {
@@ -481,12 +471,20 @@ window.sfun = (function($, undefined) {
     // check the image bound (asynchronous)
     this.checkImageBound(jqEnt)
     .then(function(jqEnt) {
-      // change out the image for a better resolution if one's available
-      that.checkImageRes(jqEnt);
-      // update metric
-      that.refreshMetric(jqEnt);
-      that.refreshMetricPosition(jqEnt);    
+      that.refreshImageSameBound(jqEnt);
     });
+  }
+
+  /**
+   * refresh a single image within the same bounding box
+   * @param  {jQuery} jqEnt image
+   */
+  this['refreshImageSameBound'] = function(jqEnt) {
+    // change out the image for a better resolution if one's available
+    that.checkImageRes(jqEnt);
+    // update metric
+    that.refreshMetric(jqEnt);
+    that.refreshMetricPosition(jqEnt);    
   }
 
   // ------------------
@@ -804,6 +802,24 @@ window.sfun = (function($, undefined) {
     return changed;
   };
 
+  /**
+   * remove img src attribute to avoid loading a range of images
+   * @param  {int} min sequence number of start image
+   * @param  {int} max sequence number of max image
+   */
+  this['setDesrc'] = function(min, max) {
+    var jqEnt;
+    for (var i = min ; i <= max ; ++i) {
+      jqEnt = $('#selseq-'+i);
+      if (this.getType(jqEnt) == 'image') {
+        jqEnt.data('desrc', jqEnt.attr('src')).removeAttr('src');
+        if (debug) {
+          console.log('desrc image selseq-'+i);
+        }
+      }
+    }
+  }
+
   /** 
    * ensure that a given image lies within the current viewport
    * @param {int} seq image sequence number
@@ -825,7 +841,6 @@ window.sfun = (function($, undefined) {
       } else {
         // manually refresh the visible images
         this.refreshVisibility(0);
-        this.refreshVisibles();
       }
     }
   }
@@ -835,15 +850,31 @@ window.sfun = (function($, undefined) {
    * @return {[type]} [description]
    */
   this['setVisibleAll'] = function() {
-    var that = this;
+    var maxSeq = this.getTotalEntries()-1;
+    var that = this, minSeqVisible = maxSeq, maxSeqVisible = 0;
     $('ul.flow li.cell .selectable').each(function() {
       var jqEnt = $(this);
       if (that.isVisible(jqEnt)) {
         if (!jqEnt.hasClass('visible')) {
           that.setVisibleImage(jqEnt, true);
         }
+        minSeqVisible = Math.min(minSeqVisible, jqEnt.data('seq'));
+        maxSeqVisible = Math.max(maxSeqVisible, jqEnt.data('seq'));
+      } else {
+        that.setVisibleImage(jqEnt, false);
       }
     });
+    if (debug && false) {
+      console.log('seqVisible min['+minSeqVisible+'] max['+maxSeqVisible+']');
+    }
+    // see if there are images far away that we could avoid rendering thumbnails for
+    if (minSeqVisible > this.export.pullImgSrcTHRESHOLD) {
+      // desrc images far away
+      this.setDesrc(0, minSeqVisible - this.export.pullImgSrcTHRESHOLD);
+    }
+    if (maxSeqVisible + this.export.pullImgSrcTHRESHOLD < maxSeq) {
+      this.setDesrc(maxSeqVisible + this.export.pullImgSrcTHRESHOLD, maxSeq);
+    }
   }
 
   /**
@@ -865,21 +896,29 @@ window.sfun = (function($, undefined) {
     if (debug && false) {
       console.log('testing image for visible '+seq);      
     }
-    // go through all the images that are now visible
-    while (this.isVisible(jqEnt) && (seq !== false)) {
-      // but it wasn't previously
-      if (!jqEnt.hasClass('visible')) {
-        this.setVisibleImage(jqEnt, true);
+    // test to see if the scroll segments are connected or not
+    if (!this.isVisible(jqEnt)) {
+      // if disconnected, start from scratch
+      return this.setVisibleAll();
+    } else {
+      // if the scroll revealed a contiguous segment, loop forward from there
+      while (this.isVisible(jqEnt) && (seq !== false)) {
+        // but it wasn't previously
+        if (!jqEnt.hasClass('visible')) {
+          this.setVisibleImage(jqEnt, true);
+        }
+        // identify next image
+        seq = this.getNextSeq(jqEnt.data('seq'), scrolldir > 0 ? 1 : -1);
+        // check we haven't looped through them all
+        if (seq == initialSeq) {
+          break;
+        } else {
+          // prepare to check next image
+          jqEnt = $('#selseq-'+seq);
+        }
       }
-      // identify next image
-      seq = this.getNextSeq(jqEnt.data('seq'), scrolldir > 0 ? 1 : -1);
-      // check we haven't looped through them all
-      if (seq == initialSeq) {
-        break;
-      } else {
-        // prepare to check next image
-        jqEnt = $('#selseq-'+seq);
-      }
+      // now look for images that have been hidden
+      this.setVisibleNewlyHidden(scrolldir);
     }
   };
 
@@ -910,17 +949,6 @@ window.sfun = (function($, undefined) {
       seq = this.getNextSeq(jqEnt.data('seq'), scrolldir > 0 ? 1 : -1);
       jqEnt = $('#selseq-'+seq);
     }
-    // check to see if the selected image is now no longer visible
-    jqEnt = $('ul.flow li.cell .selectable.selected');
-    if (!jqEnt.hasClass('visible')) {
-      if (debug && false) {
-        console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
-      }
-      // find the next visible one in the scroll direction
-      jqEnt = $('ul.flow li.cell .selectable.visible:'+(scrolldir > 0 ? 'first' : 'last'));
-      // use hash to select new and deselect old, but numb listener
-      that.imageAdvanceTo(jqEnt.data('seq'), true);
-    }
   };
 
   /**
@@ -935,8 +963,7 @@ window.sfun = (function($, undefined) {
       }
       // make it visible and swap it out
       jqEnt.addClass('visible');
-      this.checkImageRes(jqEnt);
-      that.refreshMetricPosition(jqEnt);    
+      this.refreshImage(jqEnt);
     } else {
       if (debug && false) {
         console.log('making image '+seq+' not-visible');
@@ -1191,17 +1218,7 @@ window.sfun = (function($, undefined) {
       allImagesChanged |= this.setBreadth(obj.breadth);
       // seq changes at most only affect the image being selected
       selectedImageChanged |= this.setSeq(obj.seq);
-      // can't decide about this bit
-      // // stage 2: DOM updates trigger async events (e.g. image loads)
-      // if (allImagesChanged) {
-      //   // check all images are bounded properly, max res etc
-      //   this.checkVisibleImages(false);
-      // }
-      // if (selectedImageChanged) {
-      //   var jqEnt = $('#imgseq-'+obj.seq);
-      //   this.refreshMetric(jqEnt);
-      // }
-      // 
+      // scroll to the selected image
       this.setVisibleByScrolling(obj.seq);
     }
   }
@@ -1406,7 +1423,9 @@ window.sfun = (function($, undefined) {
     KEY_NUMBER_2: 50,
     KEY_NUMBER_4: 52,
     KEY_NUMBER_8: 56,
+
     HASHBANG: '#!',
+    pullImgSrcTHRESHOLD: 20,
 
     /**
      * add a button to the header

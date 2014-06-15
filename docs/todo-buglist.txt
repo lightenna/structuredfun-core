@@ -1,9 +1,24 @@
 
-* could be double-loading the metadata
+* don't load all thumbnails in very large data sets
+  + still quite slow on load
+    + think js op is slow
+  + also doesn't work
+  + need to do it the lazy loading way
+    + http://www.appelsiini.net/projects/lazyload
 
-* right arrow from sMAXb1
-  + should wrap around to show s0b1
-  - but get error
+* dragging in very large image set
+  - jumps back to zero every drag
+
+* key press (like ctrl+end/home) triggers hash change
+  + hash change loses key focus from window
+    + need to preserve so we can 
+
+* mousewheel after scroll needs to re-align
+  + otherwise can be scrolling in half-images
+
+* reload page from final entry doesn't swap out images properly
+  + seems not to be loading thumbnails
+    + so the 500 request doesn't get any metadata
 
 * treat direction as another piece of hash state
   + where a hash value is the same as
@@ -19,6 +34,8 @@
 * pull forward UI test suite
 
 * rewrite isVisible function to cope with partials
+  + frequently images are partly on screen
+    + but not treated as visible
 
 * dropping back from fullscreen, checkImageRes swaps out all the images
   + not just the visible ones
@@ -568,4 +585,30 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + seems like we're not waiting for image load before firing imagemeta request
 
 *** have set a cache clear every run! ***
+  + but only from my local settings
+
+* need to be able to merge in settings from config files
+
+* could be double-loading the metadata
+  + would explain why we're swapping out the images twice
+
+* NaN% on certain images
+  + there's an ordering of concurrent ops that allows this
+  + problem is that the image is loaded
+    - but the imagemeta call hasn't returned yet
+    + so we're trying to compute %age based on width/height-native
+    + but they don't exist yet
+  = have protected
+    + watch for images not re-resing
+
+* double end doesn't work
+  + seems to only be in larger datasets
+    + this happens when we end up with no .visible entries
+      + we do a select on a jqEnt that doesn't exist
+        + protect against that
+      + then fix the forward
+
+* right arrow from sMAXb1
+  + should wrap around to show s0b1
+  - but get error
 
