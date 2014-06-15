@@ -40,7 +40,7 @@ class ViewController extends Controller {
             if (strtolower($entry->ext) == 'ini') {
               // add to settings
               $subsets = parse_ini_file($confdirname . DIR_SEPARATOR . $entry->name, true);
-              $this->settings += $subsets;
+              $this->settings = array_merge_recursive($this->settings, $subsets);
             }
           }
         }
@@ -79,8 +79,7 @@ class ViewController extends Controller {
   /**
    * Process settings array for actions
    */
-
-  public function processSettings() {
+  private function processSettings() {
     // if memory limit set, apply
     if (isset($this->settings['general']['memory_limit'])) {
       if (!ini_set('memory_limit', $this->settings['general']['memory_limit'])) {
