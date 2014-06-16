@@ -457,7 +457,6 @@ window.sfun = (function($, undefined) {
   this['refreshVisibles'] = function() {
     var that = this;
     $('ul.flow li.cell .selectable.visible').each(function() {
-console.log('refreshImage from refreshVisibles '+($(this).data('seq')));
       that.refreshImage($(this));
     })
   }
@@ -929,6 +928,11 @@ console.log('refreshImage from refreshVisibles '+($(this).data('seq')));
     if (vis) {
       if (debug && false) {
         console.log('making image '+jqEnt.data('seq')+' visible');
+      }
+      // make its src show if not there already
+      var attr = jqEnt.attr('src');
+      if (typeof attr === 'undefined' || attr === false) {
+        jqEnt.attr('src', jqEnt.data('desrc'));
       }
       // make it visible and swap it out
       jqEnt.addClass('visible');
