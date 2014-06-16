@@ -1,18 +1,17 @@
 
-* don't load all thumbnails in very large data sets
-  + still quite slow on load
-    + think js op is slow
-  + also doesn't work
-  + need to do it the lazy loading way
-    + http://www.appelsiini.net/projects/lazyload
-    + start by implementing noscript version
+* optimise dragging in large image sets
 
-* dragging in very large image set
-  - jumps back to zero every drag
+* fullscreen/return should toggle
+  + between b1 and bPrevious
 
-* key press (like ctrl+end/home) triggers hash change
-  + hash change loses key focus from window
-    + need to preserve so we can 
+* changing from b2 to b1
+  + need to do another refreshCells at least on current image
+    + because cell shape may have changed dramatically
+
+* imagemeta/ endpoint should always get image metadata
+  + at the moment it only produces good metadata for pre-cached images
+    + if we discover an image uncached
+      + we should cache it at standard thumbnail size (longest edge 200)
 
 * mousewheel after scroll needs to re-align
   + otherwise can be scrolling in half-images
@@ -612,4 +611,24 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * right arrow from sMAXb1
   + should wrap around to show s0b1
   - but get error
+
+* Apache builds for Windows
+  + http://www.apachelounge.com/download/additional/
+
+* don't load all thumbnails in very large data sets
+  + still quite slow on load
+    + think js op is slow
+  + also doesn't work
+  + need to do it the lazy loading way
+    + http://www.appelsiini.net/projects/lazyload
+    + start by implementing noscript version
+  = working, may need to do more
+
+* dragging in very large image set
+  - jumps back to zero every drag
+
+* key press (like ctrl+end/home) triggers hash change
+  + hash change loses key focus from window
+    + need to preserve so we can 
+  = seems to be working for now
 
