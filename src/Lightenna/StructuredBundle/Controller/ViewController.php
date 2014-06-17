@@ -243,26 +243,25 @@ class ViewController extends Controller {
     $entry_counter = 0;
     $type_counter = array();
     foreach ($listing as $entry) {
+      $enttype = $entry->type;
+      // videos are shown as image thumbnails
+      if ($enttype == 'video') $enttype = 'image';
       // update counters (making first entry = 1)
       $entry_counter++;
-      if (!isset($type_counter[$entry->type])) {
-        $type_counter[$entry->type] = 0;
+      if (!isset($type_counter[$enttype])) {
+        $type_counter[$enttype] = 0;
       }
-      $type_counter[$entry->type]++;
+      $type_counter[$enttype]++;
       // look for match
-      switch ($match_type) {
+      if ($match_type == 'counter') {
         // by default, match against counter
-        case 'counter':
-          if ($match == $entry_counter) {
-            return $entry->name;
-          }
-          break;
-        // if matching by the current entry type
-        case $entry->type:
-          if ($match == $type_counter[$entry->type]) {
-            return $entry->name;
-          }
-          break;
+        if ($match == $entry_counter) {
+          return $entry->name;
+        }
+      } else if ($match_type == $enttype) {
+        if ($match == $type_counter[$enttype]) {
+          return $entry->name;
+        }
       }
     }
     return false;

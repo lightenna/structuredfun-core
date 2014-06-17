@@ -1,6 +1,8 @@
 
 * optimise dragging in large image sets
 
+* .s in directory names, like mq
+
 * fullscreen/return should toggle
   + between b1 and bPrevious
 
