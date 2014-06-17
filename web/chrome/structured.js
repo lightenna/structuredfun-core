@@ -212,12 +212,12 @@ window.sfun = (function($, undefined) {
     var nativeWidth = jqEnt.data('native-width');
     var nativeHeight = jqEnt.data('native-height');
     var swappedOut = false, metaedOut = false;
-    // don't attempt to check image resolution on folder
+    // don't attempt to check image resolution on directory
     var type = this.getType(jqEnt);
     if (!(type == 'image' || type == 'video')) {
       return;
     }
-    if (debug && false) {
+    if (debug && true) {
       console.log('image '+jqEnt.attr('id')+': checking resolution');
     }
     // test to see if we're displaying an image at more than 100%
@@ -270,6 +270,7 @@ window.sfun = (function($, undefined) {
    */
   this['checkMetadata'] = function(jqEnt) {
     var that = this;
+console.log('firing metadata request for image-'+jqEnt.data('seq'));
     $.ajax({
       url: jqEnt.attr('src').replace('image','imagemeta'),
       dataType: 'json',
@@ -288,6 +289,7 @@ window.sfun = (function($, undefined) {
       jqEnt.data('native-height', data.meta.height);
       console.log('received metadata width['+jqEnt.data('native-width')+'] height['+jqEnt.data('native-height')+']');
       // trigger image resolution check again now that we've updated data- attributes
+console.log('processing metadata request for image-'+jqEnt.data('seq'));
       this.checkImageRes(jqEnt);
     }
   };
@@ -570,10 +572,15 @@ window.sfun = (function($, undefined) {
       }
       switch (event.which) {
         case that.export.KEY_ARROW_LEFT:
-        case that.export.KEY_ARROW_UP:
           if (!event.altKey) {
             // advance to previous image
             that.imageAdvanceBy(-1, false);
+            event.preventDefault();
+          }
+          break;
+        case that.export.KEY_ARROW_UP:
+          if (event.altKey) {
+            that.url_changeUp();
             event.preventDefault();
           }
           break;
@@ -638,7 +645,7 @@ window.sfun = (function($, undefined) {
    */
   this['bindToImageLinks'] = function() {
     var that = this;
-    $('.cell a.image-container').click(function(event) {
+    $('.cell a.media-container').click(function(event) {
       // select image, then toggle
       var seq = $(this).find('img').data('seq');
       // seq changes don't go into history
@@ -665,6 +672,9 @@ window.sfun = (function($, undefined) {
       jqEnt.data('loaded-width', im.width);
       jqEnt.data('loaded-height', im.height);
       im = null;
+      if (debug) {
+        console.log('loaded first thumbnail for image-'+jqEnt.data('seq'));
+      }
       // notify promise of resolution
       deferred.resolve(jqEnt);
     }
@@ -746,8 +756,8 @@ window.sfun = (function($, undefined) {
         return 'image';
       }
     }
-    if (jqEnt.is('.folder-container')) {
-      return 'folder';
+    if (jqEnt.is('.directory-container')) {
+      return 'directory';
     }
   }
 
@@ -991,10 +1001,49 @@ window.sfun = (function($, undefined) {
           this.hashUpdate( { 'breadth': 1 }, false, numbListener);
         }
         break;
-      case 'folder':
+      case 'directory':
         window.location = jqEnt.attr('href');
         break;
     }
+  }
+
+  // ------------------
+  // FUNCTIONS: URL ops
+  // ------------------
+
+  /**
+   * change up a directory
+   */
+  this['url_changeUp'] = function() {
+    var url = window.location.href;
+    var lastChar = url.length;
+    var lastHash = url.lastIndexOf('#');
+    if (lastHash != -1) {
+      lastChar = lastHash-1;
+    }
+    // check for a / immediately prior to the hash
+    if (url[lastChar] == '/') {
+      lastChar--;
+    }
+    // search backwards from lastChar to find preceding slash
+    var previousSlash = url.lastIndexOf('/', lastChar);
+    if (previousSlash != -1) {
+      // new URL should include slash
+      var newUrl = url.substring(0, previousSlash+1);
+      // append filtered hash
+      var filteredHash = this.getFilteredHash();
+      // redirect to new page
+      this.url_goto(newUrl + this.export.HASHBANG + filteredHash);
+    }
+    return false;
+  }
+
+  /**
+   * redirect to another url
+   * @param  {string} newUrl new location
+   */
+  this['url_goto'] = function(newUrl) {
+    window.location.href = newUrl;
   }
 
   // ---------------
@@ -1338,6 +1387,13 @@ window.sfun = (function($, undefined) {
    */
   this['getHash'] = function() {
     return this.stripBang(History.getHash());
+  }
+
+  /**
+   * @return {string} browser's hash minus a few attributes
+   */
+  this['getFilteredHash'] = function() {
+    return this.getHash();
   }
 
   // -----------------

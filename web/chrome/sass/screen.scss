@@ -287,8 +287,8 @@ html.no-js {
           padding: 0.5em;
         }
         
-        // folders with preview images
-        div.folder {
+        // directories with preview images
+        div.directory {
           background: url('/chrome/images/fullres/folder_back_light.png') no-repeat left top;
           background-size: 100% 100%;
           width: 100%;
@@ -338,13 +338,13 @@ html.no-js {
         }
       }
 
-      // use CSS trick to make folders maintain aspect ratio, in combination with vertical centring
+      // use CSS trick to make directories maintain aspect ratio, in combination with vertical centring
       // http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio
       div.dummy1 {
         height: 50%;
       }
 
-      a.folder-container {
+      a.directory-container {
         display: inline-block;
         width: 100%;
         margin-top: -37.5%; // 4:3 / 2
@@ -355,7 +355,7 @@ html.no-js {
           // padding-top: 56.25%; // 16:9
         }
         
-        div.folder {
+        div.directory {
           position: absolute;
           top: 0;
           right: 0;
@@ -378,7 +378,7 @@ html.theme-dark {
   .page .content .flow > .cell {
     border-color: $background_grid_dark; 
     
-    .folder {
+    .directory {
       background-image: url('/chrome/images/fullres/folder_back_dark.png');
     }
   }
