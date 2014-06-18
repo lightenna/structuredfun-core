@@ -60,7 +60,7 @@ window.sfun = (function($, undefined) {
           clearTimeout(this.resizeTimeout);
         }
         that.resizeTimeout = setTimeout(function() {
-          that.refreshCells();
+          // resize could have shown more images
           that.refreshVisibility(0);
         }, 50); // 50 ms
       });
@@ -159,46 +159,45 @@ window.sfun = (function($, undefined) {
   };
 
   /**
-   * update (x/y)-bound on image
-   * 
-   * @param jQuery
-   *          object parent container, which has changed size
-   * @param jQuery
-   *          object bounded image within
+   * update (x/y)-bound on boundable image in cell
+   * @param jQuery cell that may have changed size
    */
   this['checkImageBound'] = function(jqEnt) {
     // use jQuery deferred promises
     var deferred = new $.Deferred();
-    // queue up the bound checking
-    deferred.then(function(jqEnt) {
-      var jqCell = jqEnt.parents('li');
-      // read container width/height
-      var cx = jqCell.width(), cy = jqCell.height();
-      var cratio = cx / cy;
-      // detect if the image is bound by width/height in this container
-      var ix = jqEnt.data('loaded-width'), iy = jqEnt.data('loaded-height');
-      if (debug && false) {
-        console.log('image '+jqEnt.attr('id')+' ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
+    // find boundable entity
+    var jqBoundable = jqEnt.find('.boundable');
+    if (jqBoundable.length) {
+      // queue up the bound checking
+      deferred.then(function(jqEnt) {
+        // read container width/height
+        var cx = jqEnt.width(), cy = jqEnt.height();
+        var cratio = cx / cy;
+        // detect if the image is bound by width/height in this container
+        var ix = jqBoundable.data('loaded-width'), iy = jqBoundable.data('loaded-height');
+        if (debug && false) {
+          console.log('image-'+jqEnt.data('seq')+' ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
+        }
+        var iratio = ix / iy;
+        var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
+        var invdir = (direction == 'x' ? 'y' : 'x');
+        if (debug && false) {
+          console.log('cx[' + cx + '] cy[' + cy + '] cratio[' + cratio + '], ix[' + ix + '] iy[' + iy + '] iratio['
+              + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
+        }
+        // apply class to image
+        jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
+      });
+      // but update loaded resolution if necessary first
+      if (jqBoundable.data('loaded-width') == undefined || jqBoundable.data('loaded-height') == undefined) {
+        if (debug && false) {
+          console.log('image-'+jqEnt.data('seq')+' update loaded resolution');
+        }
+        this.getLoadedResolution(jqEnt, deferred);
+      } else {
+        // either way flag that this image has loaded-width/height updated
+        deferred.resolve(jqEnt);
       }
-      var iratio = ix / iy;
-      var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
-      var invdir = (direction == 'x' ? 'y' : 'x');
-      if (debug && false) {
-        console.log('cx[' + cx + '] cy[' + cy + '] cratio[' + cratio + '], ix[' + ix + '] iy[' + iy + '] iratio['
-            + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
-      }
-      // apply class to image
-      jqEnt.addClass(direction + '-bound').removeClass(invdir + '-bound');
-    });
-    // but update loaded resolution if necessary first
-    if (jqEnt.data('loaded-width') == undefined || jqEnt.data('loaded-height') == undefined) {
-      if (debug) {
-        console.log('image '+jqEnt.attr('id')+' update loaded resolution');
-      }
-      this.getLoadedResolution(jqEnt, deferred);
-    } else {
-      // either way flag that this image has loaded-width/height updated
-      deferred.resolve(jqEnt);
     }
     // return object so that outside code can queue functions to get notified on resolve
     // but restrict using promise() so we cannot interfere with it
@@ -206,78 +205,23 @@ window.sfun = (function($, undefined) {
   };
 
   /**
-   * Check the display resolution of the image and swap out src if higher res available 
-   */
-  this['checkImageRes'] = function(jqEnt) {
-    var nativeWidth = jqEnt.data('native-width');
-    var nativeHeight = jqEnt.data('native-height');
-    var swappedOut = false, metaedOut = false;
-    // don't attempt to check image resolution on directory
-    var type = this.getType(jqEnt);
-    if (!(type == 'image' || type == 'video')) {
-      return;
-    }
-    if (debug && true) {
-      console.log('image '+jqEnt.attr('id')+': checking resolution');
-    }
-    // test to see if we're displaying an image at more than 100%
-    if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
-      // fire request for metadata, then callback this (checkImageRes) function later
-      this.checkMetadata(jqEnt);
-      metaedOut = true;
-    } else {
-      var resbracket = 250, brackWidth, brackHeight;
-      var imageWidth = jqEnt.width() * window.devicePixelRatio;
-      var imageHeight = jqEnt.height() * window.devicePixelRatio;
-      var loadedWidth = jqEnt.data('loaded-width');
-      var loadedHeight = jqEnt.data('loaded-height');
-      var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
-      var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
-      // test to see if we're displaying an image at more than 100%
-      if (bigger && available) {
-        // only need to think about one dimension, because ratio of image is fixed
-        var majorw = (imageWidth >= imageHeight);
-        // but that dimension has to be the major dimension 
-        if (majorw) {
-          // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
-          brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
-          // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
-          if (brackWidth > loadedWidth) {
-            this.swapImageOut(jqEnt, jqEnt.data('base-src') + 'maxwidth='+brackWidth);
-            swappedOut = true;
-            // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
-          }
-        } else {
-          // same but pivot on height rather than width
-          brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
-          if (brackHeight > loadedHeight) {
-            this.swapImageOut(jqEnt, jqEnt.data('base-src') + 'maxheight='+brackHeight);
-            swappedOut = true;
-          }
-        }
-      }
-    }
-    // if we didn't swap out this image or go off to check its metadata, update imgmetric
-    // @todo maybe can comment this
-    if (!swappedOut && !metaedOut) {
-      this.refreshMetric(jqEnt);
-    }
-    // console.log('checking '+jqEnt.attr('id')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
-  };
-
-  /**
    * Request metadata about this image from the server
    */
   this['checkMetadata'] = function(jqEnt) {
     var that = this;
-console.log('firing metadata request for image-'+jqEnt.data('seq'));
-    $.ajax({
-      url: jqEnt.attr('src').replace('image','imagemeta'),
-      dataType: 'json',
-    })
-    .done(function( data ) {
-      that.processMetadata(jqEnt, data);
-    });
+    var jqReresable = jqEnt.find('.reresable');
+    if (jqReresable.length) {
+      $.ajax({
+        url: jqReresable.attr('src').replace('image','imagemeta'),
+        dataType: 'json',
+      })
+      .done(function( data ) {
+        that.processMetadata(jqEnt, data);
+      });
+      if (debug && false) {
+        console.log('firing metadata request for image-'+jqEnt.data('seq'));
+      }
+    }
   };
 
   /**
@@ -285,42 +229,20 @@ console.log('firing metadata request for image-'+jqEnt.data('seq'));
    */
   this['processMetadata'] = function(jqEnt, data) {
     if (typeof(data.meta) != 'undefined') {
-      jqEnt.data('native-width', data.meta.width);
-      jqEnt.data('native-height', data.meta.height);
-      console.log('received metadata width['+jqEnt.data('native-width')+'] height['+jqEnt.data('native-height')+']');
-      // trigger image resolution check again now that we've updated data- attributes
-console.log('processing metadata request for image-'+jqEnt.data('seq'));
-      this.checkImageRes(jqEnt);
+      var jqReresable = jqEnt.find('.reresable');
+      if (jqReresable.length) {
+        jqReresable.data('native-width', data.meta.width);
+        jqReresable.data('native-height', data.meta.height);
+        // trigger image resolution check again now that we've updated data- attributes
+        if (debug && false) {
+          console.log('processing metadata request for image-'+jqEnt.data('seq'));
+          console.log('received metadata width['+jqReresable.data('native-width')+'] height['+jqReresable.data('native-height')+']');
+        }
+        this.imageCheckRes(jqEnt);
+      }
     }
   };
   
-  /**
-   * Swap out image using a temporary image (to get triggered on load event)
-   * Can't just switch src on jqEnt, because that image is already loaded
-   * Firebug doesn't show the updated data- attributes, but they are updated
-   */
-  this['swapImageOut'] = function(jqEnt, path) {
-    var that = this;
-    // create temporary image container
-    var img = $('<img id="dynamic" />');
-    // attach listener to catch when the new image has loaded
-    img.attr('src', path).one('load', function() {
-      // now that it's pre-cached by the temp, apply to original image
-      jqEnt.attr('src', path);
-      // store loaded width and height
-      jqEnt.data('loaded-width', this.width);
-      jqEnt.data('loaded-height', this.height);
-      if (debug) {
-        console.log('image '+jqEnt.attr('id')+': swapped out for ('+jqEnt.data('loaded-width')+','+jqEnt.data('loaded-height')+')');
-      }
-      that.refreshMetric(jqEnt);
-      // console.log('loaded imageWidth['+this.width+'] imageHeight['+this.height+'] src['+$(this).attr('src')+']');        
-    }).each(function() {
-      if(this.complete) $(this).load();
-    });
-    // console.log('swapped path['+path+']');
-  };
-
   // ------------------
   // FUNCTIONS: refresh
   // ------------------
@@ -347,11 +269,11 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
     // loop through all 'ready' elements
     $('.screenpc-ready').each(
       function() {
-        var jqCell = $(this);
+        var jqEnt = $(this);
         var pxval, pcval;
         // read data-screen-pc-width|height if set
-        pcwidth = jqCell.data('screenpc-width');
-        pcheight = jqCell.data('screenpc-height');
+        pcwidth = jqEnt.data('screenpc-width');
+        pcheight = jqEnt.data('screenpc-height');
         // resize cells as applicable
         if (that.setScreenPcUsing == 'pc') {
           // don't re-apply same pc every refresh
@@ -360,7 +282,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
           if (pcwidth) {
             pxval = ww * pcwidth / 100;
             pcval = (pxval * 100 / dw) + '%';
-            jqCell.width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
+            jqEnt.width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
             if (debug && false) {
               console.log('ww[' + ww + '] dw['+ dw +'] pcwidth[' + pcwidth + '] pxval[' + pxval + '] pcval[' + pcval + ']');
             }
@@ -368,13 +290,13 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
           if (pcheight) {
             pxval = wh * pcheight / 100;
             pcval = (pxval * 100 / dh) + '%';
-            jqCell.height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
+            jqEnt.height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
             if (debug && false) {
               console.log('wh[' + wh + '] dh[' + dh + '] pcheight[' + pcheight + '] pxval[' + pxval + '] pcval[' + pcval + ']');
             }
           }
           if (debug && false) {
-            console.log('post-set screenpc[' + jqCell.attr('id') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ jqCell.width() + '] h[' + jqCell.height() + ']');
+            console.log('post-set screenpc[cell-' + jqEnt.data('seq') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ jqEnt.width() + '] h[' + jqEnt.height() + ']');
           }
         }
       }
@@ -387,33 +309,33 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    */
   this['refreshMetric'] = function(jqEnt) {
     // find the imgmetric if it's set
-    var common_parent = jqEnt.parents('li');
-    var met = common_parent.find('.imgmetric');
+    var jqReresable = jqEnt.find('.reresable');
+    var jqMetric = jqEnt.find('.imgmetric');
     var perc;
-    if (met.length) {
-      var width_current = jqEnt.width(), height_current = jqEnt.height();
-      var width_native = jqEnt.data('native-width'), height_native = jqEnt.data('native-height');
+    if (jqMetric.length && jqReresable.length) {
+      var width_current = jqReresable.width(), height_current = jqReresable.height();
+      var width_native = jqReresable.data('native-width'), height_native = jqReresable.data('native-height');
       // calculate percentage based on image area, or width
       // perc = Math.round((width_current * height_current) * 100 / (width_native * height_native));
       perc = Math.round(width_current * 100 / width_native);
       if (debug && false) {
         // show the size of the image that's been loaded into this img container
-        met.find('span.width').html(Math.round(jqEnt.data('loaded-width')));
-        met.find('span.height').html(Math.round(jqEnt.data('loaded-height')));
-        met.find('span.size').show();
+        jqMetric.find('span.width').html(Math.round(jqReresable.data('loaded-width')));
+        jqMetric.find('span.height').html(Math.round(jqReresable.data('loaded-height')));
+        jqMetric.find('span.size').show();
       } else {
         // update with current image width and height
-        met.find('span.width').html(Math.round(width_current));
-        met.find('span.height').html(Math.round(height_current));
+        jqMetric.find('span.width').html(Math.round(width_current));
+        jqMetric.find('span.height').html(Math.round(height_current));
       }
       if (!isNaN(perc)) {
-        met.find('span.perc').html(perc+'%').show();
+        jqMetric.find('span.perc').html(perc+'%').show();
       }
       // analyse to see if we're over/under the native res
       if (width_current > width_native || height_current > height_native) {
-        met.removeClass('super').addClass('sub');
+        jqMetric.removeClass('super').addClass('sub');
       } else {
-        met.removeClass('sub').addClass('super');          
+        jqMetric.removeClass('sub').addClass('super');          
       }
     }
   }
@@ -422,30 +344,37 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    * check that the image metric is in the right place
    */
   this['refreshMetricPosition'] = function(jqEnt) {
-    var met = jqEnt.parents('li').find('.imgmetric');
-    // move the metric to the corner of the image using absolute coords
-    met.css( { 'top': jqEnt.offset().top, 'left': jqEnt.offset().left });
+    var jqMetric = jqEnt.find('.imgmetric');
+    if (jqMetric.length) {
+      var position = jqEnt.offset();
+      // move the metric to the corner of the image using absolute coords
+      jqMetric.css( { 'top': position.top, 'left': position.left });
+    }
   }
 
   /**
-   * refresh the img.visible status on all/some of the images
+   * refresh the cell.visible status on all/some of the entries
    * @param  {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
    */
   this['refreshVisibility'] = function(scrolldir) {
-    if (scrolldir == 0) {
-      // if no scroll direction, refresh test all images for visibility
-      this.setVisibleAll();
-    } else {
-      this.setVisibleNewlyVisible(scrolldir);
-    }
+    // always test all images for visibility
+    this.setVisibleAll();
     // check to see if the selected image is now no longer visible
-    jqEnt = $('ul.flow li.cell .selectable.selected');
+    this.refreshSelected(scrolldir);
+  }
+
+  /** 
+   * refresh the selected entry after a visibility change
+   * @param  {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
+   */
+  this['refreshSelected'] = function(scrolldir) {
+    jqEnt = $('ul.flow .selectablecell.selected');
     if (!jqEnt.hasClass('visible')) {
       if (debug && false) {
         console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
       }
       // find the next visible one in the scroll direction
-      jqEnt = $('ul.flow li.cell .selectable.visible:'+(scrolldir > 0 ? 'first' : 'last'));
+      jqEnt = $('ul.flow .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
       if (jqEnt.length) {
         // use hash to select new and deselect old, but numb listener
         that.imageAdvanceTo(jqEnt.data('seq'), true);
@@ -458,7 +387,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    */
   this['refreshVisibles'] = function() {
     var that = this;
-    $('ul.flow li.cell .selectable.visible').each(function() {
+    $('ul.flow .selectablecell.visible').each(function() {
       that.refreshImage($(this));
     })
   }
@@ -482,7 +411,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    */
   this['refreshImageSameBound'] = function(jqEnt) {
     // change out the image for a better resolution if one's available
-    that.checkImageRes(jqEnt);
+    that.imageCheckRes(jqEnt);
     // update metric
     that.refreshMetric(jqEnt);
     that.refreshMetricPosition(jqEnt);    
@@ -580,7 +509,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
           break;
         case that.export.KEY_ARROW_UP:
           if (event.altKey) {
-            that.url_changeUp();
+            that.urlChangeUp();
             event.preventDefault();
           }
           break;
@@ -645,9 +574,9 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    */
   this['bindToImageLinks'] = function() {
     var that = this;
-    $('.cell a.media-container').click(function(event) {
+    $('ul.flow .selectablecell a.media-container').click(function(event) {
       // select image, then toggle
-      var seq = $(this).find('img').data('seq');
+      var seq = $(this).parents('.selectablecell').data('seq');
       // seq changes don't go into history
       that.hashUpdate( { 'seq': seq }, false, false);
       // this is a bit nasty, because it's doing 2 hash updates in quick succession
@@ -666,19 +595,22 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    * @param  {jQuery.deferred} deferred async queue
    */
   this['getLoadedResolution'] = function(jqEnt, deferred) {
-    // update loaded resolution
-    var im = new Image();
-    im.onload = function() {
-      jqEnt.data('loaded-width', im.width);
-      jqEnt.data('loaded-height', im.height);
-      im = null;
-      if (debug) {
-        console.log('loaded first thumbnail for image-'+jqEnt.data('seq'));
+    var jqBoundable = jqEnt.find('.boundable');
+    if (jqBoundable.length) {
+      // update loaded resolution
+      var im = new Image();
+      im.onload = function() {
+        jqBoundable.data('loaded-width', im.width);
+        jqBoundable.data('loaded-height', im.height);
+        im = null;
+        if (debug && false) {
+          console.log('loaded first thumbnail for image-'+jqEnt.data('seq'));
+        }
+        // notify promise of resolution
+        deferred.resolve(jqEnt);
       }
-      // notify promise of resolution
-      deferred.resolve(jqEnt);
+      im.src = jqBoundable.attr('src');
     }
-    im.src = jqEnt.attr('src');
   }
 
   /**
@@ -724,24 +656,24 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    * @return {jQuery} selected entity
    */
   this['getSelected'] = function() {
-    var jq = $('ul.flow li.cell .selectable.selected')
-    return jq;
+    var jqEnt = $('ul.flow .selectablecell.selected')
+    return jqEnt;
   }
 
   /**
-   * @return {int} sequence number of currently selected image
+   * @return {int} sequence number of currently selected cell
    */
   this['getSeq'] = function() {
-    var jq = this.getSelected();
+    var jqEnt = this.getSelected();
     // jq.data returns undefined (not 0) if not set, so first-run safe
-    return jq.data('seq');
+    return jqEnt.data('seq');
   }
 
   /**
    * @return {int} total number of entities (max entry seq+1)
    */
   this['getTotalEntries'] = function() {
-    var jq = $('ul.flow li.cell .selectable:last')
+    var jq = $('ul.flow .selectablecell:last')
     return (parseInt(jq.data('seq'))+1);
   }
 
@@ -749,14 +681,11 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    * @return {string} type of entity
    */
   this['getType'] = function(jqEnt) {
-    if (jqEnt.is('img')) {
-      if (jqEnt.hasClass('video')) {
-        return 'video';
-      } else {
-        return 'image';
-      }
-    }
-    if (jqEnt.is('.directory-container')) {
+    if (jqEnt.hasClass('image-type')) {
+      return 'image';
+    } else if (jqEnt.hasClass('video-type')) {
+      return 'video';
+    } else if (jqEnt.hasClass('directory-type')) {
       return 'directory';
     }
   }
@@ -804,9 +733,9 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
     if (!changed) return false;
     var jqCurrent, position;
     // deselect old image
-    $('ul.flow li.cell .selectable.selected').removeClass('selected');
+    $('ul.flow .selectablecell.selected').removeClass('selected');
     // select new image
-    jqCurrent = $('#selseq-'+seq);
+    jqCurrent = $('#seq-'+seq);
     jqCurrent.addClass('selected');
     return changed;
   };
@@ -816,17 +745,17 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    * @param {int} seq image sequence number
    * downstream of: EVENT
    */
-  this['setVisibleByScrolling'] = function(seq) {
-    var jq = $('#selseq-'+seq);
+  this['setScrollPosition'] = function(seq) {
+    var jqEnt = $('#seq-'+seq);
       // if we found the cell
-    if (jq.length) {
-      if (!this.isVisible(jq)) {
+    if (jqEnt.length) {
+      if (!this.isVisible(jqEnt, true)) {
         if (this.getDirection() == 'x') {
           // get coordinate of selected image's cell
-          position = jq.parents('li.cell').offset();
+          position = jqEnt.offset();
           this.scrollUpdate(position.left, 0);
         } else {
-          position = jq.parents('li.cell').offset();
+          position = jqEnt.offset();
           this.scrollUpdate(0, position.top);
         }
       } else {
@@ -842,92 +771,19 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    */
   this['setVisibleAll'] = function() {
     var that = this;
-    $('ul.flow li.cell .selectable').each(function() {
+    // clear all the visible images
+    $('ul.flow .selectablecell').removeClass('visible');
+    // then recalculate them
+    $('ul.flow .selectablecell').each(function() {
       var jqEnt = $(this);
-      if (that.isVisible(jqEnt)) {
-        if (!jqEnt.hasClass('visible')) {
-          that.setVisibleImage(jqEnt, true);
-        }
+      if (that.isVisible(jqEnt, true)) {
+        that.setVisibleImage(jqEnt, true);
       } else {
         // don't test, because setVis(false) is just a .removeClass()
         that.setVisibleImage(jqEnt, false);
       }
     });
   }
-
-  /**
-   * Loop through those images newly exposed, flagging as visible
-   * Protected against case where accidentally called before there are any visible images
-   * @param  {int} scrolldir scroll direction
-   */
-  this['setVisibleNewlyVisible'] = function(scrolldir) {
-    // find first invisible image in scroll direction by finding last visible
-    var jqEnt = $('ul.flow li.cell .selectable.visible:'+(scrolldir > 0 ? 'last' : 'first'));
-    // if there aren't visible images, start at zero
-    if (!jqEnt.length) {
-      return this.setVisibleAll();
-    }
-    // initial sequence number is the one after the last visible, or before the first visible
-    var initialSeq = jqEnt.data('seq');
-    var seq = this.getNextSeq(jqEnt.data('seq'), scrolldir > 0 ? 1 : -1);
-    jqEnt = $('#selseq-'+seq);
-    if (debug && false) {
-      console.log('testing image for visible '+seq);      
-    }
-    // test to see if the scroll segments are connected or not
-    if (!this.isVisible(jqEnt)) {
-      // if disconnected, start from scratch
-      return this.setVisibleAll();
-    } else {
-      // if the scroll revealed a contiguous segment, loop forward from there
-      while (this.isVisible(jqEnt) && (seq !== false)) {
-        // but it wasn't previously
-        if (!jqEnt.hasClass('visible')) {
-          this.setVisibleImage(jqEnt, true);
-        }
-        // identify next image
-        seq = this.getNextSeq(jqEnt.data('seq'), scrolldir > 0 ? 1 : -1);
-        // check we haven't looped through them all
-        if (seq == initialSeq) {
-          break;
-        } else {
-          // prepare to check next image
-          jqEnt = $('#selseq-'+seq);
-        }
-      }
-      // now look for images that have been hidden
-      this.setVisibleNewlyHidden(scrolldir);
-    }
-  };
-
-  /**
-   * Loop through images flagging those scrolled out of view as not-visible
-   * Protected against case where accidentally called before there are any visible images
-   * @param  {int} scrolldir scroll direction
-   */
-  this['setVisibleNewlyHidden'] = function(scrolldir) {
-    // find first hidden image in opposite-scroll direction by finding first visible
-    var jqEnt = $('ul.flow li.cell .selectable.visible:'+(scrolldir > 0 ? 'first' : 'last'));
-    // if there aren't visible images, start at zero
-    if (!jqEnt.length) {
-      return this.setVisibleAll();
-    }
-    // initial sequence number is the one after the last visible, or before the first visible
-    var initialSeq = seq = jqEnt.data('seq');
-    if (debug && false) {
-      console.log('testing image for not-visible '+seq);
-    }
-    // go through all the images that are now not visible
-    while (!this.isVisible(jqEnt) && (seq !== false)) {
-      // but it was previously
-      if (jqEnt.hasClass('visible')) {
-        this.setVisibleImage(jqEnt, false);
-      }
-      // prepare to check next image (in scrolldir because started at furthest back)
-      seq = this.getNextSeq(jqEnt.data('seq'), scrolldir > 0 ? 1 : -1);
-      jqEnt = $('#selseq-'+seq);
-    }
-  };
 
   /**
    * either flag an image as visible or not visible
@@ -937,19 +793,22 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
   this['setVisibleImage'] = function(jqEnt, vis) {
     if (vis) {
       if (debug && false) {
-        console.log('making image '+jqEnt.data('seq')+' visible');
+        console.log('making image-'+jqEnt.data('seq')+' visible');
       }
       // make its src show if not there already
-      var attr = jqEnt.attr('src');
-      if (typeof attr === 'undefined' || attr === false) {
-        jqEnt.attr('src', jqEnt.data('desrc'));
+      var jqReresable = jqEnt.find('.reresable');
+      if (jqReresable.length) {
+        var attr = jqReresable.attr('src');
+        if (typeof attr === 'undefined' || attr === false) {
+          jqReresable.attr('src', jqReresable.data('desrc'));
+        }
+        // make it visible and swap it out
+        jqEnt.addClass('visible');
+        this.refreshImage(jqEnt);
       }
-      // make it visible and swap it out
-      jqEnt.addClass('visible');
-      this.refreshImage(jqEnt);
     } else {
       if (debug && false) {
-        console.log('making image '+seq+' not-visible');
+        console.log('making image-'+jqEnt.data('seq')+' not-visible');
       }
       // make it not-visible
       jqEnt.removeClass('visible');
@@ -959,6 +818,100 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
   // --------------------
   // FUNCTIONS: image ops
   // --------------------
+
+  /**
+   * Check the display resolution of the image and swap out src if higher res available 
+   */
+  this['imageCheckRes'] = function(jqEnt) {
+    var jqReresable = jqEnt.find('.reresable');
+    if (!jqReresable.length) {
+      return;
+    }
+    var nativeWidth = jqReresable.data('native-width');
+    var nativeHeight = jqReresable.data('native-height');
+    var swappedOut = false, metaedOut = false;
+    // don't attempt to check image resolution on directory
+    var type = this.getType(jqEnt);
+    if (!(type == 'image' || type == 'video')) {
+      return;
+    }
+    if (debug && false) {
+      console.log('image-'+jqEnt.data('seq')+': checking resolution');
+    }
+    // test to see if we're displaying an image at more than 100%
+    if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
+      // fire request for metadata, then callback this (imageCheckRes) function later
+      this.checkMetadata(jqEnt);
+      metaedOut = true;
+    } else {
+      var resbracket = 250, brackWidth, brackHeight;
+      var imageWidth = jqReresable.width() * window.devicePixelRatio;
+      var imageHeight = jqReresable.height() * window.devicePixelRatio;
+      var loadedWidth = jqReresable.data('loaded-width');
+      var loadedHeight = jqReresable.data('loaded-height');
+      var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
+      var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
+      // test to see if we're displaying an image at more than 100%
+      if (bigger && available) {
+        // only need to think about one dimension, because ratio of image is fixed
+        var majorw = (imageWidth >= imageHeight);
+        // but that dimension has to be the major dimension 
+        if (majorw) {
+          // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
+          brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
+          // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
+          if (brackWidth > loadedWidth) {
+            this.imageReres(jqReresable, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
+            swappedOut = true;
+            // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
+          }
+        } else {
+          // same but pivot on height rather than width
+          brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
+          if (brackHeight > loadedHeight) {
+            this.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
+            swappedOut = true;
+          }
+        }
+      }
+    }
+    // if we didn't swap out this image or go off to check its metadata, update imgmetric
+    // @todo maybe can comment this
+    if (!swappedOut && !metaedOut) {
+      this.refreshMetric(jqEnt);
+    }
+    if (debug && false) {
+      console.log('checking '+jqEnt.data('seq')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+    }
+  };
+
+  /**
+   * Swap out image using a temporary image (to get triggered on load event)
+   * Can't just switch src on jqEnt, because that image is already loaded
+   * Firebug doesn't show the updated data- attributes, but they are updated
+   */
+  this['imageReres'] = function(jqEnt, path) {
+    var that = this;
+    var jqReresable = jqEnt.find('.reresable');
+    if (jqReresable.length) {
+      // create temporary image container
+      var img = $('<img id="dynamic" />');
+      // attach listener to catch when the new image has loaded
+      img.attr('src', path).one('load', function() {
+        // now that it's pre-cached by the temp, apply to original image
+        jqReresable.attr('src', path);
+        // store loaded width and height
+        jqReresable.data('loaded-width', this.width);
+        jqReresable.data('loaded-height', this.height);
+        if (debug && false) {
+          console.log('image-'+jqEnt.data('seq')+': swapped out for ('+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+')');
+        }
+        that.refreshMetric(jqEnt);
+      }).each(function() {
+        if(this.complete) $(this).load();
+      });
+    }
+  };
 
   /**
    * advance forward or back by a certain number of images in the sequence
@@ -990,7 +943,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    * switch between the default breadth and fullscreen
    */
   this['imageToggleFullscreen'] = function() {
-    jqEnt = this.getSelected();
+    var jqEnt = this.getSelected();
     switch (this.getType(jqEnt)) {
       case 'image':
         var numbListener = false;
@@ -1002,7 +955,10 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
         }
         break;
       case 'directory':
-        window.location = jqEnt.attr('href');
+        var jqClickable = jqEnt.find('.clickable');
+        if (jqClickable.length) {
+          window.location = jqClickable.attr('href');
+        }
         break;
     }
   }
@@ -1014,7 +970,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
   /**
    * change up a directory
    */
-  this['url_changeUp'] = function() {
+  this['urlChangeUp'] = function() {
     var url = window.location.href;
     var lastChar = url.length;
     var lastHash = url.lastIndexOf('#');
@@ -1033,7 +989,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
       // append filtered hash
       var filteredHash = this.getFilteredHash();
       // redirect to new page
-      this.url_goto(newUrl + this.export.HASHBANG + filteredHash);
+      this.urlGoto(newUrl + this.export.HASHBANG + filteredHash);
     }
     return false;
   }
@@ -1042,7 +998,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
    * redirect to another url
    * @param  {string} newUrl new location
    */
-  this['url_goto'] = function(newUrl) {
+  this['urlGoto'] = function(newUrl) {
     window.location.href = newUrl;
   }
 
@@ -1217,15 +1173,16 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
   /**
    * apply hash state (+current values for those unset) to page
    * downstream of: EVENT hash change
+   * @param {bool} forceScrollPosition flag to control updates
    */
-  this['handler_hashChanged'] = function(hash) {
+  this['handler_hashChanged'] = function(hash, forceScrollPosition) {
     // first of all find out if we should actually ignore this hash change
     if (this.handler_numb('hash:'+hash)) {
       // ignore this event
     } else {
       // keep track of whether this update could have affected all images and selected images
-      var allImagesChanged = false;
-      var selectedImageChanged = false;
+      var breadthChanged = false;
+      var seqChanged = false;
       // start with defaults
       var obj = { 'breadth': this.default['breadth'], 'seq': this.default['seq']};
       // overwrite with current hash values
@@ -1237,11 +1194,16 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
       this.merge(obj, fromHash);
       // stage 1: apply [hash] state to DOM
       // breadth changes potentially affect all images
-      allImagesChanged |= this.setBreadth(obj.breadth);
+      breadthChanged = this.setBreadth(obj.breadth);
       // seq changes at most only affect the image being selected
-      selectedImageChanged |= this.setSeq(obj.seq);
-      // scroll to the selected image
-      this.setVisibleByScrolling(obj.seq);
+      seqChanged = this.setSeq(obj.seq);
+      if (seqChanged || breadthChanged || forceScrollPosition) {
+        // scroll to the selected image
+        this.setScrollPosition(obj.seq);
+      }
+      if (breadthChanged) {
+        this.refreshVisibles();
+      }
     }
   }
 
@@ -1271,10 +1233,15 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
   this['handler_scrolled'] = function(event) {
     var sx = $(document).scrollLeft(), sy = $(document).scrollTop();
     if (this.handler_numb('scroll:'+'x='+sx+'&y='+sy)) {
+      if (debug && true) {
+        console.log('numb scroll sx[' + sx + '] sy[' + sy + ']');
+      }
       // insert hack to correct for onload scroll to top
       if (sx == 0 && sy == 0) {
         // manually jump back to the right place by firing handler_hashChanged
         this.handler_hashChanged(this.getHash());
+        // need to force back to correct position
+        this.setScrollPosition(this.getSeq());
       }
       // ignore this event
     } else {
@@ -1290,7 +1257,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
       // remember scroll coords for next time
       this.scroll_lastX = sx;
       this.scroll_lastY = sy;
-      if (debug && false) {
+      if (debug && true) {
         console.log('scroll dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
       // see if scroll has made any new images visible
@@ -1316,25 +1283,26 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
   }
 
   /**
-   * @param {jQuery} jq jQuery entity that lives inside a cell
+   * @param {jQuery} jqEntity the cell
+   * @param {bool} True to include partially visible cells
    * @return {bool} True if this image is currently visible in the viewport
    */
-  this['isVisible'] = function(jq) {
-    // var jqCell = jq.parents('li.cell');
-    var jqCell = jq;
+  this['isVisible'] = function(jqEnt, partial) {
     // get coordinate of selected image's cell
-    var position = jqCell.offset();
+    var position = jqEnt.offset();
     // if horizontal (flow-x), scroll horizontally
     if (this.getDirection() == 'x') {
-      var min = $(document).scrollLeft();
-      var max = $(window).width() + $(document).scrollLeft() - jqCell.width();
+      // min is left bar (-1 for border) and a cell's width to include partials
+      var min = $(document).scrollLeft() -1 - (partial ? jqEnt.width() : 0);
+      // max is right bar (+1 for border) less a cell's width to exclude partials
+      var max = $(window).width() + $(document).scrollLeft() +1 - (partial ? 0 : jqEnt.width());
       if (debug && false) {
         console.log('min['+min+'] max['+max+'] position['+position.left+']');
       }
       return (position.left >= min && position.left <= max);
     } else {
       var min = $(document).scrollTop();
-      var max = $(window).height() + $(document).scrollTop() - jqCell.height();
+      var max = $(window).height() + $(document).scrollTop() - jqEnt.height();
       return (position.top >= min && position.top <= max);
     }
   }
@@ -1350,7 +1318,7 @@ console.log('processing metadata request for image-'+jqEnt.data('seq'));
       if (seq < 0 && increment < 0) {
         seq = this.getTotalEntries()-1;
       }
-      if ($('#selseq-'+seq).length) {
+      if ($('#seq-'+seq).length) {
         return seq;
       }
     } while (seq != this.startingPointSeq);

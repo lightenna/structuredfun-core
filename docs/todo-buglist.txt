@@ -1,4 +1,9 @@
 
+* extend test suite
+  + test visibility
+
+* fullscreen of image 0 needs to hide all imgmetrics
+
 * optimise dragging in large image sets
 
 * .s in directory names, like mq
@@ -633,4 +638,14 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + hash change loses key focus from window
     + need to preserve so we can 
   = seems to be working for now
+
+* fullscreen from visible images
+  + needs to refreshImage
+
+* images not displaying
+  + problem doesn't seem to be caused by the refactoring
+  + the cells are slightly outside the window (top:-1, left:-1)
+
+* move selectable, selected, visible up to cell
+  + test thoroughly
 
