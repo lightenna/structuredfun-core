@@ -112,7 +112,7 @@ html.no-js {
 
   .content {
     height: 100%;
-    // everything in content is unselectable
+    // everything in content is unhighlightable
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -226,6 +226,7 @@ html.no-js {
         z-index: 1;
         font-size: 0.6em;
         white-space: nowrap;
+        display: none;
         
         .size, .perc {
           display: none;
@@ -242,6 +243,19 @@ html.no-js {
         }
       }
 
+      &.visible p.imgmetric {
+        display: block;
+      }
+
+      // cells can be selected, but the selection is shown (reflected) by an element within
+      &.selected .selectreflector {
+        // make borders appear inside to avoid pushing outside cell
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        border: 1px solid #ff00ff;
+      }
+
       a { 
         // relative parent required for x-bound images
         position: relative;
@@ -249,15 +263,7 @@ html.no-js {
         text-decoration: none;
         font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
         // font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
-              
-        &.selected, > img.selected {
-          // make borders appear inside to avoid pushing outside cell
-          box-sizing: border-box;
-          -moz-box-sizing: border-box;
-          -webkit-box-sizing: border-box;
-          border: 1px solid #ff00ff;
-        }
-      
+
         // landscape images
         > img.x-bound {
           position: relative;

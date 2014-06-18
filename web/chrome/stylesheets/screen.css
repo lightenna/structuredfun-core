@@ -257,36 +257,41 @@ html.no-js .header:hover, html.no-js .footer:hover {
   z-index: 1;
   font-size: 0.6em;
   white-space: nowrap;
+  display: none;
 }
-/* line 230, ../sass/screen.scss */
+/* line 231, ../sass/screen.scss */
 .page .content .flow > .cell p.imgmetric .size, .page .content .flow > .cell p.imgmetric .perc {
   display: none;
 }
-/* line 234, ../sass/screen.scss */
+/* line 235, ../sass/screen.scss */
 .page .content .flow > .cell p.imgmetric.super {
   background-color: #009900;
   color: #BBFFBB;
 }
-/* line 239, ../sass/screen.scss */
+/* line 240, ../sass/screen.scss */
 .page .content .flow > .cell p.imgmetric.sub {
   background-color: #990000;
   color: #FFBBBB;
 }
-/* line 245, ../sass/screen.scss */
+/* line 246, ../sass/screen.scss */
+.page .content .flow > .cell.visible p.imgmetric {
+  display: block;
+}
+/* line 251, ../sass/screen.scss */
+.page .content .flow > .cell.selected .selectreflector {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border: 1px solid #ff00ff;
+}
+/* line 259, ../sass/screen.scss */
 .page .content .flow > .cell a {
   position: relative;
   text-align: right;
   text-decoration: none;
   font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
 }
-/* line 253, ../sass/screen.scss */
-.page .content .flow > .cell a.selected, .page .content .flow > .cell a > img.selected {
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  border: 1px solid #ff00ff;
-}
-/* line 262, ../sass/screen.scss */
+/* line 268, ../sass/screen.scss */
 .page .content .flow > .cell a > img.x-bound {
   position: relative;
   width: 100%;
@@ -295,11 +300,11 @@ html.no-js .header:hover, html.no-js .footer:hover {
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 272, ../sass/screen.scss */
+/* line 278, ../sass/screen.scss */
 .page .content .flow > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 276, ../sass/screen.scss */
+/* line 282, ../sass/screen.scss */
 .page .content .flow > .cell a .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -314,7 +319,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 291, ../sass/screen.scss */
+/* line 297, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory {
   background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
   background-size: 100% 100%;
@@ -330,7 +335,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   }
    */
 }
-/* line 299, ../sass/screen.scss */
+/* line 305, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .overlay {
   width: 100%;
   height: 100%;
@@ -339,40 +344,40 @@ html.no-js .header:hover, html.no-js .footer:hover {
   top: 0;
   z-index: 1;
 }
-/* line 309, ../sass/screen.scss */
+/* line 315, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview {
   width: 42.7%;
   height: 38%;
   position: relative;
   margin-right: 3%;
 }
-/* line 324, ../sass/screen.scss */
+/* line 330, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-2, .page .content .flow > .cell a div.directory .preview-4 {
   margin-right: 6%;
 }
-/* line 329, ../sass/screen.scss */
+/* line 335, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-1, .page .content .flow > .cell a div.directory .preview-2 {
   top: 13%;
 }
-/* line 334, ../sass/screen.scss */
+/* line 340, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-3, .page .content .flow > .cell a div.directory .preview-4 {
   top: 16.4%;
 }
-/* line 343, ../sass/screen.scss */
+/* line 349, ../sass/screen.scss */
 .page .content .flow > .cell div.dummy1 {
   height: 50%;
 }
-/* line 347, ../sass/screen.scss */
+/* line 353, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container {
   display: inline-block;
   width: 100%;
   margin-top: -37.5%;
 }
-/* line 353, ../sass/screen.scss */
+/* line 359, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container .dummy2 {
   padding-top: 75%;
 }
-/* line 358, ../sass/screen.scss */
+/* line 364, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container div.directory {
   position: absolute;
   top: 0;
@@ -383,22 +388,22 @@ html.no-js .header:hover, html.no-js .footer:hover {
 
 /* -------------------------------------------------------------------------*/
 /* Theme variants */
-/* line 375, ../sass/screen.scss */
+/* line 381, ../sass/screen.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 378, ../sass/screen.scss */
+/* line 384, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell {
   border-color: #333333;
 }
-/* line 381, ../sass/screen.scss */
+/* line 387, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell .directory {
   background-image: url("/chrome/images/fullres/folder_back_dark.png");
 }
 
 /* -------------------------------------------------------------------------*/
 /* Test suite */
-/* line 390, ../sass/screen.scss */
+/* line 396, ../sass/screen.scss */
 #qunit {
   position: absolute;
   z-index: 999;
