@@ -496,7 +496,7 @@ window.sfun = (function($, undefined) {
   this['bindToHotKeys'] = function() {
     var that = this;
     $(document).keydown(function(event){
-      if (debug && false) {
+      if (debug && true) {
         console.log('keydown event code['+event.which+']');
       }
       switch (event.which) {
@@ -1186,7 +1186,7 @@ window.sfun = (function($, undefined) {
       // start with defaults
       var obj = { 'breadth': this.default['breadth'], 'seq': this.default['seq']};
       // overwrite with current hash values
-      fromHash = this.hashParse(hash);
+      var fromHash = this.hashParse(hash);
       // check the hash values are valid, fallback to defaults if not
       if (!this.hashValidate(fromHash)) {
         console.log('illegal hash values, falling back to defaults');
@@ -1288,14 +1288,15 @@ window.sfun = (function($, undefined) {
    * @return {bool} True if this image is currently visible in the viewport
    */
   this['isVisible'] = function(jqEnt, partial) {
+    var rounding = 5;
     // get coordinate of selected image's cell
     var position = jqEnt.offset();
     // if horizontal (flow-x), scroll horizontally
     if (this.getDirection() == 'x') {
       // min is left bar (-1 for border) and a cell's width to include partials
-      var min = $(document).scrollLeft() -1 - (partial ? jqEnt.width() : 0);
+      var min = $(document).scrollLeft() + rounding - (partial ? jqEnt.width() : 0);
       // max is right bar (+1 for border) less a cell's width to exclude partials
-      var max = $(window).width() + $(document).scrollLeft() +1 - (partial ? 0 : jqEnt.width());
+      var max = $(window).width() + $(document).scrollLeft() - rounding - (partial ? 0 : jqEnt.width());
       if (debug && false) {
         console.log('min['+min+'] max['+max+'] position['+position.left+']');
       }

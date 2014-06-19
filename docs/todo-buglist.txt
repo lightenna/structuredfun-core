@@ -1,6 +1,24 @@
 
+* fix test suite
+  + end doesn't select last entry
+    + it's toggling between 838 and 836
+    + which I think is caused by isVis getting it wrong
+      + test using #!seq=8
+    + do it properly with unit tests
+      + tricky to test
+      + best to do it with the test suite
+
+* clean up isVis to make it reliable for on-screen
+
+* add class nearvis
+  + add to it 2x breadth on either side nearvis§
+
 * extend test suite
   + test visibility
+    + scroll to start, scroll to end, scroll to middle
+    + test all visibles in one block (no littering)
+  + test reres
+  + test appearance of 
 
 * fullscreen of image 0 needs to hide all imgmetrics
 
