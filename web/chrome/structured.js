@@ -8,6 +8,9 @@ window.sfun = (function($, undefined) {
   // default values for view state
   this.default = [];
 
+  // the previous values for the view state (1 generation)
+  this.previous = [];
+
   // ms to wait after resize event before re-bound/re-res
   this.resizeTimeout = null;
   // for screenpc width/height, set using px/pc
@@ -23,9 +26,9 @@ window.sfun = (function($, undefined) {
     this.setScreenPcUsing = 'pc';
     $(document).ready(function() {
       // process state in page HTML next
-      that.default['direction'] = that.getDirection();
-      that.default['breadth'] = that.getBreadth();
-      that.default['seq'] = 0;
+      that.previous['direction'] = that.default['direction'] = that.getDirection();
+      that.previous['breadth'] = that.default['breadth'] = that.getBreadth();
+      that.previous['seq'] = that.default['seq'] = 0;
       // bind to page
       that.bindToScroll();
       that.bindToHeaderLinks();
@@ -35,24 +38,13 @@ window.sfun = (function($, undefined) {
       // if we're sideways scrolling, bind to scroll event
       that.setDirection(that.getDirection());
       // find all screenpc elements, extract pc and store as data- attribute
-      $('.screenpc-width').each(function() {
-        return that.generate_data_pc($(this), 'width');
-      }).promise().done(function() {
-        $('.screenpc-height').each(function() {
-          // can't simply use css('height') because it returns height in px not %
-          // console.log($(this).css('height'));
-          return that.generate_data_pc($(this), 'height');
-        });
-      }).promise().done(function() {
-        // call refresh function to apply cell widths/heights
-        refreshCells();
-        // on page load, browser will scroll to the top, prepare to ignore it
-        that.eventNumbQueue.push('scroll:x=0&y=0');
-        // process state if set in URL (hash) first
-        that.handler_hashChanged(that.getHash());
-        // execute queue of API calls
-        that.export.flush();
-      })
+      that.cellsInit();
+      // on page load, browser will scroll to the top, prepare to ignore it
+      that.eventNumbQueue.push('scroll:x=0&y=0');
+      // process state if set in URL (hash) first
+      that.handler_hashChanged(that.getHash());
+      // execute queue of API calls
+      that.export.flush();
       // attach listener to window for resize (rare, but should update)
       $(window).resize(function() {
         // if we're already timing out, delay for another x milliseconds
@@ -68,101 +60,98 @@ window.sfun = (function($, undefined) {
   };
 
   /**
-   * Extract percentage and store as data- attribute
-   * 
-   * @param object
-   *          jQuery object
-   * @param string
-   *          {width|height} axis to extract percentage for
+   * Request metadata about this image from the server
    */
-  this['generate_data_pc'] = function(jq, axis) {
-    var elemclass, elemid, elempc = undefined;
-    // parse stylesheets for #id:width
-    elemid = jq.attr('id');
-    if (elemid != undefined) {
-      // parse stylesheets for class(n):width
-      elempc = this.lookupSelectorProp('#' + elemid, axis, '%');
-    }
-    if (elempc != undefined) {
-      // found width on #id, apply to data
-      jq.data('screenpc-' + axis, elempc).addClass('screenpc-ready');
-    }
-    else {
-      // break class list into array
-      elemclass = jq.attr('class').split(' ');
-      // search list for a class defined in stylesheet
-      for ( var i = 0; i < elemclass.length; i++) {
-        var elemc = elemclass[i];
-        // lookup class in style sheets to find width definition
-        elempc = this.lookupSelectorProp('.' + elemc, axis, '%');
-        if (elempc != undefined) {
-          // found property, store in data tag
-          jq.data('screenpc-' + axis, elempc).addClass('screenpc-ready');
-          // don't carry on the search
-          break;
-        }
+  this['checkMetadata'] = function(jqEnt) {
+    var that = this;
+    var jqReresable = jqEnt.find('.reresable');
+    if (jqReresable.length) {
+      $.ajax({
+        url: jqReresable.attr('src').replace('image','imagemeta'),
+        dataType: 'json',
+      })
+      .done(function( data ) {
+        that.processMetadata(jqEnt, data);
+      });
+      if (debug && false) {
+        console.log('firing metadata request for image-'+jqEnt.data('seq'));
       }
     }
   };
 
   /**
-   * Search for a property in a stylesheet class
-   * 
-   * @todo optimise, suggest caching of found rules
-   * @param string
-   *          element selector
-   * @param string
-   *          property to search for
-   * @param [string]
-   *          matchstrip characters to match and strip from the result
+   * Store processed metadata in data- attributes if returned
    */
-  this['lookupSelectorProp'] = function(elem, prop) {
-    var matchstrip = undefined;
-    // look for optional third argument
-    if (arguments.length > 2) {
-      matchstrip = arguments[2];
-    }
-    // iterate over stylesheets
-    for ( var j = 0; j < document.styleSheets.length; j++) {
-      var rules = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
-      // iterate over rules within current stylesheet
-      for ( var i = 0; i < rules.length; i++) {
-        var rule = rules[i];
-        if (typeof(rule.selectorText) != 'undefined') {
-          // test rule name against elem
-          if (endswith(rule.selectorText, elem)) {
-            if (debug && false) {
-              console.log('matched rule[' + rule.selectorText + '] against elem[' + elem + ']');
-            }
-            var elempc = rule.style.getPropertyValue(prop);
-            // if we actually found that property in this stylesheet class
-            if (elempc != undefined) {
-              // if we're suppose to match and strip characters from the end
-              if (matchstrip != undefined) {
-                // if the characters are there
-                if (elempc.indexOf(matchstrip) !== -1) {
-                  // if we can match it, strip it
-                  elempc = elempc.replace(matchstrip, '');
-                }
-                else {
-                  // but if we can't match it, don't return it at all
-                  continue;
-                }
-              }
-              return elempc;
-            }
-          }
+  this['processMetadata'] = function(jqEnt, data) {
+    if (typeof(data.meta) != 'undefined') {
+      var jqReresable = jqEnt.find('.reresable');
+      if (jqReresable.length) {
+        jqReresable.data('native-width', data.meta.width);
+        jqReresable.data('native-height', data.meta.height);
+        // trigger image resolution check again now that we've updated data- attributes
+        if (debug && false) {
+          console.log('processing metadata request for image-'+jqEnt.data('seq'));
+          console.log('received metadata width['+jqReresable.data('native-width')+'] height['+jqReresable.data('native-height')+']');
         }
+        this.refreshResolution(jqEnt);
       }
     }
-    return undefined;
   };
+  
+  // ----------------
+  // FUNCTIONS: cells
+  // ----------------
+
+  /**
+   * initialise the cells
+   */
+  this['cellsInit'] = function() {
+    var that = this;
+    $('ul.flow .selectablecell').each(function() {
+      that.cellsGenerateDataPerc($(this));
+    });
+    // not currently using this
+    // cells are simple percentages
+    // cellsRefresh();
+  }
+
+  /**
+   * Extract percentage and store as data- attribute
+   * @param {object} Query object
+   * @param {string} {width|height} axis to extract percentage for
+   */
+  this['cellsGenerateDataPerc'] = function(jqEnt) {
+    var pc
+    pc = jqEnt.width() * 100 / $(window).width();
+    jqEnt.data('screenpc-width', pc);
+    pc = jqEnt.height() * 100 / $(window).height();
+    jqEnt.data('screenpc-height', pc);
+  };
+
+  /**
+   * @todo this currently assume that every cell is the same width on the major axis
+   * @return {float} number of cells along the major axis
+   */
+  this['cellsCountMajor'] = function() {
+    var direction = this.getDirection();
+    var jqEnt = $('ul.flow .selectablecell:first');
+    if (direction == 'x') {
+      var pc = parseInt(jqEnt.data('screenpc-width'));
+    } else {
+      var pc = parseInt(jqEnt.data('screenpc-height'));
+    }
+    return (100 / pc);
+  }
+
+  // ------------------
+  // FUNCTIONS: refresh
+  // ------------------
 
   /**
    * update (x/y)-bound on boundable image in cell
    * @param jQuery cell that may have changed size
    */
-  this['checkImageBound'] = function(jqEnt) {
+  this['refreshBounds'] = function(jqEnt) {
     // use jQuery deferred promises
     var deferred = new $.Deferred();
     // find boundable entity
@@ -202,105 +191,6 @@ window.sfun = (function($, undefined) {
     // return object so that outside code can queue functions to get notified on resolve
     // but restrict using promise() so we cannot interfere with it
     return deferred.promise();
-  };
-
-  /**
-   * Request metadata about this image from the server
-   */
-  this['checkMetadata'] = function(jqEnt) {
-    var that = this;
-    var jqReresable = jqEnt.find('.reresable');
-    if (jqReresable.length) {
-      $.ajax({
-        url: jqReresable.attr('src').replace('image','imagemeta'),
-        dataType: 'json',
-      })
-      .done(function( data ) {
-        that.processMetadata(jqEnt, data);
-      });
-      if (debug && false) {
-        console.log('firing metadata request for image-'+jqEnt.data('seq'));
-      }
-    }
-  };
-
-  /**
-   * Store processed metadata in data- attributes if returned
-   */
-  this['processMetadata'] = function(jqEnt, data) {
-    if (typeof(data.meta) != 'undefined') {
-      var jqReresable = jqEnt.find('.reresable');
-      if (jqReresable.length) {
-        jqReresable.data('native-width', data.meta.width);
-        jqReresable.data('native-height', data.meta.height);
-        // trigger image resolution check again now that we've updated data- attributes
-        if (debug && false) {
-          console.log('processing metadata request for image-'+jqEnt.data('seq'));
-          console.log('received metadata width['+jqReresable.data('native-width')+'] height['+jqReresable.data('native-height')+']');
-        }
-        this.imageCheckRes(jqEnt);
-      }
-    }
-  };
-  
-  // ------------------
-  // FUNCTIONS: refresh
-  // ------------------
-
-  /**
-   * Refresh element width/heights when screen size changes
-   */
-  this['refreshCells'] = function() {
-    var that = this;
-    var win = $(window), doc = $(document);
-    var ww = win.width(), wh = win.height(), dw = doc.width(), dh = doc.height();
-    var pcwidth = undefined, pcheight = undefined;
-    // try to find a yardstick-(x/y) and use if found for width/height
-    var yardx = $('#yardstick-x'), yardy = $('#yardstick-y');
-    if (yardx.length) {
-      ww = yardx.width();
-    }
-    if (yardy.length) {
-      wh = yardy.height();
-    }
-    if (debug && false) {
-      console.log('viewport w[' + ww + '] h[' + wh + ']');
-    }
-    // loop through all 'ready' elements
-    $('.screenpc-ready').each(
-      function() {
-        var jqEnt = $(this);
-        var pxval, pcval;
-        // read data-screen-pc-width|height if set
-        pcwidth = jqEnt.data('screenpc-width');
-        pcheight = jqEnt.data('screenpc-height');
-        // resize cells as applicable
-        if (that.setScreenPcUsing == 'pc') {
-          // don't re-apply same pc every refresh
-        } else {
-          // apply screen percentage as pixels (px) or document percentage (dpc), transformed from window pc
-          if (pcwidth) {
-            pxval = ww * pcwidth / 100;
-            pcval = (pxval * 100 / dw) + '%';
-            jqEnt.width(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
-            if (debug && false) {
-              console.log('ww[' + ww + '] dw['+ dw +'] pcwidth[' + pcwidth + '] pxval[' + pxval + '] pcval[' + pcval + ']');
-            }
-          }
-          if (pcheight) {
-            pxval = wh * pcheight / 100;
-            pcval = (pxval * 100 / dh) + '%';
-            jqEnt.height(that.setScreenPcUsing == 'dpc' ? pcval : pxval);
-            if (debug && false) {
-              console.log('wh[' + wh + '] dh[' + dh + '] pcheight[' + pcheight + '] pxval[' + pxval + '] pcval[' + pcval + ']');
-            }
-          }
-          if (debug && false) {
-            console.log('post-set screenpc[cell-' + jqEnt.data('seq') + '] w[' + pcwidth + '%] h[' + pcheight + '%] now w['+ jqEnt.width() + '] h[' + jqEnt.height() + ']');
-          }
-        }
-      }
-    );
   };
 
   /**
@@ -368,7 +258,7 @@ window.sfun = (function($, undefined) {
    * @param  {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
    */
   this['refreshSelected'] = function(scrolldir) {
-    jqEnt = $('ul.flow .selectablecell.selected');
+    var jqEnt = $('ul.flow .selectablecell.selected');
     if (!jqEnt.hasClass('visible')) {
       if (debug && false) {
         console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
@@ -382,15 +272,71 @@ window.sfun = (function($, undefined) {
     }
   }
 
-  /** 
-   * refresh the metric, metric position on visible images
+  /**
+   * Check the display resolution of the image and swap out src if higher res available 
    */
-  this['refreshVisibles'] = function() {
-    var that = this;
-    $('ul.flow .selectablecell.visible').each(function() {
-      that.refreshImage($(this));
-    })
-  }
+  this['refreshResolution'] = function(jqEnt) {
+    var jqReresable = jqEnt.find('.reresable');
+    if (!jqReresable.length) {
+      return;
+    }
+    var nativeWidth = jqReresable.data('native-width');
+    var nativeHeight = jqReresable.data('native-height');
+    var swappedOut = false, metaedOut = false;
+    // don't attempt to check image resolution on directory
+    var type = this.getType(jqEnt);
+    if (!(type == 'image' || type == 'video')) {
+      return;
+    }
+    if (debug && false) {
+      console.log('image-'+jqEnt.data('seq')+': checking resolution');
+    }
+    // test to see if we're displaying an image at more than 100%
+    if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
+      // fire request for metadata, then callback this (refreshResolution) function later
+      this.checkMetadata(jqEnt);
+      metaedOut = true;
+    } else {
+      var resbracket = 250, brackWidth, brackHeight;
+      var imageWidth = jqReresable.width() * window.devicePixelRatio;
+      var imageHeight = jqReresable.height() * window.devicePixelRatio;
+      var loadedWidth = jqReresable.data('loaded-width');
+      var loadedHeight = jqReresable.data('loaded-height');
+      var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
+      var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
+      // test to see if we're displaying an image at more than 100%
+      if (bigger && available) {
+        // only need to think about one dimension, because ratio of image is fixed
+        var majorw = (imageWidth >= imageHeight);
+        // but that dimension has to be the major dimension 
+        if (majorw) {
+          // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
+          brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
+          // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
+          if (brackWidth > loadedWidth) {
+            this.imageReres(jqReresable, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
+            swappedOut = true;
+            // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
+          }
+        } else {
+          // same but pivot on height rather than width
+          brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
+          if (brackHeight > loadedHeight) {
+            this.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
+            swappedOut = true;
+          }
+        }
+      }
+    }
+    // if we didn't swap out this image or go off to check its metadata, update imgmetric
+    // @todo maybe can comment this
+    if (!swappedOut && !metaedOut) {
+      this.refreshMetric(jqEnt);
+    }
+    if (debug && false) {
+      console.log('checking '+jqEnt.data('seq')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+    }
+  };
 
   /**
    * refresh a single image, but ensure that it's loaded first
@@ -399,22 +345,14 @@ window.sfun = (function($, undefined) {
   this['refreshImage'] = function(jqEnt) {
     var that = this;
     // check the image bound (asynchronous)
-    this.checkImageBound(jqEnt)
+    this.refreshBounds(jqEnt)
     .then(function(jqEnt) {
-      that.refreshImageSameBound(jqEnt);
+      // change out the image for a better resolution if one's available
+      that.refreshResolution(jqEnt);
+      // update metric
+      that.refreshMetric(jqEnt);
+      that.refreshMetricPosition(jqEnt);    
     });
-  }
-
-  /**
-   * refresh a single image within the same bounding box
-   * @param  {jQuery} jqEnt image
-   */
-  this['refreshImageSameBound'] = function(jqEnt) {
-    // change out the image for a better resolution if one's available
-    that.imageCheckRes(jqEnt);
-    // update metric
-    that.refreshMetric(jqEnt);
-    that.refreshMetricPosition(jqEnt);    
   }
 
   // ------------------
@@ -521,8 +459,12 @@ window.sfun = (function($, undefined) {
           event.preventDefault();
           break;
         case that.export.KEY_PAGE_UP:
+          that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth(), false);
+          event.preventDefault();
           break;
         case that.export.KEY_PAGE_DOWN:
+          that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth(), false);
+          event.preventDefault();
           break;
         case that.export.KEY_HOME:
           that.imageAdvanceTo(0, false);
@@ -795,6 +737,8 @@ window.sfun = (function($, undefined) {
       if (debug && false) {
         console.log('making image-'+jqEnt.data('seq')+' visible');
       }
+      // make it visible
+      jqEnt.addClass('visible');
       // make its src show if not there already
       var jqReresable = jqEnt.find('.reresable');
       if (jqReresable.length) {
@@ -802,8 +746,7 @@ window.sfun = (function($, undefined) {
         if (typeof attr === 'undefined' || attr === false) {
           jqReresable.attr('src', jqReresable.data('desrc'));
         }
-        // make it visible and swap it out
-        jqEnt.addClass('visible');
+        // when an image becomes visible refresh all its facets
         this.refreshImage(jqEnt);
       }
     } else {
@@ -818,72 +761,6 @@ window.sfun = (function($, undefined) {
   // --------------------
   // FUNCTIONS: image ops
   // --------------------
-
-  /**
-   * Check the display resolution of the image and swap out src if higher res available 
-   */
-  this['imageCheckRes'] = function(jqEnt) {
-    var jqReresable = jqEnt.find('.reresable');
-    if (!jqReresable.length) {
-      return;
-    }
-    var nativeWidth = jqReresable.data('native-width');
-    var nativeHeight = jqReresable.data('native-height');
-    var swappedOut = false, metaedOut = false;
-    // don't attempt to check image resolution on directory
-    var type = this.getType(jqEnt);
-    if (!(type == 'image' || type == 'video')) {
-      return;
-    }
-    if (debug && false) {
-      console.log('image-'+jqEnt.data('seq')+': checking resolution');
-    }
-    // test to see if we're displaying an image at more than 100%
-    if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
-      // fire request for metadata, then callback this (imageCheckRes) function later
-      this.checkMetadata(jqEnt);
-      metaedOut = true;
-    } else {
-      var resbracket = 250, brackWidth, brackHeight;
-      var imageWidth = jqReresable.width() * window.devicePixelRatio;
-      var imageHeight = jqReresable.height() * window.devicePixelRatio;
-      var loadedWidth = jqReresable.data('loaded-width');
-      var loadedHeight = jqReresable.data('loaded-height');
-      var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
-      var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
-      // test to see if we're displaying an image at more than 100%
-      if (bigger && available) {
-        // only need to think about one dimension, because ratio of image is fixed
-        var majorw = (imageWidth >= imageHeight);
-        // but that dimension has to be the major dimension 
-        if (majorw) {
-          // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
-          brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
-          // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
-          if (brackWidth > loadedWidth) {
-            this.imageReres(jqReresable, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
-            swappedOut = true;
-            // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
-          }
-        } else {
-          // same but pivot on height rather than width
-          brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
-          if (brackHeight > loadedHeight) {
-            this.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
-            swappedOut = true;
-          }
-        }
-      }
-    }
-    // if we didn't swap out this image or go off to check its metadata, update imgmetric
-    // @todo maybe can comment this
-    if (!swappedOut && !metaedOut) {
-      this.refreshMetric(jqEnt);
-    }
-    if (debug && false) {
-      console.log('checking '+jqEnt.data('seq')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
-    }
-  };
 
   /**
    * Swap out image using a temporary image (to get triggered on load event)
@@ -949,7 +826,7 @@ window.sfun = (function($, undefined) {
         var numbListener = false;
         // toggle using hash change
         if (this.getBreadth() == 1) {
-          this.hashUpdate( { 'breadth': this.default['breadth'] }, false, numbListener);
+          this.hashUpdate( { 'breadth': this.previous['breadth'] }, false, numbListener);
         } else {
           this.hashUpdate( { 'breadth': 1 }, false, numbListener);
         }
@@ -1192,17 +1069,28 @@ window.sfun = (function($, undefined) {
         console.log('illegal hash values, falling back to defaults');
       }
       this.merge(obj, fromHash);
+      // update previous values if changed
+      var cbreadth = this.getBreadth(), cseq = this.getSeq();
+      if (cbreadth != obj.breadth) {
+        this.previous['breadth'] = cbreadth;
+      }
+      if (cseq != obj.seq) {
+        this.previous['seq'] = cseq;
+      }
       // stage 1: apply [hash] state to DOM
       // breadth changes potentially affect all images
       breadthChanged = this.setBreadth(obj.breadth);
       // seq changes at most only affect the image being selected
       seqChanged = this.setSeq(obj.seq);
       if (seqChanged || breadthChanged || forceScrollPosition) {
-        // scroll to the selected image
+        // scroll to the selected image, which triggers refreshImage on .visibles
         this.setScrollPosition(obj.seq);
       }
-      if (breadthChanged) {
-        this.refreshVisibles();
+      else if (breadthChanged) {
+        var that = this;
+        $('ul.flow .selectablecell.visible').each(function() {
+          that.refreshImage($(this));
+        })
       }
     }
   }
@@ -1365,6 +1253,10 @@ window.sfun = (function($, undefined) {
     return this.getHash();
   }
 
+  // ---------------------
+  // FUNCTIONS: deprecated
+  // ---------------------
+
   // -----------------
   // FUNCTIONS: External API
   // -----------------
@@ -1454,11 +1346,26 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @return {float} number of cells on the major axis
+     */
+    'api_cellsCountMajor' : function() {
+      return that.cellsCountMajor();
+    },
+
+    /**
      * helper function to make testing key presses easier
      */
     'api_triggerKeypress': function(key) {
       var e = jQuery.Event( 'keydown', { which: key } );
       $(document).trigger(e);
+    },
+
+    /**
+     * jump to a specific image
+     * @param {int} seq image to advance to
+     */
+    'api_imageAdvanceTo': function(seq) {
+      return that.imageAdvanceTo(seq, false);
     },
 
     // no comma on last entry
