@@ -39,8 +39,13 @@ window.sfun = (function($, undefined) {
       that.setDirection(that.getDirection());
       // find all screenpc elements, extract pc and store as data- attribute
       that.cellsInit();
-      // on page load, browser will scroll to the top, prepare to ignore it
-      that.eventNumbQueue.push('scroll:x=0&y=0');
+      // on page load, browser will scroll to the top, prepare to jump back
+      that.eventQueue.push({ key:'scroll:x=0&y=0', replaceEvent:function() {
+        // manually jump back to the right place by firing handler_hashChanged
+        that.handler_hashChanged(that.getHash());
+        // need to force back to correct position
+        that.setScrollPosition(that.getSeq());
+      } });
       // process state if set in URL (hash) first
       that.handler_hashChanged(that.getHash());
       // execute queue of API calls
@@ -150,6 +155,7 @@ window.sfun = (function($, undefined) {
   /**
    * update (x/y)-bound on boundable image in cell
    * @param jQuery cell that may have changed size
+   * @return {object} jQuery Deferred
    */
   this['refreshBounds'] = function(jqEnt) {
     // use jQuery deferred promises
@@ -157,7 +163,7 @@ window.sfun = (function($, undefined) {
     // find boundable entity
     var jqBoundable = jqEnt.find('.boundable');
     if (jqBoundable.length) {
-      // queue up the bound checking
+      // 2. queue up the bound checking to happen after we've got the loaded res
       deferred.then(function(jqEnt) {
         // read container width/height
         var cx = jqEnt.width(), cy = jqEnt.height();
@@ -177,12 +183,14 @@ window.sfun = (function($, undefined) {
         // apply class to image
         jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
       });
-      // but update loaded resolution if necessary first
+      // 1. update loaded resolution if necessary first
       if (jqBoundable.data('loaded-width') == undefined || jqBoundable.data('loaded-height') == undefined) {
         if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+' update loaded resolution');
         }
-        this.getLoadedResolution(jqEnt, deferred);
+        this.getLoadedResolution(jqEnt).then(function() {
+          deferred.resolve(jqEnt);
+        });
       } else {
         // either way flag that this image has loaded-width/height updated
         deferred.resolve(jqEnt);
@@ -208,7 +216,7 @@ window.sfun = (function($, undefined) {
       // calculate percentage based on image area, or width
       // perc = Math.round((width_current * height_current) * 100 / (width_native * height_native));
       perc = Math.round(width_current * 100 / width_native);
-      if (debug && false) {
+      if (debug && true) {
         // show the size of the image that's been loaded into this img container
         jqMetric.find('span.width').html(Math.round(jqReresable.data('loaded-width')));
         jqMetric.find('span.height').html(Math.round(jqReresable.data('loaded-height')));
@@ -236,9 +244,12 @@ window.sfun = (function($, undefined) {
   this['refreshMetricPosition'] = function(jqEnt) {
     var jqMetric = jqEnt.find('.imgmetric');
     if (jqMetric.length) {
-      var position = jqEnt.offset();
-      // move the metric to the corner of the image using absolute coords
-      jqMetric.css( { 'top': position.top, 'left': position.left });
+      var jqImg = jqEnt.find('.reresable');
+      if (jqImg.length) {
+        var position = jqImg.offset();
+        // move the metric to the corner of the image using absolute coords
+        jqMetric.css( { 'top': position.top, 'left': position.left });
+      }
     }
   }
 
@@ -314,7 +325,7 @@ window.sfun = (function($, undefined) {
           brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
-            this.imageReres(jqReresable, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
+            this.imageReres(jqEnt, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
             swappedOut = true;
             // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
           }
@@ -340,12 +351,13 @@ window.sfun = (function($, undefined) {
 
   /**
    * refresh a single image, but ensure that it's loaded first
-   * @param  {jQuery} jqEnt image
+   * @param  {object} jqEnt jquery entity
+   * @return {object} jQuery Deferred
    */
   this['refreshImage'] = function(jqEnt) {
     var that = this;
     // check the image bound (asynchronous)
-    this.refreshBounds(jqEnt)
+    return this.refreshBounds(jqEnt)
     .then(function(jqEnt) {
       // change out the image for a better resolution if one's available
       that.refreshResolution(jqEnt);
@@ -534,9 +546,10 @@ window.sfun = (function($, undefined) {
   /**
    * updated loaded-width and loaded-height data attributes
    * @param  {jQuery object} jqEnt image to check
-   * @param  {jQuery.deferred} deferred async queue
+   * @return {object} jQuery Deferred
    */
-  this['getLoadedResolution'] = function(jqEnt, deferred) {
+  this['getLoadedResolution'] = function(jqEnt) {
+    var deferred = new $.Deferred();
     var jqBoundable = jqEnt.find('.boundable');
     if (jqBoundable.length) {
       // update loaded resolution
@@ -553,6 +566,8 @@ window.sfun = (function($, undefined) {
       }
       im.src = jqBoundable.attr('src');
     }
+    // return object so that outside code can queue functions to get notified on resolve
+    return deferred.promise();
   }
 
   /**
@@ -688,6 +703,7 @@ window.sfun = (function($, undefined) {
    * downstream of: EVENT
    */
   this['setScrollPosition'] = function(seq) {
+    var deferred = new $.Deferred();
     var jqEnt = $('#seq-'+seq);
       // if we found the cell
     if (jqEnt.length) {
@@ -705,6 +721,7 @@ window.sfun = (function($, undefined) {
         this.refreshVisibility(0);
       }
     }
+    return deferred.promise();
   }
 
   /**
@@ -954,14 +971,144 @@ window.sfun = (function($, undefined) {
     return (deleteCount == 0);
   }
 
+  // --------------------------
+  // LIBRARY: generic hashTable
+  // --------------------------
+
+  /**
+   * create a generic hashTable
+   * @param  {string} namearg name of the table (used for debugging messages)
+   * @return {object} hashTable object
+   */
+  this['createHashTable'] = function(namearg) {
+    if (typeof(namearg) == 'undefined') {
+      namearg = '<unnamed>';
+    }
+    return {
+      // optional name
+      'name': namearg,
+      // array of objects, stored in dense sequential
+      'objarr': [],
+      // array of keys, stored in dense sequential
+      'indarr': [],
+
+      // length of queue
+      'length': 0,
+
+      /**
+       * push obj onto queue
+       * @param  {[type]} obj [description]
+       * @return {[type]}     [description]
+       */
+      'push': function(obj) {
+        var ref = this.length;
+        // store in object array
+        this.objarr[ref] = obj;
+        // store in the index array(s)
+        this.indarr[ref] = obj.key;
+        // increment length (by refreshing it)
+        this.length = this.objarr.length;
+        // optional debugging
+        if (debug && false) {
+          console.log('pushed object key['+key+'] on to ref['+ref+'] '+this.name+' hashTable, now has '+this.length+'elements');
+        }
+      },
+
+      /**
+       * @param  {string} key to search for
+       * @return {int} array reference or -1 if not found
+       */
+      'find': function(key) {
+        var ref = this.indarr.indexOf(key);
+        return ref;
+      },
+
+      /**
+       * @param  {string} key to remove if found
+       * @return {int} array reference if removed or -1 if not found
+       */
+      'remove': function(key) {
+        // find this key in the array
+        var ref = this.find(key);
+        if (ref != -1) {
+          this.removeRef(ref);
+          // optional debugging output
+          if (debug && false) {
+            console.log('removed key['+key+'] from '+this.name+' hashTable');
+          }
+        }
+        return ref;
+      },
+
+      /**
+       * @param  {int} ref to remove
+       */
+      'removeRef': function(ref) {
+        // delete from the object array
+        this.objarr.splice(ref, 1);
+        // delete from the index array
+        this.indarr.splice(ref, 1);
+        // update outer length for continuity
+        this.length = this.objarr.length;
+      },
+
+      /** 
+       * @param  {string} key to search for
+       * @param  {bool}* alsoRemove true to delete matched elements
+       * @return {object} matched object or null if not found
+       */
+      'get': function(key, alsoRemove) {
+        var ref = this.find(key);
+        if (typeof(alsoRemove) == 'undefined') {
+          alsoRemove = false;
+        }
+        if (ref != -1) {
+          // get the object
+          var obj = this.objarr[ref];
+          if (alsoRemove) {
+            // delete this object
+            this.removeRef(ref);
+          }
+          return obj;
+        }
+        return null;
+      },
+
+      /**
+       * high-level function to wrap up act-on-event decision
+       * @param  {string} key to search for
+       * @return {boolean} true if we should act on this event, false to ignore it (alternative called) 
+       */
+      'actOnEvent': function(key) {
+        // try and find an eventQueue object corresponding to this event (and pop if found)
+        var qObj = this.get(key, true);
+        if (qObj != null) {
+          // see how the qObj is defined
+          if (typeof(qObj.replaceEvent) != 'undefined') {
+            // process by calling replaceEvent instead of processing this event directly
+            qObj.replaceEvent.call(this);
+            // flag that we're no longer going to process this event
+            return false;
+          }
+        }
+        // if we've no reason to ignore the event, then act on it
+        return true;
+      },
+
+      lastEntry: null
+    };
+  }
+
   // -------------------------
   // FUNCTIONS: event triggers
   // -------------------------
 
   /** 
-   * The numbQueue is used to stop the hashChanged listener from firing for certain hash changes
+   * The eventQueue is used:
+   * - to stop the hashChanged listener from firing for certain hash changes
+   * - to enable callbacks/promises on certain event
    */
-  this['eventNumbQueue'] = [];
+  this['eventQueue'] = this.createHashTable();
 
   /**
    * Make a change to the document's hash
@@ -980,15 +1127,9 @@ window.sfun = (function($, undefined) {
     this.merge(obj, options);
     // convert to hash string
     hash = this.hashGenerate(obj);
-    if (debug && false) {
-      console.log(hash);
-    }
     // push hash string (options with defaults) on to numb queue if numb
     if (numbListener) {
-      this['eventNumbQueue'].push('hash:'+hash);
-      if (debug && false) {
-        console.log('adding hash('+hash+') on to numbQueue, now len['+this['eventNumbQueue'].length+']');
-      }
+      this.eventQueue.push({ key:'hash:'+hash, replaceEvent:function(){} });
     }
     // fire event: change the window.location.hash
     if (push) {
@@ -1013,10 +1154,8 @@ window.sfun = (function($, undefined) {
    */
   this['scrollUpdate'] = function(left, top, numbListener) {
     if (numbListener) {
-      this['eventNumbQueue'].push('scroll:'+'x='+left+'&y='+top);
-      if (debug && false) {
-        console.log('adding scroll('+'x='+left+'&y='+top+') on to numbQueue, now len['+this['eventNumbQueue'].length+']');
-      }
+      // replace the event with an empty function (do nothing)
+      this.eventQueue.push({ key:'scroll:'+'x='+left+'&y='+top, replaceEvent:function(){} });
     }
     // fire event: change the scroll position (comes through as single event)
     $(document).scrollLeft(left);
@@ -1027,36 +1166,16 @@ window.sfun = (function($, undefined) {
   // FUNCTIONS: event handlers
   // -------------------------
 
-  /** 
-   * @param  {string} key  event description used to index in queue
-   * @return {boolean} true if this event should be ignored
-   */
-  this['handler_numb'] = function(key) {
-    var index = this['eventNumbQueue'].indexOf(key);
-    if (index != -1) {
-      if (debug && false) {
-        console.log('ignoring '+key+' change');
-      }
-      // remove this hash from the numbQueue
-      this['eventNumbQueue'].splice(index, 1);
-      return true;
-    }
-    if (debug && false) {
-      console.log('not ignoring '+key+' change');
-    }
-    return false;
-  }
-
   /**
    * apply hash state (+current values for those unset) to page
    * downstream of: EVENT hash change
    * @param {bool} forceScrollPosition flag to control updates
+   * @return {object} jQuery Deferred
    */
   this['handler_hashChanged'] = function(hash, forceScrollPosition) {
+    var deferred = new $.Deferred();
     // first of all find out if we should actually ignore this hash change
-    if (this.handler_numb('hash:'+hash)) {
-      // ignore this event
-    } else {
+    if (this.eventQueue.actOnEvent('hash:'+hash)) {
       // keep track of whether this update could have affected all images and selected images
       var breadthChanged = false;
       var seqChanged = false;
@@ -1084,15 +1203,29 @@ window.sfun = (function($, undefined) {
       seqChanged = this.setSeq(obj.seq);
       if (seqChanged || breadthChanged || forceScrollPosition) {
         // scroll to the selected image, which triggers refreshImage on .visibles
-        this.setScrollPosition(obj.seq);
+        this.setScrollPosition(obj.seq).then(function() {
+          deferred.resolve();
+        });
       }
       else if (breadthChanged) {
         var that = this;
+        var def = [];
         $('ul.flow .selectablecell.visible').each(function() {
-          that.refreshImage($(this));
-        })
+          def[def.length] = that.refreshImage($(this));
+        });
+        // flatten multiple deferred (def)s, when() they've all finished, then() resolve
+        $.when.apply(that, def).then(function() {
+          deferred.resolve();
+        });
+      } else {
+        // if nothing has changed, nothing is being updated, so just resolve the deferred
+        deferred.resolve();
       }
+    } else {
+      // if we're not acting on the event, we're not waiting on anything to update, so resolve the deferred
+      deferred.resolve();      
     }
+    return deferred.promise();
   }
 
   /**
@@ -1101,15 +1234,18 @@ window.sfun = (function($, undefined) {
    */
   this['handler_mouseWheeled'] = function(event) {
     var direction = this.getDirection();
-    // active mousewheel reaction is dependent on which direction we're flowing in
-    if (direction == 'x') {
-      var xpos = $(document).scrollLeft();
-      // get current cell size
-      var cellsize = this.getCellSize();
-      // get current x position, increment and write back, firing scroll event
-      this.scrollUpdate(xpos + (0 - event.deltaY) * cellsize, 0, false);
-      if (debug && false) {
-        console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
+    // process this event if we're meant to
+    if (this.eventQueue.actOnEvent('wheel:'+'dir='+direction)) {
+      // active mousewheel reaction is dependent on which direction we're flowing in
+      if (direction == 'x') {
+        var xpos = $(document).scrollLeft();
+        // get current cell size
+        var cellsize = this.getCellSize();
+        // get current x position, increment and write back, firing scroll event
+        this.scrollUpdate(xpos + (0 - event.deltaY) * cellsize, 0, false);
+        if (debug && false) {
+          console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
+        }
       }
     }
   }
@@ -1120,19 +1256,8 @@ window.sfun = (function($, undefined) {
    */
   this['handler_scrolled'] = function(event) {
     var sx = $(document).scrollLeft(), sy = $(document).scrollTop();
-    if (this.handler_numb('scroll:'+'x='+sx+'&y='+sy)) {
-      if (debug && true) {
-        console.log('numb scroll sx[' + sx + '] sy[' + sy + ']');
-      }
-      // insert hack to correct for onload scroll to top
-      if (sx == 0 && sy == 0) {
-        // manually jump back to the right place by firing handler_hashChanged
-        this.handler_hashChanged(this.getHash());
-        // need to force back to correct position
-        this.setScrollPosition(this.getSeq());
-      }
-      // ignore this event
-    } else {
+    // process this event if we're meant to
+    if (this.eventQueue.actOnEvent('scroll:'+'x='+sx+'&y='+sy)) {
       // invert deltas to match scroll wheel
       if (this.scroll_lastX == undefined) {
         event.deltaX = 0 - sx;
@@ -1145,7 +1270,7 @@ window.sfun = (function($, undefined) {
       // remember scroll coords for next time
       this.scroll_lastX = sx;
       this.scroll_lastY = sy;
-      if (debug && true) {
+      if (debug && false) {
         console.log('scroll dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
       // see if scroll has made any new images visible
