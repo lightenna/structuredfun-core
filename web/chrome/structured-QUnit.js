@@ -67,22 +67,46 @@
     });
 
     test( 'reres of first page of images', function() {
-      $('ul.flow .selectablecell .reresable').each(function() {
-        var imw = $(this).width(), imh = $(this).height();
-        var jqEnt = $(this).parents('li');
-        var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
-        ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
-      });
+      sfun.api_triggerKeypress(sfun.KEY_HOME);
+      ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
+      QUnit.stop();
+      setTimeout(function() {
+        $('ul.flow .selectablecell.visible .reresable').each(function() {
+          var imw = $(this).width(), imh = $(this).height();
+          var jqEnt = $(this).parents('li');
+          var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
+          ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
+        });
+        window.location.hash = '';
+        QUnit.start();
+      }, 1);
+    });
+
+    test( 'reres of last page of images', function() {
+      sfun.api_triggerKeypress(sfun.KEY_END);
+      ok( $('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
+      QUnit.stop();
+      setTimeout(function() {
+        $('ul.flow .selectablecell.visible .reresable').each(function() {
+          var imw = $(this).width(), imh = $(this).height();
+          var jqEnt = $(this).parents('li');
+          var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
+          ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
+        });
+        window.location.hash = '';
+        QUnit.start();
+      }, 1);
     });
 
     test( 'check image bounds', function() {
       QUnit.stop();
-      $('ul.flow .selectablecell .boundable').each(function() {
+      $('ul.flow .selectablecell.visible .boundable').each(function() {
+        var tolerance = 1;
         var imw = $(this).width(), imh = $(this).height();
         var jqEnt = $(this).parents('li');
         var cellw = jqEnt.width(), cellh = jqEnt.height();
-        var withinWidth = (imw <= cellw);
-        var withinHeight = (imh <= cellh);
+        var withinWidth = (imw <= cellw + tolerance);
+        var withinHeight = (imh <= cellh + tolerance);
         ok( withinWidth && withinHeight, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') bounded within it\'s cell ('+cellw+'x'+cellh+')' );
       }).promise().done(function() {
         QUnit.start();

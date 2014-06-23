@@ -1,9 +1,29 @@
 
+* modify the numbEventQueue to be deferreds manager
+    + that's a pretty good handler
+    + needs a hash (string), done function pointer and parent
+  + looking pretty good
+    + need to find a way to pass deferreds through the eventQueue
+      + will circle back to this once we've got deferred cascading through the actual event handlers
+
 * extend test suite
   + test reres
-    + reres of first x images
-    + mouse wheel two images right
     + end
+  + need to connect the deferred in the hash handler to some kind of external/api
+    + pushing a value in the URL might be an option
+      + but that only extends to hash values
+      + nice to come up with something global
+        + need to find a way to push identifiers through the event chain
+          + e.g. x in scrollUpdate(x) -> handler_scrolled(x)
+
+* wire in deferreds through everything else
+  + make it work for handler_hash first
+
+* extend test suite
+  + test reres
+    + mouse wheel two images right
+
+* extend test suite
   + test imgmetric vis
 
 * add class nearvis
@@ -673,4 +693,18 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + test visibility
     + scroll to start, scroll to end, scroll to middle
     + test all visibles in one block (no littering)
+
+* extend test suite
+  + test reres
+    + reres of first x images
+
+* need to work out how to handle tests keyed upon delayed events
+  + deferred promises are the way
+    - but passing them around is tricky
+  + either parent thing can make a queue
+    + and pass it to all the sub functions
+  + or originate in each sub function
+    + and then aggregate queues in parent functions
+  = brilliant piece on deferred patterns
+    http://blog.mediumequalsmessage.com/promise-deferred-objects-in-javascript-pt2-practical-use
 
