@@ -471,12 +471,16 @@ window.sfun = (function($, undefined) {
           event.preventDefault();
           break;
         case that.export.KEY_PAGE_UP:
-          that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth(), false);
-          event.preventDefault();
+          if (!event.ctrlKey) {
+            that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth(), false);
+            event.preventDefault();
+          }
           break;
         case that.export.KEY_PAGE_DOWN:
-          that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth(), false);
-          event.preventDefault();
+          if (!event.ctrlKey) {
+            that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth(), false);
+            event.preventDefault();
+          }
           break;
         case that.export.KEY_HOME:
           that.imageAdvanceTo(0, false);
