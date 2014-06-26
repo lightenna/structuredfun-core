@@ -532,7 +532,8 @@ window.sfun = (function($, undefined) {
    */
   this['bindToImageLinks'] = function() {
     var that = this;
-    $('ul.flow .selectablecell a.media-container').click(function(event) {
+    // bind to click using delegated event handler (http://api.jquery.com/on/), instead of individual N handlers
+    $('ul.flow').on('click', '.selectablecell a.media-container', function(event) {
       // select image, then toggle
       var seq = $(this).parents('.selectablecell').data('seq');
       // seq changes don't go into history
@@ -611,6 +612,30 @@ window.sfun = (function($, undefined) {
     } else {
       return jq.height();
     }
+  }
+
+  /**
+   * @param {int} edge majoraxis value of edge to find cell at
+   */
+  this['getCellAt'] = function(edge) {
+    // START HERE
+    // think hashTable of cell edges, zero-based
+  }
+
+  /** 
+   * @param {int} scrolldir Direction [and amount] of scroll
+   * @param {int} edgeAlign majoraxis value of edge to align to
+   */
+  this['getCellAlignExtra'] = function(scrolldir, edgeAlign) {
+    var extra = 0;
+    // find cell
+    var matchCell = this.getCellAt(edgeAlign);
+    // get edges of cell
+    // see if we're aligned
+    if (1 == 0) {
+      // find next edge in scroll direction
+    }
+    return extra;
   }
 
   /**
@@ -1245,8 +1270,12 @@ window.sfun = (function($, undefined) {
         var xpos = $(document).scrollLeft();
         // get current cell size
         var cellsize = this.getCellSize();
+        // if not currently aligned to cells, get extra gap to next cell boundary
+        var scrolldir = 0 - event.deltaY;
+        // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
+        var extra = this.getCellAlignExtra(scrolldir, scrolldir > 0 ? xpos + $(window).width() : xpos);
         // get current x position, increment and write back, firing scroll event
-        this.scrollUpdate(xpos + (0 - event.deltaY) * cellsize, 0, false);
+        this.scrollUpdate(xpos + (scrolldir * cellsize), 0, false);
         if (debug && false) {
           console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
         }
