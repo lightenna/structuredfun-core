@@ -1,4 +1,7 @@
 
+* page up should eventually move the selection to 0
+  + page down should eventually move to end
+
 * modify the numbEventQueue to be deferreds manager
     + that's a pretty good handler
     + needs a hash (string), done function pointer and parent
@@ -26,33 +29,21 @@
 * extend test suite
   + test imgmetric vis
 
+* optimise dragging in large image sets
+--o--
 * add class nearvis
   + add to it 2x breadth on either side nearvis
 
-* fullscreen of image 0 needs to hide all imgmetrics
-
-* optimise dragging in large image sets
-
 * .s in directory names, like mq
-
-* fullscreen/return should toggle
-  + between b1 and bPrevious
-
-* changing from b2 to b1
-  + need to do another refreshCells at least on current image
-    + because cell shape may have changed dramatically
 
 * imagemeta/ endpoint should always get image metadata
   + at the moment it only produces good metadata for pre-cached images
     + if we discover an image uncached
       + we should cache it at standard thumbnail size (longest edge 200)
+        + most cache requests comes in 
 
 * mousewheel after scroll needs to re-align
   + otherwise can be scrolling in half-images
-
-* reload page from final entry doesn't swap out images properly
-  + seems not to be loading thumbnails
-    + so the 500 request doesn't get any metadata
 
 * treat direction as another piece of hash state
   + where a hash value is the same as
@@ -707,4 +698,17 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + and then aggregate queues in parent functions
   = brilliant piece on deferred patterns
     http://blog.mediumequalsmessage.com/promise-deferred-objects-in-javascript-pt2-practical-use
+
+* fullscreen of image 0 needs to hide all imgmetrics
+
+* fullscreen/return should toggle
+  + between b1 and bPrevious
+
+* changing from b2 to b1
+  + need to do another refreshCells at least on current image
+    + because cell shape may have changed dramatically
+
+* reload page from final entry doesn't swap out images properly
+  + seems not to be loading thumbnails
+    + so the 500 request doesn't get any metadata
 
