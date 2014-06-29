@@ -1,6 +1,5 @@
 
-* page up should eventually move the selection to 0
-  + page down should eventually move to end
+* work through START HEREs
 
 * modify the numbEventQueue to be deferreds manager
     + that's a pretty good handler
@@ -8,6 +7,32 @@
   + looking pretty good
     + need to find a way to pass deferreds through the eventQueue
       + will circle back to this once we've got deferred cascading through the actual event handlers
+* expose deferred through exported API
+  + need to create deferred first
+    + then pass into following event handlers
+  + so we can queue up dependent functions
+    + like the test functions
+  + we get into complications when we're trying to push a deferred through a hash update
+    + there are potentially many layers
+      + one hash update, triggers scroll update, triggers hash update
+      + nice to great some kind of general rule
+  + how about eventQueue for storing the deferred
+    + create when eventQueue item created
+    + pick it up in the handler
+      + could even link up parent events
+        + done when say setScrollPosition called indirectly by a handler
+  + maybe it's a combination metaphor
+    + we need eventQueue to bridge between code->handler
+      + because it's async
+    + how to do parenting
+      + class-wide var is complicated because it could get messed up
+        + it's analogous to the old-school global variable
+      + passing deferred from function to function requires care
+        + it's going to need elaborate lacing together
+        + could pass event object around
+
+* end, fullscreen, home
+  + check re-res
 
 * extend test suite
   + test reres
@@ -18,9 +43,12 @@
       + nice to come up with something global
         + need to find a way to push identifiers through the event chain
           + e.g. x in scrollUpdate(x) -> handler_scrolled(x)
-
+--o--
 * wire in deferreds through everything else
   + make it work for handler_hash first
+
+* page up should eventually move the selection to 0
+  + page down should eventually move to end
 
 * extend test suite
   + test reres
@@ -53,23 +81,6 @@
 
 * res change needs to fresh metric positions
   + could tie that into refreshCells
-
-* arrow-key / home after scroll
-
-* pull forward UI test suite
-
-* rewrite isVisible function to cope with partials
-  + frequently images are partly on screen
-    + but not treated as visible
-
-* dropping back from fullscreen, checkImageRes swaps out all the images
-  + not just the visible ones
-    + this is all to do with async stuff
-    + we need to wait for the hash updates to complete before doing a checkimg
-
-* not loading right image just in time
-  + in fullscreen mode
-    + loading one image behind
 
 * accelerate scroll catch-up
   + working but needs to be quicker
@@ -711,4 +722,32 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * reload page from final entry doesn't swap out images properly
   + seems not to be loading thumbnails
     + so the 500 request doesn't get any metadata
+
+* arrow-key / home after scroll
+
+* pull forward UI test suite
+
+* rewrite isVisible function to cope with partials
+  + frequently images are partly on screen
+    + but not treated as visible
+
+* dropping back from fullscreen, checkImageRes swaps out all the images
+  + not just the visible ones
+    + this is all to do with async stuff
+    + we need to wait for the hash updates to complete before doing a checkimg
+
+* not loading right image just in time
+  + in fullscreen mode
+    + loading one image behind
+
+* this test suite stuff is so important
+  + I've just recovered from breaking it
+    + a break that wouldn't have occurred if I had a reliable test suite
+    + and could have been hunting for regressions all the time!
+
+* re-write hashTable using Object.create
+  + put in separate file for now
+    + can aggregate later
+  = thought better of
+    + not enough instantiation to merit prototypes
 
