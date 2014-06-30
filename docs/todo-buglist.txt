@@ -1,6 +1,4 @@
 
-* work through START HEREs
-
 * modify the numbEventQueue to be deferreds manager
     + that's a pretty good handler
     + needs a hash (string), done function pointer and parent
@@ -30,6 +28,60 @@
       + passing deferred from function to function requires care
         + it's going to need elaborate lacing together
         + could pass event object around
+  + making eventQueue fairly smart
+    + tries to wrap up as much of the promise logic as possible
+      + because then it's all in one place
+        + if a 'parent' set it does get resolved once its child is resolved
+  - beginning to wonder if the necessary deferred tree will be just too complicated
+    + it reaches through almost everything
+      + might need to rewrite most ops as synchronous
+    + not sure
+    + using the #hash is elegant
+  + eventContext originators
+    + fire_
+  + eventContext decorators/ornaments
+    + everything else
+  + eventContext resolvers
+    + terminals that create a local context and resolve
+  + execution summary
+    To numb a listener, at the point we decide to numb it
+      eventQueue.pushChild(eventContext, { 'replaceEvent': function(){} })
+    To pass a context on, which may have been numbed upstream
+      eventContext
+  + what about passing
+    + everything we pass it into
+      + needs to be able to pass it out?
+  + check the event story
+    + fire_scrollUpdate creates eventContext(1)
+    + handler_scrolled receives eventContext(1)
+      + calls refreshVisibility with same context(1)
+        + refreshVisibility doesn't do anything async itself, so no forking
+        + calls setVisibleAll with eventContext(1)
+          + calls setVisibleImage with eventContext(1)
+            + calls refreshImage with eventContext(1)
+              + calls refreshBounds with eventContext(1)
+                + calls getLoadedResolution with eventContext(1)
+                  + creates it's own child eventContext(2) using pushChild
+                    + sets up stuff to happen
+                    + returns eventContext(2) so that parents can queue up other stuff for AFTER this happens
+                    + when stuff happens the child resolves (eventContext(2) resolves)
+                    + the things that the parent queued up start getting executed
+                  + returns eventContext(2) if it scheduled stuff, or eventContext(1) if it didn't
+                + refreshBounds then queues stuff against the eventContext it receives (2/1)
+              + refreshImage then queues stuff against the eventContext it receives
+
+  + remember
+    + pushChild only when we're about to WAIT for something to happen (e.g. an actual async wait, e.g. image load)
+    + .then to setup things to happen in sequence
+    + can normally chain execution with .then()
+      + only need to create a new context when
+        + waiting on something unpredictable
+        + OR MAYBE when doing multiple things
+  - not sure about pushChild needing to 'resolve' the parent
+    + think it's probably a yes
+  - not sure about how to execute multiple things in sequence
+    + 
+
 
 * end, fullscreen, home
   + check re-res
