@@ -1210,6 +1210,11 @@ window.sfun = (function($, undefined) {
         var deferred = $.Deferred();
         // compose new object ($.extend gives right to left precedence)
         var obj = $.extend({}, this.defaultEventObject, { 'deferred': deferred}, partial);
+        // optional debugging message
+        if (debug) {
+          // START HERE
+          console.log('pushed event');
+        }
         // push
         return this._push(obj);
       },
@@ -1231,7 +1236,7 @@ window.sfun = (function($, undefined) {
           });
         }
         return obj;
-      }
+      },
 
       /** 
        * @param {string} key to search for
