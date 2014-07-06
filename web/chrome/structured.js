@@ -66,9 +66,10 @@ window.sfun = (function($, undefined) {
         comment: 'nullify false scroll event',
         replaceEvent: function() {
           // manually jump back to the right place by firing handler_hashChanged
-          that.handler_hashChanged(that.getHash());
-          // need to force back to correct position
-          that.setScrollPosition(that.getSeq());
+          that.handler_hashChanged(that.getHash()).done(function() {
+            // need to force back to correct position
+            that.setScrollPosition(that.getSeq());            
+          });
         }
       });
       // process state if set in URL (hash) first
@@ -141,20 +142,16 @@ window.sfun = (function($, undefined) {
   /**
    * update (x/y)-bound on boundable image in cell
    * @param jQuery cell that may have changed size
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} new eventContext, which may be the original unchanged, or a local child queued up
+   * @return {object} $.Deferred
    */
-  this['refreshBounds'] = function(jqEnt, eventContext) {
+  this['refreshBounds'] = function(jqEnt) {
     // find boundable entity
     var jqBoundable = jqEnt.find('.boundable');
     if (jqBoundable.length) {
       // 1. update loaded resolution if necessary first
       if (jqBoundable.data('loaded-width') == undefined || jqBoundable.data('loaded-height') == undefined) {
-        var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for refreshBounds for image-'+jqEnt.data('seq') });
-        var returnedContext = this.getLoadedResolution(jqEnt, localContext);
-        eventQueue.aggregate(localContext, returnedContext);
-        // 2. queue up the bound checking to happen after we've got the loaded res
-        localContext.deferred.always(function() {
+        // if getLoadedResolution succeeds, use loaded-width/height
+        return this.getLoadedResolution(jqEnt).done(function() {
           // read container width/height
           var cx = jqEnt.width(), cy = jqEnt.height();
           var cratio = cx / cy;
@@ -171,12 +168,12 @@ window.sfun = (function($, undefined) {
                 + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
           }
           // apply class to image
-          jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
+          jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');          
         });
-        return localContext;
       }
     }
-    return eventContext;
+    // return a resolved deferred
+    return $.Deferred().resolve();
   };
 
   /**
@@ -234,23 +231,22 @@ window.sfun = (function($, undefined) {
   /**
    * refresh the cell.visible status on all/some of the entries
    * @param {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['refreshVisibility'] = function(scrolldir, eventContext) {
+  this['refreshVisibility'] = function(scrolldir) {
+    var that = this;
     // always test all images for visibility
-    eventContext = this.setVisibleAll(eventContext);
-    // check to see if the selected image is now no longer visible
-    eventContext = this.refreshSelected(scrolldir, eventContext);
-    return eventContext;
+    return this.setVisibleAll().always(function() {
+      that.refreshSelected(scrolldir);
+    });
   };
 
   /** 
    * refresh the selected entry after a visibility change
    * @param {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
+   * @return {object} jQuery deferred
    */
-  this['refreshSelected'] = function(scrolldir, eventContext) {
+  this['refreshSelected'] = function(scrolldir) {
     var jqEnt = $('ul.flow .selectablecell.selected');
     if (!jqEnt.hasClass('visible')) {
       if (debug && false) {
@@ -268,30 +264,26 @@ window.sfun = (function($, undefined) {
         return localContext;
       }
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   /**
    * Check the display resolution of the image and swap out src if higher res available 
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['refreshResolution'] = function(jqEnt, eventContext) {
+  this['refreshResolution'] = function(jqEnt) {
     var that = this;
     var jqReresable = jqEnt.find('.reresable');
     if (!jqReresable.length) {
-      return;
+      return $.Deferred().resolve();
     }
     // don't attempt to check image resolution on directory
     var type = this.getType(jqEnt);
     if (!(type == 'image' || type == 'video')) {
-      return;
+      return $.Deferred().resolve();
     }
-    // request for metadata and wait for return
-    eventContext = this.refreshMetadata(jqEnt, eventContext);
-    eventContext.deferred.then(function() {
-      // test to see if we're displaying an image at more than 100%
-      var swappedOut = false;
+    // request for metadata, but only do stuff if we get metadata back
+    return this.refreshMetadata(jqEnt).done(function() {
       // fetch loaded, native and current image dimensions
       var loadedWidth = jqReresable.data('loaded-width');
       var loadedHeight = jqReresable.data('loaded-height');
@@ -318,41 +310,34 @@ window.sfun = (function($, undefined) {
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
             // swap out image, but don't wait for swap to complete
-            that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
-            swappedOut = true;
-            // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
+            return that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
           }
         } else {
           // same but pivot on height rather than width
           brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
             // swap out image, but don't wait for swap to complete
-            that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
-            swappedOut = true;
+            return that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
           }
         }
       }
       // if we didn't swap out this image, update imgmetric
       // @todo maybe can comment this
-      if (!swappedOut) {
-        that.refreshMetric(jqEnt);
-      }
+      return that.refreshMetric(jqEnt);
     });
-    return eventContext;
   };
 
   /**
    * Request metadata about this image from the server if we don't have it
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['refreshMetadata'] = function(jqEnt, eventContext) {
+  this['refreshMetadata'] = function(jqEnt) {
     var that = this;
     var jqReresable = jqEnt.find('.reresable');
     if (jqReresable.length) {
       // test to see if we have the metadata
       if (typeof(jqReresable.data('native-width')) == 'undefined' || typeof(jqReresable.data('native-height')) == 'undefined') {
-        var localContext = eventQueue.pushChild(eventContext, {});
+        var deferred = $.Deferred();
         // fire ajax request
         $.ajax({
           url: jqReresable.attr('src').replace('image','imagemeta'),
@@ -368,63 +353,55 @@ window.sfun = (function($, undefined) {
             }
           }
           // resolve the context
-          localContext.deferred.resolve();
+          deferred.resolve();
         });
         if (debug) {
           console.log('image-'+jqEnt.data('seq')+': fired request for native width and height');
         }
-        return localContext;
+        return deferred;
       }
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   /**
    * refresh a single image, but ensure that it's loaded first
    * @param {object} jqEnt jquery entity
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['refreshImage'] = function(jqEnt, eventContext) {
-    var that = this;
-    // create local context to draw together all the deps
-    var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for aggregating in refreshImage' });
-    var boundsContext, resContext;
-    // call refreshBounds
-    boundsContext = this.refreshBounds(jqEnt, localContext);
-    eventQueue.aggregate(localContext, boundsContext);
-    // change out the image for a better resolution if one's available
-    resContext = this.refreshResolution(jqEnt, boundsContext);
-    eventQueue.aggregate(localContext, resContext);
-    // then refresh other properties
-    resContext.deferred.then(function() {
-      // update metric
-      that.refreshMetric(jqEnt);
-      that.refreshMetricPosition(jqEnt);
+  this['refreshImage'] = function(jqEnt) {
+    // refresh the bounds of the image
+    return this.refreshBounds(jqEnt).always(function() {
+      // change out the image for a better resolution if one's available
+      that.refreshResolution(jqEnt).always(function() {
+        // update metric
+        that.refreshMetric(jqEnt);
+        that.refreshMetricPosition(jqEnt);
+      });
     });
-    return resContext;
   };
 
   /**
    * refresh all visible images
    * @param {object} jqEnt jquery entity
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['refreshVisibleImages'] = function(eventContext) {
+  this['refreshVisibleImages'] = function() {
     var that = this;
     var jqVisibles = $('ul.flow .selectablecell.visible');
     if (jqVisibles.length) {
-      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for aggregating in refreshVisibleImages' });
+      var deferred = $.Deferred();
+      var defs = [];
       jqVisibles.each(function() {
         var jqEnt = $(this);
-        var returnedContext = that.refreshImage(jqEnt, localContext);
-        // merge each context into the overall
-        eventQueue.aggregate(localContext, returnedContext);
+        defs.push(that.refreshImage(jqEnt));
       });
-      return localContext;
+      $.when.apply($, defs).always(function() {
+        deferred.resolve();
+      })
+      return deferred;
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   // ------------------
@@ -611,14 +588,13 @@ window.sfun = (function($, undefined) {
   /**
    * updated loaded-width and loaded-height data attributes
    * @param {jQuery object} jqEnt image to check
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} new event context
+   * @return {object} jQuery deferred
    */
-  this['getLoadedResolution'] = function(jqEnt, eventContext) {
+  this['getLoadedResolution'] = function(jqEnt) {
     var jqBoundable = jqEnt.find('.boundable');
     if (jqBoundable.length) {
       // create local context for async processing
-      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for getLoadedResolution (image-'+jqEnt.data('seq')+')' });
+      var deferred = $.Deferred();
       // update loaded resolution
       var im = new Image();
       im.onload = function() {
@@ -629,16 +605,16 @@ window.sfun = (function($, undefined) {
           console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqBoundable.data('loaded-width')+','+jqBoundable.data('loaded-height')+']');
         }
         // notify promise of resolution
-        localContext.deferred.resolve();
+        deferred.resolve();
       }
       im.src = jqBoundable.attr('src');
       if (debug) {
         console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
       }
       // return local context so that when we complete (resolve), our parents can execute
-      return localContext;
+      return deferred;
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   /**
@@ -804,8 +780,9 @@ window.sfun = (function($, undefined) {
    * ensure that a given image lies within the current viewport
    * @param {int} seq image sequence number
    * downstream of: EVENT
+   * @return {object} jQuery deferred
    */
-  this['setScrollPosition'] = function(seq, eventContext) {
+  this['setScrollPosition'] = function(seq) {
     var jqEnt = $('#seq-'+seq);
       // if we found the cell
     if (jqEnt.length) {
@@ -813,56 +790,57 @@ window.sfun = (function($, undefined) {
         if (this.getDirection() == 'x') {
           // get coordinate of selected image's cell
           position = jqEnt.offset();
-          eventContext = this.fire_scrollUpdate(position.left, 0, eventContext);
+          return this.fire_scrollUpdate(position.left, 0);
         } else {
           position = jqEnt.offset();
-          eventContext = this.fire_scrollUpdate(0, position.top, eventContext);
+          return this.fire_scrollUpdate(0, position.top);
         }
       } else {
         // manually refresh the visible images
-        eventContext = this.refreshVisibility(0, eventContext);
+        return this.refreshVisibility(0);
       }
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   /**
    * Loop through all images
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['setVisibleAll'] = function(eventContext) {
+  this['setVisibleAll'] = function() {
     var that = this;
     var jqCells = $('ul.flow .selectablecell');
     if (jqCells.length) {
-      // create local context to draw together all the deps
-      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for aggregating in setVisibleAll' });
+      var deferred = $.Deferred();
+      var defs = [];
       // clear all the visible images
       jqCells.removeClass('visible');
       // then recalculate them
       jqCells.each(function() {
         var jqEnt = $(this);
-        var returnedContext;
         if (that.isVisible(jqEnt, true)) {
-          returnedContext = that.setVisibleImage(jqEnt, true, localContext);
+          defs.push(that.setVisibleImage(jqEnt, true));
         } else {
           // don't test, because setVis(false) is just a .removeClass()
-          returnedContext = that.setVisibleImage(jqEnt, false, localContext);
+          defs.push(that.setVisibleImage(jqEnt, false));
         }
-        eventQueue.aggregate(localContext, returnedContext);
       });
-      return localContext;
+      // aggregate all the deferred
+      $.when.apply($, defs).always(function() {
+        deferred.resolve();
+      });
+      return deferred;
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   /**
    * either flag an image as visible or not visible
    * @param {jQuery} jqEnt image
-   * @param {boolean} vis  true to make visible, false not
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
+   * @param {boolean} vis true to make visible, false not
+   * @return {object} jQuery deferred
    */
-  this['setVisibleImage'] = function(jqEnt, vis, eventContext) {
+  this['setVisibleImage'] = function(jqEnt, vis) {
     if (vis) {
       if (debug) {
         console.log('image-'+jqEnt.data('seq')+': made visible');
@@ -877,7 +855,7 @@ window.sfun = (function($, undefined) {
           jqReresable.attr('src', jqReresable.data('desrc'));
         }
         // when an image becomes visible refresh all its facets
-        eventContext = this.refreshImage(jqEnt, eventContext);
+        return this.refreshImage(jqEnt);
       }
     } else {
       if (debug && false) {
@@ -886,7 +864,7 @@ window.sfun = (function($, undefined) {
       // make it not-visible
       jqEnt.removeClass('visible');
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   // --------------------
@@ -897,15 +875,13 @@ window.sfun = (function($, undefined) {
    * Swap out image using a temporary image (to get triggered on load event)
    * Can't just switch src on jqEnt, because that image is already loaded
    * Firebug doesn't show the updated data- attributes, but they are updated
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['imageReres'] = function(jqEnt, path, eventContext) {
+  this['imageReres'] = function(jqEnt, path) {
     var that = this;
     var jqReresable = jqEnt.find('.reresable');
     if (jqReresable.length) {
-      // create local context for async processing
-      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for imageReres (image-'+jqEnt.data('seq')+')'});
+      var deferred = $.Deferred();
       // create temporary image container
       var img = $('<img id="dynamic" />');
       // attach listener to catch when the new image has loaded
@@ -920,14 +896,14 @@ window.sfun = (function($, undefined) {
         }
         that.refreshMetric(jqEnt);
         // notify promise of resolution
-        localContext.deferred.resolve();
+        deferred.resolve();
       }).each(function() {
         if(this.complete) $(this).load();
       });
       // return local context so that when we complete (resolve), our parents can execute
-      return localContext;
+      return deferred;
     }
-    return eventContext;
+    return $.Deferred().resolve();
   };
 
   /**
@@ -1484,10 +1460,9 @@ window.sfun = (function($, undefined) {
    * change the visible portion of the page by moving the scrollbars
    * @param {int} left distance from left of page in pixels
    * @param {int} top  distance from top of page in pixels
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
-  this['fire_scrollUpdate'] = function(left, top, eventContext) {
+  this['fire_scrollUpdate'] = function(left, top) {
     var localContext = eventQueue.pushChild(eventContext, {
       'key': 'scroll:'+'x='+left+'&y='+top,
       'comment': 'localContext for fire_scrollUpdate'
@@ -1495,6 +1470,7 @@ window.sfun = (function($, undefined) {
     // fire event: change the scroll position (comes through as single event)
     $(document).scrollLeft(left);
     $(document).scrollTop(top);
+    return $.Deferred().resolve();
   };
 
   // -------------------------
@@ -1542,13 +1518,13 @@ window.sfun = (function($, undefined) {
       seqChanged = this.setSeq(obj.seq);
       if (seqChanged || breadthChanged) {
         // scroll to the selected image, which triggers refreshImage on all .visible images
-        eventContext = this.setScrollPosition(obj.seq, eventContext);
+        return this.setScrollPosition(obj.seq);
       }
       else if (breadthChanged) {
-        eventContext = this.refreshVisibleImages(eventContext);
+        return this.refreshVisibleImages();
       }
     }
-    return eventContext;
+    return $.Deferred().resolve();
   }
 
   /**
@@ -1581,15 +1557,15 @@ window.sfun = (function($, undefined) {
       }
       // see if scroll has made any new images visible
       var scrolldir = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 0 - event.deltaX : 0 - event.deltaY);
-      this.refreshVisibility(scrolldir, eventContext);
+      return this.refreshVisibility(scrolldir);
     }
-    return eventContext.deferred.promise();
+    return $.Deferred().resolve();
   }
 
   /**
    * process events generated by mouse wheel scrolling
    * downstream of: EVENT mouse wheeled
-   * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
   this['handler_mouseWheeled'] = function(event) {
     // work out what direction we're applying this mouse-wheel scroll to
@@ -1608,13 +1584,14 @@ window.sfun = (function($, undefined) {
       var scrolldir = 0 - event.deltaY;
       // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
       var extra = this.getCellAlignExtra(scrolldir, scrolldir > 0 ? xpos + $(window).width() : xpos);
-      // get current x position, increment and write back, firing scroll event
-      eventContext = this.fire_scrollUpdate(xpos + (scrolldir * cellsize), 0, eventContext);
+      // optional debugging
       if (debug && false) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
-      return eventContext;
+      // get current x position, increment and write back, firing scroll event
+      return this.fire_scrollUpdate(xpos + (scrolldir * cellsize), 0);
     }
+    return $.Deferred().resolve();
   }
 
   // ------------------
