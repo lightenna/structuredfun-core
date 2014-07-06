@@ -61,12 +61,16 @@ window.sfun = (function($, undefined) {
       // find all screenpc elements, extract pc and store as data- attribute
       that.cellsInit();
       // on page load, browser will scroll to the top, prepare to jump back
-      that.eventQueue.push({ key:'scroll:x=0&y=0', replaceEvent:function() {
-        // manually jump back to the right place by firing handler_hashChanged
-        that.handler_hashChanged(that.getHash());
-        // need to force back to correct position
-        that.setScrollPosition(that.getSeq());
-      } });
+      that.eventQueue.push({
+        key: 'scroll:x=0&y=0',
+        comment: 'nullify false scroll event',
+        replaceEvent: function() {
+          // manually jump back to the right place by firing handler_hashChanged
+          that.handler_hashChanged(that.getHash());
+          // need to force back to correct position
+          that.setScrollPosition(that.getSeq());
+        }
+      });
       // process state if set in URL (hash) first
       that.handler_hashChanged(that.getHash());
       // execute queue of API calls
@@ -85,48 +89,6 @@ window.sfun = (function($, undefined) {
     });
   };
 
-  /**
-   * Request metadata about this image from the server
-   */
-  this['checkMetadata'] = function(jqEnt) {
-    var that = this;
-    var jqReresable = jqEnt.find('.reresable');
-    if (jqReresable.length) {
-      $.ajax({
-        url: jqReresable.attr('src').replace('image','imagemeta'),
-        dataType: 'json',
-      })
-      .done(function( data ) {
-        that.processMetadata(jqEnt, data);
-      });
-      if (debug && false) {
-        console.log('firing metadata request for image-'+jqEnt.data('seq'));
-      }
-    }
-  };
-
-  /**
-   * Store processed metadata in data- attributes if returned
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
-   */
-  this['processMetadata'] = function(jqEnt, data, eventContext) {
-    if (typeof(data.meta) != 'undefined') {
-      var jqReresable = jqEnt.find('.reresable');
-      if (jqReresable.length) {
-        jqReresable.data('native-width', data.meta.width);
-        jqReresable.data('native-height', data.meta.height);
-        // trigger image resolution check again now that we've updated data- attributes
-        if (debug && false) {
-          console.log('processing metadata request for image-'+jqEnt.data('seq'));
-          console.log('received metadata width['+jqReresable.data('native-width')+'] height['+jqReresable.data('native-height')+']');
-        }
-        eventContext = this.refreshResolution(jqEnt, eventContext);
-      }
-    }
-    return eventContext;
-  };
-  
   // ----------------
   // FUNCTIONS: cells
   // ----------------
@@ -188,31 +150,31 @@ window.sfun = (function($, undefined) {
     if (jqBoundable.length) {
       // 1. update loaded resolution if necessary first
       if (jqBoundable.data('loaded-width') == undefined || jqBoundable.data('loaded-height') == undefined) {
-        if (debug && false) {
-          console.log('image-'+jqEnt.data('seq')+' update loaded resolution');
-        }
-        eventContext = this.getLoadedResolution(jqEnt, eventContext);
+        var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for refreshBounds for image-'+jqEnt.data('seq') });
+        var returnedContext = this.getLoadedResolution(jqEnt, localContext);
+        eventQueue.aggregate(localContext, returnedContext);
+        // 2. queue up the bound checking to happen after we've got the loaded res
+        localContext.deferred.always(function() {
+          // read container width/height
+          var cx = jqEnt.width(), cy = jqEnt.height();
+          var cratio = cx / cy;
+          // detect if the image is bound by width/height in this container
+          var ix = jqBoundable.data('loaded-width'), iy = jqBoundable.data('loaded-height');
+          if (debug) {
+            console.log('image-'+jqEnt.data('seq')+': ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
+          }
+          var iratio = ix / iy;
+          var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
+          var invdir = (direction == 'x' ? 'y' : 'x');
+          if (debug && false) {
+            console.log('cx[' + cx + '] cy[' + cy + '] cratio[' + cratio + '], ix[' + ix + '] iy[' + iy + '] iratio['
+                + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
+          }
+          // apply class to image
+          jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
+        });
+        return localContext;
       }
-      // 2. queue up the bound checking to happen after we've got the loaded res
-      eventContext.deferred.then(function() {
-        // read container width/height
-        var cx = jqEnt.width(), cy = jqEnt.height();
-        var cratio = cx / cy;
-        // detect if the image is bound by width/height in this container
-        var ix = jqBoundable.data('loaded-width'), iy = jqBoundable.data('loaded-height');
-        if (debug && false) {
-          console.log('image-'+jqEnt.data('seq')+' ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
-        }
-        var iratio = ix / iy;
-        var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
-        var invdir = (direction == 'x' ? 'y' : 'x');
-        if (debug && false) {
-          console.log('cx[' + cx + '] cy[' + cy + '] cratio[' + cratio + '], ix[' + ix + '] iy[' + iy + '] iratio['
-              + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
-        }
-        // apply class to image
-        jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
-      });
     }
     return eventContext;
   };
@@ -297,47 +259,54 @@ window.sfun = (function($, undefined) {
       // find the next visible one in the scroll direction
       jqEnt = $('ul.flow .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
       if (jqEnt.length) {
+        var localContext = eventQueue.pushChild(eventContext, {
+          'replaceEvent': function(){},
+          'comment': 'localContext for refreshSelected (image-'+jqEnt.data('seq')+')'
+        });
         // use hash to select new and deselect old, but numb listener and parent deferred
-        that.imageAdvanceTo(jqEnt.data('seq'), eventQueue.pushChild(eventContext, { 'replaceEvent': function(){} }));
+        localContext = that.imageAdvanceTo(jqEnt.data('seq'), localContext);
+        return localContext;
       }
     }
+    return eventContext;
   };
 
   /**
    * Check the display resolution of the image and swap out src if higher res available 
-   * @todo event context not blocking, not really plugged in yet
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    * @return {object} updated event context
    */
   this['refreshResolution'] = function(jqEnt, eventContext) {
+    var that = this;
     var jqReresable = jqEnt.find('.reresable');
     if (!jqReresable.length) {
       return;
     }
-    var nativeWidth = jqReresable.data('native-width');
-    var nativeHeight = jqReresable.data('native-height');
-    var swappedOut = false, metaedOut = false;
     // don't attempt to check image resolution on directory
     var type = this.getType(jqEnt);
     if (!(type == 'image' || type == 'video')) {
       return;
     }
-    if (debug && false) {
-      console.log('image-'+jqEnt.data('seq')+': checking resolution');
-    }
-    // test to see if we're displaying an image at more than 100%
-    if (typeof(nativeWidth) == 'undefined' || typeof(nativeHeight) == 'undefined') {
-      // fire request for metadata, then callback this (refreshResolution) function later
-      this.checkMetadata(jqEnt);
-      metaedOut = true;
-    } else {
-      var resbracket = 250, brackWidth, brackHeight;
-      var imageWidth = jqReresable.width() * window.devicePixelRatio;
-      var imageHeight = jqReresable.height() * window.devicePixelRatio;
+    // request for metadata and wait for return
+    eventContext = this.refreshMetadata(jqEnt, eventContext);
+    eventContext.deferred.then(function() {
+      // test to see if we're displaying an image at more than 100%
+      var swappedOut = false;
+      // fetch loaded, native and current image dimensions
       var loadedWidth = jqReresable.data('loaded-width');
       var loadedHeight = jqReresable.data('loaded-height');
+      var nativeWidth = jqReresable.data('native-width');
+      var nativeHeight = jqReresable.data('native-height');
+      var imageWidth = jqReresable.width() * window.devicePixelRatio;
+      var imageHeight = jqReresable.height() * window.devicePixelRatio;
+      // analyse
+      var resbracket = 250, brackWidth, brackHeight;
       var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
+      // optional debugging
+      if (debug) {
+        console.log('image-'+jqEnt.data('seq')+': checking resolution w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+      }
       // test to see if we're displaying an image at more than 100%
       if (bigger && available) {
         // only need to think about one dimension, because ratio of image is fixed
@@ -349,7 +318,7 @@ window.sfun = (function($, undefined) {
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
             // swap out image, but don't wait for swap to complete
-            this.imageReres(jqEnt, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
+            that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
             swappedOut = true;
             // console.log('swap imageWidth['+imageWidth+'] brackWidth['+brackWidth+']');        
           }
@@ -358,19 +327,54 @@ window.sfun = (function($, undefined) {
           brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
             // swap out image, but don't wait for swap to complete
-            this.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
+            that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
             swappedOut = true;
           }
         }
       }
-    }
-    // if we didn't swap out this image or go off to check its metadata, update imgmetric
-    // @todo maybe can comment this
-    if (!swappedOut && !metaedOut) {
-      this.refreshMetric(jqEnt);
-    }
-    if (debug && false) {
-      console.log('checking '+jqEnt.data('seq')+' w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+      // if we didn't swap out this image, update imgmetric
+      // @todo maybe can comment this
+      if (!swappedOut) {
+        that.refreshMetric(jqEnt);
+      }
+    });
+    return eventContext;
+  };
+
+  /**
+   * Request metadata about this image from the server if we don't have it
+   * @param {object} [eventContext] optional event context for decorating an existing deferred
+   * @return {object} updated event context
+   */
+  this['refreshMetadata'] = function(jqEnt, eventContext) {
+    var that = this;
+    var jqReresable = jqEnt.find('.reresable');
+    if (jqReresable.length) {
+      // test to see if we have the metadata
+      if (typeof(jqReresable.data('native-width')) == 'undefined' || typeof(jqReresable.data('native-height')) == 'undefined') {
+        var localContext = eventQueue.pushChild(eventContext, {});
+        // fire ajax request
+        $.ajax({
+          url: jqReresable.attr('src').replace('image','imagemeta'),
+          dataType: 'json',
+        })
+        .done(function( data ) {
+          if (typeof(data.meta) != 'undefined') {
+            // if we get a response, set the missing metadata to the image
+            jqReresable.data('native-width', data.meta.width);
+            jqReresable.data('native-height', data.meta.height);
+            if (debug) {
+              console.log('image-'+jqEnt.data('seq')+': received native width['+jqReresable.data('native-width')+'] height['+jqReresable.data('native-height')+']');
+            }
+          }
+          // resolve the context
+          localContext.deferred.resolve();
+        });
+        if (debug) {
+          console.log('image-'+jqEnt.data('seq')+': fired request for native width and height');
+        }
+        return localContext;
+      }
     }
     return eventContext;
   };
@@ -383,19 +387,22 @@ window.sfun = (function($, undefined) {
    */
   this['refreshImage'] = function(jqEnt, eventContext) {
     var that = this;
+    // create local context to draw together all the deps
+    var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for aggregating in refreshImage' });
+    var boundsContext, resContext;
     // call refreshBounds
-    eventContext = this.refreshBounds(jqEnt, eventContext);
-    // BEWARE HERE, might need to do this differently
+    boundsContext = this.refreshBounds(jqEnt, localContext);
+    eventQueue.aggregate(localContext, boundsContext);
     // change out the image for a better resolution if one's available
-    eventContext = this.refreshResolution(jqEnt, eventContext);
-    // BEWARE HERE, might need to do this differently
+    resContext = this.refreshResolution(jqEnt, boundsContext);
+    eventQueue.aggregate(localContext, resContext);
     // then refresh other properties
-    eventContext.deferred.then(function() {
+    resContext.deferred.then(function() {
       // update metric
       that.refreshMetric(jqEnt);
       that.refreshMetricPosition(jqEnt);
     });
-    return eventContext;
+    return resContext;
   };
 
   /**
@@ -406,11 +413,17 @@ window.sfun = (function($, undefined) {
    */
   this['refreshVisibleImages'] = function(eventContext) {
     var that = this;
-    $('ul.flow .selectablecell.visible').each(function() {
-      var jqEnt = $(this);
-      // BEWARE HERE, might need to do this differently
-      eventContext = that.refreshImage(jqEnt, eventContext);
-    });
+    var jqVisibles = $('ul.flow .selectablecell.visible');
+    if (jqVisibles.length) {
+      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for aggregating in refreshVisibleImages' });
+      jqVisibles.each(function() {
+        var jqEnt = $(this);
+        var returnedContext = that.refreshImage(jqEnt, localContext);
+        // merge each context into the overall
+        eventQueue.aggregate(localContext, returnedContext);
+      });
+      return localContext;
+    }
     return eventContext;
   };
 
@@ -605,20 +618,23 @@ window.sfun = (function($, undefined) {
     var jqBoundable = jqEnt.find('.boundable');
     if (jqBoundable.length) {
       // create local context for async processing
-      var localContext = eventQueue.pushChild(eventContext, {});
+      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for getLoadedResolution (image-'+jqEnt.data('seq')+')' });
       // update loaded resolution
       var im = new Image();
       im.onload = function() {
         jqBoundable.data('loaded-width', im.width);
         jqBoundable.data('loaded-height', im.height);
         im = null;
-        if (debug && false) {
-          console.log('loaded first thumbnail for image-'+jqEnt.data('seq'));
+        if (debug) {
+          console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqBoundable.data('loaded-width')+','+jqBoundable.data('loaded-height')+']');
         }
         // notify promise of resolution
         localContext.deferred.resolve();
       }
       im.src = jqBoundable.attr('src');
+      if (debug) {
+        console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
+      }
       // return local context so that when we complete (resolve), our parents can execute
       return localContext;
     }
@@ -813,21 +829,30 @@ window.sfun = (function($, undefined) {
   /**
    * Loop through all images
    * @param {object} [eventContext] optional event context for decorating an existing deferred
+   * @return {object} updated event context
    */
   this['setVisibleAll'] = function(eventContext) {
     var that = this;
-    // clear all the visible images
-    $('ul.flow .selectablecell').removeClass('visible');
-    // then recalculate them
-    $('ul.flow .selectablecell').each(function() {
-      var jqEnt = $(this);
-      if (that.isVisible(jqEnt, true)) {
-        eventContext = that.setVisibleImage(jqEnt, true, eventContext);
-      } else {
-        // don't test, because setVis(false) is just a .removeClass()
-        eventContext = that.setVisibleImage(jqEnt, false, eventContext);
-      }
-    });
+    var jqCells = $('ul.flow .selectablecell');
+    if (jqCells.length) {
+      // create local context to draw together all the deps
+      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for aggregating in setVisibleAll' });
+      // clear all the visible images
+      jqCells.removeClass('visible');
+      // then recalculate them
+      jqCells.each(function() {
+        var jqEnt = $(this);
+        var returnedContext;
+        if (that.isVisible(jqEnt, true)) {
+          returnedContext = that.setVisibleImage(jqEnt, true, localContext);
+        } else {
+          // don't test, because setVis(false) is just a .removeClass()
+          returnedContext = that.setVisibleImage(jqEnt, false, localContext);
+        }
+        eventQueue.aggregate(localContext, returnedContext);
+      });
+      return localContext;
+    }
     return eventContext;
   };
 
@@ -839,8 +864,8 @@ window.sfun = (function($, undefined) {
    */
   this['setVisibleImage'] = function(jqEnt, vis, eventContext) {
     if (vis) {
-      if (debug && false) {
-        console.log('making image-'+jqEnt.data('seq')+' visible');
+      if (debug) {
+        console.log('image-'+jqEnt.data('seq')+': made visible');
       }
       // make it visible
       jqEnt.addClass('visible');
@@ -880,7 +905,7 @@ window.sfun = (function($, undefined) {
     var jqReresable = jqEnt.find('.reresable');
     if (jqReresable.length) {
       // create local context for async processing
-      var localContext = eventQueue.pushChild(eventContext, {});
+      var localContext = eventQueue.pushChild(eventContext, { 'comment': 'localContext for imageReres (image-'+jqEnt.data('seq')+')'});
       // create temporary image container
       var img = $('<img id="dynamic" />');
       // attach listener to catch when the new image has loaded
@@ -1117,9 +1142,16 @@ window.sfun = (function($, undefined) {
         this.length = this.objarr.length;
         // optional debugging
         if (debug && false) {
-          console.log('pushed object key['+key+'] on to ref['+ref+'] '+this.name+' hashTable, now has '+this.length+'elements');
+          console.log('pushed object['+this.render(obj)+'] on to ref['+ref+'] '+this.name+' hashTable, now has '+this.length+'elements');
         }
         return obj;
+      },
+
+      /**
+       * @return {string} render simple string of object
+       */
+      'render': function(obj) {
+        return obj.key;
       },
 
       /**
@@ -1139,10 +1171,11 @@ window.sfun = (function($, undefined) {
         // find this key in the array
         var ref = this.find(key);
         if (ref != -1) {
+          var obj = this.objarr[ref];
           this.removeRef(ref);
           // optional debugging output
           if (debug && false) {
-            console.log('removed key['+key+'] from '+this.name+' hashTable');
+            console.log('removed ['+this.render(obj)+'] from '+this.name+' hashTable');
           }
         }
         return ref;
@@ -1167,6 +1200,9 @@ window.sfun = (function($, undefined) {
        */
       'get': function(key, alsoRemove) {
         var ref = this.find(key);
+        if (debug) {
+          console.log('get requested for key[' + key + ']');
+        }
         if (typeof(alsoRemove) == 'undefined') {
           alsoRemove = false;
         }
@@ -1176,6 +1212,9 @@ window.sfun = (function($, undefined) {
           if (alsoRemove) {
             // delete this object
             this.removeRef(ref);
+            if (debug) {
+              console.log('pulled hashTable object[' + this.render(obj) + ']');
+            }
           }
           return obj;
         }
@@ -1192,13 +1231,36 @@ window.sfun = (function($, undefined) {
    */
   this['createEventQueue'] = function() {
     return $.extend(this.createHashTable('eventQueue'), {
+      // internal ID counter
+      evid: 0,
+
       // default event object 
       'defaultEventObject': {
-        'key': '<unset>',
+        'key': '<unset:',
         // don't replace the event handler
         'replaceEvent': false,
         // don't create a deferred
-        'deferred': false
+        'deferred': false,
+        // has no parent
+        'parent': null,
+        // has no dependencies
+        'deps': null,
+        // comment is an empty string (for rendering)
+        'comment': ''
+      },
+
+      /**
+       * @return {string} render simple string of object
+       */
+      'render': function(obj) {
+        var output = obj.key + ', ' + obj.deferred.state();
+        if (obj.comment) {
+          output += ', ' + obj.comment;
+        }
+        if (obj.deps.length) {
+          output += ', ' + obj.deps.length + ' deps';
+        }
+        return output;
       },
 
       /**
@@ -1209,11 +1271,14 @@ window.sfun = (function($, undefined) {
         // create new deferred, but ignore if already set in partial
         var deferred = $.Deferred();
         // compose new object ($.extend gives right to left precedence)
-        var obj = $.extend({}, this.defaultEventObject, { 'deferred': deferred}, partial);
+        var obj = $.extend({}, this.defaultEventObject, {
+          'key': this.defaultEventObject.key + (this.evid++) + '>',
+          'deferred': deferred,
+          'deps': []
+        }, partial);
         // optional debugging message
         if (debug) {
-          // START HERE
-          console.log('pushed event');
+          console.log('pushed event context[' + this.render(obj) + ']');
         }
         // push
         return this._push(obj);
@@ -1225,32 +1290,56 @@ window.sfun = (function($, undefined) {
        * @param {object} partial fields to override defaults
        */
       'pushChild': function(parentContext, partial) {
+        var that = this;
         // push partial in normal way
         var obj = this.push(partial);
-        if (typeof(parentContent) != 'undefined' && parentContext) {
+        if (typeof(parentContext) != 'undefined' && parentContext) {
           // store parent relationship
           obj.parent = parentContext;
+          parentContext.deps[parentContext.deps.length] = obj;
           // setup promise on resolution of child to resolve parent
           obj.deferred.then(function() {
-            parentContext.deferred.resolve();
+            // test to see if parent has outstanding deps
+            var ref = parentContext.deps.indexOf(obj);
+            if (ref != -1) {
+              // delete this dep from parent
+              parentContext.deps.splice(ref, 1);
+            }
+            // if we've resolved all the deps, resolve this promise
+            if (parentContext.deps.length == 0) {
+              if (debug) {
+                console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
+              }
+              parentContext.deferred.resolve();
+            } else {
+              if (debug) {
+                console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
+              }              
+            }
           });
+          if (debug) {
+            console.log('  -> pushed event has parent context[' + this.render(obj.parent) + ']');
+          }
         }
         return obj;
       },
 
       /** 
-       * @param {string} key to search for
+       * @param {object} partial fields to override defaults
        * @param {bool} [alsoRemove] true to delete matched elements
        * @return {object} matched object or created object
        */
-      'getOrInvent': function(key, alsoRemove) {
-        var retrieved = this.get(key, alsoRemove);
+      'getOrInvent': function(partial, alsoRemove) {
+        var retrieved = null;
+        if (typeof(partial.key) != 'undefined') {
+          retrieved = this.get(partial.key, alsoRemove);
+        }
         if (typeof(alsoRemove) == 'undefined') {
           alsoRemove = false;
         }
         if (retrieved == null) {
           // create object using shallow copy of defaults, then overwrite set fields
-          retrieved = this.invent(key);
+          retrieved = this.invent(partial);
           // only store if we're not removing
           if (!alsoRemove) {
             this.push(retrieved);
@@ -1261,18 +1350,18 @@ window.sfun = (function($, undefined) {
 
       /** 
        * invent an event context
-       * @param {string} key for context to invent
+       * @param {object} partial for context to invent
        * @return {object} created object
        */
-      'invent': function(key) {
-        if (typeof(key) == 'undefined') {
-          key = '<unset>';
+      'invent': function(partial) {
+        if (typeof(partial.key) == 'undefined') {
+          partial.key = '<unset>';
         }
         // create object using shallow copy of defaults, then overwrite set fields
         var retrieved = $.extend({}, this.defaultEventObject, {
-          'key': key,
-          'deferred': $.Deferred()
-        });
+          'deferred': $.Deferred(),
+          'deps': [],
+        }, partial);
         return retrieved;
       },
 
@@ -1308,6 +1397,33 @@ window.sfun = (function($, undefined) {
         }
         // if we've no reason to ignore the event, then act on it
         return true;
+      },
+
+      /**
+       * setup s2 as a dependency of s1
+       * @param  {object} s1 destination event context
+       * @param  {object} s2 source event context
+       * @return {object} s1 after aggregation
+       */
+      'aggregate': function(s1, s2) {
+        // check that they're not equal (unbranched return of eventContext by subfunction)
+        if (!this.equals(s1, s2)) {
+          // check that s2 is a child of s1
+          if (s2.parent == s1) {
+            s1.deps[s1.deps.length] = s2;
+          }
+        }
+        return s1;
+      },
+
+      /**
+       * @param  {object} s1 event context
+       * @param  {object} s2 event context
+       * @return {boolean} true if s1 and s2 are the same context
+       */
+      'equals': function(s1, s2) {
+        // for now, just compare memory pointers
+        return (s1 == s2);
       },
 
       lastEntry: null
@@ -1346,7 +1462,8 @@ window.sfun = (function($, undefined) {
     hash = this.hashGenerate(obj);
     // create local context for async processing
     var localContext = eventQueue.pushChild(eventContext, {
-      'key': 'hash'+hash
+      'key': 'hash'+hash,
+      'comment': 'localContext for fire_hashUpdate'
     });
     // fire event: change the window.location.hash
     if (push) {
@@ -1372,7 +1489,8 @@ window.sfun = (function($, undefined) {
    */
   this['fire_scrollUpdate'] = function(left, top, eventContext) {
     var localContext = eventQueue.pushChild(eventContext, {
-      'key': 'scroll:'+'x='+left+'&y='+top
+      'key': 'scroll:'+'x='+left+'&y='+top,
+      'comment': 'localContext for fire_scrollUpdate'
     });
     // fire event: change the scroll position (comes through as single event)
     $(document).scrollLeft(left);
@@ -1391,7 +1509,10 @@ window.sfun = (function($, undefined) {
    */
   this['handler_hashChanged'] = function(hash) {
     // get context if we created the event, invent if it was user generated
-    var eventContext = this.eventQueue.getOrInvent('hash:'+hash);
+    var eventContext = this.eventQueue.getOrInvent({
+      'key': 'hash:'+hash,
+      'comment': 'invented context for handler_hashChanged'
+    });
     // first of all find out if we should actually process this hash change
     if (this.eventQueue.actOnContext(eventContext)) {
       // keep track of whether this update could have affected all images and selected images
@@ -1437,7 +1558,10 @@ window.sfun = (function($, undefined) {
   this['handler_scrolled'] = function(event) {
     var sx = $(document).scrollLeft(), sy = $(document).scrollTop();
     // get context if we created the event, invent if it was user generated
-    var eventContext = this.eventQueue.getOrInvent('scroll:'+'x='+sx+'&y='+sy);
+    var eventContext = this.eventQueue.getOrInvent({
+      'key': 'scroll:'+'x='+sx+'&y='+sy,
+      'comment': 'invented context for handler_scrolled'
+    });
     // process this event if we're meant to
     if (this.eventQueue.actOnContext(eventContext)) {
       // invert deltas to match scroll wheel
@@ -1473,7 +1597,10 @@ window.sfun = (function($, undefined) {
     // active mousewheel reaction is dependent on which direction we're flowing in
     if (direction == 'x') {
       // invent context as all mouse wheel events are user generated
-      var eventContext = this.eventQueue.invent();
+      var eventContext = this.eventQueue.invent({
+        'key': 'wheel:dir='+direction,
+        'comment': 'invented context for handler_mouseWheeled'
+      });
       var xpos = $(document).scrollLeft();
       // get current cell size
       var cellsize = this.getCellSize();

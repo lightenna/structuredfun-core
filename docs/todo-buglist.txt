@@ -1,4 +1,6 @@
 
+* force imagemeta to return meta
+
 * modify the numbEventQueue to be deferreds manager
     + that's a pretty good handler
     + needs a hash (string), done function pointer and parent
@@ -69,7 +71,6 @@
                   + returns eventContext(2) if it scheduled stuff, or eventContext(1) if it didn't
                 + refreshBounds then queues stuff against the eventContext it receives (2/1)
               + refreshImage then queues stuff against the eventContext it receives
-
   + remember
     + pushChild only when we're about to WAIT for something to happen (e.g. an actual async wait, e.g. image load)
     + .then to setup things to happen in sequence
@@ -80,8 +81,32 @@
   - not sure about pushChild needing to 'resolve' the parent
     + think it's probably a yes
   - not sure about how to execute multiple things in sequence
-    + 
+  + not currently preserving eventContext across checkMetadata
+    + that a bit is deliberately async-unsync
+  + everything is stacking up on the eventQueue
+    + seem to be resolving <unset:2> several times over
+      + could be because 2 is everything's parent
+  + problem is that we're stacking all the eventContexts in series
+    + there are some that are event dependent
+      + which means they can resolve at any time
+        + which means the middle of the chain resolves
+    + need to create contexts for each event-dependent event
+      + then do some kind of aggregation to say 'wait for them all to finish'
+    + eventContext:parent is used to kick the parent
+    + eventContext:deps is used to store a list of all the contexts we depend on
+      + everytime the parent gets kicked
+        + it checks to see if all the deps have been satisfied
+    + if there are no deps
+      + it resolves right away
+    + I get foggy on the different situations this can come up in
+      1. do something in a child function, when it's done, allow its parent to be called
+      2. ? is there a 2?
 
+* refactor eventContext stuff, once it's working
+  + I'm not going to want to do it
+    + but go back in, test alternatives and clean-up eventContext stuff
+    + there are too many unanswered questions
+      + and I'm sure I can make the syntax easier
 
 * end, fullscreen, home
   + check re-res

@@ -41,6 +41,13 @@ class ImageviewController extends ViewController {
     $this->populate($rawname);
     // request image from cache (including metadata)
     $imgdata = $this->mfr->getOnlyIfCached();
+    // if image not in cache
+    if (!$imgdata) {
+      // load the image normally to cache
+      $imgdata = $this->fetchImage();
+      // @todo currently have to re-pull from cache to put metadata in .meta{} subobject
+      $imgdata = $this->mfr->getOnlyIfCached();
+    }
     // encode as json
     print(json_encode($this->stats));
     exit;
