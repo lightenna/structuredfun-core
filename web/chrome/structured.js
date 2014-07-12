@@ -255,13 +255,12 @@ window.sfun = (function($, undefined) {
       // find the next visible one in the scroll direction
       jqEnt = $('ul.flow .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
       if (jqEnt.length) {
-        var localContext = eventQueue.pushChild(eventContext, {
+        var localContext = eventQueue.push({
           'replaceEvent': function(){},
           'comment': 'localContext for refreshSelected (image-'+jqEnt.data('seq')+')'
         });
         // use hash to select new and deselect old, but numb listener and parent deferred
-        localContext = that.imageAdvanceTo(jqEnt.data('seq'), localContext);
-        return localContext;
+        return that.imageAdvanceTo(jqEnt.data('seq'), localContext);
       }
     }
     return $.Deferred().resolve();
@@ -367,17 +366,24 @@ window.sfun = (function($, undefined) {
   /**
    * refresh a single image, but ensure that it's loaded first
    * @param {object} jqEnt jquery entity
+   * @param {boolean} reres also refresh the image's resolution
    * @return {object} jQuery deferred
    */
-  this['refreshImage'] = function(jqEnt) {
+  this['refreshImage'] = function(jqEnt, reres) {
+    // final stage is to refresh the metric
+    var doMetric = function() {
+      // update metric
+      that.refreshMetric(jqEnt);
+      that.refreshMetricPosition(jqEnt);
+    };
     // refresh the bounds of the image
     return this.refreshBounds(jqEnt).always(function() {
-      // change out the image for a better resolution if one's available
-      that.refreshResolution(jqEnt).always(function() {
-        // update metric
-        that.refreshMetric(jqEnt);
-        that.refreshMetricPosition(jqEnt);
-      });
+      if (reres) {
+        // change out the image for a better resolution if one's available
+        that.refreshResolution(jqEnt).always(doMetric);        
+      } else {
+        doMetric();
+      }
     });
   };
 
@@ -394,7 +400,7 @@ window.sfun = (function($, undefined) {
       var defs = [];
       jqVisibles.each(function() {
         var jqEnt = $(this);
-        defs.push(that.refreshImage(jqEnt));
+        defs.push(that.refreshImage(jqEnt, true));
       });
       $.when.apply($, defs).always(function() {
         deferred.resolve();
@@ -805,6 +811,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * Loop through all images
+   * @todo optimise
    * @return {object} jQuery deferred
    */
   this['setVisibleAll'] = function() {
@@ -819,16 +826,47 @@ window.sfun = (function($, undefined) {
       jqCells.each(function() {
         var jqEnt = $(this);
         if (that.isVisible(jqEnt, true)) {
-          defs.push(that.setVisibleImage(jqEnt, true));
+          defs.push(that.setVisibleImage(jqEnt, 'visible'));
         } else {
           // don't test, because setVis(false) is just a .removeClass()
-          defs.push(that.setVisibleImage(jqEnt, false));
+          defs.push(that.setVisibleImage(jqEnt, 'not-visible'));
         }
       });
-      // aggregate all the deferred
+      // aggregate all the deferreds
       $.when.apply($, defs).always(function() {
         deferred.resolve();
       });
+      // now request nearvis images, but don't wait for them (async, not resync)
+      var cellcount = that.getTotalEntries();
+      // hunt for first and last visible
+      var first_np1 = $('ul.flow .selectablecell.visible:first').data('seq'), last_0 = $('ul.flow .selectablecell.visible:last').data('seq');
+      // compute those near the last visible
+      var last_1 = (last_0 + 1) % cellcount;
+      var last_n = (last_0 + that.getBreadth() * that.export.BREADTH_MULTIPLIER) % cellcount;
+      var first_n = negative_mod(first_np1 - 1, cellcount);
+      var first_1 = negative_mod(first_np1 - that.getBreadth() * that.export.BREADTH_MULTIPLIER, cellcount);
+      // catch situation where wraparound means that for loop won't work
+      if (last_1 > last_n) {
+        last_n = cellcount-1;
+      }
+      if (first_n < first_1) {
+        first_n = 0;
+      }
+      // optional debugging
+      if (debug && true) {
+        console.log('images-('+first_1+' to '+first_n+'): making nearvis (before visibles)');
+      }
+      if (debug && true) {
+        console.log('images-('+last_1+' to '+last_n+'): making nearvis (after visibles)');
+      }
+      // request nearvis (after visibles), async
+      for (var i = last_1 ; i <= last_n ; i++) {
+        that.setVisibleImage($('#seq-'+i), 'nearvis');
+      }
+      // request nearvis (before visibles), async
+      for (var i = first_1 ; i <= first_n ; i++) {
+        that.setVisibleImage($('#seq-'+i), 'nearvis');
+      }
       return deferred;
     }
     return $.Deferred().resolve();
@@ -837,32 +875,38 @@ window.sfun = (function($, undefined) {
   /**
    * either flag an image as visible or not visible
    * @param {jQuery} jqEnt image
-   * @param {boolean} vis true to make visible, false not
+   * @param {string} 'visible' true to make visible, 'not visible' to hide
+   *   or 'nearvis' to make visible but not re-res
    * @return {object} jQuery deferred
    */
   this['setVisibleImage'] = function(jqEnt, vis) {
-    if (vis) {
-      if (debug) {
-        console.log('image-'+jqEnt.data('seq')+': made visible');
-      }
-      // make it visible
-      jqEnt.addClass('visible');
-      // make its src show if not there already
+    if (debug && false) {
+      console.log('image-'+jqEnt.data('seq')+': making '+vis);
+    }
+    // process visibility string
+    if (vis == 'not-visible') {
+      // make it not-visible
+      jqEnt.removeClass('visible');
+    } else {
+      // vis/nearvis: make its src show, if not there already
       var jqReresable = jqEnt.find('.reresable');
       if (jqReresable.length) {
         var attr = jqReresable.attr('src');
         if (typeof attr === 'undefined' || attr === false) {
           jqReresable.attr('src', jqReresable.data('desrc'));
         }
+      }
+      if (vis == 'nearvis') {
+        // mark image as near visible
+        jqEnt.addClass('nearvis');
+        // refresh image, but don't update its resolution
+        return this.refreshImage(jqEnt, false);
+      } else if (vis == 'visible') {
+        // make it visible (may have previously been nearvis)
+        jqEnt.removeClass('nearvis').addClass('visible');
         // when an image becomes visible refresh all its facets
-        return this.refreshImage(jqEnt);
+        return this.refreshImage(jqEnt, true);
       }
-    } else {
-      if (debug && false) {
-        console.log('making image-'+jqEnt.data('seq')+' not-visible');
-      }
-      // make it not-visible
-      jqEnt.removeClass('visible');
     }
     return $.Deferred().resolve();
   };
@@ -1261,6 +1305,19 @@ window.sfun = (function($, undefined) {
       },
 
       /**
+       * push event object or merge if a peer is set
+       * @param {object} partial fields to override defaults
+       */
+      'pushOrMerge': function(partial, peer) {
+        var obj = {};
+        if (typeof(peer) != 'undefined') {
+          obj = peer;
+        }
+        // overwrite obj fields with partial values
+        return this.push($.extend(obj, partial));
+      },
+
+      /**
        * push event object onto event queue and setup parenting
        * can only cope with 1:1 parent:child relationships
        * @param {object} partial fields to override defaults
@@ -1424,6 +1481,7 @@ window.sfun = (function($, undefined) {
    * @param {boolean} push         true to push a history item
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    * @return {object} updated event context
+   * @return {object} jQuery deferred
    */
   this['fire_hashUpdate'] = function(options, push, eventContext) {
     var hash = '', fromHash, readback;
@@ -1436,11 +1494,11 @@ window.sfun = (function($, undefined) {
     this.merge(obj, options);
     // convert to hash string
     hash = this.hashGenerate(obj);
-    // create local context for async processing
-    var localContext = eventQueue.pushChild(eventContext, {
+    // create a context, but parent it only if eventContext is not undefined
+    var localContext = eventQueue.pushOrMerge({
       'key': 'hash'+hash,
       'comment': 'localContext for fire_hashUpdate'
-    });
+    }, eventContext);
     // fire event: change the window.location.hash
     if (push) {
       History.pushState({}, null, hash);
@@ -1454,23 +1512,28 @@ window.sfun = (function($, undefined) {
         window.location.hash = hash;
       }
     }
+    // localContext is resolved by handler_hashChanged
+    return localContext.deferred;
   };
 
   /**
    * change the visible portion of the page by moving the scrollbars
    * @param {int} left distance from left of page in pixels
    * @param {int} top  distance from top of page in pixels
+   * @param {object} [eventContext] optional event context for decorating an existing deferred
    * @return {object} jQuery deferred
    */
-  this['fire_scrollUpdate'] = function(left, top) {
-    var localContext = eventQueue.pushChild(eventContext, {
+  this['fire_scrollUpdate'] = function(left, top, eventContext) {
+    // create a context, but parent it only if eventContext is not undefined
+    var localContext = eventQueue.pushOrMerge({
       'key': 'scroll:'+'x='+left+'&y='+top,
       'comment': 'localContext for fire_scrollUpdate'
-    });
+    }, eventContext);
     // fire event: change the scroll position (comes through as single event)
     $(document).scrollLeft(left);
     $(document).scrollTop(top);
-    return $.Deferred().resolve();
+    // localContext is resolved by handler_scrolled
+    return localContext.deferred;
   };
 
   // -------------------------
@@ -1489,6 +1552,9 @@ window.sfun = (function($, undefined) {
       'key': 'hash:'+hash,
       'comment': 'invented context for handler_hashChanged'
     });
+    var wrapUp = function() {
+      return eventContext.deferred.resolve();
+    }
     // first of all find out if we should actually process this hash change
     if (this.eventQueue.actOnContext(eventContext)) {
       // keep track of whether this update could have affected all images and selected images
@@ -1518,13 +1584,13 @@ window.sfun = (function($, undefined) {
       seqChanged = this.setSeq(obj.seq);
       if (seqChanged || breadthChanged) {
         // scroll to the selected image, which triggers refreshImage on all .visible images
-        return this.setScrollPosition(obj.seq);
+        return this.setScrollPosition(obj.seq).then(wrapUp);
       }
       else if (breadthChanged) {
-        return this.refreshVisibleImages();
+        return this.refreshVisibleImages().then(wrapUp);
       }
     }
-    return $.Deferred().resolve();
+    return wrapUp();
   }
 
   /**
@@ -1538,6 +1604,9 @@ window.sfun = (function($, undefined) {
       'key': 'scroll:'+'x='+sx+'&y='+sy,
       'comment': 'invented context for handler_scrolled'
     });
+    var wrapUp = function() {
+      return eventContext.deferred.resolve();
+    }
     // process this event if we're meant to
     if (this.eventQueue.actOnContext(eventContext)) {
       // invert deltas to match scroll wheel
@@ -1557,9 +1626,9 @@ window.sfun = (function($, undefined) {
       }
       // see if scroll has made any new images visible
       var scrolldir = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 0 - event.deltaX : 0 - event.deltaY);
-      return this.refreshVisibility(scrolldir);
+      return this.refreshVisibility(scrolldir).then(wrapUp);
     }
-    return $.Deferred().resolve();
+    return wrapUp();
   }
 
   /**
@@ -1590,6 +1659,8 @@ window.sfun = (function($, undefined) {
       }
       // get current x position, increment and write back, firing scroll event
       return this.fire_scrollUpdate(xpos + (scrolldir * cellsize), 0);
+      // START HERE
+      // pull onto queue so that we can span the fire_ handler_ divide
     }
     return $.Deferred().resolve();
   }
@@ -1597,6 +1668,11 @@ window.sfun = (function($, undefined) {
   // ------------------
   // FUNCTIONS: helpers
   // ------------------
+
+  this['negative_mod'] = function(x, m) {
+    if (x < 0) return (x+m);
+    return x;
+  }
 
   /**
    * merge into obj1
@@ -1756,6 +1832,7 @@ window.sfun = (function($, undefined) {
 
     HASHBANG: '#!',
     pullImgSrcTHRESHOLD: 20,
+    BREADTH_MULTIPLIER: 4,
 
     /**
      * add a button to the header
