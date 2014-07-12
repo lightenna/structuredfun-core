@@ -1,3 +1,12 @@
+* rebound/x-bound on 305 at fullscreen
+
+* synchronicity
+  + waiting on all getImageMeta/metric pos to complete
+    + before re-resing all
+      + before updating
+  + ideally want things to only aggregate at highest level
+    + so that each thread can keep the pipefull
+
 * refactor eventContext stuff
   + I'm not going to want to do it
     + but go back in, test alternatives and clean-up eventContext stuff
@@ -13,7 +22,8 @@
     + like
       + fire_scrollUpdate
       + refreshSelected / imageAdvanceTo 
-    + risky
+    + risky?
+      + maybe
 
 * look over remaining eventContext vars
 
@@ -44,9 +54,6 @@
   + test imgmetric vis
 
 * optimise dragging in large image sets
---o--
-* add class nearvis
-  + add to it 2x breadth on either side nearvis
 
 * .s in directory names, like mq
 
@@ -840,4 +847,7 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + I get foggy on the different situations this can come up in
       1. do something in a child function, when it's done, allow its parent to be called
       2. ? is there a 2?
+
+* add class nearvis
+  + add to it 2x breadth on either side nearvis
 
