@@ -67,10 +67,9 @@
     });
 
     test( 'reres of first page of images', function() {
-      sfun.api_triggerKeypress(sfun.KEY_HOME);
-      ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
       QUnit.stop();
-      setTimeout(function() {
+      sfun.api_triggerKeypress(sfun.KEY_HOME).then(function() {
+        ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
         $('ul.flow .selectablecell.visible .reresable').each(function() {
           var imw = $(this).width(), imh = $(this).height();
           var jqEnt = $(this).parents('li');
@@ -79,14 +78,13 @@
         });
         window.location.hash = '';
         QUnit.start();
-      }, 1);
+      });
     });
 
     test( 'reres of last page of images', function() {
-      sfun.api_triggerKeypress(sfun.KEY_END);
-      ok( $('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
       QUnit.stop();
-      setTimeout(function() {
+      sfun.api_triggerKeypress(sfun.KEY_END).then(function() {
+        ok( $('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
         $('ul.flow .selectablecell.visible .reresable').each(function() {
           var imw = $(this).width(), imh = $(this).height();
           var jqEnt = $(this).parents('li');
@@ -95,7 +93,7 @@
         });
         window.location.hash = '';
         QUnit.start();
-      }, 1);
+      });
     });
 
     test( 'check image bounds', function() {

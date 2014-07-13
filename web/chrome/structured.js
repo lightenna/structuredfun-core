@@ -157,7 +157,7 @@ window.sfun = (function($, undefined) {
           var cratio = cx / cy;
           // detect if the image is bound by width/height in this container
           var ix = jqBoundable.data('loaded-width'), iy = jqBoundable.data('loaded-height');
-          if (debug) {
+          if (debug && false) {
             console.log('image-'+jqEnt.data('seq')+': ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
           }
           var iratio = ix / iy;
@@ -191,7 +191,7 @@ window.sfun = (function($, undefined) {
       // calculate percentage based on image area, or width
       // perc = Math.round((width_current * height_current) * 100 / (width_native * height_native));
       perc = Math.round(width_current * 100 / width_native);
-      if (debug && true) {
+      if (debug && false) {
         // show the size of the image that's been loaded into this img container
         jqMetric.find('span.width').html(Math.round(jqReresable.data('loaded-width')));
         jqMetric.find('span.height').html(Math.round(jqReresable.data('loaded-height')));
@@ -255,6 +255,7 @@ window.sfun = (function($, undefined) {
       // find the next visible one in the scroll direction
       jqEnt = $('ul.flow .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
       if (jqEnt.length) {
+        // create and resolve a local context to allow us to numb listener
         var localContext = eventQueue.push({
           'replaceEvent': function(){},
           'comment': 'localContext for refreshSelected (image-'+jqEnt.data('seq')+')'
@@ -295,7 +296,7 @@ window.sfun = (function($, undefined) {
       var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
       // optional debugging
-      if (debug) {
+      if (debug && false) {
         console.log('image-'+jqEnt.data('seq')+': checking resolution w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
       }
       // test to see if we're displaying an image at more than 100%
@@ -347,14 +348,14 @@ window.sfun = (function($, undefined) {
             // if we get a response, set the missing metadata to the image
             jqReresable.data('native-width', data.meta.width);
             jqReresable.data('native-height', data.meta.height);
-            if (debug) {
+            if (debug && false) {
               console.log('image-'+jqEnt.data('seq')+': received native width['+jqReresable.data('native-width')+'] height['+jqReresable.data('native-height')+']');
             }
           }
           // resolve the context
           deferred.resolve();
         });
-        if (debug) {
+        if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+': fired request for native width and height');
         }
         return deferred;
@@ -488,72 +489,8 @@ window.sfun = (function($, undefined) {
    */
   this['bindToHotKeys'] = function() {
     var that = this;
-    $(document).keydown(function(event){
-      if (debug && true) {
-        console.log('keydown event code['+event.which+']');
-      }
-      switch (event.which) {
-        case that.export.KEY_ARROW_LEFT:
-          if (!event.altKey) {
-            // advance to previous image
-            that.imageAdvanceBy(-1);
-            event.preventDefault();
-          }
-          break;
-        case that.export.KEY_ARROW_UP:
-          if (event.altKey) {
-            that.urlChangeUp();
-            event.preventDefault();
-          }
-          break;
-        case that.export.KEY_ARROW_RIGHT:
-        case that.export.KEY_TAB:
-        case that.export.KEY_ARROW_DOWN:
-          // advance to next image
-          that.imageAdvanceBy(1);
-          event.preventDefault();
-          break;
-        case that.export.KEY_PAGE_UP:
-          if (!event.ctrlKey) {
-            that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth());
-            event.preventDefault();
-          }
-          break;
-        case that.export.KEY_PAGE_DOWN:
-          if (!event.ctrlKey) {
-            that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth());
-            event.preventDefault();
-          }
-          break;
-        case that.export.KEY_HOME:
-          that.imageAdvanceTo(0);
-          event.preventDefault();
-          break;
-        case that.export.KEY_END:
-          that.imageAdvanceTo(that.getTotalEntries()-1);
-          event.preventDefault();
-          break;
-        case that.export.KEY_RETURN:
-          that.imageToggleFullscreen();
-          event.preventDefault();
-          break;
-        case that.export.KEY_NUMBER_1:
-          that.fire_hashUpdate( { 'breadth': 1 }, false);
-          event.preventDefault();
-          break;
-        case that.export.KEY_NUMBER_2:
-          that.fire_hashUpdate( { 'breadth': 2 }, false);
-          event.preventDefault();
-          break;
-        case that.export.KEY_NUMBER_4:
-          that.fire_hashUpdate( { 'breadth': 4 }, false);
-          event.preventDefault();
-          break;
-        case that.export.KEY_NUMBER_8:
-          that.fire_hashUpdate( { 'breadth': 8 }, false);
-          event.preventDefault();
-          break;
-      }
+    $(document).keydown(function(event) {
+      that.handler_keyPressed(event);
     });
   };
 
@@ -607,14 +544,14 @@ window.sfun = (function($, undefined) {
         jqBoundable.data('loaded-width', im.width);
         jqBoundable.data('loaded-height', im.height);
         im = null;
-        if (debug) {
+        if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqBoundable.data('loaded-width')+','+jqBoundable.data('loaded-height')+']');
         }
         // notify promise of resolution
         deferred.resolve();
       }
       im.src = jqBoundable.attr('src');
-      if (debug) {
+      if (debug && false) {
         console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
       }
       // return local context so that when we complete (resolve), our parents can execute
@@ -853,10 +790,10 @@ window.sfun = (function($, undefined) {
         first_n = 0;
       }
       // optional debugging
-      if (debug && true) {
+      if (debug && false) {
         console.log('images-('+first_1+' to '+first_n+'): making nearvis (before visibles)');
       }
-      if (debug && true) {
+      if (debug && false) {
         console.log('images-('+last_1+' to '+last_n+'): making nearvis (after visibles)');
       }
       // request nearvis (after visibles), async
@@ -953,19 +890,28 @@ window.sfun = (function($, undefined) {
   /**
    * advance forward or back by a certain number of images in the sequence
    * @param {int} increment positive to go to next, negative for previous
-   * @param {object} [eventContext] optional event context for decorating an existing deferred
+   * @param {object} eventContext optional event context for decorating an existing deferred
+   * @return {object} jQuery deferred
    */
   this['imageAdvanceBy'] = function(increment, eventContext) {
+    var that = this;
     // start with the current image
     var seq = this.getSeq();
+    var wrapUp = function() {
+      if (eventContext) {
+        return that.eventQueue.resolve(eventContext);
+      }
+      return $.Deferred().resolve();
+    }
     if (seq >= 0 && seq < this.getTotalEntries()) {
       // iterate to find next image
       if ((seq = this.getNextSeq(seq, increment)) !== false) {
-        this.imageAdvanceTo(seq, eventContext);
+        return this.imageAdvanceTo(seq, eventContext).then(wrapUp);
       }
     } else {
       console.log('warning: erroneous seq('+seq+') returned by getseq');
     }
+    return wrapUp();
   };
 
   /**
@@ -975,21 +921,23 @@ window.sfun = (function($, undefined) {
    */
   this['imageAdvanceTo'] = function(seq, eventContext) {
     // update using hash change
-    this.fire_hashUpdate( { 'seq': seq }, false, eventContext);
+    return this.fire_hashUpdate( { 'seq': seq }, false, eventContext);
   };
 
   /**
    * switch between the default breadth and fullscreen
+   * @param {object} eventContext optional event context for decorating an existing deferred
+   * @return {object} jQuery deferred
    */
-  this['imageToggleFullscreen'] = function() {
+  this['imageToggleFullscreen'] = function(eventContext) {
     var jqEnt = this.getSelected();
     switch (this.getType(jqEnt)) {
       case 'image':
         // toggle using hash change
         if (this.getBreadth() == 1) {
-          this.fire_hashUpdate( { 'breadth': this.previous['breadth'] }, false);
+          return this.fire_hashUpdate( { 'breadth': this.previous['breadth'] }, false, eventContext);
         } else {
-          this.fire_hashUpdate( { 'breadth': 1 }, false);
+          return this.fire_hashUpdate( { 'breadth': 1 }, false, eventContext);
         }
         break;
       case 'directory':
@@ -999,6 +947,7 @@ window.sfun = (function($, undefined) {
         }
         break;
     }
+    return this.eventQueue.resolve(eventContext);
   };
 
   // ------------------
@@ -1062,8 +1011,6 @@ window.sfun = (function($, undefined) {
         hash += key+'='+obj[key];
       }
     }
-    // always have to set a hashbang ('' is not enough to trigger correct update)
-    hash = this.export.HASHBANG + hash;
     return hash;
   };
 
@@ -1134,10 +1081,12 @@ window.sfun = (function($, undefined) {
       // array of objects, stored in dense sequential
       'objarr': [],
       // array of keys, stored in dense sequential
-      'indarr': [],
+      'keyarr': [],
 
       // length of queue
       'length': 0,
+      // counter for dishing out unique IDs
+      'counter': 0,
 
       /**
        * interface function push obj onto queue
@@ -1154,10 +1103,12 @@ window.sfun = (function($, undefined) {
        */
       '_push': function(obj) {
         var ref = this.length;
+        // store ID and ready for next ID request
+        obj.id = this.counter++;
         // store in object array
         this.objarr[ref] = obj;
         // store in the index array(s)
-        this.indarr[ref] = obj.key;
+        this.keyarr[ref] = obj.key;
         // increment length (by refreshing it)
         this.length = this.objarr.length;
         // optional debugging
@@ -1179,15 +1130,25 @@ window.sfun = (function($, undefined) {
        * @return {int} array reference or -1 if not found
        */
       'find': function(key) {
-        var ref = this.indarr.indexOf(key);
+        var ref = this.keyarr.indexOf(key);
         return ref;
+      },
+
+      /**
+       * Could use any object property to dereference it (like ID)
+       * @param {object} object to remove if found
+       * @return {int} array reference if removed or -1 if not found
+       */
+      'removeObj': function(obj) {
+        // use key to deref object
+        return this.removeKey(obj.key);
       },
 
       /**
        * @param {string} key to remove if found
        * @return {int} array reference if removed or -1 if not found
        */
-      'remove': function(key) {
+      'removeKey': function(key) {
         // find this key in the array
         var ref = this.find(key);
         if (ref != -1) {
@@ -1208,19 +1169,38 @@ window.sfun = (function($, undefined) {
         // delete from the object array
         this.objarr.splice(ref, 1);
         // delete from the index array
-        this.indarr.splice(ref, 1);
+        this.keyarr.splice(ref, 1);
         // update outer length for continuity
         this.length = this.objarr.length;
       },
 
+      /**
+       * This can be used just prior to a _push to get the ID that will be assigned by that _push
+       * @return {int} object counter in the hashTable
+       */
+      'getCounter': function() {
+        return this.counter;
+      },
+
       /** 
+       * interface function to get from table
        * @param {string} key to search for
        * @param {bool} [alsoRemove] true to delete matched elements
        * @return {object} matched object or null if not found
        */
       'get': function(key, alsoRemove) {
+        return this._get(key, alsoRemove);
+      },
+
+      /** 
+       * actually get object from table
+       * @param {string} key to search for
+       * @param {bool} [alsoRemove] true to delete matched elements
+       * @return {object} matched object or null if not found
+       */
+      '_get': function(key, alsoRemove) {
         var ref = this.find(key);
-        if (debug) {
+        if (debug && false) {
           console.log('get requested for key[' + key + ']');
         }
         if (typeof(alsoRemove) == 'undefined') {
@@ -1232,7 +1212,7 @@ window.sfun = (function($, undefined) {
           if (alsoRemove) {
             // delete this object
             this.removeRef(ref);
-            if (debug) {
+            if (debug && false) {
               console.log('pulled hashTable object[' + this.render(obj) + ']');
             }
           }
@@ -1251,16 +1231,13 @@ window.sfun = (function($, undefined) {
    */
   this['createEventQueue'] = function() {
     return $.extend(this.createHashTable('eventQueue'), {
-      // internal ID counter
-      evid: 0,
-
       // default event object 
       'defaultEventObject': {
         'key': '<unset:',
         // don't replace the event handler
-        'replaceEvent': false,
+        'replaceEvent': null,
         // don't create a deferred
-        'deferred': false,
+        'deferred': null,
         // has no parent
         'parent': null,
         // has no dependencies
@@ -1292,13 +1269,13 @@ window.sfun = (function($, undefined) {
         var deferred = $.Deferred();
         // compose new object ($.extend gives right to left precedence)
         var obj = $.extend({}, this.defaultEventObject, {
-          'key': this.defaultEventObject.key + (this.evid++) + '>',
+          'key': this.defaultEventObject.key + this.getCounter() + '>',
           'deferred': deferred,
           'deps': []
         }, partial);
         // optional debugging message
-        if (debug) {
-          console.log('pushed event context[' + this.render(obj) + ']');
+        if (debug && true) {
+          console.log('+ pushed event context[' + this.render(obj) + '], q'+(this.length+1));
         }
         // push
         return this._push(obj);
@@ -1312,6 +1289,15 @@ window.sfun = (function($, undefined) {
         var obj = {};
         if (typeof(peer) != 'undefined') {
           obj = peer;
+          // remove old object from queue
+          this.removeObj(peer);
+          if (debug && true) {
+            console.log('- deprecated event context[' + this.render(peer) + '], q'+this.length);
+          }
+          // aggregate the comments to enable clearer historical tracking
+          if (partial.comment) {
+            partial.comment += ', was ' + obj.comment;
+          }
         }
         // overwrite obj fields with partial values
         return this.push($.extend(obj, partial));
@@ -1343,7 +1329,7 @@ window.sfun = (function($, undefined) {
               if (debug) {
                 console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
               }
-              parentContext.deferred.resolve();
+              resolve(parentContext);
             } else {
               if (debug) {
                 console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
@@ -1352,6 +1338,24 @@ window.sfun = (function($, undefined) {
           });
           if (debug) {
             console.log('  -> pushed event has parent context[' + this.render(obj.parent) + ']');
+          }
+        }
+        return obj;
+      },
+
+      /** 
+       * interface function to get from table
+       * @param {string} key to search for
+       * @param {bool} [alsoRemove] true to delete matched elements
+       * @return {object} matched object or null if not found
+       */
+      'get': function(key, alsoRemove) {
+        var obj = this._get(key, alsoRemove);
+        if (debug && true) {
+          if (obj != null) {
+            console.log('- pulled event context[' + this.render(obj) + '], q'+this.length);
+          } else {
+            console.log('unfilled get request for key[' + key + ']');
           }
         }
         return obj;
@@ -1420,10 +1424,7 @@ window.sfun = (function($, undefined) {
           if (typeof(eventContext.replaceEvent) != 'undefined' && eventContext.replaceEvent) {
             // process by calling replaceEvent instead of processing this event directly
             eventContext.replaceEvent.call(this);
-            // resolve any deferred queued on this
-            if (typeof(eventContext.deferred) != 'undefined' && eventContext.deferred) {
-              eventContext.deferred.resolve();
-            }
+            this.resolve(eventContext);
             // flag that we're no longer going to process this event
             return false;
           }
@@ -1457,6 +1458,24 @@ window.sfun = (function($, undefined) {
       'equals': function(s1, s2) {
         // for now, just compare memory pointers
         return (s1 == s2);
+      },
+
+      /**
+       * @param {object} object to resolve and remove if found
+       * @return {object} jQuery deferred
+       */
+      'resolve': function(obj) {
+        // remove this object from the eventQueue
+        var ref = this.removeObj(obj);
+        if (ref != -1 && debug && true) {
+          console.log('- resolved event context[' + this.render(obj) + '], q'+this.length);
+        }
+        // resolve its deferred if set
+        if (obj.deferred != null) {
+          return obj.deferred.resolve();
+        }
+        // always return a resolved deferred
+        return $.Deferred().resolve();
       },
 
       lastEntry: null
@@ -1496,20 +1515,20 @@ window.sfun = (function($, undefined) {
     hash = this.hashGenerate(obj);
     // create a context, but parent it only if eventContext is not undefined
     var localContext = eventQueue.pushOrMerge({
-      'key': 'hash'+hash,
+      'key': 'hash:'+hash,
       'comment': 'localContext for fire_hashUpdate'
     }, eventContext);
     // fire event: change the window.location.hash
     if (push) {
-      History.pushState({}, null, hash);
+      History.pushState({}, null, this.export.HASHBANG + hash);
     } else {
       // -- doesn't always work!
-      History.replaceState({}, 'Image', hash);
+      History.replaceState({}, 'Image', this.export.HASHBANG + hash);
       // have to read it back and check; History hashes come back without #
       readback = History.getHash();
-      if (hash != ('#'+readback)) {
+      if ((this.export.HASHBANG + hash) != ('#'+readback)) {
         // -- leaves a messy history trail
-        window.location.hash = hash;
+        window.location.hash = this.export.HASHBANG + hash;
       }
     }
     // localContext is resolved by handler_hashChanged
@@ -1536,6 +1555,22 @@ window.sfun = (function($, undefined) {
     return localContext.deferred;
   };
 
+  /**
+   * change the visible portion of the page by moving the scrollbars
+   * @param {int} key to fire press event for
+   * @param {object} [eventContext] optional event context for decorating an existing deferred
+   * @return {object} jQuery deferred
+   */
+  this['fire_keyPress'] = function(key, eventContext) {
+    var e = jQuery.Event( 'keydown', { which: key } );
+    var localContext = eventQueue.pushOrMerge({
+      key: 'keypress:key='+key,
+      'comment': 'localContext for fire_keyPress (keyToPress '+key+')'
+    });
+    $(document).trigger(e);
+    return localContext.deferred;
+  }
+
   // -------------------------
   // FUNCTIONS: event handlers
   // -------------------------
@@ -1547,13 +1582,14 @@ window.sfun = (function($, undefined) {
    * @return {object} jQuery Deferred
    */
   this['handler_hashChanged'] = function(hash) {
+    var that = this;
     // get context if we created the event, invent if it was user generated
     var eventContext = this.eventQueue.getOrInvent({
       'key': 'hash:'+hash,
       'comment': 'invented context for handler_hashChanged'
-    });
+    }, true);
     var wrapUp = function() {
-      return eventContext.deferred.resolve();
+      return that.eventQueue.resolve(eventContext);
     }
     // first of all find out if we should actually process this hash change
     if (this.eventQueue.actOnContext(eventContext)) {
@@ -1598,6 +1634,7 @@ window.sfun = (function($, undefined) {
    * downstream of: EVENT scroll
    */
   this['handler_scrolled'] = function(event) {
+    var that = this;
     var sx = $(document).scrollLeft(), sy = $(document).scrollTop();
     // get context if we created the event, invent if it was user generated
     var eventContext = this.eventQueue.getOrInvent({
@@ -1605,7 +1642,7 @@ window.sfun = (function($, undefined) {
       'comment': 'invented context for handler_scrolled'
     });
     var wrapUp = function() {
-      return eventContext.deferred.resolve();
+      return that.eventQueue.resolve(eventContext);
     }
     // process this event if we're meant to
     if (this.eventQueue.actOnContext(eventContext)) {
@@ -1637,6 +1674,7 @@ window.sfun = (function($, undefined) {
    * @return {object} jQuery deferred
    */
   this['handler_mouseWheeled'] = function(event) {
+    var that = this;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = this.getDirection();
     // active mousewheel reaction is dependent on which direction we're flowing in
@@ -1646,6 +1684,9 @@ window.sfun = (function($, undefined) {
         'key': 'wheel:dir='+direction,
         'comment': 'invented context for handler_mouseWheeled'
       });
+      var wrapUp = function() {
+        return that.eventQueue.resolve(eventContext);
+      }
       var xpos = $(document).scrollLeft();
       // get current cell size
       var cellsize = this.getCellSize();
@@ -1658,11 +1699,87 @@ window.sfun = (function($, undefined) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
       // get current x position, increment and write back, firing scroll event
-      return this.fire_scrollUpdate(xpos + (scrolldir * cellsize), 0);
-      // START HERE
-      // pull onto queue so that we can span the fire_ handler_ divide
+      return this.fire_scrollUpdate(xpos + (scrolldir * cellsize), 0).then(wrapUp);
     }
     return $.Deferred().resolve();
+  }
+
+  /**
+   * process events generated by key presses
+   * downstream of: EVENT key pressed
+   * @return {object} jQuery deferred
+   */
+  this['handler_keyPressed'] = function(event) {
+    var that = this;
+    // create an event context for this handler, or use stored one
+    var eventContext = this.eventQueue.getOrInvent({
+      'key': 'keypress:'+'key='+event.which,
+      'comment': 'invented context for handler_keyPressed'
+    }, true);
+    var wrapUp = function() {
+      return that.eventQueue.resolve(eventContext);
+    }
+return wrapUp();
+    // optional debugging information
+    if (debug && false) {
+      console.log('keydown event code['+event.which+']');
+    }
+    // process key press
+    switch (event.which) {
+      case that.export.KEY_ARROW_LEFT:
+        if (!event.altKey) {
+          event.preventDefault();
+          // advance to previous image
+          return that.imageAdvanceBy(-1, eventContext).then(wrapUp);
+        }
+        break;
+      case that.export.KEY_ARROW_UP:
+        if (event.altKey) {
+          event.preventDefault();
+          that.urlChangeUp();
+        }
+        break;
+      case that.export.KEY_ARROW_RIGHT:
+      case that.export.KEY_TAB:
+      case that.export.KEY_ARROW_DOWN:
+        // advance to next image
+        event.preventDefault();
+        return that.imageAdvanceBy(1, eventContext).then(wrapUp);
+      case that.export.KEY_PAGE_UP:
+        if (!event.ctrlKey) {
+          event.preventDefault();
+          return that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth(), eventContext).then(wrapUp);
+        }
+        break;
+      case that.export.KEY_PAGE_DOWN:
+        if (!event.ctrlKey) {
+          event.preventDefault();
+          return that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth(), eventContext).then(wrapUp);
+        }
+        break;
+      case that.export.KEY_HOME:
+        event.preventDefault();
+        return that.imageAdvanceTo(0).then(wrapUp);
+      case that.export.KEY_END:
+        event.preventDefault();
+        return that.imageAdvanceTo(that.getTotalEntries()-1, eventContext).then(wrapUp);
+      case that.export.KEY_RETURN:
+        event.preventDefault();
+        return that.imageToggleFullscreen(eventContext).then(wrapUp);
+      case that.export.KEY_NUMBER_1:
+        event.preventDefault();
+        return that.fire_hashUpdate( { 'breadth': 1 }, false, eventContext).then(wrapUp);
+      case that.export.KEY_NUMBER_2:
+        event.preventDefault();
+        returnthat.fire_hashUpdate( { 'breadth': 2 }, false, eventContext).then(wrapUp);
+      case that.export.KEY_NUMBER_4:
+        event.preventDefault();
+        return that.fire_hashUpdate( { 'breadth': 4 }, false, eventContext).then(wrapUp);
+      case that.export.KEY_NUMBER_8:
+        event.preventDefault();
+        return that.fire_hashUpdate( { 'breadth': 8 }, false, eventContext).then(wrapUp);
+    }
+    return wrapUp();
   }
 
   // ------------------
@@ -1873,8 +1990,7 @@ window.sfun = (function($, undefined) {
      * helper function to make testing key presses easier
      */
     'api_triggerKeypress': function(key) {
-      var e = jQuery.Event( 'keydown', { which: key } );
-      $(document).trigger(e);
+      return that.fire_keyPress(key);
     },
 
     /**

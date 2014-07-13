@@ -24,8 +24,21 @@
       + refreshSelected / imageAdvanceTo 
     + risky?
       + maybe
-
-* look over remaining eventContext vars
+  + some contexts contain deferreds that are getting resolved
+    + but the eventContext never gets removed from the eventQueue
+      + while it's there it could potentially interfere with other queued eventContexts
+      + need to remove them
+        + try and use the eventQueue to resolve
+          + because then the resolve can also remove from the queue
+        + that requires that events can identify themselves to the queue
+          + and say 'delete me'
+        + best place to handle that is in hashTable
+          + which means moving evid (eventQueue) to id (hashTable)
+  + unfilled get requests are fine most of the time
+    + they don't accumulate which is great
+  + having some issues getting events to resolve all the way down the chain
+    + try from api_ call and work backwards
+      == carry on with this!
 
 * end, fullscreen, home
   + check re-res
@@ -850,4 +863,6 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * add class nearvis
   + add to it 2x breadth on either side nearvis
+
+* look over remaining eventContext vars
 
