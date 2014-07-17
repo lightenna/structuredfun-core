@@ -1,5 +1,18 @@
 * rebound/x-bound on 305 at fullscreen
 
+* think about buffering scroll events
+  + handler_scroll
+    buffer (function(){}, 50)
+    + could return using a deferred
+      + like a deferred, simple
+        + but we have to be careful because 
+          + there could be queued eventContexts interleaved with random scroll events
+          + each one of those eventContexts needs to get dealt with
+    + could return doing something clever with the invented context
+      + could pushChild each context
+        + so that once we complete the last one
+        + we also complete all the others
+
 * synchronicity
   + waiting on all getImageMeta/metric pos to complete
     + before re-resing all
@@ -68,6 +81,10 @@
 
 * optimise dragging in large image sets
 
+* on a direction change
+  + show semi-opaque numbers in circles over each image
+    + to reflect order of images
+
 * .s in directory names, like mq
 
 * imagemeta/ endpoint should always get image metadata
@@ -96,6 +113,10 @@
   + doesn't need to be a big release, but it does have to be a first release
 
 --- post first launch ---
+
+* imgmetric as mini bar chart
+  + show percentage in background too
+    + visually reinforce when you're looking at massive images (small)
 
 * page up/down should advance to next image that partially off screen
 
@@ -161,6 +182,45 @@
 
 * Using Project sheet in Google drive for major functional items
 https://docs.google.com/a/lightenna.com/spreadsheet/ccc?key=0AuXNj3kHNsfddFhwTGZpcERMd1JweTVuMEFoS3h6YUE&usp=drive_web#gid=0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -865,4 +925,10 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + add to it 2x breadth on either side nearvis
 
 * look over remaining eventContext vars
+
+* need to expire unmatched scroll events
+  + mouse wheel produces lots of scroll events
+    + they hang around in the queue indefinitely
+    + could expire after 1 second
+      + because the gap between scroll and handler shouldn't be more than that
 
