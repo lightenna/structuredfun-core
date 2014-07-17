@@ -426,7 +426,6 @@ window.sfun = (function($, undefined) {
     });
     $(window).mousewheel(function(event) {
       that.handler_mouseWheeled(event);
-      event.preventDefault();
     });
   };
 
@@ -446,13 +445,11 @@ window.sfun = (function($, undefined) {
     });
     // horizontal or vertical layout
     $('#flow-x').click(function(event) {
-      that.setDirection('x');
-      that.checkVisibleImages(false);
+      that.fire_hashUpdate( { 'direction': 'x' }, false);
       event.preventDefault();
     });
     $('#flow-y').click(function(event) {
-      that.setDirection('y');
-      that.checkVisibleImages(false);
+      that.fire_hashUpdate( { 'direction': 'y' }, false);
       event.preventDefault();
     });
     // light or dark theme
@@ -679,8 +676,11 @@ window.sfun = (function($, undefined) {
    * downstream of: EVENT
    */
   this['setDirection'] = function(direction) {
+    var changed = (this.getDirection() !== direction);
+    if (!changed) return false;
     var invdir = (direction == 'x' ? 'y' : 'x');
     $('.flow').addClass('flow-' + direction).removeClass('flow-' + invdir);
+    return changed;
   };
 
   /**
@@ -1033,8 +1033,20 @@ window.sfun = (function($, undefined) {
       for (var i=0 ; i<hashpairs.length ; ++i) {
         // var eqpos = hashpairs[i].indexOf('=');
         var components = hashpairs[i].split('=');
+        var value;
+        switch(components[0]) {
+          case 'direction' :
+            // strictly limit to defined set
+            value = 'x';
+            if (components[1] == 'y') value = 'y';
+            break;
+          default:
+            // limit to integers
+            value = parseInt(components[1]);
+            break;
+        }
         // adding elements to an object using array syntax (unknown name)
-        output[components[0]] = parseInt(components[1]);
+        output[components[0]] = value;
       }
     }
     return output;
@@ -1231,6 +1243,12 @@ window.sfun = (function($, undefined) {
    */
   this['createEventQueue'] = function() {
     return $.extend(this.createHashTable('eventQueue'), {
+
+      // CONSTANTS
+
+      // time after which scroll events expire
+      TIMEOUT_expireEVENT: 10000,
+
       // default event object 
       'defaultEventObject': {
         'key': '<unset:',
@@ -1242,9 +1260,16 @@ window.sfun = (function($, undefined) {
         'parent': null,
         // has no dependencies
         'deps': null,
+        // never expires
+        'expires': null,
         // comment is an empty string (for rendering)
         'comment': ''
       },
+
+      // VARIABLES
+
+      // expiry timeout callback
+      'expiryHandler': null,
 
       /**
        * @return {string} render simple string of object
@@ -1261,10 +1286,40 @@ window.sfun = (function($, undefined) {
       },
 
       /**
+       * work through eventQueue looking for expired events
+       */
+      'checkExpiries': function() {
+        if (debug) {
+          console.log('checking expiries');
+        }
+        var obj, timenow = this.getTime();
+        for (var i=0 ; i<this.length ; ++i) {
+          obj = this.objarr[i];
+          if (obj.expires != null) {
+            if (timenow > obj.expires) {
+              if (debug) {
+                console.log('expiring eventContext['+obj.key+']');
+              }
+              this.resolve(obj);
+            }
+          }
+        }
+      },
+
+      /**
+       * @return {int} time in milliseconds
+       */
+      'getTime': function() {
+        var d = new Date;
+        return d.getTime();
+      },
+
+      /**
        * push event object onto event queue
        * @param {object} partial fields to override defaults
        */
       'push': function(partial) {
+        var that = this;
         // create new deferred, but ignore if already set in partial
         var deferred = $.Deferred();
         // compose new object ($.extend gives right to left precedence)
@@ -1274,8 +1329,19 @@ window.sfun = (function($, undefined) {
           'deps': []
         }, partial);
         // optional debugging message
-        if (debug && true) {
+        if (debug && false) {
           console.log('+ pushed event context[' + this.render(obj) + '], q'+(this.length+1));
+        }
+        // if the object expires, schedule its removal
+        if (obj.expires) {
+          // clear old timeout
+          if (that.expiryHandler != null) {
+            clearTimeout(that.expiryHandler);
+          }
+          // schedule a check after the timeout
+          this.expiryHandler = setTimeout(function() {
+            that.checkExpiries();
+          }, this.TIMEOUT_expireEVENT);
         }
         // push
         return this._push(obj);
@@ -1291,7 +1357,7 @@ window.sfun = (function($, undefined) {
           obj = peer;
           // remove old object from queue
           this.removeObj(peer);
-          if (debug && true) {
+          if (debug && false) {
             console.log('- deprecated event context[' + this.render(peer) + '], q'+this.length);
           }
           // aggregate the comments to enable clearer historical tracking
@@ -1351,7 +1417,7 @@ window.sfun = (function($, undefined) {
        */
       'get': function(key, alsoRemove) {
         var obj = this._get(key, alsoRemove);
-        if (debug && true) {
+        if (debug && false) {
           if (obj != null) {
             console.log('- pulled event context[' + this.render(obj) + '], q'+this.length);
           } else {
@@ -1467,7 +1533,7 @@ window.sfun = (function($, undefined) {
       'resolve': function(obj) {
         // remove this object from the eventQueue
         var ref = this.removeObj(obj);
-        if (ref != -1 && debug && true) {
+        if (ref != -1 && debug && false) {
           console.log('- resolved event context[' + this.render(obj) + '], q'+this.length);
         }
         // resolve its deferred if set
@@ -1505,7 +1571,7 @@ window.sfun = (function($, undefined) {
   this['fire_hashUpdate'] = function(options, push, eventContext) {
     var hash = '', fromHash, readback;
     // start with defaults
-    var obj = { 'breadth': this.default['breadth'], 'seq': this.default['seq']};
+    var obj = { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq']};
     // overwrite with current hash values
     fromHash = this.hashParse(this.getHash());
     this.merge(obj, fromHash);
@@ -1543,10 +1609,12 @@ window.sfun = (function($, undefined) {
    * @return {object} jQuery deferred
    */
   this['fire_scrollUpdate'] = function(left, top, eventContext) {
+    var that = this;
     // create a context, but parent it only if eventContext is not undefined
     var localContext = eventQueue.pushOrMerge({
       'key': 'scroll:'+'x='+left+'&y='+top,
-      'comment': 'localContext for fire_scrollUpdate'
+      'comment': 'localContext for fire_scrollUpdate',
+      'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
     }, eventContext);
     // fire event: change the scroll position (comes through as single event)
     $(document).scrollLeft(left);
@@ -1597,7 +1665,7 @@ window.sfun = (function($, undefined) {
       var breadthChanged = false;
       var seqChanged = false;
       // start with defaults
-      var obj = { 'breadth': this.default['breadth'], 'seq': this.default['seq']};
+      var obj = { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq']};
       // overwrite with current hash values
       var fromHash = this.hashParse(hash);
       // check the hash values are valid, fallback to defaults if not
@@ -1606,7 +1674,10 @@ window.sfun = (function($, undefined) {
       }
       this.merge(obj, fromHash);
       // update previous values if changed
-      var cbreadth = this.getBreadth(), cseq = this.getSeq();
+      var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq();
+      if (cdirection != obj.direction) {
+        this.previous['direction'] = cdirection;
+      }
       if (cbreadth != obj.breadth) {
         this.previous['breadth'] = cbreadth;
       }
@@ -1614,16 +1685,16 @@ window.sfun = (function($, undefined) {
         this.previous['seq'] = cseq;
       }
       // stage 1: apply [hash] state to DOM
+      // direction changes potentially affect ??? images
+      directionChanged = this.setDirection(obj.direction);
       // breadth changes potentially affect all images
       breadthChanged = this.setBreadth(obj.breadth);
       // seq changes at most only affect the image being selected
       seqChanged = this.setSeq(obj.seq);
-      if (seqChanged || breadthChanged) {
+      // update images based on what changed
+      if (seqChanged || breadthChanged || directionChanged) {
         // scroll to the selected image, which triggers refreshImage on all .visible images
         return this.setScrollPosition(obj.seq).then(wrapUp);
-      }
-      else if (breadthChanged) {
-        return this.refreshVisibleImages().then(wrapUp);
       }
     }
     return wrapUp();
@@ -1635,6 +1706,11 @@ window.sfun = (function($, undefined) {
    */
   this['handler_scrolled'] = function(event) {
     var that = this;
+    // don't process scroll event every time, buffer
+    this.buffer(function() {
+    // START HERE
+    // work out how to return things using deferreds
+    }, 50);
     var sx = $(document).scrollLeft(), sy = $(document).scrollTop();
     // get context if we created the event, invent if it was user generated
     var eventContext = this.eventQueue.getOrInvent({
@@ -1679,6 +1755,7 @@ window.sfun = (function($, undefined) {
     var direction = this.getDirection();
     // active mousewheel reaction is dependent on which direction we're flowing in
     if (direction == 'x') {
+      event.preventDefault();
       // invent context as all mouse wheel events are user generated
       var eventContext = this.eventQueue.invent({
         'key': 'wheel:dir='+direction,
@@ -1719,7 +1796,6 @@ window.sfun = (function($, undefined) {
     var wrapUp = function() {
       return that.eventQueue.resolve(eventContext);
     }
-return wrapUp();
     // optional debugging information
     if (debug && false) {
       console.log('keydown event code['+event.which+']');
@@ -1823,8 +1899,10 @@ return wrapUp();
       }
       return (position.left >= min && position.left <= max);
     } else {
-      var min = $(document).scrollTop();
-      var max = $(window).height() + $(document).scrollTop() - jqEnt.height();
+      // need to know viewport height without scrollbar/Firebug
+      var viewportHeight = $('#yardstick-y').height();
+      var min = $(document).scrollTop() + rounding - (partial ? jqEnt.height() : 0);
+      var max = $(document).scrollTop() + viewportHeight - rounding - (partial ? 0 : jqEnt.height());
       return (position.top >= min && position.top <= max);
     }
   }

@@ -248,12 +248,16 @@ html.no-js {
       }
 
       // cells can be selected, but the selection is shown (reflected) by an element within
-      &.selected .selectreflector {
+      .selectreflector {
         // make borders appear inside to avoid pushing outside cell
         box-sizing: border-box;
         -moz-box-sizing: border-box;
         -webkit-box-sizing: border-box;
-        border: 1px solid #ff00ff;
+        border: 1px solid $background_html_dark;
+      }
+
+      &.selected .selectreflector {
+        border-color: #ff00ff;
       }
 
       a { 
