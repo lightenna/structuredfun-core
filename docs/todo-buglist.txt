@@ -1,18 +1,3 @@
-* rebound/x-bound on 305 at fullscreen
-
-* think about buffering scroll events
-  + handler_scroll
-    buffer (function(){}, 50)
-    + could return using a deferred
-      + like a deferred, simple
-        + but we have to be careful because 
-          + there could be queued eventContexts interleaved with random scroll events
-          + each one of those eventContexts needs to get dealt with
-    + could return doing something clever with the invented context
-      + could pushChild each context
-        + so that once we complete the last one
-        + we also complete all the others
-
 * synchronicity
   + waiting on all getImageMeta/metric pos to complete
     + before re-resing all
@@ -52,6 +37,15 @@
   + having some issues getting events to resolve all the way down the chain
     + try from api_ call and work backwards
       == carry on with this!
+
+* thinking about maximising the space
+  + could swap an image +/-1 to get it to the top of a column
+  + landscape
+    + could expand the width of a cell
+    + could decrease the height of a cell
+  + portrait
+    + could expand the height of a cell
+    + could decrease the width of a cell
 
 * end, fullscreen, home
   + check re-res
@@ -931,4 +925,21 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + they hang around in the queue indefinitely
     + could expire after 1 second
       + because the gap between scroll and handler shouldn't be more than that
+
+* think about buffering scroll events
+  + handler_scroll
+    buffer (function(){}, 50)
+    + could return using a deferred
+      + like a deferred, simple
+        + but we have to be careful because 
+          + there could be queued eventContexts interleaved with random scroll events
+          + each one of those eventContexts needs to get dealt with
+    + could return doing something clever with the invented context
+      + could pushChild each context
+        + so that once we complete the last one
+        + we also complete all the others
+
+* rebound/x-bound on 305 at fullscreen
+
+* only show imgmetric when image has re-res'd
 
