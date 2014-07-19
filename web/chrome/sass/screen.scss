@@ -243,8 +243,13 @@ html.no-js {
         }
       }
 
+      // show metric if image is visible
       &.visible p.imgmetric {
         display: block;
+      }
+      // but not if it's in the process of reresing
+      &.reresing p.imgmetric {
+        display: none;
       }
 
       // cells can be selected, but the selection is shown (reflected) by an element within
