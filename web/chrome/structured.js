@@ -87,6 +87,17 @@ window.sfun = (function($, undefined) {
           that.refreshVisibility(0);
         }, 50); // 50 ms
       });
+
+// dirty test to shortcut suite
+var k = that;
+$('.header').append('<p><a id="endkey" class="endkey" href="">Endkey</a></p>');
+$('.endkey').click(function(event) {
+  event.preventDefault();
+  k.export.api_triggerKeypress(k.export.KEY_END).then(function() {
+    alert('key press returned');
+  });
+});
+
     });
   };
 
@@ -99,12 +110,12 @@ window.sfun = (function($, undefined) {
    */
   this['cellsInit'] = function() {
     var that = this;
-    $('ul.flow .selectablecell').each(function() {
+    var jqCells = $('ul.flow .selectablecell');
+    jqCells.each(function() {
       that.cellsGenerateDataPerc($(this));
     });
-    // not currently using this
-    // cells are simple percentages
-    // cellsRefresh();
+    // update vistable
+    this.visTableMajor.updateAll(this.getDirection(), jqCells);
   };
 
   /**
@@ -244,12 +255,12 @@ window.sfun = (function($, undefined) {
       jqEnt = $('ul.flow .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
       if (jqEnt.length) {
         // create and resolve a local context to allow us to numb listener
-        var localContext = eventQueue.push({
+        var localContext = this.eventQueue.push({
           'replaceEvent': function(){},
           'comment': 'localContext for refreshSelected (image-'+jqEnt.data('seq')+')'
         });
         // use hash to select new and deselect old, but numb listener and parent deferred
-        return that.imageAdvanceTo(jqEnt.data('seq'), localContext);
+        return this.imageAdvanceTo(jqEnt.data('seq'), localContext);
       }
     }
     return $.Deferred().resolve();
@@ -765,6 +776,42 @@ window.sfun = (function($, undefined) {
   };
 
   /**
+   * Work out what cells are visible at the moment
+   * @return {object} describing visible cells
+   *   first:seq of first visible, last:seq of last visible
+   */
+  this['getVisibleBoundaries'] = function() {
+    var vis = {};
+    var min, max;
+    var direction = this.getDirection();
+    // get screen bounds along major axis (min and max)
+    if (direction == 'x') {
+      // min is left bar (-1 for border)
+      min = $(document).scrollLeft();
+      // max is right bar (+1 for border) less a cell's width to exclude partials
+      max = $(window).width() + $(document).scrollLeft();
+    } else {
+      // need to know viewport height without scrollbar/Firebug
+      var viewportHeight = $('#yardstick-y').height();
+      min = $(document).scrollTop();
+      max = $(document).scrollTop() + viewportHeight;
+    }
+    // find first spanning min boundary
+    var firstKey = this.visTableMajor.findCompare(min, this.export.compareGTE);
+    var firstMatch = this.visTableMajor.get(firstKey);
+    if (firstMatch != -1) {
+      vis.first = firstMatch.jqEnt.data('seq');
+    }
+    // find last spanning max boundary
+    var lastKey = this.visTableMajor.findCompare(max, this.export.compareLTE);
+    var lastMatch = this.visTableMajor.get(lastKey);
+    if (lastMatch != -1) {
+      vis.last = lastMatch.jqEnt.data('seq');
+    }
+    return vis;
+  }
+
+  /**
    * Loop through all images
    * @todo optimise
    * @return {object} jQuery deferred
@@ -777,16 +824,26 @@ window.sfun = (function($, undefined) {
       var defs = [];
       // clear all the visible images
       jqCells.removeClass('visible');
-      // then recalculate them
-      jqCells.each(function() {
-        var jqEnt = $(this);
-        if (that.isVisible(jqEnt, true)) {
-          defs.push(that.setVisibleImage(jqEnt, 'visible'));
-        } else {
-          // don't test, because setVis(false) is just a .removeClass()
-          defs.push(that.setVisibleImage(jqEnt, 'not-visible'));
-        }
-      });
+      // derive boundaries of visible cells
+      var vis = this.getVisibleBoundaries();
+      var first_np1 = vis.first;
+      var last_0 = vis.last;
+      for (var i = first_np1 ; i <= last_0 ; i++) {
+        defs.push(that.setVisibleImage($('#seq-'+i), 'visible'));
+      }
+// deprecated section
+if (false) {
+// then recalculate them
+jqCells.each(function() {
+  var jqEnt = $(this);
+  if (that.isVisible(jqEnt, true)) {
+    defs.push(that.setVisibleImage(jqEnt, 'visible'));
+  } else {
+    // don't test, because setVis(false) is just a .removeClass()
+    defs.push(that.setVisibleImage(jqEnt, 'not-visible'));
+  }
+});
+}
       // aggregate all the deferreds
       $.when.apply($, defs).always(function() {
         deferred.resolve();
@@ -797,9 +854,9 @@ window.sfun = (function($, undefined) {
       var first_np1 = $('ul.flow .selectablecell.visible:first').data('seq'), last_0 = $('ul.flow .selectablecell.visible:last').data('seq');
       // compute those near the last visible
       var last_1 = (last_0 + 1) % cellcount;
-      var last_n = (last_0 + that.getBreadth() * that.export.BREADTH_MULTIPLIER) % cellcount;
+      var last_n = (last_0 + that.getBreadth() * that.export.breadthMULTIPLIER) % cellcount;
       var first_n = negative_mod(first_np1 - 1, cellcount);
-      var first_1 = negative_mod(first_np1 - that.getBreadth() * that.export.BREADTH_MULTIPLIER, cellcount);
+      var first_1 = negative_mod(first_np1 - that.getBreadth() * that.export.breadthMULTIPLIER, cellcount);
       // catch situation where wraparound means that for loop won't work
       if (last_1 > last_n) {
         last_n = cellcount-1;
@@ -997,7 +1054,7 @@ window.sfun = (function($, undefined) {
       // append filtered hash
       var filteredHash = this.getFilteredHash();
       // redirect to new page
-      this.urlGoto(newUrl + this.export.HASHBANG + filteredHash);
+      this.urlGoto(newUrl + this.export.stringHASHBANG + filteredHash);
     }
     return false;
   };
@@ -1045,8 +1102,8 @@ window.sfun = (function($, undefined) {
     // look for hash arguments
     if (hash.length > 1) {
       // strip leading #! if set
-      var hblen = this.export.HASHBANG.length;
-      if (hash.substr(0, hblen) == this.export.HASHBANG) {
+      var hblen = this.export.stringHASHBANG.length;
+      if (hash.substr(0, hblen) == this.export.stringHASHBANG) {
         hash = hash.substr(hblen);
       }
       // override defaults if set
@@ -1122,6 +1179,24 @@ window.sfun = (function($, undefined) {
       'counter': 0,
 
       /**
+       * @param {array} arr Array of elements to push into hash table
+       */
+      'add': function(arr) {
+        // loop through array adding elements
+        for (var i=0 ; i<arr.length ; ++i) {
+          var obj = arr[i];
+          // if element isn't an object already
+          if (typeof(obj) != 'object') {
+            // create an object wrapper for this key
+            obj = {};
+            obj.key = arr[i];
+          }
+          // push into hash table
+          this._push(obj);
+        }
+      },
+
+      /**
        * interface function push obj onto queue
        * this function may be overwritten by specialist hash tables
        * @param {object} obj to push
@@ -1140,7 +1215,7 @@ window.sfun = (function($, undefined) {
         obj.id = this.counter++;
         // store in object array
         this.objarr[ref] = obj;
-        // store in the index array(s)
+        // store in the index array(s), allow duplicate keys
         this.keyarr[ref] = obj.key;
         // increment length (by refreshing it)
         this.length = this.objarr.length;
@@ -1165,6 +1240,52 @@ window.sfun = (function($, undefined) {
       'find': function(key) {
         var ref = this.keyarr.indexOf(key);
         return ref;
+      },
+
+      /**
+       * @param {int} key Value to pivot around
+       * @param {int} increment positive for >=, negative for <=
+       * @return {mixed} key matching this comparison, or null if not found
+       */
+      'findCompare': function(key, comparison) {
+        // binary search
+        var minRef = 0;
+        var maxRef = this.length - 1;
+        var currentRef;
+        var currentElement;
+        while (minRef <= maxRef) {
+          // find middle ref, and element's value
+          currentRef = (minRef + maxRef) / 2 | 0;
+          currentElement = this.keyarr[currentRef];
+
+          // if less than key
+          if (currentElement < key) {
+            // raise min to current+1
+            minRef = currentRef + 1;
+          }
+          // if greater than key
+          else if (currentElement > key) {
+            // lower max to current-1
+            maxRef = currentRef - 1;
+          }
+          // if equal
+          else {
+            // converge on current
+            minRef = maxRef = currentRef;
+            break;
+          }
+        }
+        // minRef is last <= key, maxRef is first >= key
+        if (comparison > 0) {
+          if (minRef < 0 || minRef >= this.length) return null;
+          // return first >= key
+          return this.keyarr[minRef];
+        } else {
+          if (maxRef < 0 || maxRef >= this.length) return null;
+          // work backwards looking for identical value to last <= key
+          currentElement = this.keyarr[maxRef];
+          return this.keyarr[maxRef];
+        }
       },
 
       /**
@@ -1259,6 +1380,48 @@ window.sfun = (function($, undefined) {
   }
 
   /**
+   * create a specialised hashTable for visTableMajor
+   */
+  this['createVisTable'] = function() {
+    return $.extend(this.createHashTable('visTable'), {
+
+      // CONSTANTS
+
+      // VARIABLES
+
+      // FUNCTIONS
+
+      /**
+       * update coordinates stored for each cell
+       * @param  {string} direction x or y
+       * @param  {object} jqCells jQuery list of cells
+       */
+      'updateAll': function(direction, jqCells) {
+        var vt = this;
+        jqCells.each(function() {
+          jqEnt = $(this);
+          var position = jqEnt.offset();
+          // create object
+          var obj = {
+            'jqEnt': jqEnt,
+            'key': (direction == 'x' ? position.left : position.top)
+          };
+          // push object into hashTable
+          vt.push(obj);
+        });
+      },
+
+      'lastEntry': null
+    });
+  }
+
+  /** 
+   * The visTableMajor is used:
+   * - to store an indexed list of cell coordinates along the major axis
+   */
+  this['visTableMajor'] = this.createVisTable();
+
+  /**
    * create a specialised hashTable for the eventQueue
    * @return {object} hashTable object
    */
@@ -1291,6 +1454,8 @@ window.sfun = (function($, undefined) {
 
       // expiry timeout callback
       'expiryHandler': null,
+
+      // FUNCTIONS
 
       /**
        * @return {string} render simple string of object
@@ -1350,7 +1515,7 @@ window.sfun = (function($, undefined) {
           'deps': []
         }, partial);
         // optional debugging message
-        if (debug && false) {
+        if (debug && true) {
           console.log('+ pushed event context[' + this.render(obj) + '], q'+(this.length+1));
         }
         // if the object expires, schedule its removal
@@ -1378,7 +1543,7 @@ window.sfun = (function($, undefined) {
           obj = peer;
           // remove old object from queue
           this.removeObj(peer);
-          if (debug && false) {
+          if (debug && true) {
             console.log('- deprecated event context[' + this.render(peer) + '], q'+this.length);
           }
           // aggregate the comments to enable clearer historical tracking
@@ -1413,17 +1578,17 @@ window.sfun = (function($, undefined) {
             }
             // if we've resolved all the deps, resolve this promise
             if (parentContext.deps.length == 0) {
-              if (debug) {
+              if (debug && true) {
                 console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
               }
               resolve(parentContext);
             } else {
-              if (debug) {
+              if (debug && true) {
                 console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
               }              
             }
           });
-          if (debug) {
+          if (debug && true) {
             console.log('  -> pushed event has parent context[' + this.render(obj.parent) + ']');
           }
         }
@@ -1438,7 +1603,7 @@ window.sfun = (function($, undefined) {
        */
       'get': function(key, alsoRemove) {
         var obj = this._get(key, alsoRemove);
-        if (debug && false) {
+        if (debug && true) {
           if (obj != null) {
             console.log('- pulled event context[' + this.render(obj) + '], q'+this.length);
           } else {
@@ -1554,7 +1719,7 @@ window.sfun = (function($, undefined) {
       'resolve': function(obj) {
         // remove this object from the eventQueue
         var ref = this.removeObj(obj);
-        if (ref != -1 && debug && false) {
+        if (ref != -1 && debug && true) {
           console.log('- resolved event context[' + this.render(obj) + '], q'+this.length);
         }
         // resolve its deferred if set
@@ -1601,21 +1766,21 @@ window.sfun = (function($, undefined) {
     // convert to hash string
     hash = this.hashGenerate(obj);
     // create a context, but parent it only if eventContext is not undefined
-    var localContext = eventQueue.pushOrMerge({
+    var localContext = this.eventQueue.pushOrMerge({
       'key': 'hash:'+hash,
       'comment': 'localContext for fire_hashUpdate'
     }, eventContext);
     // fire event: change the window.location.hash
     if (push) {
-      History.pushState({}, null, this.export.HASHBANG + hash);
+      History.pushState({}, null, this.export.stringHASHBANG + hash);
     } else {
       // -- doesn't always work!
-      History.replaceState({}, 'Image', this.export.HASHBANG + hash);
+      History.replaceState({}, 'Image', this.export.stringHASHBANG + hash);
       // have to read it back and check; History hashes come back without #
       readback = History.getHash();
-      if ((this.export.HASHBANG + hash) != ('#'+readback)) {
+      if ((this.export.stringHASHBANG + hash) != ('#'+readback)) {
         // -- leaves a messy history trail
-        window.location.hash = this.export.HASHBANG + hash;
+        window.location.hash = this.export.stringHASHBANG + hash;
       }
     }
     // localContext is resolved by handler_hashChanged
@@ -1632,7 +1797,7 @@ window.sfun = (function($, undefined) {
   this['fire_scrollUpdate'] = function(left, top, eventContext) {
     var that = this;
     // create a context, but parent it only if eventContext is not undefined
-    var localContext = eventQueue.pushOrMerge({
+    var localContext = this.eventQueue.pushOrMerge({
       'key': 'scroll:'+'x='+left+'&y='+top,
       'comment': 'localContext for fire_scrollUpdate',
       'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
@@ -1652,13 +1817,13 @@ window.sfun = (function($, undefined) {
    */
   this['fire_keyPress'] = function(key, eventContext) {
     var e = jQuery.Event( 'keydown', { which: key } );
-    var localContext = eventQueue.pushOrMerge({
+    var localContext = this.eventQueue.pushOrMerge({
       key: 'keypress:key='+key,
       'comment': 'localContext for fire_keyPress (keyToPress '+key+')'
     });
     $(document).trigger(e);
     return localContext.deferred;
-  }
+  };
 
   // -------------------------
   // FUNCTIONS: event handlers
@@ -1782,6 +1947,7 @@ window.sfun = (function($, undefined) {
    */
   this['handler_mouseWheeled'] = function(event) {
     var that = this;
+    var cellsnap = true;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = this.getDirection();
     // active mousewheel reaction is dependent on which direction we're flowing in
@@ -1800,14 +1966,22 @@ window.sfun = (function($, undefined) {
       var cellsize = this.getCellSize();
       // if not currently aligned to cells, get extra gap to next cell boundary
       var scrolldir = 0 - event.deltaY;
-      // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
-      var extra = this.getCellAlignExtra(scrolldir, scrolldir > 0 ? xpos + $(window).width() : xpos);
+        // @todo include extra
       // optional debugging
       if (debug && false) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
+      // calculate increment based on cell snap
+      var increment;
+      if (cellsnap) {
+        // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
+        var extra = this.getCellAlignExtra(scrolldir, scrolldir > 0 ? xpos + $(window).width() : xpos);
+        increment = xpos + (scrolldir * cellsize) + extra;
+      } else {
+        increment = xpos + (scrolldir * event.deltaFactor * this.export.scrollMULTIPLIER);
+      }
       // get current x position, increment and write back, firing scroll event
-      return this.fire_scrollUpdate(xpos + (scrolldir * cellsize), 0).then(wrapUp);
+      return this.fire_scrollUpdate(increment, 0).then(wrapUp);
     }
     return $.Deferred().resolve();
   }
@@ -1918,6 +2092,11 @@ window.sfun = (function($, undefined) {
    * @param {int} timeout in milliseconds, needs to be about 200ms for normal dragging
    */
   this['buffer'] = function(name, successCallback, dropCallback, timeout) {
+    // option to disable buffer
+    var disabled = true;
+    if (disabled) {
+      return successCallback();
+    }
     // reschdule is important when dragging, because the events come thick and fast
     var reschedule = true;
     if (typeof(this[name]) != 'undefined' && this[name]) {
@@ -1947,9 +2126,9 @@ window.sfun = (function($, undefined) {
    * @return {bool} True if this image is currently visible in the viewport
    */
   this['isVisible'] = function(jqEnt, partial) {
-    var rounding = 5;
     // get coordinate of selected image's cell
     var position = jqEnt.offset();
+    var rounding = 5;
     // if horizontal (flow-x), scroll horizontally
     if (this.getDirection() == 'x') {
       // min is left bar (-1 for border) and a cell's width to include partials
@@ -2000,20 +2179,20 @@ window.sfun = (function($, undefined) {
   }
 
   /**
-   * strip any of the characters used in the hashbang from the start of the hash
+   * strip any of the characters used in the stringHASHBANG from the start of the hash
    * @param {string} hash to strip
    * @return {string} stripped output
    */
   this['stripBang'] = function(hash) {
     var output;
-    // re = new RegExp('/^['+this.export.HASHBANG+']*/','g');
-    re = new RegExp('^['+this.export.HASHBANG+']','g');
+    // re = new RegExp('/^['+this.export.stringHASHBANG+']*/','g');
+    re = new RegExp('^['+this.export.stringHASHBANG+']','g');
     output = hash.replace(re,'');
     return output;
   }
 
   /**
-   * @return {string} browser's hash without whatever hashbang we're using
+   * @return {string} browser's hash without whatever stringHASHBANG we're using
    */
   this['getHash'] = function() {
     return this.stripBang(History.getHash());
@@ -2087,9 +2266,12 @@ window.sfun = (function($, undefined) {
     KEY_NUMBER_4: 52,
     KEY_NUMBER_8: 56,
 
-    HASHBANG: '#!',
+    stringHASHBANG: '#!',
     pullImgSrcTHRESHOLD: 20,
-    BREADTH_MULTIPLIER: 4,
+    scrollMULTIPLIER: 12,
+    breadthMULTIPLIER: 4,
+    compareGTE: 1,
+    compareLTE: -1,
 
     /**
      * add a button to the header
@@ -2122,8 +2304,22 @@ window.sfun = (function($, undefined) {
     /**
      * @return {float} number of cells on the major axis
      */
-    'api_cellsCountMajor' : function() {
+    'api_cellsCountMajor': function() {
       return that.cellsCountMajor();
+    },
+
+    /**
+     * @return {object} visibility table for major axis
+     */
+    'api_getVisTableMajor': function() {
+      return that.visTableMajor;
+    },
+
+    /**
+     * @return {object} visibility table for major axis
+     */
+    'api_createVisTable': function() {
+      return that.createVisTable();
     },
 
     /**

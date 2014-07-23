@@ -1,42 +1,31 @@
-* synchronicity
-  + waiting on all getImageMeta/metric pos to complete
-    + before re-resing all
-      + before updating
-  + ideally want things to only aggregate at highest level
-    + so that each thread can keep the pipefull
 
-* refactor eventContext stuff
-  + I'm not going to want to do it
-    + but go back in, test alternatives and clean-up eventContext stuff
-    + there are too many unanswered questions
-      + and I'm sure I can make the syntax easier
-  + started already
-    + straight deferreds are the way to go
-      + maybe just use eventQueue to handle the link between fire_ and handler_
-  + question: how do we handle events we're trying to nullify
-    + search 'replaceEvent'
-      + refreshSelected / imageAdvanceTo 
-  + question: should we sometimes resolve deferreds only after the handler fires?
-    + like
-      + fire_scrollUpdate
-      + refreshSelected / imageAdvanceTo 
-    + risky?
-      + maybe
-  + some contexts contain deferreds that are getting resolved
-    + but the eventContext never gets removed from the eventQueue
-      + while it's there it could potentially interfere with other queued eventContexts
-      + need to remove them
-        + try and use the eventQueue to resolve
-          + because then the resolve can also remove from the queue
-        + that requires that events can identify themselves to the queue
-          + and say 'delete me'
-        + best place to handle that is in hashTable
-          + which means moving evid (eventQueue) to id (hashTable)
-  + unfilled get requests are fine most of the time
-    + they don't accumulate which is great
-  + having some issues getting events to resolve all the way down the chain
-    + try from api_ call and work backwards
-      == carry on with this!
+* end event is resolving slowly
+  + only after 10s expiry
+  + it's getting lost during a scroll update
+    + we know because it's a scroll:x=1799 event that expires
+      + which triggers the original keyPress to resolve
+  + the disconnect seems to be happening
+    + because we try and scroll to 1799
+    + but the scrollEvent that comes back is only to 720
+      + could solve by estimating position of window near END
+      + better to solve with wildcards
+    + need to create an eventContext really early
+      + at the point where we fire_keyPress(key_END)
+      + that eventContext needs to be passed all the way through
+      + and contain a wildcard
+        + to connect with ambiguous scroll-to-end
+        + now that's actually quite hard
+          + the event changes nature with each pass of the batton
+          + we're basically saying
+            + when you fire a scrollUpdate for this,
+              + call it something else
+            + that's not an easy narrative
+    + alternative is to soften the link between all fired scroll events
+      + and the handlers that immediately follow them
+    + or some combination of the two
+      + something in the master eventContext
+        + that says soften the following
+
 
 * thinking about maximising the space
   + could swap an image +/-1 to get it to the top of a column
@@ -942,4 +931,51 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * rebound/x-bound on 305 at fullscreen
 
 * only show imgmetric when image has re-res'd
+
+* smooth scrolling on trackpads
+  + can't differentiate trackpad,
+    + but can do smooth scrolling on variable
+    + could make it an option
+
+* synchronicity
+  + waiting on all getImageMeta/metric pos to complete
+    + before re-resing all
+      + before updating
+  + ideally want things to only aggregate at highest level
+    + so that each thread can keep the pipefull
+  + not important now
+
+* refactor eventContext stuff
+  + I'm not going to want to do it
+    + but go back in, test alternatives and clean-up eventContext stuff
+    + there are too many unanswered questions
+      + and I'm sure I can make the syntax easier
+  + started already
+    + straight deferreds are the way to go
+      + maybe just use eventQueue to handle the link between fire_ and handler_
+  + question: how do we handle events we're trying to nullify
+    + search 'replaceEvent'
+      + refreshSelected / imageAdvanceTo 
+  + question: should we sometimes resolve deferreds only after the handler fires?
+    + like
+      + fire_scrollUpdate
+      + refreshSelected / imageAdvanceTo 
+    + risky?
+      + maybe
+  + some contexts contain deferreds that are getting resolved
+    + but the eventContext never gets removed from the eventQueue
+      + while it's there it could potentially interfere with other queued eventContexts
+      + need to remove them
+        + try and use the eventQueue to resolve
+          + because then the resolve can also remove from the queue
+        + that requires that events can identify themselves to the queue
+          + and say 'delete me'
+        + best place to handle that is in hashTable
+          + which means moving evid (eventQueue) to id (hashTable)
+  + unfilled get requests are fine most of the time
+    + they don't accumulate which is great
+  + having some issues getting events to resolve all the way down the chain
+    + try from api_ call and work backwards
+      + carry on with this!
+    + it is resolving, but only after 10s expiries
 
