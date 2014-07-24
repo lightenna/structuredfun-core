@@ -1,4 +1,8 @@
 
+* nearvis isn't always right
+  + in small image sets
+    + good in large sets
+
 * end event is resolving slowly
   + only after 10s expiry
   + it's getting lost during a scroll update
@@ -25,7 +29,6 @@
     + or some combination of the two
       + something in the master eventContext
         + that says soften the following
-
 
 * thinking about maximising the space
   + could swap an image +/-1 to get it to the top of a column
@@ -61,8 +64,6 @@
 
 * extend test suite
   + test imgmetric vis
-
-* optimise dragging in large image sets
 
 * on a direction change
   + show semi-opaque numbers in circles over each image
@@ -978,4 +979,16 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + try from api_ call and work backwards
       + carry on with this!
     + it is resolving, but only after 10s expiries
+
+* optimise dragging in large image sets
+  + implement vistable
+  = it's very fast now
+
+* refresh vistable on breadth/direction change
+
+* viewing images fullscreen broken
+  + suspect it's related to refreshing vistable
+    + some work ok,
+    - but not seq=0 or seq=1
+  + no images are flagged as visible
 

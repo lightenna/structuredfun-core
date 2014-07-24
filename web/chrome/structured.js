@@ -783,28 +783,30 @@ $('.endkey').click(function(event) {
   this['getVisibleBoundaries'] = function() {
     var vis = {};
     var min, max;
+    // cells' offset is a couple of pixels left of image
+    var rounding = 1;
     var direction = this.getDirection();
     // get screen bounds along major axis (min and max)
     if (direction == 'x') {
       // min is left bar (-1 for border)
-      min = $(document).scrollLeft();
+      min = $(document).scrollLeft() - rounding;
       // max is right bar (+1 for border) less a cell's width to exclude partials
-      max = $(window).width() + $(document).scrollLeft();
+      max = $(window).width() + $(document).scrollLeft() - rounding;
     } else {
       // need to know viewport height without scrollbar/Firebug
       var viewportHeight = $('#yardstick-y').height();
-      min = $(document).scrollTop();
-      max = $(document).scrollTop() + viewportHeight;
+      min = $(document).scrollTop() - rounding;
+      max = $(document).scrollTop() + viewportHeight - rounding;
     }
     // find first spanning min boundary
-    var firstKey = this.visTableMajor.findCompare(min, this.export.compareGTE);
-    var firstMatch = this.visTableMajor.get(firstKey);
+    var firstRef = this.visTableMajor.findCompare(min, this.export.compareGTE, false);
+    var firstMatch = this.visTableMajor.select(firstRef);
     if (firstMatch != -1) {
       vis.first = firstMatch.jqEnt.data('seq');
     }
     // find last spanning max boundary
-    var lastKey = this.visTableMajor.findCompare(max, this.export.compareLTE);
-    var lastMatch = this.visTableMajor.get(lastKey);
+    var lastRef = this.visTableMajor.findCompare(max, this.export.compareLTE, true);
+    var lastMatch = this.visTableMajor.select(lastRef);
     if (lastMatch != -1) {
       vis.last = lastMatch.jqEnt.data('seq');
     }
@@ -831,19 +833,6 @@ $('.endkey').click(function(event) {
       for (var i = first_np1 ; i <= last_0 ; i++) {
         defs.push(that.setVisibleImage($('#seq-'+i), 'visible'));
       }
-// deprecated section
-if (false) {
-// then recalculate them
-jqCells.each(function() {
-  var jqEnt = $(this);
-  if (that.isVisible(jqEnt, true)) {
-    defs.push(that.setVisibleImage(jqEnt, 'visible'));
-  } else {
-    // don't test, because setVis(false) is just a .removeClass()
-    defs.push(that.setVisibleImage(jqEnt, 'not-visible'));
-  }
-});
-}
       // aggregate all the deferreds
       $.when.apply($, defs).always(function() {
         deferred.resolve();
@@ -1234,20 +1223,35 @@ jqCells.each(function() {
       },
 
       /**
-       * @param {string} key to search for
+       * @param {mixed} key to search for
+       * @param {bool} [findLast] true to find last occurrence of this key
        * @return {int} array reference or -1 if not found
        */
-      'find': function(key) {
-        var ref = this.keyarr.indexOf(key);
+      'find': function(key, findLast) {
+        var ref;
+        // set defaults on optional arguments
+        if (typeof(findLast) == 'undefined') {
+          findLast = false;
+        }
+        if (findLast) {
+          ref = this.keyarr.lastIndexOf(key);
+        } else {
+          ref = this.keyarr.indexOf(key);
+        }
         return ref;
       },
 
       /**
-       * @param {int} key Value to pivot around
+       * @param {mixed} key to pivot around
        * @param {int} increment positive for >=, negative for <=
-       * @return {mixed} key matching this comparison, or null if not found
+       * @param {bool} [findLast] true to find last occurrence of this key
+       * @return {int} ref position of object matching this comparison, or -1 if not found
        */
-      'findCompare': function(key, comparison) {
+      'findCompare': function(key, comparison, findLast) {
+        // set defaults on optional arguments
+        if (typeof(findLast) == 'undefined') {
+          findLast = false;
+        }
         // binary search
         var minRef = 0;
         var maxRef = this.length - 1;
@@ -1277,14 +1281,14 @@ jqCells.each(function() {
         }
         // minRef is last <= key, maxRef is first >= key
         if (comparison > 0) {
-          if (minRef < 0 || minRef >= this.length) return null;
+          if (minRef < 0 || minRef >= this.length) return -1;
           // return first >= key
-          return this.keyarr[minRef];
+          return minRef;
         } else {
-          if (maxRef < 0 || maxRef >= this.length) return null;
-          // work backwards looking for identical value to last <= key
+          if (maxRef < 0 || maxRef >= this.length) return -1;
           currentElement = this.keyarr[maxRef];
-          return this.keyarr[maxRef];
+          // work backwards looking for identical value to last <= key
+          return this.find(currentElement, true);
         }
       },
 
@@ -1340,9 +1344,17 @@ jqCells.each(function() {
        * interface function to get from table
        * @param {string} key to search for
        * @param {bool} [alsoRemove] true to delete matched elements
+       * @param {bool} [findLast] true to find last occurrence of this key
        * @return {object} matched object or null if not found
        */
-      'get': function(key, alsoRemove) {
+      'get': function(key, alsoRemove, findLast) {
+        // set defaults on optional arguments
+        if (typeof(alsoRemove) == 'undefined') {
+          alsoRemove = false;
+        }
+        if (typeof(findLast) == 'undefined') {
+          findLast = false;
+        }
         return this._get(key, alsoRemove);
       },
 
@@ -1350,15 +1362,21 @@ jqCells.each(function() {
        * actually get object from table
        * @param {string} key to search for
        * @param {bool} [alsoRemove] true to delete matched elements
+       * @param {bool} [findLast] true to find last occurrence of this key
        * @return {object} matched object or null if not found
        */
-      '_get': function(key, alsoRemove) {
-        var ref = this.find(key);
-        if (debug && false) {
-          console.log('get requested for key[' + key + ']');
-        }
+      '_get': function(key, alsoRemove, findLast) {
+        // set defaults on optional arguments
         if (typeof(alsoRemove) == 'undefined') {
           alsoRemove = false;
+        }
+        if (typeof(findLast) == 'undefined') {
+          findLast = false;
+        }
+        // find position in array(s)
+        var ref = this.find(key, findLast);
+        if (debug && false) {
+          console.log('get requested for key[' + key + ']');
         }
         if (ref != -1) {
           // get the object
@@ -1373,6 +1391,18 @@ jqCells.each(function() {
           return obj;
         }
         return null;
+      },
+
+      /**
+       * get the object at a certain position in the table
+       * @param  {int} ref position in table
+       * @return {object} matched object, or null if not present
+       */
+      'select': function(ref) {
+        if (ref == -1) {
+          return null;
+        }
+        return this.objarr[ref];
       },
 
       lastEntry: null
@@ -1398,6 +1428,11 @@ jqCells.each(function() {
        */
       'updateAll': function(direction, jqCells) {
         var vt = this;
+        // wipe previous table
+        vt.length = 0;
+        vt.objarr.length = 0;
+        vt.keyarr.length = 0;
+        // read in new values
         jqCells.each(function() {
           jqEnt = $(this);
           var position = jqEnt.offset();
@@ -1877,6 +1912,10 @@ jqCells.each(function() {
       breadthChanged = this.setBreadth(obj.breadth);
       // seq changes at most only affect the image being selected
       seqChanged = this.setSeq(obj.seq);
+      // updates based on certain types of change
+      if (breadthChanged || directionChanged) {
+        this.visTableMajor.updateAll(this.getDirection(), $('ul.flow .selectablecell'));
+      }
       // update images based on what changed
       if (seqChanged || breadthChanged || directionChanged) {
         // scroll to the selected image, which triggers refreshImage on all .visible images
@@ -1931,8 +1970,6 @@ jqCells.each(function() {
       function() {
         return wrapUp();
       },
-      // currently set at 250 because refreshVisibility is processor intense
-      // @todo lower ms value once more efficient
       250);
     } else {
       // if we're not acting on the context, wrap it up
@@ -2093,7 +2130,7 @@ jqCells.each(function() {
    */
   this['buffer'] = function(name, successCallback, dropCallback, timeout) {
     // option to disable buffer
-    var disabled = true;
+    var disabled = false;
     if (disabled) {
       return successCallback();
     }
