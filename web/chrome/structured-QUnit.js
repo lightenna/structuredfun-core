@@ -64,16 +64,16 @@
      */
     test( 'check vistable working', function() {
       var vt = sfun.api_createVisTable();
-      vt.add([-6, 0, 1, 10, 14, 18, 22, 99, 1000, 1001]);
-      equal( vt.findCompare(16, sfun.compareLTE), 14, 'vistable found 14 <= 16');
-      equal( vt.findCompare(16, sfun.compareGTE), 18, 'vistable found 18 >= 16');
-      equal( vt.findCompare(18, sfun.compareLTE), 18, 'vistable found 18 <= 18');
-      equal( vt.findCompare(18, sfun.compareGTE), 18, 'vistable found 18 >= 18');
-      equal( vt.findCompare(17.99, sfun.compareGTE), 18, 'vistable found 18 >= 17.99');
-      equal( vt.findCompare(1, sfun.compareGTE), 1, 'vistable found 1 >= 1');
-      equal( vt.findCompare(-9999, sfun.compareGTE), -6, 'vistable found -6 >= -9999');
-      equal( vt.findCompare(-9999, sfun.compareLTE), null, 'vistable found nothing <= -9999');
-      equal( vt.findCompare(9999, sfun.compareGTE), null, 'vistable found nothing >= 9999');
+      vt.add([-6, 0, 1, 10, 14, 18, 22, 99, 1000, 1000, 1001]);
+      equal( vt.findCompare(16, sfun.compareLTE), 4, 'vistable found 14 <= 16');
+      equal( vt.findCompare(16, sfun.compareGTE), 5, 'vistable found 18 >= 16');
+      equal( vt.findCompare(18, sfun.compareLTE), 5, 'vistable found 18 <= 18');
+      equal( vt.findCompare(18, sfun.compareGTE), 5, 'vistable found 18 >= 18');
+      equal( vt.findCompare(17.99, sfun.compareGTE), 5, 'vistable found 18 >= 17.99');
+      equal( vt.findCompare(1, sfun.compareGTE), 2, 'vistable found 1 >= 1');
+      equal( vt.findCompare(-9999, sfun.compareGTE), 0, 'vistable found -6 >= -9999');
+      equal( vt.findCompare(-9999, sfun.compareLTE), -1, 'vistable found nothing <= -9999');
+      equal( vt.findCompare(9999, sfun.compareGTE), -1, 'vistable found nothing >= 9999');
     });
 
     test( 'check enough images for test suite', function() {
