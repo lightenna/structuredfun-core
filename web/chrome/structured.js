@@ -373,21 +373,25 @@ $('.endkey').click(function(event) {
    * @return {object} jQuery deferred
    */
   this['refreshImage'] = function(jqEnt, reres) {
+    var deferred = $.Deferred();
     // final stage is to refresh the metric
-    var doMetric = function() {
+    var wrapUp = function() {
       // update metric
       that.refreshMetric(jqEnt);
       that.refreshMetricPosition(jqEnt);
+      // resolve deferred
+      deferred.resolve();
     };
     // refresh the bounds of the image
-    return this.refreshBounds(jqEnt).always(function() {
+    this.refreshBounds(jqEnt).always(function() {
       if (reres) {
         // change out the image for a better resolution if one's available
-        that.refreshResolution(jqEnt).always(doMetric);        
+        that.refreshResolution(jqEnt).always(wrapUp);        
       } else {
-        doMetric();
+        wrapUp();
       }
     });
+    return deferred;
   };
 
   /**
@@ -533,23 +537,23 @@ $('.endkey').click(function(event) {
    * @return {object} jQuery deferred
    */
   this['getLoadedResolution'] = function(jqEnt) {
-    var jqBoundable = jqEnt.find('.boundable');
-    if (jqBoundable.length) {
+    var jqReresable = jqEnt.find('.reresable');
+    if (jqReresable.length) {
       // create local context for async processing
       var deferred = $.Deferred();
       // update loaded resolution
       var im = new Image();
       im.onload = function() {
-        jqBoundable.data('loaded-width', im.width);
-        jqBoundable.data('loaded-height', im.height);
+        jqReresable.data('loaded-width', im.width);
+        jqReresable.data('loaded-height', im.height);
         im = null;
         if (debug && false) {
-          console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqBoundable.data('loaded-width')+','+jqBoundable.data('loaded-height')+']');
+          console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+']');
         }
         // notify promise of resolution
         deferred.resolve();
       }
-      im.src = jqBoundable.attr('src');
+      im.src = jqReresable.attr('src');
       if (debug && false) {
         console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
       }
@@ -784,7 +788,7 @@ $('.endkey').click(function(event) {
     var vis = {};
     var min, max;
     // cells' offset is a couple of pixels left of image
-    var rounding = 1;
+    var rounding = 3;
     var direction = this.getDirection();
     // get screen bounds along major axis (min and max)
     if (direction == 'x') {
@@ -825,7 +829,7 @@ $('.endkey').click(function(event) {
       var deferred = $.Deferred();
       var defs = [];
       // clear all the visible images
-      jqCells.removeClass('visible');
+      jqCells.removeClass('visible nearvis');
       // derive boundaries of visible cells
       var vis = this.getVisibleBoundaries();
       var first_np1 = vis.first;
@@ -842,16 +846,27 @@ $('.endkey').click(function(event) {
       // hunt for first and last visible
       var first_np1 = $('ul.flow .selectablecell.visible:first').data('seq'), last_0 = $('ul.flow .selectablecell.visible:last').data('seq');
       // compute those near the last visible
-      var last_1 = (last_0 + 1) % cellcount;
-      var last_n = (last_0 + that.getBreadth() * that.export.breadthMULTIPLIER) % cellcount;
-      var first_n = negative_mod(first_np1 - 1, cellcount);
-      var first_1 = negative_mod(first_np1 - that.getBreadth() * that.export.breadthMULTIPLIER, cellcount);
-      // catch situation where wraparound means that for loop won't work
-      if (last_1 > last_n) {
-        last_n = cellcount-1;
+      var last_1 = last_0 + 1;
+      var last_n = last_0 + that.getBreadth() * that.export.breadthMULTIPLIER;
+      var first_n = first_np1 - 1;
+      var first_1 = first_np1 - that.getBreadth() * that.export.breadthMULTIPLIER;
+      // catch out-of-bound values: last only against max
+      if (last_1 >= cellcount) {
+        // disable because no cells to loop over
+        last_1 = -1;
       }
-      if (first_n < first_1) {
-        first_n = 0;
+      if (last_n >= cellcount) {
+        // crop against max
+        last_n = cellcount - 1;
+      }
+      // catch out-of-bound values: first only against min
+      if (first_n <= 0) {
+        // disable because no cells to loop over
+        first_n = -1;
+      }
+      if (first_1 <= 0) {
+        // crop against min
+        first_1 = 0;
       }
       // optional debugging
       if (debug && false) {
@@ -860,13 +875,19 @@ $('.endkey').click(function(event) {
       if (debug && false) {
         console.log('images-('+last_1+' to '+last_n+'): making nearvis (after visibles)');
       }
-      // request nearvis (after visibles), async
-      for (var i = last_1 ; i <= last_n ; i++) {
-        that.setVisibleImage($('#seq-'+i), 'nearvis');
+      // only do last nearvis if there are some entries AFTER visibles
+      if (last_1 != -1) {
+        // request nearvis (after visibles), async
+        for (var i = last_1 ; i <= last_n ; i++) {
+          that.setVisibleImage($('#seq-'+i), 'nearvis');
+        }
       }
-      // request nearvis (before visibles), async
-      for (var i = first_1 ; i <= first_n ; i++) {
-        that.setVisibleImage($('#seq-'+i), 'nearvis');
+      // only do first nearvis if there are some entries BEFORE visibles
+      if (first_n != -1) {
+        // request nearvis (before visibles), async
+        for (var i = first_1 ; i <= first_n ; i++) {
+          that.setVisibleImage($('#seq-'+i), 'nearvis');
+        }
       }
       return deferred;
     }
@@ -1082,6 +1103,15 @@ $('.endkey').click(function(event) {
   };
 
   /**
+   * @param  {string} h1 first hash
+   * @param  {string} h2 second hash
+   * @return {boolean} true if the two hashes are equivalent
+   */
+  this['hashEquals'] = function(h1, h2) {
+    return(h1 == h2);
+  };
+
+  /**
    * parse out integers from hash attributes
    * @param {string} hash string
    * @return {object} hash values as an object
@@ -1186,6 +1216,16 @@ $('.endkey').click(function(event) {
       },
 
       /**
+       * wipe the hash table
+       */
+      'wipe': function() {
+        this.length = 0;
+        this.objarr.length = 0;
+        this.keyarr.length = 0;
+        // don't reset counter because old objects may still be floating about
+      },
+
+      /**
        * interface function push obj onto queue
        * this function may be overwritten by specialist hash tables
        * @param {object} obj to push
@@ -1279,11 +1319,11 @@ $('.endkey').click(function(event) {
             break;
           }
         }
-        // minRef is last <= key, maxRef is first >= key
+        // process based on direction of comparison (LTE/GTE)
         if (comparison > 0) {
           if (minRef < 0 || minRef >= this.length) return -1;
-          // return first >= key
-          return minRef;
+          // work forwards looking for identical value to first >= key
+          return this.find(currentElement, false);
         } else {
           if (maxRef < 0 || maxRef >= this.length) return -1;
           currentElement = this.keyarr[maxRef];
@@ -1429,9 +1469,7 @@ $('.endkey').click(function(event) {
       'updateAll': function(direction, jqCells) {
         var vt = this;
         // wipe previous table
-        vt.length = 0;
-        vt.objarr.length = 0;
-        vt.keyarr.length = 0;
+        vt.wipe();
         // read in new values
         jqCells.each(function() {
           jqEnt = $(this);
@@ -1496,7 +1534,7 @@ $('.endkey').click(function(event) {
        * @return {string} render simple string of object
        */
       'render': function(obj) {
-        var output = obj.key + ', ' + obj.deferred.state();
+        var output = obj.id + ':' + obj.key + ', ' + obj.deferred.state();
         if (obj.comment) {
           output += ', ' + obj.comment;
         }
@@ -1578,12 +1616,12 @@ $('.endkey').click(function(event) {
           obj = peer;
           // remove old object from queue
           this.removeObj(peer);
-          if (debug && true) {
-            console.log('- deprecated event context[' + this.render(peer) + '], q'+this.length);
-          }
           // aggregate the comments to enable clearer historical tracking
           if (partial.comment) {
             partial.comment += ', was ' + obj.comment;
+          }
+          if (debug && true) {
+            console.log('- deprecated event context[' + this.render(peer) + '] in favour of [see next pushed], q'+this.length);
           }
         }
         // overwrite obj fields with partial values
@@ -1667,6 +1705,14 @@ $('.endkey').click(function(event) {
           // only store if we're not removing
           if (!alsoRemove) {
             this.push(retrieved);
+          }
+        } else {
+          // aggregate the comments to enable clearer historical tracking
+          if (retrieved.comment) {
+            retrieved.comment += ', instead of ' + partial.comment;
+          }
+          if (debug && true) {
+            console.log(' - pulled not invented context[' + this.render(retrieved) + '], q'+this.length);
           }
         }
         return retrieved;
@@ -1754,8 +1800,8 @@ $('.endkey').click(function(event) {
       'resolve': function(obj) {
         // remove this object from the eventQueue
         var ref = this.removeObj(obj);
-        if (ref != -1 && debug && true) {
-          console.log('- resolved event context[' + this.render(obj) + '], q'+this.length);
+        if (debug && true) {
+          console.log('- resolve event context[' + this.render(obj) + '], q'+this.length);
         }
         // resolve its deferred if set
         if (obj.deferred != null) {
@@ -1800,26 +1846,31 @@ $('.endkey').click(function(event) {
     this.merge(obj, options);
     // convert to hash string
     hash = this.hashGenerate(obj);
-    // create a context, but parent it only if eventContext is not undefined
+    // always create a context [so we can resolve something], but parent it only if eventContext is not undefined
     var localContext = this.eventQueue.pushOrMerge({
       'key': 'hash:'+hash,
       'comment': 'localContext for fire_hashUpdate'
     }, eventContext);
-    // fire event: change the window.location.hash
-    if (push) {
-      History.pushState({}, null, this.export.stringHASHBANG + hash);
+    // if hash would have no effect (would not trigger handler_hashChanged)
+    if (this.hashEquals(this.getHash(), hash)) {
+      return this.eventQueue.resolve(localContext);
     } else {
-      // -- doesn't always work!
-      History.replaceState({}, 'Image', this.export.stringHASHBANG + hash);
-      // have to read it back and check; History hashes come back without #
-      readback = History.getHash();
-      if ((this.export.stringHASHBANG + hash) != ('#'+readback)) {
-        // -- leaves a messy history trail
-        window.location.hash = this.export.stringHASHBANG + hash;
+      // fire event: change the window.location.hash, allow handler_ to resolve context
+      if (push) {
+        History.pushState({}, null, this.export.stringHASHBANG + hash);
+      } else {
+        // -- doesn't always work!
+        History.replaceState({}, 'Image', this.export.stringHASHBANG + hash);
+        // have to read it back and check; History hashes come back without #
+        readback = History.getHash();
+        if ((this.export.stringHASHBANG + hash) != ('#'+readback)) {
+          // -- leaves a messy history trail
+          window.location.hash = this.export.stringHASHBANG + hash;
+        }
       }
+      // localContext is resolved by handler_hashChanged
+      return localContext.deferred;
     }
-    // localContext is resolved by handler_hashChanged
-    return localContext.deferred;
   };
 
   /**
@@ -1831,15 +1882,19 @@ $('.endkey').click(function(event) {
    */
   this['fire_scrollUpdate'] = function(left, top, eventContext) {
     var that = this;
+    // crop top and left against origin (0) and max scroll position (documentWidth - viewportWidth)
+    var croppedLeft = Math.max(0, Math.min(left, $(document).width() - $(window).width()));
+    var viewportHeight = $('#yardstick-y').height();
+    var croppedHeight = Math.max(0, Math.min(top, $(document).height() - viewportHeight));
     // create a context, but parent it only if eventContext is not undefined
     var localContext = this.eventQueue.pushOrMerge({
-      'key': 'scroll:'+'x='+left+'&y='+top,
+      'key': 'scroll:'+'x='+croppedLeft+'&y='+croppedHeight,
       'comment': 'localContext for fire_scrollUpdate',
       'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
     }, eventContext);
     // fire event: change the scroll position (comes through as single event)
-    $(document).scrollLeft(left);
-    $(document).scrollTop(top);
+    $(document).scrollLeft(croppedLeft);
+    $(document).scrollTop(croppedHeight);
     // localContext is resolved by handler_scrolled
     return localContext.deferred;
   };
@@ -1880,42 +1935,42 @@ $('.endkey').click(function(event) {
     var wrapUp = function() {
       return that.eventQueue.resolve(eventContext);
     }
-    // first of all find out if we should actually process this hash change
+    // process elements that have to remain consistent
+    var breadthChanged = false;
+    var seqChanged = false;
+    // start with defaults
+    var obj = { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq']};
+    // overwrite with current hash values
+    var fromHash = this.hashParse(hash);
+    // check the hash values are valid, fallback to defaults if not
+    if (!this.hashValidate(fromHash)) {
+      console.log('illegal hash values, falling back to defaults');
+    }
+    this.merge(obj, fromHash);
+    // update previous values if changed
+    var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq();
+    if (cdirection != obj.direction) {
+      this.previous['direction'] = cdirection;
+    }
+    if (cbreadth != obj.breadth) {
+      this.previous['breadth'] = cbreadth;
+    }
+    if (cseq != obj.seq) {
+      this.previous['seq'] = cseq;
+    }
+    // stage 1: apply [hash] state to DOM
+    // direction changes potentially affect ??? images
+    directionChanged = this.setDirection(obj.direction);
+    // breadth changes potentially affect all images
+    breadthChanged = this.setBreadth(obj.breadth);
+    // seq changes at most only affect the image being selected
+    seqChanged = this.setSeq(obj.seq);
+    // updates based on certain types of change
+    if (breadthChanged || directionChanged) {
+      this.visTableMajor.updateAll(this.getDirection(), $('ul.flow .selectablecell'));
+    }
+    // find out if we should trigger other events based on this hash change
     if (this.eventQueue.actOnContext(eventContext)) {
-      // keep track of whether this update could have affected all images and selected images
-      var breadthChanged = false;
-      var seqChanged = false;
-      // start with defaults
-      var obj = { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq']};
-      // overwrite with current hash values
-      var fromHash = this.hashParse(hash);
-      // check the hash values are valid, fallback to defaults if not
-      if (!this.hashValidate(fromHash)) {
-        console.log('illegal hash values, falling back to defaults');
-      }
-      this.merge(obj, fromHash);
-      // update previous values if changed
-      var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq();
-      if (cdirection != obj.direction) {
-        this.previous['direction'] = cdirection;
-      }
-      if (cbreadth != obj.breadth) {
-        this.previous['breadth'] = cbreadth;
-      }
-      if (cseq != obj.seq) {
-        this.previous['seq'] = cseq;
-      }
-      // stage 1: apply [hash] state to DOM
-      // direction changes potentially affect ??? images
-      directionChanged = this.setDirection(obj.direction);
-      // breadth changes potentially affect all images
-      breadthChanged = this.setBreadth(obj.breadth);
-      // seq changes at most only affect the image being selected
-      seqChanged = this.setSeq(obj.seq);
-      // updates based on certain types of change
-      if (breadthChanged || directionChanged) {
-        this.visTableMajor.updateAll(this.getDirection(), $('ul.flow .selectablecell'));
-      }
       // update images based on what changed
       if (seqChanged || breadthChanged || directionChanged) {
         // scroll to the selected image, which triggers refreshImage on all .visible images
@@ -1967,10 +2022,7 @@ $('.endkey').click(function(event) {
         return this.refreshVisibility(scrolldir).then(wrapUp);
       },
       // function to execute if we're dumping this event
-      function() {
-        return wrapUp();
-      },
-      250);
+      wrapUp, 250);
     } else {
       // if we're not acting on the context, wrap it up
       return wrapUp();
@@ -2077,7 +2129,7 @@ $('.endkey').click(function(event) {
         break;
       case that.export.KEY_HOME:
         event.preventDefault();
-        return that.imageAdvanceTo(0).then(wrapUp);
+        return that.imageAdvanceTo(0, eventContext).then(wrapUp);
       case that.export.KEY_END:
         event.preventDefault();
         return that.imageAdvanceTo(that.getTotalEntries()-1, eventContext).then(wrapUp);
