@@ -1,8 +1,4 @@
 
-* nearvis isn't always right
-  + in small image sets
-    + good in large sets
-
 * end event is resolving slowly
   + only after 10s expiry
   + it's getting lost during a scroll update
@@ -29,19 +25,20 @@
     + or some combination of the two
       + something in the master eventContext
         + that says soften the following
-
-* thinking about maximising the space
-  + could swap an image +/-1 to get it to the top of a column
-  + landscape
-    + could expand the width of a cell
-    + could decrease the height of a cell
-  + portrait
-    + could expand the height of a cell
-    + could decrease the width of a cell
-
-* end, fullscreen, home
-  + check re-res
-
+          + temp issue: not timing out old events
+    + alternative might be to try and more accurately guess
+      + where scroll event will actually go to
+        + i.e. document end - screen width
+      + could do that as a simple max on the fire_scrollUpdate
+        + that's pretty close
+          + still having to expiry it though
+            + let's look at context id to see which contexts are missing
+      + it's clear that one of the images isn't resolving
+        + when I force the deferred to resolve, everything is fine
+--o--
+* wire in deferreds through everything else
+  + make it work for handler_hash first
+--o--
 * extend test suite
   + test reres
     + end
@@ -52,51 +49,54 @@
         + need to find a way to push identifiers through the event chain
           + e.g. x in scrollUpdate(x) -> handler_scrolled(x)
 --o--
-* wire in deferreds through everything else
-  + make it work for handler_hash first
+* end test has errors
+  + some images have been reloaded
 
-* page up should eventually move the selection to 0
-  + page down should eventually move to end
-
-* extend test suite
+* extend test suite once all current tests are working
   + test reres
     + mouse wheel two images right
-
-* extend test suite
   + test imgmetric vis
 
-* on a direction change
-  + show semi-opaque numbers in circles over each image
-    + to reflect order of images
+* visTable bugs
+  + fairly minor stuff I think
+    + use test suite to debug
 
 * .s in directory names, like mq
-
-* imagemeta/ endpoint should always get image metadata
-  + at the moment it only produces good metadata for pre-cached images
-    + if we discover an image uncached
-      + we should cache it at standard thumbnail size (longest edge 200)
-        + most cache requests comes in 
 
 * mousewheel after scroll needs to re-align
   + otherwise can be scrolling in half-images
 
-* treat direction as another piece of hash state
-  + where a hash value is the same as
-    + NOT what's in document 
-      + because it changes
-    + the default value from the last page load
+* sfun icon
+  + think about the glassbar concept
+    + pushing out from the icon
 
-* res change needs to fresh metric positions
-  + could tie that into refreshCells
-
-* accelerate scroll catch-up
-  + working but needs to be quicker
-  + may need new async/promise trick
+* shiny menu bar
 
 * need to get an alpha online
   + doesn't need to be a big release, but it does have to be a first release
 
---- post first launch ---
+--- first launch: it's not a big deal ---
+
+* FEATURE: video
+
+* FEATURE: show semi-opaque numbers in circles over each image on a direction change
+    + to reflect order of images
+
+* instead of requesting metadata
+  + could just request an image of the size we want
+    + (guess that it might be available)
+    + and display whatever comes back
+      + then request metadata asynchronously
+        + and probably for everything rather than just the visibles
+
+* thinking about maximising the space
+  + could swap an image +/-1 to get it to the top of a column
+  + landscape
+    + could expand the width of a cell
+    + could decrease the height of a cell
+  + portrait
+    + could expand the height of a cell
+    + could decrease the width of a cell
 
 * imgmetric as mini bar chart
   + show percentage in background too
@@ -991,4 +991,56 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + some work ok,
     - but not seq=0 or seq=1
   + no images are flagged as visible
+
+* vis missing one image
+  + /file/structured/tests/data/20-image_folder/#!seq=9
+  + it's because we're hitting minref = maxref = ref 5
+    + when ref 4 has the same value
+      + need to always work backwards to be sure
+    + needed a work forwards (like work backwards)
+
+* nearvis isn't always right
+  + in small image sets
+    + good in large sets
+  + need to remove nearvis
+    + or rather rename nearvis once it's no longer near
+  + better, but still too much nearvis in image_folder dataset
+
+* too many visibles
+  + seq=0 showing 8 & 9
+    + should stop at 7
+  + fixed with rounding = 3
+
+* can scroll selected image off-screen
+  + updates hash but doesn't update selected
+
+* end, fullscreen, home
+  + check re-res
+
+* page up should eventually move the selection to 0
+  + page down should eventually move to end
+
+* imagemeta/ endpoint should always get image metadata
+  + at the moment it only produces good metadata for pre-cached images
+    + if we discover an image uncached
+      + we should cache it at standard thumbnail size (longest edge 200)
+        + most cache requests comes in 
+
+* treat direction as another piece of hash state
+  + where a hash value is the same as
+    + NOT what's in document 
+      + because it changes
+    + the default value from the last page load
+
+* res change needs to fresh metric positions
+  + could tie that into refreshCells
+
+* accelerate scroll catch-up
+  + working but needs to be quicker
+  + may need new async/promise trick
+
+* home/end stalling
+  + need to protect fire_hashUpdate
+    + when firing will never trigger the handler_
+      + i.e. home when at seq=0, end when at seq=last
 

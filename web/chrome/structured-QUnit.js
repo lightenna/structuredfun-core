@@ -57,11 +57,15 @@
    */
   this['tests'] = function() {
     QUnit.init();
+    var endTest = function() {
+      window.location.hash = '#!';
+    }
     /*
      * top and tail each test with a hash clear (needs to be different to clear it)
      * 1. to reset the environment because tests can run in any order
      * 2. to drop us back at the top/left of the page after all tests finish
      */
+/*
     test( 'check vistable working', function() {
       var vt = sfun.api_createVisTable();
       vt.add([-6, 0, 1, 10, 14, 18, 22, 99, 1000, 1000, 1001]);
@@ -75,7 +79,7 @@
       equal( vt.findCompare(-9999, sfun.compareLTE), -1, 'vistable found nothing <= -9999');
       equal( vt.findCompare(9999, sfun.compareGTE), -1, 'vistable found nothing >= 9999');
     });
-
+*/
     test( 'check enough images for test suite', function() {
       ok( sfun.api_getTotalEntries() >= 4 , sfun.api_getTotalEntries() + ' images in test set')
       // check basic properties of visTableMajor
@@ -83,6 +87,7 @@
       equal( sfun.api_getTotalEntries(), vt.length, vt.length + ' images in vistable');
     });
 
+/*
     test( 'reres of first page of images', function() {
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).then(function() {
@@ -93,11 +98,11 @@
           var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
           ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
         });
-        window.location.hash = '';
+        endTest();
         QUnit.start();
       });
     });
-
+*/
     test( 'reres of last page of images', function() {
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_END).then(function() {
@@ -108,11 +113,12 @@
           var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
           ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
         });
-        window.location.hash = '';
         QUnit.start();
+console.log('XXX test complete XXX');
+        endTest();
       });
     });
-
+/*
     test( 'check image bounds', function() {
       QUnit.stop();
       $('ul.flow .selectablecell.visible .boundable').each(function() {
@@ -133,7 +139,7 @@
       $('#seq-0').find('a').trigger('click');
       ok( sfun.api_getBreadth() == 1, 'Went to fullscreen mode' );
       ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Selected image zero');
-      window.location.hash = '';
+      endTest();
     });
 
     test( 'image click #1, return, arrow next', function() {
@@ -144,17 +150,18 @@
       ok( sfun.api_getBreadth() == initialBreadth, 'Returned to initial breadth value ('+initialBreadth+')' );
       sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
       ok( $('ul.flow .selectablecell.selected').data('seq') == 2, 'Right arrow selected #2 image (#1+1)' );
-      window.location.hash = '';
+      endTest();
     });
 
     test( 'set breadth 4, image click #1, return', function() {
       window.location.hash = 'breadth_4_image_click_1';
       sfun.api_triggerKeypress(sfun.KEY_NUMBER_4);
       ok( sfun.api_getBreadth() == 4, 'Selected breadth value 4' );
+      // click to fullscreen, then return back
       $('#seq-1').find('a').trigger('click');
       sfun.api_triggerKeypress(sfun.KEY_RETURN);
       ok( sfun.api_getBreadth() == 4, 'Returned to breadth value (4)' );
-      window.location.hash = '';
+      endTest();
     });
 
     test( 'end select last, home select first, arrow next', function() {
@@ -166,7 +173,7 @@
       ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
       sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
       ok( $('ul.flow .selectablecell.selected').data('seq') == 1, 'Right arrow selected #1 image' );
-      window.location.hash = '';
+      endTest();
     });
 
     test( 'end arrow next wrap-around', function() {
@@ -180,7 +187,7 @@
       ok( $('ul.flow .selectablecell.selected').data('seq') == last, 'End re-selected last image' );
       sfun.api_triggerKeypress(sfun.KEY_HOME);
       ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
-      window.location.hash = '';
+      endTest();
     });
 
     test( 'vis non-vis simple', function() {
@@ -199,7 +206,7 @@
         ok( $('ul.flow .selectablecell.selected').hasClass('visible'), 'Selected cell is visible');
         // check that the first image is not visible
         ok( ! $('#seq-'+initialSeq).hasClass('visible'), 'Initially selected cell is no longer visible');
-        window.location.hash = '';
+        endTest();
         QUnit.start();
       }, 1);
     });
@@ -227,11 +234,11 @@
         }
         // check that selected image is within visible range
         ok( initialSeq <= middleSeq && middleSeq <= finalSeq, 'Selected middle image is within visible range');
-        window.location.hash = '';
+        endTest();
         QUnit.start();
       }, 1);
     });
-
+*/
     QUnit.start();
   }
 
