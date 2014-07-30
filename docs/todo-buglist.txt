@@ -51,6 +51,10 @@
 --o--
 * end test has errors
   + some images have been reloaded
+    + it's because we're resolving the scroll event after the metadata has been returned
+      - not after the reres has completed
+    + I can see cases where we might want both of those
+      + but for now, concentrate on the images loading
 
 * extend test suite once all current tests are working
   + test reres

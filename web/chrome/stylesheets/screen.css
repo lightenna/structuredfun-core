@@ -312,7 +312,42 @@ html.no-js .header:hover, html.no-js .footer:hover {
 .page .content .flow > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 291, ../sass/screen.scss */
+/* line 292, ../sass/screen.scss */
+.page .content .flow > .cell a .meta {
+  background-image: linear-gradient(rgba(0, 0, 0, 0), #000000);
+  color: #ffffff;
+  height: 8em;
+  margin-top: -8em;
+  text-align: left;
+  width: 100%;
+  font-size: 0.8em;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.3s ease-out 0s;
+}
+/* line 309, ../sass/screen.scss */
+.page .content .flow > .cell a .meta span {
+  margin: 1.0em 0 0 1.0em;
+  display: block;
+}
+/* line 313, ../sass/screen.scss */
+.page .content .flow > .cell a .meta span.icons {
+  height: 2.0em;
+}
+/* line 317, ../sass/screen.scss */
+.page .content .flow > .cell a .meta span.caption {
+  font-weight: bold;
+}
+/* line 321, ../sass/screen.scss */
+.page .content .flow > .cell a .meta span.byline {
+  margin-top: .5em;
+}
+/* line 327, ../sass/screen.scss */
+.page .content .flow > .cell a:hover .meta {
+  opacity: 1;
+  transition: opacity 0.3s ease-in 0s;
+}
+/* line 335, ../sass/screen.scss */
 .page .content .flow > .cell a .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -327,7 +362,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 306, ../sass/screen.scss */
+/* line 350, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory {
   background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
   background-size: 100% 100%;
@@ -343,7 +378,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   }
    */
 }
-/* line 314, ../sass/screen.scss */
+/* line 358, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .overlay {
   width: 100%;
   height: 100%;
@@ -352,40 +387,40 @@ html.no-js .header:hover, html.no-js .footer:hover {
   top: 0;
   z-index: 1;
 }
-/* line 324, ../sass/screen.scss */
+/* line 368, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview {
   width: 42.7%;
   height: 38%;
   position: relative;
   margin-right: 3%;
 }
-/* line 339, ../sass/screen.scss */
+/* line 383, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-2, .page .content .flow > .cell a div.directory .preview-4 {
   margin-right: 6%;
 }
-/* line 344, ../sass/screen.scss */
+/* line 388, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-1, .page .content .flow > .cell a div.directory .preview-2 {
   top: 13%;
 }
-/* line 349, ../sass/screen.scss */
+/* line 393, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-3, .page .content .flow > .cell a div.directory .preview-4 {
   top: 16.4%;
 }
-/* line 358, ../sass/screen.scss */
+/* line 402, ../sass/screen.scss */
 .page .content .flow > .cell div.dummy1 {
   height: 50%;
 }
-/* line 362, ../sass/screen.scss */
+/* line 406, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container {
   display: inline-block;
   width: 100%;
   margin-top: -37.5%;
 }
-/* line 368, ../sass/screen.scss */
+/* line 412, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container .dummy2 {
   padding-top: 75%;
 }
-/* line 373, ../sass/screen.scss */
+/* line 417, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container div.directory {
   position: absolute;
   top: 0;
@@ -396,22 +431,22 @@ html.no-js .header:hover, html.no-js .footer:hover {
 
 /* -------------------------------------------------------------------------*/
 /* Theme variants */
-/* line 390, ../sass/screen.scss */
+/* line 434, ../sass/screen.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 393, ../sass/screen.scss */
+/* line 437, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell {
   border-color: #333333;
 }
-/* line 396, ../sass/screen.scss */
+/* line 440, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell .directory {
   background-image: url("/chrome/images/fullres/folder_back_dark.png");
 }
 
 /* -------------------------------------------------------------------------*/
 /* Test suite */
-/* line 405, ../sass/screen.scss */
+/* line 449, ../sass/screen.scss */
 #qunit {
   position: absolute;
   z-index: 999;
