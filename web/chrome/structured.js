@@ -310,6 +310,8 @@ $('.endkey').click(function(event) {
           brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
+// DELETE ME
+console.log('passing on to imageReres-'+jqEnt.data('seq'));
             // swap out image, but don't wait for swap to complete
             return that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
           }
@@ -317,6 +319,8 @@ $('.endkey').click(function(event) {
           // same but pivot on height rather than width
           brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
+// DELETE ME
+console.log('passing on to imageReres-'+jqEnt.data('seq'));
             // swap out image, but don't wait for swap to complete
             return that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
           }
@@ -386,7 +390,12 @@ $('.endkey').click(function(event) {
     this.refreshBounds(jqEnt).always(function() {
       if (reres) {
         // change out the image for a better resolution if one's available
-        that.refreshResolution(jqEnt).always(wrapUp);        
+        // that.refreshResolution(jqEnt).always(wrapUp);        
+        that.refreshResolution(jqEnt).then(function() {
+// DELETE ME
+console.log('resolved refreshImage-'+jqEnt.data('seq'));
+          wrapUp();
+        });
       } else {
         wrapUp();
       }
@@ -957,13 +966,15 @@ $('.endkey').click(function(event) {
         // store loaded width and height
         jqReresable.data('loaded-width', this.width);
         jqReresable.data('loaded-height', this.height);
-        if (debug && false) {
+        if (debug && true) {
           console.log('image-'+jqEnt.data('seq')+': swapped out for ('+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+')');
         }
         that.refreshMetric(jqEnt);
         // flag as reres'd, no longer reresing
         jqEnt.removeClass('reresing');
         // notify promise of resolution
+// DELETE ME
+console.log('reresingImage-'+jqEnt.data('seq'));
         deferred.resolve();
       }).each(function() {
         if(this.complete) $(this).load();
@@ -971,6 +982,8 @@ $('.endkey').click(function(event) {
       // return local context so that when we complete (resolve), our parents can execute
       return deferred;
     }
+// DELETE ME
+console.log('without-reresingImage-'+jqEnt.data('seq'));
     jqEnt.removeClass('reresing');
     return $.Deferred().resolve();
   };
