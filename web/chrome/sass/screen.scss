@@ -266,9 +266,11 @@ html.no-js {
       }
 
       a { 
-        // relative parent required for x-bound images
+        // relative parent required for alignment of x-bound images and meta
         position: relative;
-        text-align: right;
+        // display block, height 100% required for aligning image metadata to base
+        display: block;
+        height: 100%;
         text-decoration: none;
         font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
         // font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
@@ -288,40 +290,49 @@ html.no-js {
           height: 100%;
         }
 
-        // metadata over bottom of cell
+        // metadata over bottom of image/cell
         .meta {
-          // @todo change 0,0,0 black for background colour
-          background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1.0));
-          color: #ffffff;
+          // position absolute to stick to bottom
+          display: block;
+          position: absolute;
+          bottom: 0;
+          background-image: linear-gradient(rgba($background_html_light, 0), rgba($background_html_light, 0.8));
+          color: #000000;
           height: 8em;
-          margin-top: -8em;
           text-align: left;
+          left: 50%;
+          margin-left: -50%;
           width: 100%;
           font-size: 0.8em;
-          display: block;
 
           // don't show initially
           opacity: 0;
           // animation for disappearance
           transition: opacity 0.3s ease-out 0s;
 
-          // all the spans (blocks) within metadata
-          span {
-            margin: 1.0em 0 0 1.0em;
-            display: block;
+          .base {
+            position: absolute;
+            bottom: 0;
 
-            &.icons {
-              height: 2.0em;
-            }
+            // all the spans (blocks) within metadata base
+            span {
+              margin: 1.0em;
+              display: block;
 
-            &.caption {
-              font-weight: bold;
-            }
+              &.icons {
+                height: 2.0em;
+              }
 
-            &.byline {
-              margin-top: .5em;
+              &.caption {
+                font-weight: bold;
+              }
+
+              &.byline {
+                margin-top: .5em;
+              }
             }
           }
+
         }
 
         &:hover .meta {
@@ -353,6 +364,7 @@ html.no-js {
           width: 100%;
           height: 100%;
           display: block;
+          text-align: right;
           position: relative;
   
           .overlay {
@@ -406,6 +418,7 @@ html.no-js {
       a.directory-container {
         display: inline-block;
         width: 100%;
+        text-align: right;
         margin-top: -37.5%; // 4:3 / 2
         // margin-top: -28.125%; // 16:9 / 2
         
@@ -436,6 +449,11 @@ html.theme-dark {
 
   .page .content .flow > .cell {
     border-color: $background_grid_dark; 
+
+    a .meta {
+      background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
+      color: #ffffff;
+    }
     
     .directory {
       background-image: url('/chrome/images/fullres/folder_back_dark.png');

@@ -22,6 +22,11 @@
     <a class="media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
       <img class="reresable boundable {{ file.orientation }}-bound selectreflector" data-desrc="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" data-template-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} data-seq="{{ file.seq }}" />
       <noscript><img class="{{ file.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
+      <span class="meta">
+        <span class="base">
+          <span class="caption">{{ file.name }}</span>
+        </span>
+      </span>
     </a>
   </li>
 {% else %}
