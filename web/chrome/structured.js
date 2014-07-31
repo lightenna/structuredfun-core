@@ -146,6 +146,20 @@ $('.endkey').click(function(event) {
     return (100 / pc);
   };
 
+  /**
+   * refresh the cell widths by minor axis
+   */
+  this['cellsResize'] = function() {
+    var direction = this.getDirection();
+    var count = this.cellsCountMajor();
+    if (direction == 'x') {
+// START HERE
+      // work down columns adjusting height
+    } else {
+      // work across rows adjusting width
+    }
+  }
+
   // ------------------
   // FUNCTIONS: refresh
   // ------------------
@@ -444,7 +458,9 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       });
       $.when.apply($, defs).always(function() {
         defs = [];
-        // stage 2: refresh resolutions as a batch
+        // stage 2: refresh cell dimensions
+        that.cellsResize();
+        // stage 3: refresh resolutions as a batch
         jqVisibles.each(function() {
           var jqEnt = $(this);
           defs.push(that.refreshImageResolution(jqEnt, true));
@@ -866,10 +882,17 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this['setVisibleAll'] = function() {
     var that = this;
+    // batch true to wait and refresh all images after all flagged
+    var batch = true;
     var jqCells = $('ul.flow .selectablecell');
+    // test to see if we found any selectable cells
     if (jqCells.length) {
       var deferred = $.Deferred();
       var defs = [];
+      var wrapUp = function() {
+        // resolve the deferred
+        deferred.resolve();
+      }
       // clear all the visible images
       jqCells.removeClass('visible nearvis');
       // derive boundaries of visible cells
@@ -877,60 +900,22 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       var first_np1 = vis.first;
       var last_0 = vis.last;
       for (var i = first_np1 ; i <= last_0 ; i++) {
-        defs.push(that.setVisibleImage($('#seq-'+i), 'visible'));
+        defs.push(that.setVisibleImage($('#seq-'+i), 'visible', !batch));
       }
       // aggregate all the deferreds
       $.when.apply($, defs).always(function() {
-        deferred.resolve();
+        if (batch) {
+          // empty the defs (symbolic only)
+          defs = [];
+          // now batch process all the visibles
+          that.refreshVisibleImages().done(wrapUp);
+        } else {
+          // if not batch processing, resolve the deferred
+          wrapUp();
+        }
       });
       // now request nearvis images, but don't wait for them (async, not resync)
-      var cellcount = that.getTotalEntries();
-      // hunt for first and last visible
-      var first_np1 = $('ul.flow .selectablecell.visible:first').data('seq'), last_0 = $('ul.flow .selectablecell.visible:last').data('seq');
-      // compute those near the last visible
-      var last_1 = last_0 + 1;
-      var last_n = last_0 + that.getBreadth() * that.export.breadthMULTIPLIER;
-      var first_n = first_np1 - 1;
-      var first_1 = first_np1 - that.getBreadth() * that.export.breadthMULTIPLIER;
-      // catch out-of-bound values: last only against max
-      if (last_1 >= cellcount) {
-        // disable because no cells to loop over
-        last_1 = -1;
-      }
-      if (last_n >= cellcount) {
-        // crop against max
-        last_n = cellcount - 1;
-      }
-      // catch out-of-bound values: first only against min
-      if (first_n <= 0) {
-        // disable because no cells to loop over
-        first_n = -1;
-      }
-      if (first_1 <= 0) {
-        // crop against min
-        first_1 = 0;
-      }
-      // optional debugging
-      if (debug && false) {
-        console.log('images-('+first_1+' to '+first_n+'): making nearvis (before visibles)');
-      }
-      if (debug && false) {
-        console.log('images-('+last_1+' to '+last_n+'): making nearvis (after visibles)');
-      }
-      // only do last nearvis if there are some entries AFTER visibles
-      if (last_1 != -1) {
-        // request nearvis (after visibles), async
-        for (var i = last_1 ; i <= last_n ; i++) {
-          that.setVisibleImage($('#seq-'+i), 'nearvis');
-        }
-      }
-      // only do first nearvis if there are some entries BEFORE visibles
-      if (first_n != -1) {
-        // request nearvis (before visibles), async
-        for (var i = first_1 ; i <= first_n ; i++) {
-          that.setVisibleImage($('#seq-'+i), 'nearvis');
-        }
-      }
+      this.setNearVis();
       return deferred;
     }
     return $.Deferred().resolve();
@@ -941,9 +926,10 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @param {jQuery} jqEnt image
    * @param {string} 'visible' true to make visible, 'not visible' to hide
    *   or 'nearvis' to make visible but not re-res
+   * @param {boolean} refresh true to also refresh the image
    * @return {object} jQuery deferred
    */
-  this['setVisibleImage'] = function(jqEnt, vis) {
+  this['setVisibleImage'] = function(jqEnt, vis, refresh) {
     var that = this;
     var deferred = $.Deferred();
     var wrapUp = function() {
@@ -978,12 +964,72 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         // when an image becomes visible refresh all its facets
         reres = true;
       }
-      this.refreshBounds(jqEnt).done(function() {
-        that.refreshImageResolution(jqEnt, reres).done(wrapUp);
-      });
+      // if we're single-refreshing on each call to setVisibleImage
+      if (refresh) {
+        // refresh bounds then update resolution, update metric
+        this.refreshBounds(jqEnt).done(function() {
+          that.refreshImageResolution(jqEnt, reres).done(wrapUp);
+        });
+      } else {
+        // resolve immediately
+        wrapUp();
+      }
     }
     return deferred;
   };
+
+  /**
+   * flag blocks of images near (before & after) visibles
+   */
+  this['setNearVis'] = function() {
+    var cellcount = this.getTotalEntries();
+    // hunt for first and last visible
+    var first_np1 = $('ul.flow .selectablecell.visible:first').data('seq'), last_0 = $('ul.flow .selectablecell.visible:last').data('seq');
+    // compute those near the last visible
+    var last_1 = last_0 + 1;
+    var last_n = last_0 + this.getBreadth() * this.export.breadthMULTIPLIER;
+    var first_n = first_np1 - 1;
+    var first_1 = first_np1 - this.getBreadth() * this.export.breadthMULTIPLIER;
+    // catch out-of-bound values: last only against max
+    if (last_1 >= cellcount) {
+      // disable because no cells to loop over
+      last_1 = -1;
+    }
+    if (last_n >= cellcount) {
+      // crop against max
+      last_n = cellcount - 1;
+    }
+    // catch out-of-bound values: first only against min
+    if (first_n <= 0) {
+      // disable because no cells to loop over
+      first_n = -1;
+    }
+    if (first_1 <= 0) {
+      // crop against min
+      first_1 = 0;
+    }
+    // optional debugging
+    if (debug && false) {
+      console.log('images-('+first_1+' to '+first_n+'): making nearvis (before visibles)');
+    }
+    if (debug && false) {
+      console.log('images-('+last_1+' to '+last_n+'): making nearvis (after visibles)');
+    }
+    // only do last nearvis if there are some entries AFTER visibles
+    if (last_1 != -1) {
+      // request nearvis (after visibles), async
+      for (var i = last_1 ; i <= last_n ; i++) {
+        this.setVisibleImage($('#seq-'+i), 'nearvis', true);
+      }
+    }
+    // only do first nearvis if there are some entries BEFORE visibles
+    if (first_n != -1) {
+      // request nearvis (before visibles), async
+      for (var i = first_1 ; i <= first_n ; i++) {
+        this.setVisibleImage($('#seq-'+i), 'nearvis', true);
+      }
+    }
+  }
 
   // --------------------
   // FUNCTIONS: image ops
