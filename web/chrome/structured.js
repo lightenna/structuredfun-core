@@ -313,7 +313,7 @@ $('.endkey').click(function(event) {
 // DELETE ME
 console.log('passing on to imageReres-'+jqEnt.data('seq'));
             // swap out image, but don't wait for swap to complete
-            return that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxwidth='+brackWidth);
+            return that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': brackWidth } ));
           }
         } else {
           // same but pivot on height rather than width
@@ -322,7 +322,7 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
 // DELETE ME
 console.log('passing on to imageReres-'+jqEnt.data('seq'));
             // swap out image, but don't wait for swap to complete
-            return that.imageReres(jqEnt, jqReresable.data('base-src') + 'maxheight='+brackHeight);
+            return that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxheight': brackHeight } ));
           }
         }
       }
@@ -2169,9 +2169,24 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   // FUNCTIONS: helpers
   // ------------------
 
+  /**
+   * substitute values into a mustache template
+   * @param  {string} template in mustache format
+   * @param  {object} view collection of values to substitute
+   * @return {string} output after substitution
+   */
+  this['substitute'] = function(template, view) {
+    Mustache.parse(template);
+    var output = Mustache.render(template, view);
+    return output;
+  }
+
+  /**
+   * @return {real} mod function that works with negative numbers
+   */
   this['negative_mod'] = function(x, m) {
     if (x < 0) return (x+m);
-    return x;
+    return x % m;
   }
 
   /**
@@ -2380,9 +2395,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
      * @param {object} obj arguments
      */
     'api_headerAddButton': function(obj) {
-      var output;
-      Mustache.parse(obj.template);
-      output = Mustache.render(obj.template, obj.view);
+      var output = that.substitute(obj.template, obj.view);
       // attach output to header
       $('.header').append(output);
       // allow element to bind its handlers
