@@ -56,6 +56,24 @@
     + I can see cases where we might want both of those
       + but for now, concentrate on the images loading
 
+* refreshCells is tricky
+  + we really want to do it once
+    + but at the moment we refresh each image (refreshImage)
+      + and within that refresh its bounds
+    + we need all the bounds back
+      + to get the imageContainer sizes
+        + to work out the free space around each
+          + to average across a row/column
+            + to resize the cells
+              +++ to set the new cell sizes
+                + to read back the new sizes
+                  +++ to request the new resolutions
+    + can't check bounds until all the images (thumbnails) have loaded
+    + we will work through the images in order
+      + but they'll load out of order
+        + so we're going to struggle to get the rows
+      + could break refreshImages into two phases
+
 * extend test suite once all current tests are working
   + test reres
     + mouse wheel two images right
@@ -165,6 +183,8 @@
 * Light/dark icon
 
 * snameed jQueryUI scroller for number of images wide/high
+
+* make imagemeta returned JSON take IIIF Image API format
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -1047,4 +1067,11 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + need to protect fire_hashUpdate
     + when firing will never trigger the handler_
       + i.e. home when at seq=0, end when at seq=last
+
+* thinking about splitting the metadata store off from the mediacache
+  + it's not without its complexities
+  + the problem arises because we cache an image like thumbnail?maxlongest=200
+    + I think it's reasonable to ask for image metadata for the same size
+  + have found a workable solution for now
+    = will delay decision for now
 

@@ -93,7 +93,7 @@ var k = that;
 $('.header').append('<p><a id="endkey" class="endkey" href="">Endkey</a></p>');
 $('.endkey').click(function(event) {
   event.preventDefault();
-  k.export.api_triggerKeypress(k.export.KEY_END).then(function() {
+  k.export.api_triggerKeypress(k.export.KEY_END).done(function() {
     alert('key press returned');
   });
 });
@@ -283,54 +283,74 @@ $('.endkey').click(function(event) {
     }
     // flag this image as updating its resolution
     jqEnt.addClass('reresing');
-    // request for metadata, but only do stuff if we get metadata back
-    return this.refreshMetadata(jqEnt).done(function() {
-      // fetch loaded, native and current image dimensions
-      var loadedWidth = jqReresable.data('loaded-width');
-      var loadedHeight = jqReresable.data('loaded-height');
+    // create local deferred and local wrapUp
+    var deferred = $.Deferred();
+    var wrapUp = function() {
+      // remove reresing status and refreshMetric
+      jqEnt.removeClass('reresing');
+      that.refreshMetric(jqEnt);
+      // resolve deferred
+      deferred.resolve();
+    };
+    // loaded width/height should be set when thumbnail/last reres loaded
+    var loadedWidth = jqReresable.data('loaded-width');
+    var loadedHeight = jqReresable.data('loaded-height');
+    var imageContainerWidth = jqReresable.width() * window.devicePixelRatio;
+    var imageContainerHeight = jqReresable.height() * window.devicePixelRatio;
+    // try and refresh the metadata
+    this.refreshMetadata(jqEnt)
+    .done(function() {
+      // if successful, use metadata to make decision about reres
       var nativeWidth = jqReresable.data('native-width');
       var nativeHeight = jqReresable.data('native-height');
-      var imageWidth = jqReresable.width() * window.devicePixelRatio;
-      var imageHeight = jqReresable.height() * window.devicePixelRatio;
       // analyse
       var resbracket = 250, brackWidth, brackHeight;
-      var bigger = imageWidth > loadedWidth || imageHeight > loadedHeight;
+      var bigger = imageContainerWidth > loadedWidth || imageContainerHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
       // optional debugging
       if (debug && false) {
-        console.log('image-'+jqEnt.data('seq')+': checking resolution w['+imageWidth+'] h['+imageHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+        console.log('image-'+jqEnt.data('seq')+': checking resolution w['+imageContainerWidth+'] h['+imageContainerHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
       }
       // test to see if we're displaying an image at more than 100%
       if (bigger && available) {
         // only need to think about one dimension, because ratio of image is fixed
-        var majorw = (imageWidth >= imageHeight);
+        var majorw = (imageContainerWidth >= imageContainerHeight);
         // but that dimension has to be the major dimension 
+        // @todo could probably calculate both brackWidth and brackHeight, then combine these two
         if (majorw) {
           // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
-          brackWidth = Math.min(Math.ceil(imageWidth/resbracket) * resbracket, nativeWidth);
+          brackWidth = Math.min(Math.ceil(imageContainerWidth/resbracket) * resbracket, nativeWidth);
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
 // DELETE ME
 console.log('passing on to imageReres-'+jqEnt.data('seq'));
-            // swap out image, but don't wait for swap to complete
-            return that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': brackWidth } ));
+            // swap out image and wait for swap to complete
+            that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': brackWidth } )).always(wrapUp);
           }
         } else {
           // same but pivot on height rather than width
-          brackHeight = Math.min(Math.ceil(imageHeight/resbracket) * resbracket, nativeHeight);
+          brackHeight = Math.min(Math.ceil(imageContainerHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
 // DELETE ME
 console.log('passing on to imageReres-'+jqEnt.data('seq'));
-            // swap out image, but don't wait for swap to complete
-            return that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxheight': brackHeight } ));
+            // swap out image and wait for swap to complete
+            that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxheight': brackHeight } )).always(wrapUp);
           }
         }
       }
-      // if we didn't swap out this image, update imgmetric
-      jqEnt.removeClass('reresing');
-      // @todo maybe can comment this
-      return that.refreshMetric(jqEnt);
+    })
+    .fail(function() {
+      // if we can't refresh the metadata, try and manage without it
+      if (typeof(jqReresable.data('loaded-width')) != 'undefined' && typeof(jqReresable.data('loaded-height')) != 'undefined') {
+        if ((imageContainerWidth > loadedWidth) || (imageContainerHeight > loadedHeight)) {
+          // don't know native width, so just request at loadedWidth/Height
+          that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': imageContainerWidth, 'maxheight': imageContainerHeight } )).always(wrapUp);
+        }
+      } else {
+        wrapUp();
+      }
     });
+    return deferred;
   };
 
   /**
@@ -340,16 +360,16 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
   this['refreshMetadata'] = function(jqEnt) {
     var that = this;
     var jqReresable = jqEnt.find('.reresable');
-    if (jqReresable.length) {
+    if (jqReresable.length && jqReresable.data('meta-src')) {
       // test to see if we have the metadata
       if (typeof(jqReresable.data('native-width')) == 'undefined' || typeof(jqReresable.data('native-height')) == 'undefined') {
         var deferred = $.Deferred();
         // fire ajax request
         $.ajax({
-          url: jqReresable.attr('src').replace('image','imagemeta'),
+          url: jqReresable.data('meta-src'),
           dataType: 'json',
         })
-        .done(function( data ) {
+        .done(function(data, textStatus, jqXHR) {
           if (typeof(data.meta) != 'undefined') {
             // if we get a response, set the missing metadata to the image
             jqReresable.data('native-width', data.meta.width);
@@ -360,6 +380,10 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
           }
           // resolve the context
           deferred.resolve();
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          // resolve the context (as a failure)
+          deferred.reject();
         });
         if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+': fired request for native width and height');
@@ -367,7 +391,8 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
         return deferred;
       }
     }
-    return $.Deferred().resolve();
+    // if we couldn't find a suitable candidate and get it's metadata, fail out the deferred
+    return $.Deferred().reject();
   };
 
   /**
@@ -376,7 +401,8 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
    * @param {boolean} reres also refresh the image's resolution
    * @return {object} jQuery deferred
    */
-  this['refreshImage'] = function(jqEnt, reres) {
+  this['refreshImageResolution'] = function(jqEnt, reres) {
+    var that = this;
     var deferred = $.Deferred();
     // final stage is to refresh the metric
     var wrapUp = function() {
@@ -386,20 +412,17 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
       // resolve deferred
       deferred.resolve();
     };
-    // refresh the bounds of the image
-    this.refreshBounds(jqEnt).always(function() {
-      if (reres) {
-        // change out the image for a better resolution if one's available
-        // that.refreshResolution(jqEnt).always(wrapUp);        
-        that.refreshResolution(jqEnt).then(function() {
+    if (reres) {
+      // change out the image for a better resolution if one's available
+      // that.refreshResolution(jqEnt).always(wrapUp);
+      this.refreshResolution(jqEnt).always(function() {
 // DELETE ME
-console.log('resolved refreshImage-'+jqEnt.data('seq'));
-          wrapUp();
-        });
-      } else {
+console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         wrapUp();
-      }
-    });
+      });
+    } else {
+      wrapUp();
+    }
     return deferred;
   };
 
@@ -414,12 +437,22 @@ console.log('resolved refreshImage-'+jqEnt.data('seq'));
     if (jqVisibles.length) {
       var deferred = $.Deferred();
       var defs = [];
+      // stage 1: refresh bounds as a batch
       jqVisibles.each(function() {
         var jqEnt = $(this);
-        defs.push(that.refreshImage(jqEnt, true));
+        defs.push(that.refreshBounds(jqEnt));
       });
       $.when.apply($, defs).always(function() {
-        deferred.resolve();
+        defs = [];
+        // stage 2: refresh resolutions as a batch
+        jqVisibles.each(function() {
+          var jqEnt = $(this);
+          defs.push(that.refreshImageResolution(jqEnt, true));
+        });
+        $.when.apply($, defs).always(function() {
+          // finally resolve
+          deferred.resolve();
+        });
       })
       return deferred;
     }
@@ -911,6 +944,11 @@ console.log('resolved refreshImage-'+jqEnt.data('seq'));
    * @return {object} jQuery deferred
    */
   this['setVisibleImage'] = function(jqEnt, vis) {
+    var that = this;
+    var deferred = $.Deferred();
+    var wrapUp = function() {
+      deferred.resolve();
+    };
     if (debug && false) {
       console.log('image-'+jqEnt.data('seq')+': making '+vis);
     }
@@ -918,9 +956,11 @@ console.log('resolved refreshImage-'+jqEnt.data('seq'));
     if (vis == 'not-visible') {
       // make it not-visible
       jqEnt.removeClass('visible');
+      wrapUp();
     } else {
       // vis/nearvis: make its src show, if not there already
       var jqReresable = jqEnt.find('.reresable');
+      var reres = false;
       if (jqReresable.length) {
         var attr = jqReresable.attr('src');
         if (typeof attr === 'undefined' || attr === false) {
@@ -931,15 +971,18 @@ console.log('resolved refreshImage-'+jqEnt.data('seq'));
         // mark image as near visible
         jqEnt.addClass('nearvis');
         // refresh image, but don't update its resolution
-        return this.refreshImage(jqEnt, false);
+        reres = false;
       } else if (vis == 'visible') {
         // make it visible (may have previously been nearvis)
         jqEnt.removeClass('nearvis').addClass('visible');
         // when an image becomes visible refresh all its facets
-        return this.refreshImage(jqEnt, true);
+        reres = true;
       }
+      this.refreshBounds(jqEnt).done(function() {
+        that.refreshImageResolution(jqEnt, reres).done(wrapUp);
+      });
     }
-    return $.Deferred().resolve();
+    return deferred;
   };
 
   // --------------------
@@ -1007,7 +1050,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     if (seq >= 0 && seq < this.getTotalEntries()) {
       // iterate to find next image
       if ((seq = this.getNextSeq(seq, increment)) !== false) {
-        return this.imageAdvanceTo(seq, eventContext).then(wrapUp);
+        return this.imageAdvanceTo(seq, eventContext).done(wrapUp);
       }
     } else {
       console.log('warning: erroneous seq('+seq+') returned by getseq');
@@ -1655,7 +1698,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
           obj.parent = parentContext;
           parentContext.deps[parentContext.deps.length] = obj;
           // setup promise on resolution of child to resolve parent
-          obj.deferred.then(function() {
+          obj.deferred.done(function() {
             // test to see if parent has outstanding deps
             var ref = parentContext.deps.indexOf(obj);
             if (ref != -1) {
@@ -1986,8 +2029,8 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     if (this.eventQueue.actOnContext(eventContext)) {
       // update images based on what changed
       if (seqChanged || breadthChanged || directionChanged) {
-        // scroll to the selected image, which triggers refreshImage on all .visible images
-        return this.setScrollPosition(obj.seq).then(wrapUp);
+        // scroll to the selected image, which triggers refresh on all .visible images
+        return this.setScrollPosition(obj.seq).done(wrapUp);
       }
     }
     return wrapUp();
@@ -2032,7 +2075,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
         }
         // see if scroll has made any new images visible
         var scrolldir = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 0 - event.deltaX : 0 - event.deltaY);
-        return this.refreshVisibility(scrolldir).then(wrapUp);
+        return this.refreshVisibility(scrolldir).done(wrapUp);
       },
       // function to execute if we're dumping this event
       wrapUp, 250);
@@ -2083,7 +2126,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
         increment = xpos + (scrolldir * event.deltaFactor * this.export.scrollMULTIPLIER);
       }
       // get current x position, increment and write back, firing scroll event
-      return this.fire_scrollUpdate(increment, 0).then(wrapUp);
+      return this.fire_scrollUpdate(increment, 0).done(wrapUp);
     }
     return $.Deferred().resolve();
   }
@@ -2113,7 +2156,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
         if (!event.altKey) {
           event.preventDefault();
           // advance to previous image
-          return that.imageAdvanceBy(-1, eventContext).then(wrapUp);
+          return that.imageAdvanceBy(-1, eventContext).done(wrapUp);
         }
         break;
       case that.export.KEY_ARROW_UP:
@@ -2127,40 +2170,40 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       case that.export.KEY_ARROW_DOWN:
         // advance to next image
         event.preventDefault();
-        return that.imageAdvanceBy(1, eventContext).then(wrapUp);
+        return that.imageAdvanceBy(1, eventContext).done(wrapUp);
       case that.export.KEY_PAGE_UP:
         if (!event.ctrlKey) {
           event.preventDefault();
-          return that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth(), eventContext).then(wrapUp);
+          return that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
         }
         break;
       case that.export.KEY_PAGE_DOWN:
         if (!event.ctrlKey) {
           event.preventDefault();
-          return that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth(), eventContext).then(wrapUp);
+          return that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
         }
         break;
       case that.export.KEY_HOME:
         event.preventDefault();
-        return that.imageAdvanceTo(0, eventContext).then(wrapUp);
+        return that.imageAdvanceTo(0, eventContext).done(wrapUp);
       case that.export.KEY_END:
         event.preventDefault();
-        return that.imageAdvanceTo(that.getTotalEntries()-1, eventContext).then(wrapUp);
+        return that.imageAdvanceTo(that.getTotalEntries()-1, eventContext).done(wrapUp);
       case that.export.KEY_RETURN:
         event.preventDefault();
-        return that.imageToggleFullscreen(eventContext).then(wrapUp);
+        return that.imageToggleFullscreen(eventContext).done(wrapUp);
       case that.export.KEY_NUMBER_1:
         event.preventDefault();
-        return that.fire_hashUpdate( { 'breadth': 1 }, false, eventContext).then(wrapUp);
+        return that.fire_hashUpdate( { 'breadth': 1 }, false, eventContext).done(wrapUp);
       case that.export.KEY_NUMBER_2:
         event.preventDefault();
-        returnthat.fire_hashUpdate( { 'breadth': 2 }, false, eventContext).then(wrapUp);
+        returnthat.fire_hashUpdate( { 'breadth': 2 }, false, eventContext).done(wrapUp);
       case that.export.KEY_NUMBER_4:
         event.preventDefault();
-        return that.fire_hashUpdate( { 'breadth': 4 }, false, eventContext).then(wrapUp);
+        return that.fire_hashUpdate( { 'breadth': 4 }, false, eventContext).done(wrapUp);
       case that.export.KEY_NUMBER_8:
         event.preventDefault();
-        return that.fire_hashUpdate( { 'breadth': 8 }, false, eventContext).then(wrapUp);
+        return that.fire_hashUpdate( { 'breadth': 8 }, false, eventContext).done(wrapUp);
     }
     return wrapUp();
   }
