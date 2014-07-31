@@ -65,36 +65,36 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 
 /* -------------------------------------------------------------------------*/
 /* Layout */
-/* line 23, ../sass/screen.scss */
+/* line 26, ../sass/screen.scss */
 .yardstick {
   background: #0000ff;
 }
 
-/* line 26, ../sass/screen.scss */
+/* line 29, ../sass/screen.scss */
 #yardstick-x {
   width: 100%;
   height: 0;
 }
 
-/* line 30, ../sass/screen.scss */
+/* line 33, ../sass/screen.scss */
 #yardstick-y {
   width: 0;
   height: 100%;
   float: left;
 }
 
-/* line 36, ../sass/screen.scss */
+/* line 39, ../sass/screen.scss */
 html {
   background-color: white;
 }
 
 /* -------------------------------------------------------------------------*/
 /* Modernizr variants */
-/* line 43, ../sass/screen.scss */
+/* line 46, ../sass/screen.scss */
 html.flexbox.flow-x {
   overflow-x: scroll;
 }
-/* line 48, ../sass/screen.scss */
+/* line 51, ../sass/screen.scss */
 html.flexbox.flow-x .page .content .flow-x {
   display: -webkit-flex;
   -webkit-flex-flow: column wrap;
@@ -109,27 +109,27 @@ html.flexbox.flow-x .page .content .flow-x {
   height: 100%;
 }
 
-/* line 65, ../sass/screen.scss */
+/* line 68, ../sass/screen.scss */
 html.flow-y, html.no-flexbox.flow-x {
   overflow-y: scroll;
 }
-/* line 70, ../sass/screen.scss */
+/* line 73, ../sass/screen.scss */
 html.flow-y .page .content li, html.no-flexbox.flow-x .page .content li {
   float: left;
 }
 
-/* line 78, ../sass/screen.scss */
+/* line 81, ../sass/screen.scss */
 html.no-js .header:hover, html.no-js .footer:hover {
   width: 100%;
 }
 
 /* -------------------------------------------------------------------------*/
 /* Page */
-/* line 86, ../sass/screen.scss */
+/* line 89, ../sass/screen.scss */
 .page {
   height: 100%;
 }
-/* line 90, ../sass/screen.scss */
+/* line 93, ../sass/screen.scss */
 .page .header, .page .footer {
   clear: both;
   background-color: #ff0000;
@@ -139,19 +139,19 @@ html.no-js .header:hover, html.no-js .footer:hover {
   z-index: 2;
   overflow: hidden;
 }
-/* line 99, ../sass/screen.scss */
+/* line 102, ../sass/screen.scss */
 .page .header p, .page .footer p {
   float: left;
 }
-/* line 104, ../sass/screen.scss */
+/* line 107, ../sass/screen.scss */
 .page .header {
   top: 0;
 }
-/* line 109, ../sass/screen.scss */
+/* line 112, ../sass/screen.scss */
 .page .footer {
   bottom: 0;
 }
-/* line 113, ../sass/screen.scss */
+/* line 116, ../sass/screen.scss */
 .page .content {
   height: 100%;
   -webkit-touch-callout: none;
@@ -161,85 +161,85 @@ html.no-js .header:hover, html.no-js .footer:hover {
   -ms-user-select: none;
   user-select: none;
 }
-/* line 123, ../sass/screen.scss */
+/* line 126, ../sass/screen.scss */
 .page .content .flow-em > .cell {
   width: 20em;
   height: 20em;
 }
-/* line 129, ../sass/screen.scss */
+/* line 132, ../sass/screen.scss */
 .page .content .flow-pc.flow-1 > .cell {
   width: 100%;
   height: 100%;
 }
 @media screen and (orientation: portrait) {
-  /* line 137, ../sass/screen.scss */
+  /* line 140, ../sass/screen.scss */
   .page .content .flow-pc.flow-2 > .cell {
     width: 50%;
     height: 25%;
   }
-  /* line 142, ../sass/screen.scss */
+  /* line 145, ../sass/screen.scss */
   .page .content .flow-pc.flow-4 > .cell {
     width: 25%;
     height: 12.5%;
   }
-  /* line 147, ../sass/screen.scss */
+  /* line 150, ../sass/screen.scss */
   .page .content .flow-pc.flow-8 > .cell {
     width: 12.5%;
     height: 6.25%;
   }
 }
 @media screen and (orientation: landscape) and (max-width: 1600px) {
-  /* line 156, ../sass/screen.scss */
+  /* line 159, ../sass/screen.scss */
   .page .content .flow-pc.flow-2 > .cell {
     width: 25%;
     height: 50%;
   }
-  /* line 161, ../sass/screen.scss */
+  /* line 164, ../sass/screen.scss */
   .page .content .flow-pc.flow-4 > .cell {
     width: 12.5%;
     height: 25%;
   }
-  /* line 166, ../sass/screen.scss */
+  /* line 169, ../sass/screen.scss */
   .page .content .flow-pc.flow-8 > .cell {
     width: 6.25%;
     height: 12.5%;
   }
 }
 @media screen and (orientation: landscape) and (min-width: 1601px) and (max-width: 2400px) {
-  /* line 175, ../sass/screen.scss */
+  /* line 178, ../sass/screen.scss */
   .page .content .flow-pc.flow-2 > .cell {
     width: 16.66667%;
     height: 50%;
   }
-  /* line 180, ../sass/screen.scss */
+  /* line 183, ../sass/screen.scss */
   .page .content .flow-pc.flow-4 > .cell {
     width: 8.33333%;
     height: 25%;
   }
-  /* line 185, ../sass/screen.scss */
+  /* line 188, ../sass/screen.scss */
   .page .content .flow-pc.flow-8 > .cell {
     width: 4.16667%;
     height: 12.5%;
   }
 }
 @media screen and (orientation: landscape) and (min-width: 2400px) {
-  /* line 194, ../sass/screen.scss */
+  /* line 197, ../sass/screen.scss */
   .page .content .flow-pc.flow-2 > .cell {
     width: 12.5%;
     height: 50%;
   }
-  /* line 199, ../sass/screen.scss */
+  /* line 202, ../sass/screen.scss */
   .page .content .flow-pc.flow-4 > .cell {
     width: 6.25%;
     height: 25%;
   }
-  /* line 204, ../sass/screen.scss */
+  /* line 207, ../sass/screen.scss */
   .page .content .flow-pc.flow-8 > .cell {
     width: 3.125%;
     height: 12.5%;
   }
 }
-/* line 210, ../sass/screen.scss */
+/* line 213, ../sass/screen.scss */
 .page .content .flow > .cell {
   border-style: solid;
   border-color: #eeeeee;
@@ -250,7 +250,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   text-align: center;
   overflow: hidden;
 }
-/* line 223, ../sass/screen.scss */
+/* line 226, ../sass/screen.scss */
 .page .content .flow > .cell p.imgmetric {
   line-height: 1.0em;
   position: absolute;
@@ -259,40 +259,40 @@ html.no-js .header:hover, html.no-js .footer:hover {
   white-space: nowrap;
   display: none;
 }
-/* line 231, ../sass/screen.scss */
+/* line 234, ../sass/screen.scss */
 .page .content .flow > .cell p.imgmetric .size, .page .content .flow > .cell p.imgmetric .perc {
   display: none;
 }
-/* line 235, ../sass/screen.scss */
+/* line 238, ../sass/screen.scss */
 .page .content .flow > .cell p.imgmetric.super {
   background-color: #009900;
   color: #BBFFBB;
 }
-/* line 240, ../sass/screen.scss */
+/* line 243, ../sass/screen.scss */
 .page .content .flow > .cell p.imgmetric.sub {
   background-color: #990000;
   color: #FFBBBB;
 }
-/* line 247, ../sass/screen.scss */
+/* line 250, ../sass/screen.scss */
 .page .content .flow > .cell.visible p.imgmetric {
   display: block;
 }
-/* line 251, ../sass/screen.scss */
+/* line 254, ../sass/screen.scss */
 .page .content .flow > .cell.reresing p.imgmetric {
   display: none;
 }
-/* line 256, ../sass/screen.scss */
+/* line 259, ../sass/screen.scss */
 .page .content .flow > .cell .selectreflector {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  border: 1px solid #222222;
+  border: 1px solid white;
 }
-/* line 264, ../sass/screen.scss */
+/* line 267, ../sass/screen.scss */
 .page .content .flow > .cell.selected .selectreflector {
-  border-color: #ff00ff;
+  border-color: magenta;
 }
-/* line 268, ../sass/screen.scss */
+/* line 271, ../sass/screen.scss */
 .page .content .flow > .cell a {
   position: relative;
   display: block;
@@ -300,7 +300,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   text-decoration: none;
   font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
 }
-/* line 279, ../sass/screen.scss */
+/* line 282, ../sass/screen.scss */
 .page .content .flow > .cell a > img.x-bound {
   position: relative;
   width: 100%;
@@ -309,11 +309,11 @@ html.no-js .header:hover, html.no-js .footer:hover {
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 289, ../sass/screen.scss */
+/* line 292, ../sass/screen.scss */
 .page .content .flow > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 294, ../sass/screen.scss */
+/* line 297, ../sass/screen.scss */
 .page .content .flow > .cell a .meta {
   display: block;
   position: absolute;
@@ -329,34 +329,34 @@ html.no-js .header:hover, html.no-js .footer:hover {
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
-/* line 313, ../sass/screen.scss */
+/* line 316, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base {
   position: absolute;
   bottom: 0;
 }
-/* line 318, ../sass/screen.scss */
+/* line 321, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span {
   margin: 1.0em;
   display: block;
 }
-/* line 322, ../sass/screen.scss */
+/* line 325, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span.icons {
   height: 2.0em;
 }
-/* line 326, ../sass/screen.scss */
+/* line 329, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span.caption {
   font-weight: bold;
 }
-/* line 330, ../sass/screen.scss */
+/* line 333, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span.byline {
   margin-top: .5em;
 }
-/* line 338, ../sass/screen.scss */
+/* line 341, ../sass/screen.scss */
 .page .content .flow > .cell a:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 346, ../sass/screen.scss */
+/* line 349, ../sass/screen.scss */
 .page .content .flow > .cell a .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -371,7 +371,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 361, ../sass/screen.scss */
+/* line 364, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory {
   background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
   background-size: 100% 100%;
@@ -388,7 +388,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   }
    */
 }
-/* line 370, ../sass/screen.scss */
+/* line 373, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .overlay {
   width: 100%;
   height: 100%;
@@ -397,41 +397,41 @@ html.no-js .header:hover, html.no-js .footer:hover {
   top: 0;
   z-index: 1;
 }
-/* line 380, ../sass/screen.scss */
+/* line 383, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview {
   width: 42.7%;
   height: 38%;
   position: relative;
   margin-right: 3%;
 }
-/* line 395, ../sass/screen.scss */
+/* line 398, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-2, .page .content .flow > .cell a div.directory .preview-4 {
   margin-right: 6%;
 }
-/* line 400, ../sass/screen.scss */
+/* line 403, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-1, .page .content .flow > .cell a div.directory .preview-2 {
   top: 13%;
 }
-/* line 405, ../sass/screen.scss */
+/* line 408, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-3, .page .content .flow > .cell a div.directory .preview-4 {
   top: 16.4%;
 }
-/* line 414, ../sass/screen.scss */
+/* line 417, ../sass/screen.scss */
 .page .content .flow > .cell div.dummy1 {
   height: 50%;
 }
-/* line 418, ../sass/screen.scss */
+/* line 421, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container {
   display: inline-block;
   width: 100%;
   text-align: right;
   margin-top: -37.5%;
 }
-/* line 425, ../sass/screen.scss */
+/* line 428, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container .dummy2 {
   padding-top: 75%;
 }
-/* line 430, ../sass/screen.scss */
+/* line 433, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container div.directory {
   position: absolute;
   top: 0;
@@ -442,27 +442,31 @@ html.no-js .header:hover, html.no-js .footer:hover {
 
 /* -------------------------------------------------------------------------*/
 /* Theme variants */
-/* line 447, ../sass/screen.scss */
+/* line 450, ../sass/screen.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 450, ../sass/screen.scss */
+/* line 453, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell {
   border-color: #333333;
 }
-/* line 453, ../sass/screen.scss */
+/* line 456, ../sass/screen.scss */
+html.theme-dark .page .content .flow > .cell:not(.selected) .selectreflector {
+  border-color: #222222;
+}
+/* line 460, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell a .meta {
   background-image: linear-gradient(rgba(34, 34, 34, 0), rgba(34, 34, 34, 0.8));
   color: #ffffff;
 }
-/* line 458, ../sass/screen.scss */
+/* line 465, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell .directory {
   background-image: url("/chrome/images/fullres/folder_back_dark.png");
 }
 
 /* -------------------------------------------------------------------------*/
 /* Test suite */
-/* line 467, ../sass/screen.scss */
+/* line 474, ../sass/screen.scss */
 #qunit {
   position: absolute;
   z-index: 999;

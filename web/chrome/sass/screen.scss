@@ -4,6 +4,9 @@
 @import "compass/reset";
 @import "base";
 
+// standard colours
+$highlight: #ff00ff;
+
 // light theme colours
 $background_grid_light: #eeeeee;
 $background_html_light: #ffffff;
@@ -258,11 +261,11 @@ html.no-js {
         box-sizing: border-box;
         -moz-box-sizing: border-box;
         -webkit-box-sizing: border-box;
-        border: 1px solid $background_html_dark;
+        border: 1px solid $background_html_light;
       }
 
       &.selected .selectreflector {
-        border-color: #ff00ff;
+        border-color: $highlight;
       }
 
       a { 
@@ -449,6 +452,10 @@ html.theme-dark {
 
   .page .content .flow > .cell {
     border-color: $background_grid_dark; 
+
+    &:not(.selected) .selectreflector {
+      border-color: $background_html_dark;
+    }
 
     a .meta {
       background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
