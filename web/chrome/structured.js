@@ -147,14 +147,23 @@ $('.endkey').click(function(event) {
   };
 
   /**
-   * refresh the cell widths by minor axis
+   * refresh the visible cell widths by minor axis
+   * @todo may need to broaden to include nearvis
    */
   this['cellsResize'] = function() {
     var direction = this.getDirection();
     var count = this.cellsCountMajor();
+    var vis = this.getVisibleBoundaries();
+    // fetch visible cells and group by major axis value
+    var cells = [];
+    for (var i = vis.first ; i <= vis.last ; ++i) {
+
+    }
+    // work through adjusting cells minor axis dimension
     if (direction == 'x') {
-// START HERE
       // work down columns adjusting height
+      // add up all the heights of each image in the column
+      // change the cell height according to that proportion
     } else {
       // work across rows adjusting width
     }
