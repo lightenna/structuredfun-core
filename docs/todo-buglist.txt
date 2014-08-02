@@ -1,4 +1,25 @@
 
+* need to wait for nearvis to be loaded
+  + before trying to resize their cells
+    + thinking about coupling all cellResizing to image loading
+      + as soon as thumb loaded, it stays loaded
+      + thumb loading
+        + stores loaded-width
+        + triggers attempt to resize cell
+    + thinking about these things in cell singles/pairs/quads/octs
+      + known as minorGroups
+      + every load event checks its minorGroup
+        + e.g. column for x-major, row for y-major
+    + means that we're not formally doing a cellresize on all visibles any more
+      + instead we do a resize on a single/pair/quad/oct because it becomes visible
+
+* cells jigging about
+  + gonna try not updated loaded-width
+
+* scrolling through directory is jumpy
+
+* vertical scroll doesn't work nicely yet
+
 * end event is resolving slowly
   + only after 10s expiry
   + it's getting lost during a scroll update
@@ -55,24 +76,6 @@
       - not after the reres has completed
     + I can see cases where we might want both of those
       + but for now, concentrate on the images loading
-
-* refreshCells is tricky
-  + we really want to do it once
-    + but at the moment we refresh each image (refreshImage)
-      + and within that refresh its bounds
-    + we need all the bounds back
-      + to get the imageContainer sizes
-        + to work out the free space around each
-          + to average across a row/column
-            + to resize the cells
-              +++ to set the new cell sizes
-                + to read back the new sizes
-                  +++ to request the new resolutions
-    + can't check bounds until all the images (thumbnails) have loaded
-    + we will work through the images in order
-      + but they'll load out of order
-        + so we're going to struggle to get the rows
-      + could break refreshImages into two phases
 
 * extend test suite once all current tests are working
   + test reres
@@ -1074,4 +1077,39 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + I think it's reasonable to ask for image metadata for the same size
   + have found a workable solution for now
     = will delay decision for now
+
+* border 4px on .cell a
+  + once alignment is working
+
+* cell resizing complexity
+  + normalise heights at current width
+    + work out proportion
+      + that is the height at the point where this image becomes x-bound
+    + trim the waste
+      + leaves waste top and bottom
+    + need a width which 
+* need to refresh visTable only cellRefresh done
+
+* introduce (!reloaded-width) data-ratio
+  + updated everytime we load an image
+    + loaded width is only updated the first time
+  + addresses basic wobbles
+
+* refreshCells is tricky
+  + we really want to do it once
+    + but at the moment we refresh each image (refreshImage)
+      + and within that refresh its bounds
+    + we need all the bounds back
+      + to get the imageContainer sizes
+        + to work out the free space around each
+          + to average across a row/column
+            + to resize the cells
+              +++ to set the new cell sizes
+                + to read back the new sizes
+                  +++ to request the new resolutions
+    + can't check bounds until all the images (thumbnails) have loaded
+    + we will work through the images in order
+      + but they'll load out of order
+        + so we're going to struggle to get the rows
+      + could break refreshImages into two phases
 

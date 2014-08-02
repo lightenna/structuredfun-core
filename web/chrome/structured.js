@@ -127,7 +127,8 @@ $('.endkey').click(function(event) {
     var pc
     pc = jqEnt.width() * 100 / $(window).width();
     jqEnt.data('screenpc-width', pc);
-    pc = jqEnt.height() * 100 / $(window).height();
+    var viewportHeight = $('#yardstick-y').height();
+    pc = jqEnt.height() * 100 / viewportHeight;
     jqEnt.data('screenpc-height', pc);
   };
 
@@ -148,25 +149,102 @@ $('.endkey').click(function(event) {
 
   /**
    * refresh the visible cell widths by minor axis
-   * @todo may need to broaden to include nearvis
+   * @param {object} range {first_1, last_n} range of sequence numbers to resize
+   * @param {boolean} clearFirst true to clear all cell widths and heights first
+   * @todo need to thoroughly analyse speed of this
    */
-  this['cellsResize'] = function() {
+  this['cellsResize'] = function(range, clearFirst) {
+    var i, proportion, ratio, normalMinor, newMinor;
     var direction = this.getDirection();
     var count = this.cellsCountMajor();
     var vis = this.getVisibleBoundaries();
+    // viewport is constant
+    var viewportMinor = (direction == 'x' ? $('#yardstick-y').height() : $(window).width());
+    var viewportMajor = (direction == 'x' ? $(window).width() : $('#yardstick-y').height());
     // fetch visible cells and group by major axis value
-    var cells = [];
-    for (var i = vis.first ; i <= vis.last ; ++i) {
-
+    var cells = {};
+    // if clear first (default: true), remove
+    if (typeof(clearFirst) == 'undefined') {
+      clearFirst = true;
+    }
+    if (clearFirst) {
+      // remove any previous iteration's width and height
+      $('ul.flow .selectablecell').css( {'width': '', 'height': ''} );
+    }
+    // if range is undefined, use vis+nearvis
+    if (typeof(range) == 'undefined') {
+      range = this.calcNearVis(vis.first, vis.last);
+    }
+    // iterate across visible and nearvis cells
+    for (i = range.first_1 ; i <= range.last_n ; ++i) {
+      var jqEnt = $('#seq-'+i);
+      // pull out the major axis coord
+      var pos = jqEnt.offset();
+      var coord = (direction == 'x' ? pos.left : pos.top);
+      // if we don't have a bucket for this coord, create one
+      if (!(cells[coord] instanceof Array)) {
+        cells[coord] = [];
+      }
+      // add jqEnt into bucket
+      cells[coord][cells[coord].length] = jqEnt;
     }
     // work through adjusting cells minor axis dimension
-    if (direction == 'x') {
-      // work down columns adjusting height
-      // add up all the heights of each image in the column
-      // change the cell height according to that proportion
-    } else {
-      // work across rows adjusting width
+    for (var bucket in cells) {
+      // add up all the minors of each image in the column (x minor height, y minor width)
+      var minorTotal = 0;
+      var jqBoundable;
+      for (i = 0 ; i<cells[bucket].length ; ++i) {
+        jqEnt = cells[bucket][i];
+        jqBoundable = jqEnt.find('.boundable');
+        // calculate the normal minor based on ratio
+        normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() / jqBoundable.data('ratio'));
+        minorTotal += normalMinor;
+      }
+      // change the cell minor according to that proportion
+      var proportionTotal = 0;
+      var maxMajor = 0;
+      for (i = 0 ; i<cells[bucket].length ; ++i) {
+        jqEnt = cells[bucket][i];
+        jqBoundable = jqEnt.find('.boundable');
+        // calculate the normal minor based on ratio
+        ratio = jqBoundable.data('ratio');
+        normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() / ratio);
+        // calculate proportion as a percentage, round to 1 DP
+        proportion = this.round( normalMinor * 100 / minorTotal, 1);
+        // if this is the last cell in the bucket, fill to 100%
+        if (i == cells[bucket].length-1) {
+          proportion = 100 - proportionTotal;
+        } else {
+          // otherwise tot up proportions so far
+          proportionTotal += proportion;
+        }
+        // apply percentage to cell minor
+        jqEnt.css((direction == 'x' ? 'height': 'width'), proportion +'%');
+        // update bound if necessary
+        this.setBound(jqEnt);
+        // calculate normal major, max
+        newMinor = proportion * viewportMinor / 100;
+        maxMajor = Math.max(maxMajor, (direction == 'x' ? newMinor * ratio : newMinor / ratio));
+        if (debug && true) {
+          console.log('resizeCell-'+jqEnt.data('seq')+' major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+'] minor['+normalMinor+']');
+        }
+      }
+      // calculate the new percentage major, bound (0-100), round (1DP)
+      var majorAddPerc = this.round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
+      // change all the majors
+      for (i = 0 ; i<cells[bucket].length ; ++i) {
+        jqEnt = cells[bucket][i];
+        jqEnt.css((direction == 'x' ? 'width': 'height'), majorAddPerc +'%');
+      }
+      // make all images x-bound
+      for (i = 0 ; i<cells[bucket].length ; ++i) {
+        jqEnt = cells[bucket][i];
+        jqEnt.removeClass('y-bound').addClass('x-bound');
+      }
     }
+    // update vistable
+    var jqCells = $('ul.flow .selectablecell');
+    this.visTableMajor.updateAll(this.getDirection(), jqCells);
   }
 
   // ------------------
@@ -613,6 +691,10 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       im.onload = function() {
         jqReresable.data('loaded-width', im.width);
         jqReresable.data('loaded-height', im.height);
+        // never update the ratio, but set if unset
+        if (jqReresable.data('ratio') == undefined) {
+          jqReresable.data('ratio', im.width / im.height);
+        }
         im = null;
         if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+']');
@@ -988,53 +1070,65 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   };
 
   /**
+   * @param  {int} first_np1 first visible is nearvis_n+1
+   * @param  {int} last_0 last visible is nearvis_0
+   * @return {object} {last_1, last_n, first_1, first_n}
+   */
+  this['calcNearVis'] = function(first_np1, last_0) {
+    var cellcount = this.getTotalEntries();
+    var reach = this.getBreadth() * this.export.breadthMULTIPLIER;
+    var range = {};
+    // compute those near the last visible
+    range.last_1 = last_0 + 1;
+    range.last_n = last_0 + reach;
+    range.first_n = first_np1 - 1;
+    range.first_1 = first_np1 - reach;
+    // catch out-of-bound values: last only against max
+    if (range.last_1 >= cellcount) {
+      // disable because no cells to loop over
+      range.last_1 = last_0;
+    }
+    if (range.last_n >= cellcount) {
+      // crop against max
+      range.last_n = cellcount - 1;
+    }
+    // catch out-of-bound values: first only against min
+    if (range.first_n <= 0) {
+      // disable because no cells to loop over
+      range.first_n = first_np1;
+    }
+    if (range.first_1 <= 0) {
+      // crop against min
+      range.first_1 = 0;
+    }
+    return range;
+  }
+
+  /**
    * flag blocks of images near (before & after) visibles
    */
   this['setNearVis'] = function() {
-    var cellcount = this.getTotalEntries();
     // hunt for first and last visible
     var first_np1 = $('ul.flow .selectablecell.visible:first').data('seq'), last_0 = $('ul.flow .selectablecell.visible:last').data('seq');
-    // compute those near the last visible
-    var last_1 = last_0 + 1;
-    var last_n = last_0 + this.getBreadth() * this.export.breadthMULTIPLIER;
-    var first_n = first_np1 - 1;
-    var first_1 = first_np1 - this.getBreadth() * this.export.breadthMULTIPLIER;
-    // catch out-of-bound values: last only against max
-    if (last_1 >= cellcount) {
-      // disable because no cells to loop over
-      last_1 = -1;
-    }
-    if (last_n >= cellcount) {
-      // crop against max
-      last_n = cellcount - 1;
-    }
-    // catch out-of-bound values: first only against min
-    if (first_n <= 0) {
-      // disable because no cells to loop over
-      first_n = -1;
-    }
-    if (first_1 <= 0) {
-      // crop against min
-      first_1 = 0;
-    }
+    var range = this.calcNearVis(first_np1, last_0);
     // optional debugging
     if (debug && false) {
-      console.log('images-('+first_1+' to '+first_n+'): making nearvis (before visibles)');
+      console.log('images-('+range.first_1+' to '+range.first_n+'): making nearvis (before visibles)');
     }
     if (debug && false) {
-      console.log('images-('+last_1+' to '+last_n+'): making nearvis (after visibles)');
+      console.log('images-('+range.last_1+' to '+range.last_n+'): making nearvis (after visibles)');
     }
     // only do last nearvis if there are some entries AFTER visibles
-    if (last_1 != -1) {
+    if (range.last_1 != last_0) {
       // request nearvis (after visibles), async
-      for (var i = last_1 ; i <= last_n ; i++) {
+      for (var i = range.last_1 ; i <= range.last_n ; i++) {
         this.setVisibleImage($('#seq-'+i), 'nearvis', true);
       }
     }
     // only do first nearvis if there are some entries BEFORE visibles
-    if (first_n != -1) {
+    if (range.first_n != first_np1) {
       // request nearvis (before visibles), async
-      for (var i = first_1 ; i <= first_n ; i++) {
+      for (var i = range.first_1 ; i <= range.first_n ; i++) {
         this.setVisibleImage($('#seq-'+i), 'nearvis', true);
       }
     }
@@ -1064,6 +1158,10 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         // store loaded width and height
         jqReresable.data('loaded-width', this.width);
         jqReresable.data('loaded-height', this.height);
+        // never update the ratio, but set if unset
+        if (jqReresable.data('ratio') == undefined) {
+          jqReresable.data('ratio', this.width / this.height);
+        }
         if (debug && true) {
           console.log('image-'+jqEnt.data('seq')+': swapped out for ('+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+')');
         }
@@ -2285,6 +2383,16 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   this['negative_mod'] = function(x, m) {
     if (x < 0) return (x+m);
     return x % m;
+  }
+
+  /** 
+   * @param {real} k value to round
+   * @param {int} dp number of decimal places to round to
+   * @return {real} number rounded to dp
+   */
+  this['round'] = function(k, dp) {
+    var scalar = Math.pow(10, dp);
+    return Math.round(k * scalar) / scalar;
   }
 
   /**
