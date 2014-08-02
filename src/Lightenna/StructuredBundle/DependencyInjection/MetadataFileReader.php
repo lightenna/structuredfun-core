@@ -244,6 +244,7 @@ class MetadataFileReader extends FileReader {
     $out->height = $in->height;
     $out->width_loaded = $in->newwidth;
     $out->height_loaded = $in->newheight;
+    $out->ratio = $out->width_loaded / $out->height_loaded;
     return $out;
   }
   

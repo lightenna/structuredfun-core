@@ -8,11 +8,11 @@
 $highlight: #ff00ff;
 
 // light theme colours
-$background_grid_light: #eeeeee;
+$background_grid_light: #ffffff;
 $background_html_light: #ffffff;
 
 // dark theme colours
-$background_grid_dark: #333333;
+$background_grid_dark: #222222;
 $background_html_dark: #222222;
 
 // transition points between media queries
@@ -277,6 +277,7 @@ html.no-js {
         text-decoration: none;
         font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
         // font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+        margin: 8px;
 
         // landscape images
         > img.x-bound {

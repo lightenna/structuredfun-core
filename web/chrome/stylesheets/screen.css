@@ -242,7 +242,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
 /* line 213, ../sass/screen.scss */
 .page .content .flow > .cell {
   border-style: solid;
-  border-color: #eeeeee;
+  border-color: white;
   border-left-width: 1px;
   border-top-width: 1px;
   margin-top: -1px;
@@ -299,8 +299,9 @@ html.no-js .header:hover, html.no-js .footer:hover {
   height: 100%;
   text-decoration: none;
   font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
+  margin: 8px;
 }
-/* line 282, ../sass/screen.scss */
+/* line 283, ../sass/screen.scss */
 .page .content .flow > .cell a > img.x-bound {
   position: relative;
   width: 100%;
@@ -309,11 +310,11 @@ html.no-js .header:hover, html.no-js .footer:hover {
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 292, ../sass/screen.scss */
+/* line 293, ../sass/screen.scss */
 .page .content .flow > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 297, ../sass/screen.scss */
+/* line 298, ../sass/screen.scss */
 .page .content .flow > .cell a .meta {
   display: block;
   position: absolute;
@@ -329,34 +330,34 @@ html.no-js .header:hover, html.no-js .footer:hover {
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
-/* line 316, ../sass/screen.scss */
+/* line 317, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base {
   position: absolute;
   bottom: 0;
 }
-/* line 321, ../sass/screen.scss */
+/* line 322, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span {
   margin: 1.0em;
   display: block;
 }
-/* line 325, ../sass/screen.scss */
+/* line 326, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span.icons {
   height: 2.0em;
 }
-/* line 329, ../sass/screen.scss */
+/* line 330, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span.caption {
   font-weight: bold;
 }
-/* line 333, ../sass/screen.scss */
+/* line 334, ../sass/screen.scss */
 .page .content .flow > .cell a .meta .base span.byline {
   margin-top: .5em;
 }
-/* line 341, ../sass/screen.scss */
+/* line 342, ../sass/screen.scss */
 .page .content .flow > .cell a:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 349, ../sass/screen.scss */
+/* line 350, ../sass/screen.scss */
 .page .content .flow > .cell a .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -371,7 +372,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 364, ../sass/screen.scss */
+/* line 365, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory {
   background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
   background-size: 100% 100%;
@@ -388,7 +389,7 @@ html.no-js .header:hover, html.no-js .footer:hover {
   }
    */
 }
-/* line 373, ../sass/screen.scss */
+/* line 374, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .overlay {
   width: 100%;
   height: 100%;
@@ -397,41 +398,41 @@ html.no-js .header:hover, html.no-js .footer:hover {
   top: 0;
   z-index: 1;
 }
-/* line 383, ../sass/screen.scss */
+/* line 384, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview {
   width: 42.7%;
   height: 38%;
   position: relative;
   margin-right: 3%;
 }
-/* line 398, ../sass/screen.scss */
+/* line 399, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-2, .page .content .flow > .cell a div.directory .preview-4 {
   margin-right: 6%;
 }
-/* line 403, ../sass/screen.scss */
+/* line 404, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-1, .page .content .flow > .cell a div.directory .preview-2 {
   top: 13%;
 }
-/* line 408, ../sass/screen.scss */
+/* line 409, ../sass/screen.scss */
 .page .content .flow > .cell a div.directory .preview-3, .page .content .flow > .cell a div.directory .preview-4 {
   top: 16.4%;
 }
-/* line 417, ../sass/screen.scss */
+/* line 418, ../sass/screen.scss */
 .page .content .flow > .cell div.dummy1 {
   height: 50%;
 }
-/* line 421, ../sass/screen.scss */
+/* line 422, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container {
   display: inline-block;
   width: 100%;
   text-align: right;
   margin-top: -37.5%;
 }
-/* line 428, ../sass/screen.scss */
+/* line 429, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container .dummy2 {
   padding-top: 75%;
 }
-/* line 433, ../sass/screen.scss */
+/* line 434, ../sass/screen.scss */
 .page .content .flow > .cell a.directory-container div.directory {
   position: absolute;
   top: 0;
@@ -442,31 +443,31 @@ html.no-js .header:hover, html.no-js .footer:hover {
 
 /* -------------------------------------------------------------------------*/
 /* Theme variants */
-/* line 450, ../sass/screen.scss */
+/* line 451, ../sass/screen.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 453, ../sass/screen.scss */
+/* line 454, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell {
-  border-color: #333333;
+  border-color: #222222;
 }
-/* line 456, ../sass/screen.scss */
+/* line 457, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell:not(.selected) .selectreflector {
   border-color: #222222;
 }
-/* line 460, ../sass/screen.scss */
+/* line 461, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell a .meta {
   background-image: linear-gradient(rgba(34, 34, 34, 0), rgba(34, 34, 34, 0.8));
   color: #ffffff;
 }
-/* line 465, ../sass/screen.scss */
+/* line 466, ../sass/screen.scss */
 html.theme-dark .page .content .flow > .cell .directory {
   background-image: url("/chrome/images/fullres/folder_back_dark.png");
 }
 
 /* -------------------------------------------------------------------------*/
 /* Test suite */
-/* line 474, ../sass/screen.scss */
+/* line 475, ../sass/screen.scss */
 #qunit {
   position: absolute;
   z-index: 999;
