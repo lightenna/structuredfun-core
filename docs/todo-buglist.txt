@@ -1,24 +1,27 @@
 
-* need to wait for nearvis to be loaded
-  + before trying to resize their cells
-    + thinking about coupling all cellResizing to image loading
-      + as soon as thumb loaded, it stays loaded
-      + thumb loading
-        + stores loaded-width
-        + triggers attempt to resize cell
-    + thinking about these things in cell singles/pairs/quads/octs
-      + known as minorGroups
-      + every load event checks its minorGroup
-        + e.g. column for x-major, row for y-major
-    + means that we're not formally doing a cellresize on all visibles any more
-      + instead we do a resize on a single/pair/quad/oct because it becomes visible
+* chase down the NaNs
+  + they're a lead
+  + good debugging url mb@seq=288
+    + debugging is hard
+    + it's to do with an out-of-order execution (OOOE)
+      + stepping through in a debugger doesn't find it
 
-* cells jigging about
-  + gonna try not updated loaded-width
+* cell sizes jigging around
+  + something about 2nd redraw
 
-* scrolling through directory is jumpy
+* cell sizes jigging around
+  + high seq numbers do 2 draws
+    + first looks pretty good
+      - but 2nd is weird
+    + it's not the reresing
+    + it's not resetting ratio
+
+* forward scroll newbies
+  + newly visible images are coming into view too far apart
+    + better to assume a narrower cell width then correct it
 
 * vertical scroll doesn't work nicely yet
+  + it's something comparatively simple
 
 * end event is resolving slowly
   + only after 10s expiry
@@ -1094,6 +1097,12 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + updated everytime we load an image
     + loaded width is only updated the first time
   + addresses basic wobbles
+--o--
+* cells jigging about
+  + gonna try not updated loaded-width
+    = introduced ratio which stabilised them
+
+* scrolling through directory is jumpy
 
 * refreshCells is tricky
   + we really want to do it once
@@ -1112,4 +1121,70 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
       + but they'll load out of order
         + so we're going to struggle to get the rows
       + could break refreshImages into two phases
+
+* need to wait for nearvis to be loaded
+  + before trying to resize their cells
+    + thinking about coupling all cellResizing to image loading
+      + as soon as thumb loaded, it stays loaded
+      + thumb loading
+        + stores loaded-width
+        + triggers attempt to resize cell
+    + thinking about these things in cell singles/pairs/quads/octs
+      + known as minorGroups
+      + every load event checks its minorGroup
+        + e.g. column for x-major, row for y-major
+    + means that we're not formally doing a cellresize on all visibles any more
+      + instead we do a resize on a single/pair/quad/oct because it becomes visible
+  + this takes us back to hashTables
+    + ideally want to preserve bucket information in visTable
+      + and be able to update singles/pair/quad/oct (SPQO) easily
+        + without having to rescan the whole lot
+  + currently the whole vis chain works to a single set of functions
+    + making this easier to change
+  + however the resize event is important here
+    + when we resize at 0
+      + everything works beautifully
+        + because there's no width change in anything prior (off-screen left)
+    + when we resize at 500
+      + everything jigs about horribly
+    + we're trying to get to the point where
+      1. resize @0 works
+      2. scroll backwards and forwards works
+      3. resize @500 works
+    + that leads me to think
+      + never change the width of an off-screen element prior (left or up)
+        + that includes nearvis
+      + probably keep processing cellresize in large batches of visible images
+      + if we do have to adjust a prior cell width/height
+        + always tweak scroll position to compensate
+          + that's probably tricky to do surruptitiously
+      + don't strip all previous width/heights
+        + except on repaint event
+          + and even then I'm not sure about it
+      + series of fixes might be the best way to counter it
+
+* forward scroll nearvis
+  + if we try to cellresize on a cell without a thumb yet
+    + it probably won't have a ratio
+      + which returns a NaN problem
+  + insert a getLoadedResolution and break second part into callbackfi
+    + could make cellResize resolve a deferred
+      + could make refreshImageResolution dependent on it
+      + in fact should do that
+        + but may still process 'nearvis' as async
+        + leave as async
+      + can make something async in one thread
+        + and resync in another
+          + the image loading lifts all boats
+
+* big picture goal
+  1. resize @0 works
+  2. scroll backwards and forwards works
+  3. resize @500 works
+
+* forward scroll nearvis
+  + shrinking visibles brings new 'nearvis' into view
+    + need to make them visibles too
+  + part of the process needs to expand the 'vis' selection
+    + that also means expanding the nearvis selection
 

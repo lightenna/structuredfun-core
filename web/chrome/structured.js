@@ -78,16 +78,18 @@ window.sfun = (function($, undefined) {
       that.export.flush();
       // attach listener to window for resize (rare, but should update)
       $(window).resize(function() {
-        // if we're already timing out, delay for another x milliseconds
-        if (that.resizeTimeout != null) {
-          clearTimeout(this.resizeTimeout);
-        }
-        that.resizeTimeout = setTimeout(function() {
+        that.buffer('init_resized',
+        // process event
+        function() {
           // resize may have shown more images, so refresh visibility
-          that.refreshVisibility(0);
-        }, 50); // 50 ms
+          that.refreshVisibility(0);          
+        },
+        // do nothing if dumped
+        function(){},
+        50); // 50ms
       });
 
+// DELETE ME
 // dirty test to shortcut suite
 var k = that;
 $('.header').append('<p><a id="endkey" class="endkey" href="">Endkey</a></p>');
@@ -148,35 +150,140 @@ $('.endkey').click(function(event) {
   };
 
   /**
+   * load all ratios, calculate normalMinors their total
+   * @param  {array} bucket collection of cells
+   * @return {object} jQuery deferred with value of minorTotal
+   */
+  this['bucketTotalMinor'] = function(bucket) {
+    var jqEnt, jqBoundable;
+    var deferred = $.Deferred();
+    var defs = [];
+    var minorTotal = 0;
+    var direction = this.getDirection();
+    var wrapUp = function() {
+      for (i = 0 ; i<bucket.length ; ++i) {
+        jqEnt = bucket[i];
+        jqBoundable = jqEnt.find('.boundable');
+      if (debug && true) {
+        console.log('bucketTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
+      }
+        // calculate the normal minor based on ratio
+        normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() / jqBoundable.data('ratio'));
+        minorTotal += normalMinor;
+      }
+      // return minorTotal using the deferred
+      deferred.resolve(minorTotal);
+    }
+    for (i = 0 ; i<bucket.length ; ++i) {
+      jqEnt = bucket[i];
+      jqBoundable = jqEnt.find('.boundable');
+      if (jqBoundable.data('ratio') == undefined) {
+        // wait for image to be loaded in order to get ratio
+        defs[defs.length] = this.getLoadedResolution(jqEnt);
+      }
+    }
+    // wait for all their ratios to be loaded
+    $.when.apply($, defs).done(wrapUp);
+    return deferred;
+  }
+
+  /**
+   * resize all the minor axes
+   * @param  {array} bucket collection of cells
+   * @param  {real} minorTotal sum of all the minor axes
+   * @return {real} maxMajor
+   */
+  this['bucketResizeMinor'] = function(bucket, minorTotal) {
+    var normalMinor, proportion, i;
+    var direction = this.getDirection();
+    var viewportMinor = (direction == 'x' ? $('#yardstick-y').height() : $(window).width());
+    // change the cell minor according to proportion of total
+    var proportionTotal = 0;
+    var newMinor, maxMajor = 0;
+    for (i = 0 ; i<bucket.length ; ++i) {
+      jqEnt = bucket[i];
+      jqBoundable = jqEnt.find('.boundable');
+      // calculate the normal minor based on ratio
+      ratio = jqBoundable.data('ratio');
+      normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() / ratio);
+      // calculate proportion as a percentage, round to 1 DP
+      proportion = this.round( normalMinor * 100 / minorTotal, 1);
+      // if this is the last cell in the bucket, fill to 100%
+      if (i == bucket.length-1) {
+        proportion = 100 - proportionTotal;
+      } else {
+        // otherwise tot up proportions so far
+        proportionTotal += proportion;
+      }
+      // apply percentage to cell minor
+      jqEnt.css((direction == 'x' ? 'height': 'width'), proportion +'%');
+      // update bound if necessary
+      this.setBound(jqEnt);
+      // calculate normal major, max
+      newMinor = proportion * viewportMinor / 100;
+      maxMajor = Math.max(maxMajor, (direction == 'x' ? newMinor * ratio : newMinor / ratio));
+      if (debug && true) {
+        console.log('bucketResizeMinor-'+jqEnt.data('seq')+' minor['+normalMinor+'] major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+']');
+      }
+    }
+    return maxMajor;
+  }
+
+  /**
+   * resize all the major axes
+   * @param  {array} bucket collection of cells
+   * @param  {real} maxMajor the largest major axis
+   */
+  this['bucketResizeMajor'] = function(bucket, maxMajor) {
+    var direction = this.getDirection();
+    var viewportMajor = (direction == 'x' ? $(window).width() : $('#yardstick-y').height());
+    // calculate the new percentage major, bound (0-100), round (1DP)
+    var majorPerc = this.round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
+    // change all the majors
+    for (i = 0 ; i<bucket.length ; ++i) {
+      jqEnt = bucket[i];
+      jqEnt.css((direction == 'x' ? 'width': 'height'), majorPerc +'%');
+      if (debug && true) {
+        console.log('bucketResizeMajor-'+jqEnt.data('seq')+' major['+majorPerc+']');
+      }
+    }
+    // make all images x-bound
+    for (i = 0 ; i<bucket.length ; ++i) {
+      jqEnt = bucket[i];
+      jqEnt.removeClass('y-bound').addClass('x-bound');
+    }
+  }
+
+  /**
    * refresh the visible cell widths by minor axis
    * @param {object} range {first_1, last_n} range of sequence numbers to resize
-   * @param {boolean} clearFirst true to clear all cell widths and heights first
    * @todo need to thoroughly analyse speed of this
    */
-  this['cellsResize'] = function(range, clearFirst) {
+  this['cellsResize'] = function(range) {
+    var that = this;
+    var deferred = $.Deferred();
+    var defs = [];
     var i, proportion, ratio, normalMinor, newMinor;
     var direction = this.getDirection();
     var count = this.cellsCountMajor();
     var vis = this.getVisibleBoundaries();
-    // viewport is constant
-    var viewportMinor = (direction == 'x' ? $('#yardstick-y').height() : $(window).width());
-    var viewportMajor = (direction == 'x' ? $(window).width() : $('#yardstick-y').height());
+    var wrapUp = function() {
+      // update vistable
+      // @todo should do this more selectively
+      that.visTableMajor.updateAll(direction, $('ul.flow .selectablecell'));
+      // use updated table to check visibles, but don't also tell then to reres yet
+      that.setVisibleAll(false);
+      // resolve deferred
+      deferred.resolve();
+    }
     // fetch visible cells and group by major axis value
     var cells = {};
-    // if clear first (default: true), remove
-    if (typeof(clearFirst) == 'undefined') {
-      clearFirst = true;
-    }
-    if (clearFirst) {
-      // remove any previous iteration's width and height
-      $('ul.flow .selectablecell').css( {'width': '', 'height': ''} );
-    }
     // if range is undefined, use vis+nearvis
     if (typeof(range) == 'undefined') {
       range = this.calcNearVis(vis.first, vis.last);
     }
-    // iterate across visible and nearvis cells
-    for (i = range.first_1 ; i <= range.last_n ; ++i) {
+    // iterate across visible and nearvis(post) cells
+    for (i = vis.first ; i <= range.last_n ; ++i) {
       var jqEnt = $('#seq-'+i);
       // pull out the major axis coord
       var pos = jqEnt.offset();
@@ -188,63 +295,21 @@ $('.endkey').click(function(event) {
       // add jqEnt into bucket
       cells[coord][cells[coord].length] = jqEnt;
     }
-    // work through adjusting cells minor axis dimension
+    // work through all visible buckets
     for (var bucket in cells) {
-      // add up all the minors of each image in the column (x minor height, y minor width)
-      var minorTotal = 0;
-      var jqBoundable;
-      for (i = 0 ; i<cells[bucket].length ; ++i) {
-        jqEnt = cells[bucket][i];
-        jqBoundable = jqEnt.find('.boundable');
-        // calculate the normal minor based on ratio
-        normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() / jqBoundable.data('ratio'));
-        minorTotal += normalMinor;
-      }
-      // change the cell minor according to that proportion
-      var proportionTotal = 0;
-      var maxMajor = 0;
-      for (i = 0 ; i<cells[bucket].length ; ++i) {
-        jqEnt = cells[bucket][i];
-        jqBoundable = jqEnt.find('.boundable');
-        // calculate the normal minor based on ratio
-        ratio = jqBoundable.data('ratio');
-        normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() / ratio);
-        // calculate proportion as a percentage, round to 1 DP
-        proportion = this.round( normalMinor * 100 / minorTotal, 1);
-        // if this is the last cell in the bucket, fill to 100%
-        if (i == cells[bucket].length-1) {
-          proportion = 100 - proportionTotal;
-        } else {
-          // otherwise tot up proportions so far
-          proportionTotal += proportion;
-        }
-        // apply percentage to cell minor
-        jqEnt.css((direction == 'x' ? 'height': 'width'), proportion +'%');
-        // update bound if necessary
-        this.setBound(jqEnt);
-        // calculate normal major, max
-        newMinor = proportion * viewportMinor / 100;
-        maxMajor = Math.max(maxMajor, (direction == 'x' ? newMinor * ratio : newMinor / ratio));
-        if (debug && true) {
-          console.log('resizeCell-'+jqEnt.data('seq')+' major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+'] minor['+normalMinor+']');
-        }
-      }
-      // calculate the new percentage major, bound (0-100), round (1DP)
-      var majorAddPerc = this.round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
-      // change all the majors
-      for (i = 0 ; i<cells[bucket].length ; ++i) {
-        jqEnt = cells[bucket][i];
-        jqEnt.css((direction == 'x' ? 'width': 'height'), majorAddPerc +'%');
-      }
-      // make all images x-bound
-      for (i = 0 ; i<cells[bucket].length ; ++i) {
-        jqEnt = cells[bucket][i];
-        jqEnt.removeClass('y-bound').addClass('x-bound');
-      }
+      var deflen = defs.length;
+      defs[deflen] = $.Deferred();
+      // get ratio and total
+      this.bucketTotalMinor(cells[bucket]).done(function(minorTotal) {
+        // resize minor axis
+        maxMajor = that.bucketResizeMinor(cells[bucket], minorTotal);
+        // resize major axis
+        that.bucketResizeMajor(cells[bucket], maxMajor);
+        defs[deflen].resolve();
+      });
     }
-    // update vistable
-    var jqCells = $('ul.flow .selectablecell');
-    this.visTableMajor.updateAll(this.getDirection(), jqCells);
+    $.when.apply($, defs).always(wrapUp);
+    return deferred;
   }
 
   // ------------------
@@ -335,8 +400,8 @@ $('.endkey').click(function(event) {
    */
   this['refreshVisibility'] = function(scrolldir) {
     var that = this;
-    // always test all images for visibility
-    return this.setVisibleAll().always(function() {
+    // always test all images for visibility, reres, check selection
+    return this.setVisibleAll(true).always(function() {
       that.refreshSelected(scrolldir);
     });
   };
@@ -546,17 +611,20 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       $.when.apply($, defs).always(function() {
         defs = [];
         // stage 2: refresh cell dimensions
-        that.cellsResize();
-        // stage 3: refresh resolutions as a batch
-        jqVisibles.each(function() {
-          var jqEnt = $(this);
-          defs.push(that.refreshImageResolution(jqEnt, true));
+        that.cellsResize().always(function() {
+          // refresh jqVisibles because resize may have added more visible cells
+          jqVisibles = $('ul.flow .selectablecell.visible');
+          // stage 3: refresh resolutions as a batch
+          jqVisibles.each(function() {
+            var jqEnt = $(this);
+            defs.push(that.refreshImageResolution(jqEnt, true));
+          });
+          $.when.apply($, defs).always(function() {
+            // finally resolve
+            deferred.resolve();
+          });        
         });
-        $.when.apply($, defs).always(function() {
-          // finally resolve
-          deferred.resolve();
-        });
-      })
+      });
       return deferred;
     }
     return $.Deferred().resolve();
@@ -969,9 +1037,10 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   /**
    * Loop through all images
    * @todo optimise
+   * @param {boolean} thenReres true to also reres new vis images
    * @return {object} jQuery deferred
    */
-  this['setVisibleAll'] = function() {
+  this['setVisibleAll'] = function(thenReres) {
     var that = this;
     // batch true to wait and refresh all images after all flagged
     var batch = true;
@@ -991,11 +1060,11 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       var first_np1 = vis.first;
       var last_0 = vis.last;
       for (var i = first_np1 ; i <= last_0 ; i++) {
-        defs.push(that.setVisibleImage($('#seq-'+i), 'visible', !batch));
+        defs.push(that.setVisibleImage($('#seq-'+i), 'visible', !batch && thenReres));
       }
       // aggregate all the deferreds
       $.when.apply($, defs).always(function() {
-        if (batch) {
+        if (batch && thenReres) {
           // empty the defs (symbolic only)
           defs = [];
           // now batch process all the visibles
@@ -1055,7 +1124,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         // when an image becomes visible refresh all its facets
         reres = true;
       }
-      // if we're single-refreshing on each call to setVisibleImage
+      // if we're single-refreshing on each call to this function
       if (refresh) {
         // refresh bounds then update resolution, update metric
         this.refreshBounds(jqEnt).done(function() {
@@ -1160,6 +1229,8 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         jqReresable.data('loaded-height', this.height);
         // never update the ratio, but set if unset
         if (jqReresable.data('ratio') == undefined) {
+// DELETE ME
+console.log('reresingImage-'+jqEnt.data('seq')+' is updating ratio');
           jqReresable.data('ratio', this.width / this.height);
         }
         if (debug && true) {
