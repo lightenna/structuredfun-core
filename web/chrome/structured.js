@@ -158,7 +158,7 @@ $('.endkey').click(function(event) {
     var jqEnt, jqBoundable;
     var deferred = $.Deferred();
     var defs = [];
-    var minorTotal = 0;
+    var normalMinor, minorTotal = 0;
     var direction = this.getDirection();
     var wrapUp = function() {
       for (i = 0 ; i<bucket.length ; ++i) {
@@ -168,7 +168,7 @@ $('.endkey').click(function(event) {
         console.log('bucketTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
       }
         // calculate the normal minor based on ratio
-        normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() / jqBoundable.data('ratio'));
+        normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() * jqBoundable.data('ratio'));
         minorTotal += normalMinor;
       }
       // return minorTotal using the deferred
@@ -205,9 +205,10 @@ $('.endkey').click(function(event) {
       jqBoundable = jqEnt.find('.boundable');
       // calculate the normal minor based on ratio
       ratio = jqBoundable.data('ratio');
-      normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() / ratio);
+      normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() * ratio);
       // calculate proportion as a percentage, round to 1 DP
       proportion = this.round( normalMinor * 100 / minorTotal, 1);
+      absolute = this.round( normalMinor * viewportMinor / minorTotal, 1);
       // if this is the last cell in the bucket, fill to 100%
       if (i == bucket.length-1) {
         proportion = 100 - proportionTotal;
@@ -216,7 +217,7 @@ $('.endkey').click(function(event) {
         proportionTotal += proportion;
       }
       // apply percentage to cell minor
-      jqEnt.css((direction == 'x' ? 'height': 'width'), proportion +'%');
+      jqEnt.css((direction == 'x' ? 'height': 'width'), (false ? absolute+'px' : proportion +'%'));
       // update bound if necessary
       this.setBound(jqEnt);
       // calculate normal major, max
@@ -238,13 +239,15 @@ $('.endkey').click(function(event) {
     var direction = this.getDirection();
     var viewportMajor = (direction == 'x' ? $(window).width() : $('#yardstick-y').height());
     // calculate the new percentage major, bound (0-100), round (1DP)
-    var majorPerc = this.round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
+    var proportion = this.round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
+    var absolute = this.round(maxMajor,1);
     // change all the majors
     for (i = 0 ; i<bucket.length ; ++i) {
       jqEnt = bucket[i];
-      jqEnt.css((direction == 'x' ? 'width': 'height'), majorPerc +'%');
+      jqEnt.css((direction == 'x' ? 'width': 'height'), (false ? absolute+'px' : proportion +'%'));
+      jqEnt.addClass('cell-specific');
       if (debug && true) {
-        console.log('bucketResizeMajor-'+jqEnt.data('seq')+' major['+majorPerc+']');
+        console.log('bucketResizeMajor-'+jqEnt.data('seq')+' major['+proportion+'%]');
       }
     }
     // make all images x-bound
@@ -310,6 +313,13 @@ $('.endkey').click(function(event) {
     }
     $.when.apply($, defs).always(wrapUp);
     return deferred;
+  }
+
+  /**
+   * clear previously assigned cell-specific width and height
+   */
+  this['cellsClear'] = function() {
+    $('.cell-specific').css( { 'width':'', 'height':'' } ).removeClass('cell-specific');
   }
 
   // ------------------

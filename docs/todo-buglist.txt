@@ -20,8 +20,9 @@
   + newly visible images are coming into view too far apart
     + better to assume a narrower cell width then correct it
 
-* vertical scroll doesn't work nicely yet
-  + it's something comparatively simple
+* changing breadth, direction, viewport size
+  + needs to clear cell-specific percentages
+    + then re-apply them
 
 * end event is resolving slowly
   + only after 10s expiry
@@ -1187,4 +1188,9 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + need to make them visibles too
   + part of the process needs to expand the 'vis' selection
     + that also means expanding the nearvis selection
+
+* vertical scroll doesn't work nicely yet
+  + it's something comparatively simple
+    = * instead of /
+      + affected by alignment bug as per horizontal
 
