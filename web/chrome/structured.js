@@ -34,6 +34,8 @@ window.sfun = (function($, undefined) {
 
   // ms to wait after resize event before re-bound/re-res
   this.resizeTimeout = null;
+  // default selector used to select top-level container
+  this.containerSelector = '.sfun';
   // for screenpc width/height, set using px/pc
   this.setScreenPcUsing = null;
 
@@ -112,7 +114,7 @@ $('.endkey').click(function(event) {
    */
   this['cellsInit'] = function() {
     var that = this;
-    var jqCells = $('ul.flow .selectablecell');
+    var jqCells = $(this.containerSelector+' .selectablecell');
     jqCells.each(function() {
       that.cellsGenerateDataPerc($(this));
     });
@@ -127,10 +129,9 @@ $('.endkey').click(function(event) {
    */
   this['cellsGenerateDataPerc'] = function(jqEnt) {
     var pc
-    pc = jqEnt.width() * 100 / $(window).width();
+    pc = jqEnt.width() * 100 / this.getViewportWidth();
     jqEnt.data('screenpc-width', pc);
-    var viewportHeight = $('#yardstick-y').height();
-    pc = jqEnt.height() * 100 / viewportHeight;
+    pc = jqEnt.height() * 100 / this.getViewportHeight();
     jqEnt.data('screenpc-height', pc);
   };
 
@@ -140,7 +141,7 @@ $('.endkey').click(function(event) {
    */
   this['cellsCountMajor'] = function() {
     var direction = this.getDirection();
-    var jqEnt = $('ul.flow .selectablecell:first');
+    var jqEnt = $(this.containerSelector+' .selectablecell:first');
     if (direction == 'x') {
       var pc = parseInt(jqEnt.data('screenpc-width'));
     } else {
@@ -155,18 +156,18 @@ $('.endkey').click(function(event) {
    * @return {object} jQuery deferred with value of minorTotal
    */
   this['bucketTotalMinor'] = function(bucket) {
-    var jqEnt, jqBoundable;
+    var that = this;
     var deferred = $.Deferred();
     var defs = [];
     var normalMinor, minorTotal = 0;
     var direction = this.getDirection();
     var wrapUp = function() {
-      for (i = 0 ; i<bucket.length ; ++i) {
-        jqEnt = bucket[i];
-        jqBoundable = jqEnt.find('.boundable');
-      if (debug && true) {
-        console.log('bucketTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
-      }
+      for (var i = 0 ; i<bucket.length ; ++i) {
+        var jqEnt = bucket[i];
+        var jqBoundable = jqEnt.find('.boundable');
+        if (debug && false) {
+          console.log('bucketTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
+        }
         // calculate the normal minor based on ratio
         normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() * jqBoundable.data('ratio'));
         minorTotal += normalMinor;
@@ -174,12 +175,14 @@ $('.endkey').click(function(event) {
       // return minorTotal using the deferred
       deferred.resolve(minorTotal);
     }
-    for (i = 0 ; i<bucket.length ; ++i) {
-      jqEnt = bucket[i];
-      jqBoundable = jqEnt.find('.boundable');
+    for (var i = 0 ; i<bucket.length ; ++i) {
+      var jqEnt = bucket[i];
+      var jqBoundable = jqEnt.find('.boundable');
       if (jqBoundable.data('ratio') == undefined) {
         // wait for image to be loaded in order to get ratio
-        defs[defs.length] = this.getLoadedResolution(jqEnt);
+        defs[defs.length] = this.getLoadedResolution(jqEnt).done(function() {
+          that.setBound(jqEnt);
+        });
       }
     }
     // wait for all their ratios to be loaded
@@ -194,21 +197,20 @@ $('.endkey').click(function(event) {
    * @return {real} maxMajor
    */
   this['bucketResizeMinor'] = function(bucket, minorTotal) {
-    var normalMinor, proportion, i;
     var direction = this.getDirection();
-    var viewportMinor = (direction == 'x' ? $('#yardstick-y').height() : $(window).width());
+    var viewportMinor = (direction == 'x' ? this.getViewportHeight() : this.getViewportWidth());
     // change the cell minor according to proportion of total
     var proportionTotal = 0;
-    var newMinor, maxMajor = 0;
-    for (i = 0 ; i<bucket.length ; ++i) {
-      jqEnt = bucket[i];
-      jqBoundable = jqEnt.find('.boundable');
+    var maxMajor = 0;
+    for (var i = 0 ; i<bucket.length ; ++i) {
+      var jqEnt = bucket[i];
+      var jqBoundable = jqEnt.find('.boundable');
       // calculate the normal minor based on ratio
-      ratio = jqBoundable.data('ratio');
-      normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() * ratio);
+      var ratio = jqBoundable.data('ratio');
+      var normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() * ratio);
       // calculate proportion as a percentage, round to 1 DP
-      proportion = this.round( normalMinor * 100 / minorTotal, 1);
-      absolute = this.round( normalMinor * viewportMinor / minorTotal, 1);
+      var proportion = this.round( normalMinor * 100 / minorTotal, 1);
+      var absolute = this.round( normalMinor * viewportMinor / minorTotal, 1);
       // if this is the last cell in the bucket, fill to 100%
       if (i == bucket.length-1) {
         proportion = 100 - proportionTotal;
@@ -221,9 +223,9 @@ $('.endkey').click(function(event) {
       // update bound if necessary
       this.setBound(jqEnt);
       // calculate normal major, max
-      newMinor = proportion * viewportMinor / 100;
+      var newMinor = proportion * viewportMinor / 100;
       maxMajor = Math.max(maxMajor, (direction == 'x' ? newMinor * ratio : newMinor / ratio));
-      if (debug && true) {
+      if (debug && false) {
         console.log('bucketResizeMinor-'+jqEnt.data('seq')+' minor['+normalMinor+'] major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+']');
       }
     }
@@ -237,23 +239,24 @@ $('.endkey').click(function(event) {
    */
   this['bucketResizeMajor'] = function(bucket, maxMajor) {
     var direction = this.getDirection();
-    var viewportMajor = (direction == 'x' ? $(window).width() : $('#yardstick-y').height());
+    var viewportMajor = (direction == 'x' ? this.getViewportWidth() : this.getViewportHeight());
     // calculate the new percentage major, bound (0-100), round (1DP)
     var proportion = this.round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
     var absolute = this.round(maxMajor,1);
     // change all the majors
-    for (i = 0 ; i<bucket.length ; ++i) {
-      jqEnt = bucket[i];
+    for (var i = 0 ; i<bucket.length ; ++i) {
+      var jqEnt = bucket[i];
       jqEnt.css((direction == 'x' ? 'width': 'height'), (false ? absolute+'px' : proportion +'%'));
       jqEnt.addClass('cell-specific');
-      if (debug && true) {
+      if (debug && false) {
         console.log('bucketResizeMajor-'+jqEnt.data('seq')+' major['+proportion+'%]');
       }
     }
-    // make all images x-bound
-    for (i = 0 ; i<bucket.length ; ++i) {
-      jqEnt = bucket[i];
-      jqEnt.removeClass('y-bound').addClass('x-bound');
+    // make all images y-bound, as it's a simpler alignment than
+    for (var i = 0 ; i<bucket.length ; ++i) {
+      var jqEnt = bucket[i];
+      var jqBoundable = jqEnt.find('.boundable');
+      jqBoundable.removeClass('x-bound').addClass('y-bound');
     }
   }
 
@@ -266,14 +269,14 @@ $('.endkey').click(function(event) {
     var that = this;
     var deferred = $.Deferred();
     var defs = [];
-    var i, proportion, ratio, normalMinor, newMinor;
+    var proportion, ratio, normalMinor, newMinor;
     var direction = this.getDirection();
     var count = this.cellsCountMajor();
     var vis = this.getVisibleBoundaries();
     var wrapUp = function() {
       // update vistable
       // @todo should do this more selectively
-      that.visTableMajor.updateAll(direction, $('ul.flow .selectablecell'));
+      that.visTableMajor.updateAll(direction, $(that.containerSelector+' .selectablecell'));
       // use updated table to check visibles, but don't also tell then to reres yet
       that.setVisibleAll(false);
       // resolve deferred
@@ -286,8 +289,12 @@ $('.endkey').click(function(event) {
       range = this.calcNearVis(vis.first, vis.last);
     }
     // iterate across visible and nearvis(post) cells
-    for (i = vis.first ; i <= range.last_n ; ++i) {
+    for (var i = vis.first ; i <= range.last_n ; ++i) {
       var jqEnt = $('#seq-'+i);
+      // only include resizeablecells in the bucket
+      if (!jqEnt.hasClass('resizeablecell')) {
+        continue;
+      }
       // pull out the major axis coord
       var pos = jqEnt.offset();
       var coord = (direction == 'x' ? pos.left : pos.top);
@@ -300,16 +307,22 @@ $('.endkey').click(function(event) {
     }
     // work through all visible buckets
     for (var bucket in cells) {
-      var deflen = defs.length;
-      defs[deflen] = $.Deferred();
-      // get ratio and total
-      this.bucketTotalMinor(cells[bucket]).done(function(minorTotal) {
-        // resize minor axis
-        maxMajor = that.bucketResizeMinor(cells[bucket], minorTotal);
-        // resize major axis
-        that.bucketResizeMajor(cells[bucket], maxMajor);
-        defs[deflen].resolve();
-      });
+      var defid = defs.length;
+      defs[defid] = $.Deferred();
+      if (debug && false) {
+        console.log('cellsResize processing bucket['+bucket+'] of len['+cells[bucket].length+'] defid['+defid+']');
+      }
+      // function closure to wrap value of bucket
+      (function(bucket, def) {
+        // get ratio and total
+        this.bucketTotalMinor(cells[bucket]).done(function(minorTotal) {
+          // resize minor axis
+          maxMajor = that.bucketResizeMinor(cells[bucket], minorTotal);
+          // // resize major axis
+          that.bucketResizeMajor(cells[bucket], maxMajor);
+          def.resolve();
+        });
+      })(bucket, defs[defid]);
     }
     $.when.apply($, defs).always(wrapUp);
     return deferred;
@@ -422,13 +435,13 @@ $('.endkey').click(function(event) {
    * @return {object} jQuery deferred
    */
   this['refreshSelected'] = function(scrolldir) {
-    var jqEnt = $('ul.flow .selectablecell.selected');
+    var jqEnt = $(this.containerSelector+' .selectablecell.selected');
     if (!jqEnt.hasClass('visible')) {
       if (debug && false) {
         console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
       }
       // find the next visible one in the scroll direction
-      jqEnt = $('ul.flow .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
+      jqEnt = $(this.containerSelector+' .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
       if (jqEnt.length) {
         // create and resolve a local context to allow us to numb listener
         var localContext = this.eventQueue.push({
@@ -609,21 +622,21 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this['refreshVisibleImages'] = function() {
     var that = this;
-    var jqVisibles = $('ul.flow .selectablecell.visible');
+    var jqVisibles = $(this.containerSelector+' .selectablecell.visible');
     if (jqVisibles.length) {
       var deferred = $.Deferred();
       var defs = [];
-      // stage 1: refresh bounds as a batch
-      jqVisibles.each(function() {
-        var jqEnt = $(this);
-        defs.push(that.refreshBounds(jqEnt));
-      });
-      $.when.apply($, defs).always(function() {
-        defs = [];
+      // // stage 1: refresh bounds as a batch
+      // jqVisibles.each(function() {
+      //   var jqEnt = $(this);
+      //   defs.push(that.refreshBounds(jqEnt));
+      // });
+      // $.when.apply($, defs).always(function() {
+      //   defs = [];
         // stage 2: refresh cell dimensions
         that.cellsResize().always(function() {
           // refresh jqVisibles because resize may have added more visible cells
-          jqVisibles = $('ul.flow .selectablecell.visible');
+          jqVisibles = $(that.containerSelector+' .selectablecell.visible');
           // stage 3: refresh resolutions as a batch
           jqVisibles.each(function() {
             var jqEnt = $(this);
@@ -632,9 +645,9 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
           $.when.apply($, defs).always(function() {
             // finally resolve
             deferred.resolve();
-          });        
+          });
         });
-      });
+      // });
       return deferred;
     }
     return $.Deferred().resolve();
@@ -739,7 +752,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   this['bindToImageLinks'] = function() {
     var that = this;
     // bind to click using delegated event handler (http://api.jquery.com/on/), instead of individual N handlers
-    $('ul.flow').on('click', '.selectablecell a.media-container', function(event) {
+    $(this.containerSelector).on('click', '.selectablecell a.media-container', function(event) {
       // select image, then toggle
       var seq = $(this).parents('.selectablecell').data('seq');
       // seq changes don't go into history
@@ -780,7 +793,13 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         // notify promise of resolution
         deferred.resolve();
       }
-      im.src = jqReresable.attr('src');
+      // if the src attribute is defined, use it
+      if (jqReresable.attr('src') != undefined) {
+        im.src = jqReresable.attr('src');
+      } else {
+        // otherwise use data-desrc (thumbnail hasn't been loaded before)
+        im.src = jqReresable.data('desrc');
+      }
       if (debug && false) {
         console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
       }
@@ -809,7 +828,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this['getBreadth'] = function() {
     var breadth = 2;
-    var jq = $('ul.flow');
+    var jq = $(this.containerSelector);
     if (jq.hasClass('flow-1')) breadth = 1;
     if (jq.hasClass('flow-4')) breadth = 4;
     if (jq.hasClass('flow-8')) breadth = 8;
@@ -821,7 +840,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this['getCellSize'] = function() {
     // get first cell
-    var jq = $('ul.flow li:first');
+    var jq = $(this.containerSelector+' .selectablecell:first');
     if (this.getDirection() == 'x') {
       return jq.width();
     } else {
@@ -857,7 +876,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @return {jQuery} selected entity
    */
   this['getSelected'] = function() {
-    var jqEnt = $('ul.flow .selectablecell.selected')
+    var jqEnt = $(this.containerSelector+' .selectablecell.selected');
     return jqEnt;
   };
 
@@ -874,7 +893,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @return {int} total number of entities (max entry seq+1)
    */
   this['getTotalEntries'] = function() {
-    var jq = $('ul.flow .selectablecell:last')
+    var jq = $(this.containerSelector+' .selectablecell:last');
     return (parseInt(jq.data('seq'))+1);
   };
 
@@ -945,7 +964,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     if (!changed) return false;
     var jqCurrent, position;
     // deselect old image
-    $('ul.flow .selectablecell.selected').removeClass('selected');
+    $(this.containerSelector+' .selectablecell.selected').removeClass('selected');
     // select new image
     jqCurrent = $('#seq-'+seq);
     jqCurrent.addClass('selected');
@@ -1019,15 +1038,13 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     var direction = this.getDirection();
     // get screen bounds along major axis (min and max)
     if (direction == 'x') {
-      // min is left bar (-1 for border)
+      // min is left bar (-rounding for border/margin)
       min = $(document).scrollLeft() - rounding;
-      // max is right bar (+1 for border) less a cell's width to exclude partials
-      max = $(window).width() + $(document).scrollLeft() - rounding;
+      // max is right bar (+rounding for border/margin) less a cell's width to exclude partials
+      max = $(document).scrollLeft() + this.getViewportWidth() - rounding;
     } else {
-      // need to know viewport height without scrollbar/Firebug
-      var viewportHeight = $('#yardstick-y').height();
       min = $(document).scrollTop() - rounding;
-      max = $(document).scrollTop() + viewportHeight - rounding;
+      max = $(document).scrollTop() + this.getViewportHeight() - rounding;
     }
     // find first spanning min boundary
     var firstRef = this.visTableMajor.findCompare(min, this.export.compareGTE, false);
@@ -1054,7 +1071,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     var that = this;
     // batch true to wait and refresh all images after all flagged
     var batch = true;
-    var jqCells = $('ul.flow .selectablecell');
+    var jqCells = $(this.containerSelector+' .selectablecell');
     // test to see if we found any selectable cells
     if (jqCells.length) {
       var deferred = $.Deferred();
@@ -1188,7 +1205,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this['setNearVis'] = function() {
     // hunt for first and last visible
-    var first_np1 = $('ul.flow .selectablecell.visible:first').data('seq'), last_0 = $('ul.flow .selectablecell.visible:last').data('seq');
+    var first_np1 = $(this.containerSelector+' .selectablecell.visible:first').data('seq'), last_0 = $(this.containerSelector+' .selectablecell.visible:last').data('seq');
     var range = this.calcNearVis(first_np1, last_0);
     // optional debugging
     if (debug && false) {
@@ -1762,7 +1779,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
         vt.wipe();
         // read in new values
         jqCells.each(function() {
-          jqEnt = $(this);
+          var jqEnt = $(this);
           var position = jqEnt.offset();
           // create object
           var obj = {
@@ -2164,6 +2181,20 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   };
 
   /**
+   * @return {real} height of viewport in pixels
+   */
+  this['getViewportHeight'] = function() {
+    return $('#yardstick-y').height();
+  };
+
+  /**
+   * @return {real} width of viewport in pixels
+   */
+  this['getViewportWidth'] = function() {
+    return $(window).width();
+  };
+
+  /**
    * change the visible portion of the page by moving the scrollbars
    * @param {int} left distance from left of page in pixels
    * @param {int} top  distance from top of page in pixels
@@ -2173,9 +2204,8 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   this['fire_scrollUpdate'] = function(left, top, eventContext) {
     var that = this;
     // crop top and left against origin (0) and max scroll position (documentWidth - viewportWidth)
-    var croppedLeft = Math.max(0, Math.min(left, $(document).width() - $(window).width()));
-    var viewportHeight = $('#yardstick-y').height();
-    var croppedHeight = Math.max(0, Math.min(top, $(document).height() - viewportHeight));
+    var croppedLeft = Math.max(0, Math.min(left, $(document).width() - this.getViewportWidth()));
+    var croppedHeight = Math.max(0, Math.min(top, $(document).height() - this.getViewportHeight()));
     // create a context, but parent it only if eventContext is not undefined
     var localContext = this.eventQueue.pushOrMerge({
       'key': 'scroll:'+'x='+croppedLeft+'&y='+croppedHeight,
@@ -2257,7 +2287,9 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     seqChanged = this.setSeq(obj.seq);
     // updates based on certain types of change
     if (breadthChanged || directionChanged) {
-      this.visTableMajor.updateAll(this.getDirection(), $('ul.flow .selectablecell'));
+      // clear cell-specific dimensions and read back positions
+      this.cellsClear();
+      this.visTableMajor.updateAll(this.getDirection(), $(this.containerSelector+' .selectablecell'));
     }
     // find out if we should trigger other events based on this hash change
     if (this.eventQueue.actOnContext(eventContext)) {
@@ -2354,7 +2386,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       var increment;
       if (cellsnap) {
         // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
-        var extra = this.getCellAlignExtra(scrolldir, scrolldir > 0 ? xpos + $(window).width() : xpos);
+        var extra = this.getCellAlignExtra(scrolldir, scrolldir > 0 ? xpos + this.getViewportWidth() : xpos);
         increment = xpos + (scrolldir * cellsize) + extra;
       } else {
         increment = xpos + (scrolldir * event.deltaFactor * this.export.scrollMULTIPLIER);
@@ -2538,16 +2570,15 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       // min is left bar (-1 for border) and a cell's width to include partials
       var min = $(document).scrollLeft() + rounding - (partial ? jqEnt.width() : 0);
       // max is right bar (+1 for border) less a cell's width to exclude partials
-      var max = $(window).width() + $(document).scrollLeft() - rounding - (partial ? 0 : jqEnt.width());
+      var max = $(document).scrollLeft() + this.getViewportWidth() - rounding - (partial ? 0 : jqEnt.width());
       if (debug && false) {
         console.log('min['+min+'] max['+max+'] position['+position.left+']');
       }
       return (position.left >= min && position.left <= max);
     } else {
       // need to know viewport height without scrollbar/Firebug
-      var viewportHeight = $('#yardstick-y').height();
       var min = $(document).scrollTop() + rounding - (partial ? jqEnt.height() : 0);
-      var max = $(document).scrollTop() + viewportHeight - rounding - (partial ? 0 : jqEnt.height());
+      var max = $(document).scrollTop() + this.getViewportHeight() - rounding - (partial ? 0 : jqEnt.height());
       return (position.top >= min && position.top <= max);
     }
   }
@@ -2617,7 +2648,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   // FUNCTIONS: External API
   // -----------------
 
-  that = this;
+  var that = this;
   this['export'] = {
     // queue function calls until document ready
     q: [],
