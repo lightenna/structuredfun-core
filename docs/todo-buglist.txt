@@ -1,28 +1,11 @@
 
-* chase down the NaNs
-  + they're a lead
-  + good debugging url mb@seq=288
-    + debugging is hard
-    + it's to do with an out-of-order execution (OOOE)
-      + stepping through in a debugger doesn't find it
-
-* cell sizes jigging around
-  + something about 2nd redraw
-
-* cell sizes jigging around
-  + high seq numbers do 2 draws
-    + first looks pretty good
-      - but 2nd is weird
-    + it's not the reresing
-    + it's not resetting ratio
+* perc's are not showing
+  + but only for the latest batch of loads
+    + old (but still visible) images lose their perc
 
 * forward scroll newbies
   + newly visible images are coming into view too far apart
     + better to assume a narrower cell width then correct it
-
-* changing breadth, direction, viewport size
-  + needs to clear cell-specific percentages
-    + then re-apply them
 
 * end event is resolving slowly
   + only after 10s expiry
@@ -80,6 +63,9 @@
       - not after the reres has completed
     + I can see cases where we might want both of those
       + but for now, concentrate on the images loading
+
+* selector doesn't show on two sides
+  + need to show all the way around the selected image
 
 * extend test suite once all current tests are working
   + test reres
@@ -1193,4 +1179,37 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + it's something comparatively simple
     = * instead of /
       + affected by alignment bug as per horizontal
+
+* alias .sfun as this.containerName
+
+* cell sizes jigging around
+  + high seq numbers do 2 draws
+    + first looks pretty good
+      - but 2nd is weird
+    + it's not the reresing
+    + it's not resetting ratio
+  = pretty sure it was a mixture of x-bound and y-bound
+
+* changing breadth, direction, viewport size
+  + needs to clear cell-specific percentages
+    + then re-apply them
+
+* even up border all the way around
+  + actually important to cue which way the there's more content
+  + margin-top: -8px lifts everything up
+    + almost there, but we're not quite
+    + right hand edge doesn't get thing
+  + horizontal
+    + need border on right hand edge
+  + vertical
+    + need border on bottom
+  = don't worry about it for now
+    + will have to insert an additional element
+
+* chase down the NaNs
+  + they're a lead
+  + good debugging url mb@seq=288
+    + debugging is hard
+    + it's to do with an out-of-order execution (OOOE)
+      + stepping through in a debugger doesn't find it
 
