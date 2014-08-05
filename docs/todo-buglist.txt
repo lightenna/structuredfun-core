@@ -1,7 +1,5 @@
 
-* perc's are not showing
-  + but only for the latest batch of loads
-    + old (but still visible) images lose their perc
+* use offseq to maintain the relative position of the current seq image
 
 * forward scroll newbies
   + newly visible images are coming into view too far apart
@@ -1212,4 +1210,9 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + debugging is hard
     + it's to do with an out-of-order execution (OOOE)
       + stepping through in a debugger doesn't find it
+
+* perc's are not showing
+  + but only for the latest batch of loads
+    + old (but still visible) images lose their perc
+    + it's because they're being left in a 'reresing' state
 

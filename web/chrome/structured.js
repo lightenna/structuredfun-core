@@ -52,6 +52,7 @@ window.sfun = (function($, undefined) {
       that.previous['direction'] = that.default['direction'] = that.getDirection();
       that.previous['breadth'] = that.default['breadth'] = that.getBreadth();
       that.previous['seq'] = that.default['seq'] = 0;
+      that.previous['offseq'] = that.default['offseq'] = 0;
       // bind to page
       that.bindToScroll();
       that.bindToHeaderLinks();
@@ -70,7 +71,7 @@ window.sfun = (function($, undefined) {
           // manually jump back to the right place by firing handler_hashChanged
           that.handler_hashChanged(that.getHash()).done(function() {
             // need to force back to correct position
-            that.setScrollPosition(that.getSeq());            
+            that.setScrollPosition(that.getSeq(), that.getOffseq());
           });
         }
       });
@@ -470,11 +471,15 @@ $('.endkey').click(function(event) {
     if (!(type == 'image' || type == 'video')) {
       return $.Deferred().resolve();
     }
+// DELETE ME
+console.log('starting imageReres-'+jqEnt.data('seq')+', adding class reresing');
     // flag this image as updating its resolution
     jqEnt.addClass('reresing');
     // create local deferred and local wrapUp
     var deferred = $.Deferred();
     var wrapUp = function() {
+// DELETE ME
+console.log('passing back to imageReres-'+jqEnt.data('seq')+' to resolve');
       // remove reresing status and refreshMetric
       jqEnt.removeClass('reresing');
       that.refreshMetric(jqEnt);
@@ -515,6 +520,8 @@ $('.endkey').click(function(event) {
 console.log('passing on to imageReres-'+jqEnt.data('seq'));
             // swap out image and wait for swap to complete
             that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': brackWidth } )).always(wrapUp);
+          } else {
+            wrapUp();
           }
         } else {
           // same but pivot on height rather than width
@@ -524,8 +531,12 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
 console.log('passing on to imageReres-'+jqEnt.data('seq'));
             // swap out image and wait for swap to complete
             that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxheight': brackHeight } )).always(wrapUp);
+          } else {
+            wrapUp();
           }
         }
+      } else {
+        wrapUp();
       }
     })
     .fail(function() {
@@ -534,6 +545,8 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
         if ((imageContainerWidth > loadedWidth) || (imageContainerHeight > loadedHeight)) {
           // don't know native width, so just request at loadedWidth/Height
           that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': imageContainerWidth, 'maxheight': imageContainerHeight } )).always(wrapUp);
+        } else {
+          wrapUp();
         }
       } else {
         wrapUp();
@@ -836,6 +849,14 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   };
 
   /**
+   * page scroll offset to sequence number is stored in the html tag
+   * @return {int} scroll offset to seq
+   */
+  this['getOffseq'] = function() {
+    return $('html').data('offseq');
+  }
+
+  /**
    * @return {float} current size of cell along the major axis
    */
   this['getCellSize'] = function() {
@@ -847,6 +868,18 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       return jq.height();
     }
   };
+
+  /**
+   * Return defaults
+   *   direction: page direction
+   *   breadth: number of cells across minor axis of page
+   *   seq: sequence number
+   *   offseq: scroll offset to sequence
+   * @return {object} get URL default hash arguments
+   */
+  this['getDefaults'] = function() {
+    return { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq'], 'offseq': this.default['offseq'] };
+  }
 
   /**
    * @param {int} edge majoraxis value of edge to find cell at
@@ -911,6 +944,31 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   };
 
   /**
+   * @return {int} width of page outer border (gutter) in pixels
+   */
+  this['getGutter'] = function() {
+    return $('#gutterball').width();
+  }
+
+  /**
+   * @return {int | bool} next sequence number, or false on failure
+   */
+  this['getNextSeq'] = function(seq, increment) {
+    var startingPointSeq = seq;
+    do {
+      seq = (seq+increment) % this.getTotalEntries();
+      // wrap around
+      if (seq < 0 && increment < 0) {
+        seq = this.getTotalEntries()-1;
+      }
+      if ($('#seq-'+seq).length) {
+        return seq;
+      }
+    } while (seq != this.startingPointSeq);
+    return false;
+  }
+
+  /**
    * return a shared deferred if one exists, or create one if not
    * @return {jQuery} deferred
    */
@@ -972,6 +1030,17 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   };
 
   /**
+   * page scroll offset to sequence number is stored in the html tag
+   * @param {int} offset scroll offset to seq
+   */
+  this['setOffseq'] = function(offseq) {
+    var changed = ($('html').data('offseq') !== offseq);
+    if (!changed) return false;
+    $('html').data('offseq', offseq);
+    return changed;
+  }
+
+  /**
    * @param {object} jQuery entity
    * downstream of: EVENT
    */
@@ -1001,26 +1070,30 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   /** 
    * ensure that a given image lies within the current viewport
    * @param {int} seq image sequence number
+   * @param {int} scroll offset to seq image [default: 0]
    * downstream of: EVENT
    * @return {object} jQuery deferred
    */
-  this['setScrollPosition'] = function(seq) {
+  this['setScrollPosition'] = function(seq, offseq) {
     var jqEnt = $('#seq-'+seq);
-      // if we found the cell
+    if (offseq == undefined) {
+      offseq = 0;
+    }
+    // if we found the cell
     if (jqEnt.length) {
-      if (!this.isVisible(jqEnt, true)) {
+      // if (!this.isVisible(jqEnt, true)) {
         if (this.getDirection() == 'x') {
           // get coordinate of selected image's cell
           position = jqEnt.offset();
-          return this.fire_scrollUpdate(position.left, 0);
+          return this.fire_scrollUpdate(position.left + offseq, 0);
         } else {
           position = jqEnt.offset();
-          return this.fire_scrollUpdate(0, position.top);
+          return this.fire_scrollUpdate(0, position.top + offseq);
         }
-      } else {
-        // manually refresh the visible images
-        return this.refreshVisibility(0);
-      }
+      // } else {
+      //   // manually refresh the visible images
+      //   return this.refreshVisibility(0);
+      // }
     }
     return $.Deferred().resolve();
   };
@@ -1034,7 +1107,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     var vis = {};
     var min, max;
     // cells' offset is a couple of pixels left of image
-    var rounding = 3;
+    var rounding = this.getGutter()+1;
     var direction = this.getDirection();
     // get screen bounds along major axis (min and max)
     if (direction == 'x') {
@@ -1256,19 +1329,15 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         jqReresable.data('loaded-height', this.height);
         // never update the ratio, but set if unset
         if (jqReresable.data('ratio') == undefined) {
-// DELETE ME
-console.log('reresingImage-'+jqEnt.data('seq')+' is updating ratio');
           jqReresable.data('ratio', this.width / this.height);
         }
-        if (debug && true) {
+        if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+': swapped out for ('+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+')');
         }
         that.refreshMetric(jqEnt);
         // flag as reres'd, no longer reresing
         jqEnt.removeClass('reresing');
         // notify promise of resolution
-// DELETE ME
-console.log('reresingImage-'+jqEnt.data('seq'));
         deferred.resolve();
       }).each(function() {
         if(this.complete) $(this).load();
@@ -2145,7 +2214,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   this['fire_hashUpdate'] = function(options, push, eventContext) {
     var hash = '', fromHash, readback;
     // start with defaults
-    var obj = { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq']};
+    var obj = this.getDefaults();
     // overwrite with current hash values
     fromHash = this.hashParse(this.getHash());
     this.merge(obj, fromHash);
@@ -2259,7 +2328,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     var breadthChanged = false;
     var seqChanged = false;
     // start with defaults
-    var obj = { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq']};
+    var obj = this.getDefaults();
     // overwrite with current hash values
     var fromHash = this.hashParse(hash);
     // check the hash values are valid, fallback to defaults if not
@@ -2268,7 +2337,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     }
     this.merge(obj, fromHash);
     // update previous values if changed
-    var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq();
+    var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq(), coffseq = this.getOffseq();
     if (cdirection != obj.direction) {
       this.previous['direction'] = cdirection;
     }
@@ -2278,6 +2347,9 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     if (cseq != obj.seq) {
       this.previous['seq'] = cseq;
     }
+    if (coffseq != obj.offseq) {
+      this.previous['offseq'] = coffseq;
+    }
     // stage 1: apply [hash] state to DOM
     // direction changes potentially affect ??? images
     directionChanged = this.setDirection(obj.direction);
@@ -2285,6 +2357,8 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     breadthChanged = this.setBreadth(obj.breadth);
     // seq changes at most only affect the image being selected
     seqChanged = this.setSeq(obj.seq);
+    // seqoffset changes at most only affect the images being viewed
+    offseqChanged = this.setOffseq(obj.offseq);
     // updates based on certain types of change
     if (breadthChanged || directionChanged) {
       // clear cell-specific dimensions and read back positions
@@ -2294,9 +2368,9 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     // find out if we should trigger other events based on this hash change
     if (this.eventQueue.actOnContext(eventContext)) {
       // update images based on what changed
-      if (seqChanged || breadthChanged || directionChanged) {
+      if (seqChanged || offseqChanged || breadthChanged || directionChanged) {
         // scroll to the selected image, which triggers refresh on all .visible images
-        return this.setScrollPosition(obj.seq).done(wrapUp);
+        return this.setScrollPosition(obj.seq, obj.offseq).done(wrapUp);
       }
     }
     return wrapUp();
@@ -2564,7 +2638,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   this['isVisible'] = function(jqEnt, partial) {
     // get coordinate of selected image's cell
     var position = jqEnt.offset();
-    var rounding = 5;
+    var rounding = this.getGutter()+1;
     // if horizontal (flow-x), scroll horizontally
     if (this.getDirection() == 'x') {
       // min is left bar (-1 for border) and a cell's width to include partials
@@ -2581,24 +2655,6 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       var max = $(document).scrollTop() + this.getViewportHeight() - rounding - (partial ? 0 : jqEnt.height());
       return (position.top >= min && position.top <= max);
     }
-  }
-
-  /**
-   * @return {int | bool} next sequence number, or false on failure
-   */
-  this['getNextSeq'] = function(seq, increment) {
-    var startingPointSeq = seq;
-    do {
-      seq = (seq+increment) % this.getTotalEntries();
-      // wrap around
-      if (seq < 0 && increment < 0) {
-        seq = this.getTotalEntries()-1;
-      }
-      if ($('#seq-'+seq).length) {
-        return seq;
-      }
-    } while (seq != this.startingPointSeq);
-    return false;
   }
 
   /**
