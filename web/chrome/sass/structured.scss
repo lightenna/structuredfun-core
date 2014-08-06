@@ -4,145 +4,35 @@
 @import "compass/reset";
 @import "base";
 
-// 1/2 distance between two cells (alley) and two pages (gutter)
+// distance between two cells (alley)
 $alley: 8px;
-$gutter: ($alley / 2);
 
 // standard colours
 $highlight: #ff00ff;
-
-// light theme colours
-$background_grid_light: #ffffff;
 $background_html_light: #ffffff;
-
-// dark theme colours
-$background_grid_dark: #222222;
-$background_html_dark: #222222;
 
 // transition points between media queries
 $wide1: 1600px;
 $wide2: 2400px;
 
-/* -------------------------------------------------------------------------*/
-/* Layout */
+// ---------------------------------------------------------------------------
+// Widgets to return real dimensions 
 
-// yardsticks to measure viewport's actual size
-.yardstick {
-  background: #0000ff;
-}
-#yardstick-x {
+#sfun-yardstick-x {
   width: 100%;
   height: 0;
 }
-#yardstick-y {
+#sfun-yardstick-y {
   width: 0;
   height: 100%;
   position: absolute;
   left: -1;
 }
-// gutterball to pass sass variables back to js
-#gutterball {
-  width: $gutter;
-  height: 0;
-}
 
-html {
-  background-color: $background_html_light;
-}
-
-/* -------------------------------------------------------------------------*/
-/* Modernizr variants */
-
-html.flexbox.flow-x {
-  overflow-x: scroll;
-
-  .sfun {
-    // row-major order
-    &.flow-x {
-      display: -webkit-flex;
-      -webkit-flex-flow: column wrap;
-      -webkit-align-items: center;
-      -webkit-justify-content: flex-start;
-      -webkit-align-content: flex-start;
-      display: flex;
-      flex-flow: column wrap;
-      align-items: center;
-      justify-content: flex-start;
-      align-content: flex-start;
-      height: 100%;
-    }
-  }
-}
-
-// flow y, only option for no-flexbox browsers
-html.flow-y, html.no-flexbox.flow-x {
-  overflow-y: scroll;
-
-  // column-major order
-  .sfun {
-    li {
-      float: left;
-    }
-  }
-}
-
-// use CSS hover if no javascript
-html.no-js {
-  .header:hover, .footer:hover {
-    width: 100%;
-  }
-}
-
-/* -------------------------------------------------------------------------*/
-/* Page */
-
-.page {
-  padding: $gutter;
-  height: 100%;
-
-  // header and footer are full-width by default.
-  .header, .footer {
-    clear: both;
-    background-color: #ff0000;
-    height: 2.0em;
-    width: 2.0em;
-    position: fixed;
-    z-index: 2;
-    overflow: hidden;
-    
-    p {
-      float: left;
-    }
-  }
-
-  .header {
-    top: 0;
-  }
-  
-  // footer not currently used
-  .footer {
-    bottom: 0;
-  }
-
-  .content {
-    height: 100%;
-    // everything in content is unhighlightable
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-}
-
-/* -------------------------------------------------------------------------*/
-/* Page */
+// ---------------------------------------------------------------------------
+// Core
 
 .sfun {
-  // offset the cell margins above and left
-  margin-top: (-($alley / 2) - $gutter);
-  margin-left: (-($alley / 2) - $gutter);
 
   &.flow-em > .cell {
     width: 20em;
@@ -261,8 +151,8 @@ html.no-js {
         }
       }
 
-      // show metric if image is visible
-      &.visible p.imgmetric {
+      // show metric if image is visible or part-visible
+      &.visible p.imgmetric, &.vispart p.imgmetric {
         display: block;
       }
       // but not if it's in the process of reresing
@@ -371,8 +261,8 @@ html.no-js {
           top: -4.0em;
           position: relative;
           width: 100px;
-          background-color: $background_html_dark;
-          color: #ffffff;
+          background-color: $background_html_light;
+          color: #000000;
           margin: 0 2.4% 0 2.7%;
           padding: 0.5em;
         }
@@ -459,38 +349,5 @@ html.no-js {
       
     }
   }
-}
-
-/* -------------------------------------------------------------------------*/
-/* Theme variants */
-
-html.theme-dark {
-  background-color: $background_html_dark;
-
-  .page .content .sfun > .cell {
-    border-color: $background_grid_dark; 
-
-    &:not(.selected) .selectreflector {
-      border-color: $background_html_dark;
-    }
-
-    a .meta {
-      background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
-      color: #ffffff;
-    }
-    
-    .directory {
-      background-image: url('/chrome/images/fullres/folder_back_dark.png');
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------*/
-/* Test suite */
-
-#qunit {
-  position: absolute;
-  // really not part of the typical page stack, well above
-  z-index: 999;
 }
 

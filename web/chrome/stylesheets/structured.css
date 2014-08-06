@@ -1,0 +1,353 @@
+/* line 17, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+
+/* line 22, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+html {
+  line-height: 1;
+}
+
+/* line 24, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+ol, ul {
+  list-style: none;
+}
+
+/* line 26, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* line 28, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+caption, th, td {
+  text-align: left;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+/* line 30, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+q, blockquote {
+  quotes: none;
+}
+/* line 103, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+q:before, q:after, blockquote:before, blockquote:after {
+  content: "";
+  content: none;
+}
+
+/* line 32, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+a img {
+  border: none;
+}
+
+/* line 116, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
+  display: block;
+}
+
+/* line 21, ../sass/structured.scss */
+#sfun-yardstick-x {
+  width: 100%;
+  height: 0;
+}
+
+/* line 25, ../sass/structured.scss */
+#sfun-yardstick-y {
+  width: 0;
+  height: 100%;
+  position: absolute;
+  left: -1;
+}
+
+/* line 37, ../sass/structured.scss */
+.sfun.flow-em > .cell {
+  width: 20em;
+  height: 20em;
+}
+/* line 44, ../sass/structured.scss */
+.sfun.flow-pc.flow-1 > .cell {
+  width: 100%;
+  height: 100%;
+}
+@media screen and (orientation: portrait) {
+  /* line 52, ../sass/structured.scss */
+  .sfun.flow-pc.flow-2 > .cell {
+    width: 50%;
+    height: 25%;
+  }
+  /* line 57, ../sass/structured.scss */
+  .sfun.flow-pc.flow-4 > .cell {
+    width: 25%;
+    height: 12.5%;
+  }
+  /* line 62, ../sass/structured.scss */
+  .sfun.flow-pc.flow-8 > .cell {
+    width: 12.5%;
+    height: 6.25%;
+  }
+}
+@media screen and (orientation: landscape) and (max-width: 1600px) {
+  /* line 71, ../sass/structured.scss */
+  .sfun.flow-pc.flow-2 > .cell {
+    width: 25%;
+    height: 50%;
+  }
+  /* line 76, ../sass/structured.scss */
+  .sfun.flow-pc.flow-4 > .cell {
+    width: 12.5%;
+    height: 25%;
+  }
+  /* line 81, ../sass/structured.scss */
+  .sfun.flow-pc.flow-8 > .cell {
+    width: 6.25%;
+    height: 12.5%;
+  }
+}
+@media screen and (orientation: landscape) and (min-width: 1601px) and (max-width: 2400px) {
+  /* line 90, ../sass/structured.scss */
+  .sfun.flow-pc.flow-2 > .cell {
+    width: 16.66667%;
+    height: 50%;
+  }
+  /* line 95, ../sass/structured.scss */
+  .sfun.flow-pc.flow-4 > .cell {
+    width: 8.33333%;
+    height: 25%;
+  }
+  /* line 100, ../sass/structured.scss */
+  .sfun.flow-pc.flow-8 > .cell {
+    width: 4.16667%;
+    height: 12.5%;
+  }
+}
+@media screen and (orientation: landscape) and (min-width: 2400px) {
+  /* line 109, ../sass/structured.scss */
+  .sfun.flow-pc.flow-2 > .cell {
+    width: 12.5%;
+    height: 50%;
+  }
+  /* line 114, ../sass/structured.scss */
+  .sfun.flow-pc.flow-4 > .cell {
+    width: 6.25%;
+    height: 25%;
+  }
+  /* line 119, ../sass/structured.scss */
+  .sfun.flow-pc.flow-8 > .cell {
+    width: 3.125%;
+    height: 12.5%;
+  }
+}
+/* line 125, ../sass/structured.scss */
+.sfun.flow-pc > .cell {
+  text-align: center;
+  overflow: hidden;
+}
+/* line 131, ../sass/structured.scss */
+.sfun.flow-pc > .cell p.imgmetric {
+  line-height: 1.0em;
+  position: absolute;
+  z-index: 1;
+  font-size: 0.6em;
+  white-space: nowrap;
+  display: none;
+}
+/* line 139, ../sass/structured.scss */
+.sfun.flow-pc > .cell p.imgmetric .size, .sfun.flow-pc > .cell p.imgmetric .perc {
+  display: none;
+}
+/* line 143, ../sass/structured.scss */
+.sfun.flow-pc > .cell p.imgmetric.super {
+  background-color: #009900;
+  color: #BBFFBB;
+}
+/* line 148, ../sass/structured.scss */
+.sfun.flow-pc > .cell p.imgmetric.sub {
+  background-color: #990000;
+  color: #FFBBBB;
+}
+/* line 155, ../sass/structured.scss */
+.sfun.flow-pc > .cell.visible p.imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
+  display: block;
+}
+/* line 159, ../sass/structured.scss */
+.sfun.flow-pc > .cell.reresing p.imgmetric {
+  display: none;
+}
+/* line 164, ../sass/structured.scss */
+.sfun.flow-pc > .cell .selectreflector {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border: 1px solid white;
+}
+/* line 172, ../sass/structured.scss */
+.sfun.flow-pc > .cell.selected .selectreflector {
+  border-color: magenta;
+}
+/* line 176, ../sass/structured.scss */
+.sfun.flow-pc > .cell a {
+  position: relative;
+  display: block;
+  height: 100%;
+  width: 100%;
+  text-decoration: none;
+  font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
+  margin: 8px;
+}
+/* line 189, ../sass/structured.scss */
+.sfun.flow-pc > .cell a > img.x-bound {
+  position: relative;
+  width: 100%;
+  top: 50%;
+  transform: translate(0, -50%);
+  -ms-transform: translate(0, -50%);
+  -webkit-transform: translate(0, -50%);
+}
+/* line 199, ../sass/structured.scss */
+.sfun.flow-pc > .cell a > img.y-bound {
+  height: 100%;
+}
+/* line 204, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .meta {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8));
+  color: #000000;
+  height: 8em;
+  text-align: left;
+  left: 50%;
+  margin-left: -50%;
+  width: 100%;
+  font-size: 0.8em;
+  opacity: 0;
+  transition: opacity 0.3s ease-out 0s;
+}
+/* line 223, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .meta .base {
+  position: absolute;
+  bottom: 0;
+}
+/* line 228, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .meta .base span {
+  margin: 1.0em;
+  display: block;
+}
+/* line 232, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .meta .base span.icons {
+  height: 2.0em;
+}
+/* line 236, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .meta .base span.caption {
+  font-weight: bold;
+}
+/* line 240, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .meta .base span.byline {
+  margin-top: .5em;
+}
+/* line 248, ../sass/structured.scss */
+.sfun.flow-pc > .cell a:hover .meta {
+  opacity: 1;
+  transition: opacity 0.3s ease-in 0s;
+}
+/* line 256, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .title {
+  opacity: 0.7;
+  filter: alpha(opacity=70);
+  /* For IE8 and earlier */
+  height: 0;
+  line-height: 0;
+  top: -4.0em;
+  position: relative;
+  width: 100px;
+  background-color: white;
+  color: #000000;
+  margin: 0 2.4% 0 2.7%;
+  padding: 0.5em;
+}
+/* line 271, ../sass/structured.scss */
+.sfun.flow-pc > .cell a div.directory {
+  background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
+  background-size: 100% 100%;
+  width: 100%;
+  height: 100%;
+  display: block;
+  text-align: right;
+  position: relative;
+  /**
+   * disabled: currently aligning right
+  .preview-1, .preview-3 {
+    // used for text-align: left in parent
+    margin-left: 6%;
+  }
+   */
+}
+/* line 280, ../sass/structured.scss */
+.sfun.flow-pc > .cell a div.directory .overlay {
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  z-index: 1;
+}
+/* line 290, ../sass/structured.scss */
+.sfun.flow-pc > .cell a div.directory .preview {
+  width: 42.7%;
+  height: 38%;
+  position: relative;
+  margin-right: 3%;
+}
+/* line 305, ../sass/structured.scss */
+.sfun.flow-pc > .cell a div.directory .preview-2, .sfun.flow-pc > .cell a div.directory .preview-4 {
+  margin-right: 6%;
+}
+/* line 310, ../sass/structured.scss */
+.sfun.flow-pc > .cell a div.directory .preview-1, .sfun.flow-pc > .cell a div.directory .preview-2 {
+  top: 13%;
+}
+/* line 315, ../sass/structured.scss */
+.sfun.flow-pc > .cell a div.directory .preview-3, .sfun.flow-pc > .cell a div.directory .preview-4 {
+  top: 16.4%;
+}
+/* line 324, ../sass/structured.scss */
+.sfun.flow-pc > .cell div.dummy1 {
+  height: 50%;
+}
+/* line 328, ../sass/structured.scss */
+.sfun.flow-pc > .cell a.directory-container {
+  display: inline-block;
+  width: 100%;
+  text-align: right;
+  margin-top: -37.5%;
+}
+/* line 335, ../sass/structured.scss */
+.sfun.flow-pc > .cell a.directory-container .dummy2 {
+  padding-top: 75%;
+}
+/* line 340, ../sass/structured.scss */
+.sfun.flow-pc > .cell a.directory-container div.directory {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
