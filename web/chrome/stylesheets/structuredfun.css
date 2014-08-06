@@ -1,0 +1,121 @@
+/* line 25, ../sass/structuredfun.scss */
+.yardstick {
+  background: #0000ff;
+}
+
+/* line 29, ../sass/structuredfun.scss */
+#gutterball {
+  width: 4px;
+  height: 0;
+}
+
+/* line 34, ../sass/structuredfun.scss */
+html {
+  background-color: white;
+}
+
+/* line 41, ../sass/structuredfun.scss */
+html.flexbox.flow-x {
+  overflow-x: scroll;
+}
+/* line 46, ../sass/structuredfun.scss */
+html.flexbox.flow-x .sfun.flow-x {
+  display: -webkit-flex;
+  -webkit-flex-flow: column wrap;
+  -webkit-align-items: center;
+  -webkit-justify-content: flex-start;
+  -webkit-align-content: flex-start;
+  display: flex;
+  flex-flow: column wrap;
+  align-items: center;
+  justify-content: flex-start;
+  align-content: flex-start;
+  height: 100%;
+}
+
+/* line 63, ../sass/structuredfun.scss */
+html.flow-y, html.no-flexbox.flow-x {
+  overflow-y: scroll;
+}
+/* line 68, ../sass/structuredfun.scss */
+html.flow-y .sfun li, html.no-flexbox.flow-x .sfun li {
+  float: left;
+}
+
+/* line 76, ../sass/structuredfun.scss */
+html.no-js .header:hover, html.no-js .footer:hover {
+  width: 100%;
+}
+
+/* line 84, ../sass/structuredfun.scss */
+.page {
+  padding: 4px;
+  height: 100%;
+}
+/* line 89, ../sass/structuredfun.scss */
+.page .header, .page .footer {
+  clear: both;
+  background-color: #ff0000;
+  height: 2.0em;
+  width: 2.0em;
+  position: fixed;
+  z-index: 2;
+  overflow: hidden;
+}
+/* line 98, ../sass/structuredfun.scss */
+.page .header p, .page .footer p {
+  float: left;
+}
+/* line 103, ../sass/structuredfun.scss */
+.page .header {
+  top: 0;
+}
+/* line 108, ../sass/structuredfun.scss */
+.page .footer {
+  bottom: 0;
+}
+/* line 112, ../sass/structuredfun.scss */
+.page .content {
+  height: 100%;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* line 127, ../sass/structuredfun.scss */
+.sfun {
+  margin-top: -8px;
+  margin-left: -8px;
+}
+
+/* line 136, ../sass/structuredfun.scss */
+html.theme-dark {
+  background-color: #222222;
+}
+/* line 141, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell:not(.selected) .selectreflector {
+  border-color: #222222;
+}
+/* line 146, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell a .meta {
+  background-image: linear-gradient(rgba(34, 34, 34, 0), rgba(34, 34, 34, 0.8));
+  color: #ffffff;
+}
+/* line 150, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell a .title {
+  background-color: #222222;
+  color: #ffffff;
+}
+/* line 156, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell .directory {
+  background-image: url("/chrome/images/fullres/folder_back_dark.png");
+}
+
+/* line 165, ../sass/structuredfun.scss */
+#qunit {
+  position: absolute;
+  z-index: 999;
+}

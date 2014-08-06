@@ -1,9 +1,28 @@
 
+* high seq clicks (b2 to b1) jump back to seq 0
+  + tricky
+    + breadth change clears cell width/heights
+      + which is good because we don't know where they're going to be
+    + if we go to where seq 10 is now
+      + the cellsResize will move it
+        + so we end up seeing seq > 10
+    + this also triggers hashChange trickle from seq=10 to seq=12
+      + because 10 is only partly visible (vispart)
+--o--
+* can replicate exactly same issue
+  + jump to high seq
+    + then left arrow down through seqs
+      + spacing whack
+        + so we end up in the wrong place
+
 * use offseq to maintain the relative position of the current seq image
+  + fun to watch it grow and shrink
 
 * forward scroll newbies
   + newly visible images are coming into view too far apart
     + better to assume a narrower cell width then correct it
+    + take an average major
+      + maintain everytime we shrink a cell
 
 * end event is resolving slowly
   + only after 10s expiry
@@ -1216,3 +1235,47 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + old (but still visible) images lose their perc
     + it's because they're being left in a 'reresing' state
 
+* introduce idea of partial visibility
+  + sometimes we want the test to include 'partials'
+    + e.g. 'visibles'
+  + sometimes not
+  + suggest we introduce 'partial'
+    + rename nearvis as visnear
+    + introduce vispart
+    = it is now possible for there to be no 'visible' images
+      + only vispart, but that's ok
+
+* split structured.css from structuredfun.css
+
+* reload on page with #!seq=0 (or just #!)
+  - doesn't load images
+    + seems to only load images if seq > 0
+
+* reload on page with #!seq=0 (or just #!)
+  - jumps to seq 5
+  + even on mas it's doing to same thing (0->2)
+
+* can't select seq for vispart
+  + i.e. seq > visible
+
+* vispart doesn't work on first two images
+
+* jump straight to cell
+  + e.g. seq=17
+    + this is being killed by the scroll0,0 browser glitch
+  + event order
+    + handler_scrolled to #seq-17 (cells unresized)
+    + handler_hashChanged seq=17
+    + handler_scrolled to 0,0
+    + handler_hashChanged seq=17 (doesn't see anything changed)
+      + shouldn't do a refreshVisibility because we're looking at the wrong range
+      + instead we need to make it realise seq has changed
+        = done with a forceUpdate
+  + at handler_scrolled to 0,0
+    + need to default-out all the state
+* a [breadth change] click seems to fire hash change seq=10
+    + then fire hash change seq=10&breadth=1
+
+* jump straight to cell for b1
+  + e.g. breadth=1&seq=17
+  = also fixed with forceUpdate
