@@ -1125,20 +1125,38 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.setScrollPosition = function(seq, offseq) {
     var jqEnt = $('#seq-'+seq);
+    var direction = this.getDirection();
     if (offseq == undefined) {
       offseq = 0;
     }
     // if we found the cell
     if (jqEnt.length) {
-      // if cell is visible, do nothing; if part visible, scroll
+      // get the cell's position
+      var position = jqEnt.offset();
+      var fireScroll = false;
+      // if cell is not visible or only part visible, scroll
       if (!this.isVisible(jqEnt, false)) {
-        if (this.getDirection() == 'x') {
-          // get coordinate of selected image's cell
-          var position = jqEnt.offset();
-          return this.fire_scrollUpdate(position.left + offseq, 0);
+        fireScroll = true;
+      } else {
+        var scroll = { 'top': $(window).scrollTop(), 'left': $(window).scrollLeft() };
+        // check to see if our current scroll position reflects the target position
+        if (direction == 'x') {
+          if (position.left - offseq != scroll.left) {
+            fireScroll = true;
+          }
         } else {
-          var position = jqEnt.offset();
-          return this.fire_scrollUpdate(0, position.top + offseq);
+          if (position.top - offseq != scroll.top) {
+            fireScroll = true;
+          }
+        }
+      }
+      // fire a scroll event if one is needed
+      if (fireScroll) {
+        if (direction == 'x') {
+          // get coordinate of selected image's cell
+          return this.fire_scrollUpdate(position.left - offseq, 0);
+        } else {
+          return this.fire_scrollUpdate(0, position.top - offseq);
         }
       } else {
         // manually refresh the visible images
@@ -2413,9 +2431,6 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       // return via resolve
       return that.eventQueue.resolve(eventContext);
     }
-    // process elements that have to remain consistent
-    var breadthChanged = false;
-    var seqChanged = false;
     // start with defaults
     var obj = this.getDefaults();
     // overwrite with current hash values
@@ -2441,13 +2456,13 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     }
     // stage 1: apply [hash] state to DOM
     // direction changes potentially affect ??? images
-    directionChanged = this.setDirection(obj.direction);
+    var directionChanged = this.setDirection(obj.direction);
     // breadth changes potentially affect all images
-    breadthChanged = this.setBreadth(obj.breadth);
+    var breadthChanged = this.setBreadth(obj.breadth);
     // seq changes at most only affect the image being selected
-    seqChanged = this.setSeq(obj.seq);
+    var seqChanged = this.setSeq(obj.seq);
     // seqoffset changes at most only affect the images being viewed
-    offseqChanged = this.setOffseq(obj.offseq);
+    var offseqChanged = this.setOffseq(obj.offseq);
     // updates based on certain types of change
     if (breadthChanged || directionChanged || forceChange) {
       // clear cell-specific dimensions and read back positions

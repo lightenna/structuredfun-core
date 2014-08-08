@@ -1,5 +1,17 @@
 
+* straight jump from high-seq to low-seq (not reload)
+  + seems like we're catching the position too late
+  + or not locking the position early enough
+
 * offseq breaks preseq fix
+
+* jumping to offseq creates different results to reloading to offseq
+  + like before, offseq gets kicked right by preseq images loading
+
+* staged scroll should go row-by-row or column-by-column
+  + also centre using offseq=centre
+    + a number should preserve the number of scroll
+      + but centre is more meaningful
 
 * page up/down needs to work on viewport pages
   + can't rely on jumping a certain number of images forward/back
@@ -1304,4 +1316,6 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
       + so we need a negative spacer
     + best done as a negative left/top on the ul.sfun
   = pretty good, bit of jitter but ok
+
+* trigger redraw on offseq change
 
