@@ -1,28 +1,15 @@
 
-* high seq clicks (b2 to b1) jump back to seq 0
-  + tricky
-    + breadth change clears cell width/heights
-      + which is good because we don't know where they're going to be
-    + if we go to where seq 10 is now
-      + the cellsResize will move it
-        + so we end up seeing seq > 10
-    + this also triggers hashChange trickle from seq=10 to seq=12
-      + because 10 is only partly visible (vispart)
---o--
-* can replicate exactly same issue
-  + jump to high seq
-    + then left arrow down through seqs
-      + spacing whack
-        + so we end up in the wrong place
+* offseq breaks preseq fix
+
+* page up/down needs to work on viewport pages
+  + can't rely on jumping a certain number of images forward/back
+    + because they could be really narrow
 
 * use offseq to maintain the relative position of the current seq image
   + fun to watch it grow and shrink
 
-* forward scroll newbies
-  + newly visible images are coming into view too far apart
-    + better to assume a narrower cell width then correct it
-    + take an average major
-      + maintain everytime we shrink a cell
+* sfun button needs to go into the corner
+  + been pushed out by some padding/margin
 
 * end event is resolving slowly
   + only after 10s expiry
@@ -80,6 +67,16 @@
       - not after the reres has completed
     + I can see cases where we might want both of those
       + but for now, concentrate on the images loading
+
+* forward scroll newbies
+  + newly visible images are coming into view too far apart
+    + better to assume a narrower cell width then correct it
+    + take an average major
+      + maintain everytime we shrink a cell
+
+* directories as full cell multi-image panes
+  + basically like little microcosms of the whole screen
+    + play with a border to make them look different
 
 * selector doesn't show on two sides
   + need to show all the way around the selected image
@@ -1279,3 +1276,32 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * jump straight to cell for b1
   + e.g. breadth=1&seq=17
   = also fixed with forceUpdate
+
+* high seq clicks (b2 to b1) jump back to seq 0
+  + tricky
+    + breadth change clears cell width/heights
+      + which is good because we don't know where they're going to be
+    + if we go to where seq 10 is now
+      + the cellsResize will move it
+        + so we end up seeing seq > 10
+    + this also triggers hashChange trickle from seq=10 to seq=12
+      + because 10 is only partly visible (vispart)
+--o--
+* can replicate exactly same issue
+  + jump to high seq
+    + then left arrow down through seqs
+      + spacing whack
+        + so we end up in the wrong place
+  + need to work out exactly what's happening
+    + because preseq images don't appear where I'd expect them
+--o--
+* develop a preseq spacer
+  + as we're resizing cells to the left/above seq
+    + insert a spacer at 0
+      + then yank it out and move the scrollbar to compensate
+  + a spacer may not work
+    + because sometimes the preseqs are _wider_ than before
+      + so we need a negative spacer
+    + best done as a negative left/top on the ul.sfun
+  = pretty good, bit of jitter but ok
+

@@ -33,6 +33,10 @@ $wide2: 2400px;
 // Core
 
 .sfun {
+  // setup container to allow for preseq cell size tweaking
+  position: relative;
+  top: 0;
+  left: 0;
 
   &.flow-em > .cell {
     width: 20em;
