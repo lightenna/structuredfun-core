@@ -157,7 +157,7 @@ $('.endkey').click(function(event) {
    * @param  {array} bucket collection of cells
    * @return {object} jQuery deferred with value of minorTotal
    */
-  this.bucketTotalMinor = function(bucket) {
+  this.cellResizeTotalMinor = function(bucket) {
     var that = this;
     var deferred = $.Deferred();
     var defs = [];
@@ -168,7 +168,7 @@ $('.endkey').click(function(event) {
         var jqEnt = bucket[i];
         var jqBoundable = jqEnt.find('.boundable');
         if (debug && false) {
-          console.log('bucketTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
+          console.log('cellResizeTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
         }
         // calculate the normal minor based on ratio
         normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() * jqBoundable.data('ratio'));
@@ -198,7 +198,7 @@ $('.endkey').click(function(event) {
    * @param  {real} minorTotal sum of all the minor axes
    * @return {real} maxMajor
    */
-  this.bucketResizeMinor = function(bucket, minorTotal) {
+  this.cellResizeBucketMinor = function(bucket, minorTotal) {
     var direction = this.getDirection();
     var viewportMinor = (direction == 'x' ? this.getViewportHeight() : this.getViewportWidth());
     // change the cell minor according to proportion of total
@@ -228,7 +228,7 @@ $('.endkey').click(function(event) {
       var newMinor = proportion * viewportMinor / 100;
       maxMajor = Math.max(maxMajor, (direction == 'x' ? newMinor * ratio : newMinor / ratio));
       if (debug && false) {
-        console.log('bucketResizeMinor-'+jqEnt.data('seq')+' minor['+normalMinor+'] major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+']');
+        console.log('cellResizeBucketMinor-'+jqEnt.data('seq')+' minor['+normalMinor+'] major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+']');
       }
     }
     return maxMajor;
@@ -239,7 +239,7 @@ $('.endkey').click(function(event) {
    * @param  {array} bucket collection of cells
    * @param  {real} maxMajor the largest major axis
    */
-  this.bucketResizeMajor = function(bucket, maxMajor) {
+  this.cellResizeBucketMajor = function(bucket, maxMajor) {
     var direction = this.getDirection();
     var viewportMajor = (direction == 'x' ? this.getViewportWidth() : this.getViewportHeight());
     // calculate the new percentage major, bound (0-100), round (1DP)
@@ -251,7 +251,7 @@ $('.endkey').click(function(event) {
       jqEnt.css((direction == 'x' ? 'width': 'height'), (false ? absolute+'px' : proportion +'%'));
       jqEnt.addClass('cell-specific');
       if (debug && false) {
-        console.log('bucketResizeMajor-'+jqEnt.data('seq')+' major['+proportion+'%]');
+        console.log('cellResizeBucketMajor-'+jqEnt.data('seq')+' major['+proportion+'%]');
       }
     }
     // make all images y-bound, as it's a simpler alignment than
@@ -263,7 +263,38 @@ $('.endkey').click(function(event) {
   }
 
   /**
-   * refresh the visible cell widths by minor axis
+   * realign a given cell with its initial position
+   * @param  {object} jqSelected jQuery selected image
+   * @param  {real} initial selected major absolute coord
+   * @param  {boolean} useScroll true to align using scrollbar, false using container position
+   */
+  this.cellResizeRealignMajor = function(jqSelected, initial, useScroll) {
+    var direction = this.getDirection();
+    var coordabs = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
+    var diff = initial - coordabs;
+    var csel = $(this.containerSelector);
+    var property = (direction == 'x' ? 'left' : 'top');
+    // get the container's current csel offset (without 'px')
+    var cselOffset = parseInt(csel.css(property));
+    if (useScroll) {
+      var scrolldiff = cselOffset + diff;
+      // create a null context to numb the event listener
+      var localContext = this.eventQueue.push({
+        'replaceEvent': function(){},
+        'comment': 'localContext for cellResizeRealignMajor, numb listener'
+      });
+      // stop using container
+      csel.css(property, 0);
+      // scroll instead
+      fire_scrollUpdate((direction == 'x' ? $(document).scrollLeft() - scrolldiff : 0), (direction == 'x' ? 0 : $(document).scrollTop() - scrolldiff))
+    } else {
+      // add diff to current csel offset
+      csel.css(property, cselOffset + diff);
+    }
+  }
+
+  /**
+   * refresh the visible cell sizes by minor axis then major
    * @param {object} range {first_1, last_n} range of sequence numbers to resize
    * @todo need to thoroughly analyse speed of this
    */
@@ -275,7 +306,12 @@ $('.endkey').click(function(event) {
     var direction = this.getDirection();
     var count = this.cellsCountMajor();
     var vis = this.getVisibleBoundaries();
+    var jqSelected = $(this.containerSelector+' .selectablecell.selected');
+    // record the initial absolute coord of the selected image
+    var selectedMajorCoordabsInitial = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
     var wrapUp = function() {
+      // now that all cells resized, realign using scrollbar instead of container position
+      that.cellResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, true);
       // update vistable
       // @todo should do this more selectively
       that.visTableMajor.updateAll(direction, $(that.containerSelector+' .selectablecell'));
@@ -290,22 +326,23 @@ $('.endkey').click(function(event) {
     if (typeof(range) == 'undefined') {
       range = this.calcVisnear(vis.first, vis.last);
     }
-    // iterate across visible and visnear(post) cells
-    for (var i = vis.first ; i <= range.last_n ; ++i) {
+    // iterate across visible and visnear cells
+    for (var i = range.first_1 ; i <= range.last_n ; ++i) {
       var jqEnt = $('#seq-'+i);
       // only include resizeablecells in the bucket
       if (!jqEnt.hasClass('resizeablecell')) {
         continue;
       }
-      // pull out the major axis coord
+      // pull out the major axis coord (absolute and relative to viewport edge)
       var pos = jqEnt.offset();
-      var coord = (direction == 'x' ? pos.left : pos.top);
-      // if we don't have a bucket for this coord, create one
-      if (!(cells[coord] instanceof Array)) {
-        cells[coord] = [];
+      var coordabs = (direction == 'x' ? pos.left : pos.top);
+      var coordrel = coordabs - (direction == 'x' ? $(document).scrollLeft() : $(document).scrollTop());
+      // if we don't have a bucket for this absolute coord, create one
+      if (!(cells[coordabs] instanceof Array)) {
+        cells[coordabs] = [];
       }
       // add jqEnt into bucket
-      cells[coord][cells[coord].length] = jqEnt;
+      cells[coordabs][cells[coordabs].length] = jqEnt;
     }
     // work through all visible buckets
     for (var bucket in cells) {
@@ -317,11 +354,13 @@ $('.endkey').click(function(event) {
       // function closure to wrap value of bucket
       (function(bucket, def) {
         // get ratio and total
-        this.bucketTotalMinor(cells[bucket]).done(function(minorTotal) {
+        this.cellResizeTotalMinor(cells[bucket]).done(function(minorTotal) {
           // resize minor axis
-          maxMajor = that.bucketResizeMinor(cells[bucket], minorTotal);
-          // // resize major axis
-          that.bucketResizeMajor(cells[bucket], maxMajor);
+          maxMajor = that.cellResizeBucketMinor(cells[bucket], minorTotal);
+          // resize major axis
+          that.cellResizeBucketMajor(cells[bucket], maxMajor);
+          // realign selected against initial position
+          that.cellResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, false);
           def.resolve();
         });
       })(bucket, defs[defid]);
