@@ -48,6 +48,7 @@ window.sfun = (function($, undefined) {
     // initialise vars
     this.setScreenPcUsing = 'pc';
     $(document).ready(function() {
+    // $(window).on('beforeunload', function() {
       // process state in page HTML next
       that.previous['direction'] = that.default['direction'] = that.getDirection();
       that.previous['breadth'] = that.default['breadth'] = that.getBreadth();
@@ -71,8 +72,8 @@ window.sfun = (function($, undefined) {
           var forceChange = true;
           // manually jump back to the right place by firing handler_hashChanged and forcing change
           that.handler_hashChanged(that.getHash(), forceChange).done(function() {
-            // need to force back to correct position
-            that.setScrollPosition(that.getSeq(), that.getOffseq());
+// DELETE ME
+alert('handler_hashChanged() done in nullify scroll0,0 replaceEvent');
           });
         }
       });
@@ -286,7 +287,16 @@ $('.endkey').click(function(event) {
       // stop using container
       csel.css(property, 0);
       // scroll instead
-      fire_scrollUpdate((direction == 'x' ? $(document).scrollLeft() - scrolldiff : 0), (direction == 'x' ? 0 : $(document).scrollTop() - scrolldiff))
+      var oldLeft = $(document).scrollLeft();
+      var oldTop = $(document).scrollTop();
+      // don't need to do using hashUpdate because we're keeping offseq where it is (probably 0)
+      var newLeft = (direction == 'x' ? oldLeft - scrolldiff : 0);
+      var newTop = (direction == 'x' ? 0 : oldTop - scrolldiff);
+      // if we're changing position, fire scroll
+      if ((newLeft != oldLeft) || (newTop != oldTop)) {
+        // note: async scroll will not expose new cells, only realign without container offset
+        this.fire_scrollUpdate(newLeft, newTop, localContext);
+      }
     } else {
       // add diff to current csel offset
       csel.css(property, cselOffset + diff);
@@ -306,9 +316,14 @@ $('.endkey').click(function(event) {
     var direction = this.getDirection();
     var count = this.cellsCountMajor();
     var vis = this.getVisibleBoundaries();
+    var selectedMajorCoordabsInitial = 0;
     var jqSelected = $(this.containerSelector+' .selectablecell.selected');
-    // record the initial absolute coord of the selected image
-    var selectedMajorCoordabsInitial = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
+    if (!jqSelected.length) {
+      // if we can't find the selected image, just use the first
+      jqSelected = $(this.containerSelector+' .selectablecell');
+    }
+    // record the initial absolute coord of the image
+    selectedMajorCoordabsInitial = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
     var wrapUp = function() {
       // now that all cells resized, realign using scrollbar instead of container position
       that.cellResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, true);
@@ -2227,7 +2242,6 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
           if (typeof(eventContext.replaceEvent) != 'undefined' && eventContext.replaceEvent) {
             // process by calling replaceEvent instead of processing this event directly
             eventContext.replaceEvent.call(this);
-            this.resolve(eventContext);
             // flag that we're no longer going to process this event
             return false;
           }
@@ -2374,8 +2388,8 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   this.fire_scrollUpdate = function(left, top, eventContext) {
     var that = this;
     // crop top and left against origin (0) and max scroll position (documentWidth - viewportWidth)
-    var croppedLeft = Math.max(0, Math.min(left, $(document).width() - this.getViewportWidth()));
-    var croppedHeight = Math.max(0, Math.min(top, $(document).height() - this.getViewportHeight()));
+    var croppedLeft = this.round(Math.max(0, Math.min(left, $(document).width() - this.getViewportWidth())), 0);
+    var croppedHeight = this.round(Math.max(0, Math.min(top, $(document).height() - this.getViewportHeight())), 0);
     // create a context, but parent it only if eventContext is not undefined
     var localContext = this.eventQueue.pushOrMerge({
       'key': 'scroll:'+'x='+croppedLeft+'&y='+croppedHeight,
@@ -2384,7 +2398,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     }, eventContext);
     // fire event: change the scroll position (comes through as single event)
     $(document).scrollLeft(croppedLeft);
-    $(document).scrollTop(croppedHeight);
+    // $(document).scrollTop(croppedHeight);
     // localContext is resolved by handler_scrolled
     return localContext.deferred;
   };
@@ -2426,7 +2440,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     var eventContext = this.eventQueue.getOrInvent({
       'key': 'hash:'+hash,
       'comment': 'invented context for handler_hashChanged'
-    }, true);
+    });
     var wrapUp = function() {
       // return via resolve
       return that.eventQueue.resolve(eventContext);
@@ -2484,7 +2498,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   }
 
   /**
-   * process events generated by window scrolling
+   * process or buffer events generated by window scrolling
    * @return {object} jQuery deferred
    * downstream of: EVENT scroll
    */
@@ -2501,36 +2515,45 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     }
     // process this event if we're meant to
     if (this.eventQueue.actOnContext(eventContext)) {
-      // don't process scroll event every time, buffer (dump duplicates)
-      this.buffer('handler_scrolled_eventProcess',
-      // function to execute if/when we are processing this event
-      function() {
-        // invert deltas to match scroll wheel
-        if (this.scroll_lastX == undefined) {
-          event.deltaX = 0 - sx;
-          event.deltaY = 0 - sy;
-        } else {
-          event.deltaX = 0 - (sx - this.scroll_lastX);
-          event.deltaY = 0 - (sy - this.scroll_lastY);
-        }
-        event.deltaFactor = 1;
-        // remember scroll coords for next time
-        this.scroll_lastX = sx;
-        this.scroll_lastY = sy;
-        if (debug && false) {
-          console.log('scroll dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
-        }
-        // see if scroll has made any new images visible
-        var scrolldir = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 0 - event.deltaX : 0 - event.deltaY);
-        return this.refreshVisibility(scrolldir).done(wrapUp);
-      },
-      // function to execute if we're dumping this event
-      wrapUp, 250);
+// DELETE ME disabled buffering for event testing      // // don't process scroll event every time, buffer (dump duplicates)
+      // this.buffer('handler_scrolled_eventProcess',
+      // // function to execute if/when we are processing this event
+      // function() {
+        return that.handler_scrolled_eventProcess(event, sx, sy).done(wrapUp);
+      // },
+      // // function to execute if we're dumping this event
+      // wrapUp, 250);
     } else {
       // if we're not acting on the context, wrap it up
       return wrapUp();
     }
   }
+
+  /**
+   * actually process the events
+   * @return {object} jQuery deferred
+   * downstream of: EVENT scroll
+   */
+  this.handler_scrolled_eventProcess = function(event, sx, sy) {
+    // invert deltas to match scroll wheel
+    if (this.scroll_lastX == undefined) {
+      event.deltaX = 0 - sx;
+      event.deltaY = 0 - sy;
+    } else {
+      event.deltaX = 0 - (sx - this.scroll_lastX);
+      event.deltaY = 0 - (sy - this.scroll_lastY);
+    }
+    event.deltaFactor = 1;
+    // remember scroll coords for next time
+    this.scroll_lastX = sx;
+    this.scroll_lastY = sy;
+    if (debug && false) {
+      console.log('scroll dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
+    }
+    // see if scroll has made any new images visible
+    var scrolldir = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 0 - event.deltaX : 0 - event.deltaY);
+    return this.refreshVisibility(scrolldir);
+  };
 
   /**
    * process events generated by mouse wheel scrolling
@@ -2589,7 +2612,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     var eventContext = this.eventQueue.getOrInvent({
       'key': 'keypress:'+'key='+event.which,
       'comment': 'invented context for handler_keyPressed'
-    }, true);
+    });
     var wrapUp = function() {
       return that.eventQueue.resolve(eventContext);
     }

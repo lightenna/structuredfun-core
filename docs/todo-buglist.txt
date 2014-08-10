@@ -1,7 +1,68 @@
 
+* it's time to tear out and refactor the hash changes
+  + start by pulling out the init stuff
+    + just attach the hash listener and see what it's like
+
+* cold load seq=1 doesn't draw anything
+
+* re-enable scroll buffering
+
+* new idea
+  + always draw page-0
+    + then jump up to page-X
+
 * straight jump from high-seq to low-seq (not reload)
   + seems like we're catching the position too late
   + or not locking the position early enough
+  + there are two routes through a handler_hashChanged
+    + setScrollPosition, which triggers other stuff
+    + refreshVisibility
+  + it's not the clearest split
+    + really need to nail those two cases
+      + and come up with a clearer definition of how they're different
+  + test cases
+
+    + cold load 0 = fine
+      + handler_hashChanged(seq=0 or '') from init()
+        + noChanges:refreshVisibility
+          + setVisibleAll
+          + refreshSelected
+
+    + cold load low seq = fine
+      1 handler_hashChanged(seq=6) from init()
+        + seqChanged:setScrollPosition(931,0)
+     2a handler_scrolled(0,0)
+      3 handler_hashChanged(seq=6, forceUpdate)
+     2b handler_scrolled(931,0)
+      4 handler_scrolled_eventProcess(931)
+        + images appear
+      5 handler_scrolled(557)
+      6 handler_scrolled_eventProcess(557)
+
+    + cold load high seq = fine
+      1 handler_hashChanged(seq=208) from init()
+        + seqChanged:setScrollPosition(32418,0)
+    [2a]handler_scrolled(0,0)
+    [2b]handler_scrolled(32418,0)
+      3 handler_hashChanged(seq=208, forceUpdate)
+      2 handler_scrolled(32418,0)
+      4 handler_scrolled_eventProcess(32418)
+        + images appear
+      5 handler_scrolled(31919,0), nullified
+     10 nullify scroll0,0 setScrollPosition
+
+    + load 0 skip low = fine
+      + handler_hashChanged
+      + handler_scrolled
+
+    + load low skip high = workable problem
+
+    + load high skip low = same workable problem
+      1 handler_hashChanged(seq=6) from init()
+        + seqChanged:setScrollPosition(931,0)
+     2b handler_scrolled(931,0)
+        + images appear
+      3 handler_scrolled_eventProcess(931)
 
 * offseq breaks preseq fix
 
@@ -1319,3 +1380,64 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * trigger redraw on offseq change
 
+* scroll0,0 can arrive before or after scroll 32418
+  + before is fine because it manually triggers handler_hashChanged again
+  + after is a problem that means we render 0 instead of high seq
+    + also the actually scroll to 0,0 can happen in the middle of our execution
+  + need to capture the document scroll position at the same time as making the isVisible decision
+    + not quite isvisible-time
+  + seq106, 18851 + 839 = 19690
+    = postponed, ordering not clear yet
+
+* end key isn't returning at load completion
+  + it's also jittering its way down from the last screen
+  + seq 0 does now return properly
+
+* nullify scroll0,0 not resolving at the time
+  + it only gets cleaned up much later
+    + can we resolve it as soon as it's nullified?
+  + it's not that the nullified scroll0,0 event doesn't get resolved
+    + it's that the nested handler_hashChanged event doesn't
+  + there's an ordering issue
+    + sometimes the scroll0,0 comes before
+    + sometimes it comes after
+  + this could be to do with the buffering of scroll events
+    + we get a scroll0,0 and a real scroll very close together
+    + try not buffering
+      = have disabled buffering
+  + parent (scroll0,0) is resolving before child (hash:seq208)
+    + child effectively gets orphaned
+      + but child is independent of parent
+      + so it shouldn't matter
+    + handler_hashChanged times out
+      + profile every stage of the hashChanged
+      + I think it's because we end up firing two hashChangeds with the same key!
+      + doesn't seem to be an issue, but will follow
+  + could repurpose event queue as list of all outstanding (unresolved) deferreds?
+  + handler_hashChanged creates/picks up context
+    + needs to pass it down to fire_scroll to get to handler_scrolled
+      + I think that's why parenting is important
+      + don't think we need to parent
+      + because parent has a .done() waiting on the child
+        + then parent will resolve itself
+  + alsoRemove = false
+    + that way we only remove things from the event queue once they're resolved
+    + this is slightly more complicated
+      + we sort of need two queues
+        1 for unresolved events
+        2 for unhandled events
+          + these are fired events that have yet to be handled
+          + we need them to be handled only once
+            + but they may take a long time to get resolved
+            = pending
+    + make mergeOrPush look for an existing entry in the unhandled queue
+      + this is worth doing
+        + because at the moment two handlers can resolve the same single eventContext
+          + leaving some contexts unresolved
+          = come back to this
+  + I think we're creating the 0,0 scroll events
+    + example doesn't experience any 0,0 events
+      + http://www.lightenna.com/staticpages/jsfiddle/hashseq/index.html#!seq=14
+    + test: try and remove all the scrollTop calls for now
+      + didn't make a difference
+  = drowning in complexity, need to simplify
