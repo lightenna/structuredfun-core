@@ -28,16 +28,33 @@ window.sfun = (function($, undefined) {
 
   // default values for view state
   this.default = [];
-
   // the previous values for the view state (1 generation)
   this.previous = [];
-
   // ms to wait after resize event before re-bound/re-res
   this.resizeTimeout = null;
   // default selector used to select top-level container
-  this.containerSelector = '.sfun';
+  this.containerSelector = '#sfun';
   // for screenpc width/height, set using px/pc
   this.setScreenPcUsing = null;
+
+  // jquery cache
+  var $document = $(document);
+  var $window = $(window);
+  var $html = $('html');
+  var $sfun;
+  var $sfun_flow;
+  var $sfun_selectablecell;
+  var $sfun_selectablecell_first;
+  var $sfun_selectedcell = [];
+  var $sfun_selectablecell_img = [];
+  var $img = function(seq) {
+    // if we haven't yet cached the selector, or the last time it didn't exist
+    if ($sfun_selectablecell_img[seq] == undefined || !$sfun_selectablecell_img[seq].length) {
+      $sfun_selectablecell_img[seq] = $('#seq-'+seq);
+    }
+    // return cached jQuery object
+    return $sfun_selectablecell_img[seq];
+  }
 
   // ---------
   // FUNCTIONS
@@ -47,8 +64,20 @@ window.sfun = (function($, undefined) {
     var that = this;
     // initialise vars
     this.setScreenPcUsing = 'pc';
-    $(document).ready(function() {
-    // $(window).on('beforeunload', function() {
+    $document.ready(function() {
+    // $window.on('beforeunload', function() {
+      // fill in jQuery cache
+      $sfun = $(that.containerSelector);
+      $sfun_flow = $(that.containerSelector+'.flow');
+      $sfun_selectablecell = $(that.containerSelector+' > .selectablecell');
+      $sfun_selectablecell_first = $(that.containerSelector+' > .selectablecell:first');
+      // render Mustache templates
+      $sfun_selectablecell.find('img').each(function() {
+        var template = $(this).data('template-src');
+        if (template != undefined) {
+          Mustache.parse(template);
+        }
+      });
       // process state in page HTML next
       that.previous['direction'] = that.default['direction'] = that.getDirection();
       that.previous['breadth'] = that.default['breadth'] = that.getBreadth();
@@ -64,25 +93,12 @@ window.sfun = (function($, undefined) {
       that.setDirection(that.getDirection());
       // find all screenpc elements, extract pc and store as data- attribute
       that.cellsInit();
-      // on page load, browser will scroll to the top, prepare to jump back
-      that.eventQueue.push({
-        key: 'scroll:x=0&y=0',
-        comment: 'nullify false scroll event',
-        replaceEvent: function() {
-          var forceChange = true;
-          // manually jump back to the right place by firing handler_hashChanged and forcing change
-          that.handler_hashChanged(that.getHash(), forceChange).done(function() {
-// DELETE ME
-alert('handler_hashChanged() done in nullify scroll0,0 replaceEvent');
-          });
-        }
-      });
       // process state if set in URL (hash) first
       that.handler_hashChanged(that.getHash());
       // execute queue of API calls
       that.export.flush();
       // attach listener to window for resize (rare, but should update)
-      $(window).resize(function() {
+      $window.resize(function() {
         that.buffer('init_resized',
         // process event
         function() {
@@ -117,7 +133,7 @@ $('.endkey').click(function(event) {
    */
   this.cellsInit = function() {
     var that = this;
-    var jqCells = $(this.containerSelector+' .selectablecell');
+    var jqCells = $sfun_selectablecell;
     jqCells.each(function() {
       that.cellsGenerateDataPerc($(this));
     });
@@ -144,7 +160,7 @@ $('.endkey').click(function(event) {
    */
   this.cellsCountMajor = function() {
     var direction = this.getDirection();
-    var jqEnt = $(this.containerSelector+' .selectablecell:first');
+    var jqEnt = $sfun_selectablecell_first;
     if (direction == 'x') {
       var pc = parseInt(jqEnt.data('screenpc-width'));
     } else {
@@ -255,11 +271,13 @@ $('.endkey').click(function(event) {
         console.log('cellResizeBucketMajor-'+jqEnt.data('seq')+' major['+proportion+'%]');
       }
     }
-    // make all images y-bound, as it's a simpler alignment than
     for (var i = 0 ; i<bucket.length ; ++i) {
       var jqEnt = bucket[i];
+      // make all images y-bound, as it's a simpler alignment than
       var jqBoundable = jqEnt.find('.boundable');
       jqBoundable.removeClass('x-bound').addClass('y-bound');
+      // also remove any 'pending resize' flags
+      jqEnt.removeClass('resizepending');
     }
   }
 
@@ -272,11 +290,11 @@ $('.endkey').click(function(event) {
   this.cellResizeRealignMajor = function(jqSelected, initial, useScroll) {
     var direction = this.getDirection();
     var coordabs = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
-    var diff = initial - coordabs;
-    var csel = $(this.containerSelector);
+    var diff = this.round(initial - coordabs, 2);
+    var csel = $sfun;
     var property = (direction == 'x' ? 'left' : 'top');
     // get the container's current csel offset (without 'px')
-    var cselOffset = parseInt(csel.css(property));
+    var cselOffset = this.round(parseFloat(csel.css(property)), 2);
     if (useScroll) {
       var scrolldiff = cselOffset + diff;
       // create a null context to numb the event listener
@@ -287,8 +305,8 @@ $('.endkey').click(function(event) {
       // stop using container
       csel.css(property, 0);
       // scroll instead
-      var oldLeft = $(document).scrollLeft();
-      var oldTop = $(document).scrollTop();
+      var oldLeft = $document.scrollLeft();
+      var oldTop = $document.scrollTop();
       // don't need to do using hashUpdate because we're keeping offseq where it is (probably 0)
       var newLeft = (direction == 'x' ? oldLeft - scrolldiff : 0);
       var newTop = (direction == 'x' ? 0 : oldTop - scrolldiff);
@@ -317,10 +335,10 @@ $('.endkey').click(function(event) {
     var count = this.cellsCountMajor();
     var vis = this.getVisibleBoundaries();
     var selectedMajorCoordabsInitial = 0;
-    var jqSelected = $(this.containerSelector+' .selectablecell.selected');
+    var jqSelected = $sfun_selectedcell;
     if (!jqSelected.length) {
       // if we can't find the selected image, just use the first
-      jqSelected = $(this.containerSelector+' .selectablecell');
+      jqSelected = $sfun_selectablecell_first;
     }
     // record the initial absolute coord of the image
     selectedMajorCoordabsInitial = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
@@ -329,7 +347,7 @@ $('.endkey').click(function(event) {
       that.cellResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, true);
       // update vistable
       // @todo should do this more selectively
-      that.visTableMajor.updateAll(direction, $(that.containerSelector+' .selectablecell'));
+      that.visTableMajor.updateAll(direction, $sfun_selectablecell);
       // use updated table to check visibles, but don't also tell then to reres yet
       that.setVisibleAll(false);
       // resolve deferred
@@ -351,7 +369,7 @@ $('.endkey').click(function(event) {
       // pull out the major axis coord (absolute and relative to viewport edge)
       var pos = jqEnt.offset();
       var coordabs = (direction == 'x' ? pos.left : pos.top);
-      var coordrel = coordabs - (direction == 'x' ? $(document).scrollLeft() : $(document).scrollTop());
+      var coordrel = coordabs - (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
       // if we don't have a bucket for this absolute coord, create one
       if (!(cells[coordabs] instanceof Array)) {
         cells[coordabs] = [];
@@ -491,8 +509,9 @@ $('.endkey').click(function(event) {
    * @return {object} jQuery deferred
    */
   this.refreshSelected = function(scrolldir) {
-    var jqEnt = $(this.containerSelector+' .selectablecell.selected');
-    if (!jqEnt.hasClass('visible')) {
+    var jqEnt = $sfun_selectedcell;
+    // if no selection, or the current selection isn't visible
+    if (!jqEnt.length || !jqEnt.hasClass('visible')) {
       if (debug && false) {
         console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
       }
@@ -665,13 +684,11 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
     var wrapUp = function() {
       // update metric
       that.refreshMetric(jqEnt);
-      that.refreshMetricPosition(jqEnt);
       // resolve deferred
       deferred.resolve();
     };
     if (reres) {
       // change out the image for a better resolution if one's available
-      // that.refreshResolution(jqEnt).always(wrapUp);
       this.refreshResolution(jqEnt).always(function() {
 // DELETE ME
 console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
@@ -688,9 +705,10 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @param {object} jqEnt jquery entity
    * @return {object} jQuery deferred
    */
-  this.refreshVisibleImages = function() {
+  this.refreshImageSet = function() {
     var that = this;
-    var jqVisibles = $(that.containerSelector+' .selectablecell.visible, '+that.containerSelector+' .selectablecell.vispart');
+    var selector = that.containerSelector+' .selectablecell.visible, '+that.containerSelector+' .selectablecell.vispart';
+    var jqVisibles = $(selector);
     if (jqVisibles.length) {
       var deferred = $.Deferred();
       var defs = [];
@@ -704,7 +722,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         // stage 2: refresh cell dimensions
         that.cellsResize().always(function() {
           // refresh jqVisibles because resize may have added more visible/vispart cells
-          jqVisibles = $(that.containerSelector+' .selectablecell.visible, '+that.containerSelector+' .selectablecell.vispart');
+          jqVisibles = $(selector);
           // stage 3: refresh resolutions as a batch
           jqVisibles.each(function() {
             var jqEnt = $(this);
@@ -730,11 +748,11 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.bindToScroll = function() {
     var that = this;
-    $(window).scroll(function(event) {
+    $window.scroll(function(event) {
       that.handler_scrolled(event);
       event.preventDefault();
     });
-    $(window).mousewheel(function(event) {
+    $window.mousewheel(function(event) {
       that.handler_mouseWheeled(event);
     });
   };
@@ -764,11 +782,11 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     });
     // light or dark theme
     $('#theme-light').click(function(event) {
-      $('html').removeClass('theme-dark');
+      $html.removeClass('theme-dark');
       event.preventDefault();
     });
     $('#theme-dark').click(function(event) {
-      $('html').addClass('theme-dark');
+      $html.addClass('theme-dark');
       event.preventDefault();
     });
     // 1x, 2x, 4x, or 8x
@@ -796,7 +814,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.bindToHotKeys = function() {
     var that = this;
-    $(document).keydown(function(event) {
+    $document.keydown(function(event) {
       that.handler_keyPressed(event);
     });
   };
@@ -820,7 +838,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   this.bindToImageLinks = function() {
     var that = this;
     // bind to click using delegated event handler (http://api.jquery.com/on/), instead of individual N handlers
-    $(this.containerSelector).on('click', '.selectablecell a.media-container', function(event) {
+    $sfun.on('click', '.selectablecell a.media-container', function(event) {
       // select image, then toggle
       var seq = $(this).parents('.selectablecell').data('seq');
       // seq changes don't go into history
@@ -884,7 +902,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.getDirection = function() {
     var direction = 'y';
-    if ($('html').hasClass('flexbox') && $(this.containerSelector).hasClass('flow-x')) {
+    if ($html.hasClass('flexbox') && $sfun.hasClass('flow-x')) {
       direction = 'x';
     }
     return direction;
@@ -896,7 +914,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.getBreadth = function() {
     var breadth = 2;
-    var jq = $(this.containerSelector);
+    var jq = $sfun;
     if (jq.hasClass('flow-1')) breadth = 1;
     if (jq.hasClass('flow-4')) breadth = 4;
     if (jq.hasClass('flow-8')) breadth = 8;
@@ -908,7 +926,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @return {int} scroll offset to seq
    */
   this.getOffseq = function() {
-    var offseq = $('html').data('offseq');
+    var offseq = $html.data('offseq');
     if (offseq == undefined) {
       return 0;
     }
@@ -920,7 +938,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.getCellSize = function() {
     // get first cell
-    var jq = $(this.containerSelector+' .selectablecell:first');
+    var jq = $sfun_selectablecell_first;
     if (this.getDirection() == 'x') {
       return jq.width();
     } else {
@@ -965,18 +983,10 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   };
 
   /**
-   * @return {jQuery} selected entity
-   */
-  this.getSelected = function() {
-    var jqEnt = $(this.containerSelector+' .selectablecell.selected');
-    return jqEnt;
-  };
-
-  /**
    * @return {int} sequence number of currently selected cell [default to 0]
    */
   this.getSeq = function() {
-    var jqEnt = this.getSelected();
+    var jqEnt = $sfun_selectedcell;
     if (!jqEnt.length) {
       return 0;
     }
@@ -1012,9 +1022,15 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @return {int} width of page outer border (gutter) in pixels [default 0]
    */
   this.getGutter = function() {
-    var jqGut = $('#gutterball');
-    if (jqGut.length) return jqGut.width();
-    return 0;
+    if (this.getGutter_static == undefined) {
+      var jqGut = $('#gutterball');
+      if (jqGut.length) { 
+        this.getGutter_static = jqGut.width();
+      } else {
+        this.getGutter_static = 0;
+      }
+    } 
+    return this.getGutter_static;
   }
 
   /**
@@ -1028,7 +1044,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       if (seq < 0 && increment < 0) {
         seq = this.getTotalEntries()-1;
       }
-      if ($('#seq-'+seq).length) {
+      if ($img(seq).length) {
         return seq;
       }
     } while (seq != this.startingPointSeq);
@@ -1055,7 +1071,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   this.setDirection = function(direction) {
     var changed = (this.getDirection() !== direction);
     var invdir = (direction == 'x' ? 'y' : 'x');
-    $(this.containerSelector+'.flow').addClass('flow-' + direction).removeClass('flow-' + invdir);
+    $sfun_flow.addClass('flow-' + direction).removeClass('flow-' + invdir);
     return changed;
   };
 
@@ -1072,9 +1088,9 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       if (i == breadth) {
         continue;
       }
-      $(this.containerSelector+'.flow').removeClass('flow-'+i);
+      $sfun_flow.removeClass('flow-'+i);
     }
-    $(this.containerSelector+'.flow').addClass('flow-' + breadth);
+    $sfun_flow.addClass('flow-' + breadth);
     return changed;
   };
 
@@ -1084,12 +1100,14 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.setSeq = function(seq) {
     var changed = (this.getSeq() !== seq);
-    var jqCurrent, position;
-    // deselect old image
-    $(this.containerSelector+' .selectablecell.selected').removeClass('selected');
+    var position;
+    if ($sfun_selectedcell.length) {
+      // deselect old image
+      $sfun_selectedcell.removeClass('selected');
+    }
     // select new image
-    jqCurrent = $('#seq-'+seq);
-    jqCurrent.addClass('selected');
+    $sfun_selectedcell = $img(seq);
+    $sfun_selectedcell.addClass('selected');
     return changed;
   };
 
@@ -1098,9 +1116,9 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @param {int} offset scroll offset to seq
    */
   this.setOffseq = function(offseq) {
-    var current = $('html').data('offseq');
+    var current = $html.data('offseq');
     var changed = (current !== offseq && current !== undefined);
-    $('html').data('offseq', offseq);
+    $html.data('offseq', offseq);
     return changed;
   }
 
@@ -1139,7 +1157,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @return {object} jQuery deferred
    */
   this.setScrollPosition = function(seq, offseq) {
-    var jqEnt = $('#seq-'+seq);
+    var jqEnt = $img(seq);
     var direction = this.getDirection();
     if (offseq == undefined) {
       offseq = 0;
@@ -1153,7 +1171,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       if (!this.isVisible(jqEnt, false)) {
         fireScroll = true;
       } else {
-        var scroll = { 'top': $(window).scrollTop(), 'left': $(window).scrollLeft() };
+        var scroll = { 'top': $window.scrollTop(), 'left': $window.scrollLeft() };
         // check to see if our current scroll position reflects the target position
         if (direction == 'x') {
           if (position.left - offseq != scroll.left) {
@@ -1195,12 +1213,12 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     // get screen bounds along major axis (min and max)
     if (direction == 'x') {
       // min is left bar minus rounding for border/margin
-      min = $(document).scrollLeft() - rounding;
+      min = $document.scrollLeft() - rounding;
       // max is right bar minus rounding for border/margin
-      max = $(document).scrollLeft() + this.getViewportWidth() - rounding;
+      max = $document.scrollLeft() + this.getViewportWidth() - rounding;
     } else {
-      min = $(document).scrollTop() - rounding;
-      max = $(document).scrollTop() + this.getViewportHeight() - rounding;
+      min = $document.scrollTop() - rounding;
+      max = $document.scrollTop() + this.getViewportHeight() - rounding;
     }
     // find first spanning min boundary
     var firstRef = this.visTableMajor.findCompare(min, this.export.compareGTE, false);
@@ -1247,12 +1265,12 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   /**
    * Loop through all images
    * @todo optimise
-   * @param {boolean} thenReres true to also reres new vis images
+   * @param {boolean} thenRefresh true to also refresh new vis images
    * @return {object} jQuery deferred
    */
-  this.setVisibleAll = function(thenReres) {
+  this.setVisibleAll = function(thenRefresh) {
     var that = this;
-    var jqCells = $(this.containerSelector+' .selectablecell');
+    var jqCells = $sfun_selectablecell;
     // test to see if we found any selectable cells
     if (jqCells.length) {
       var deferred = $.Deferred();
@@ -1267,17 +1285,14 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       var vis = this.getVisibleBoundaries();
       for (var i = vis.first ; i <= vis.last ; i++) {
         var vistype = ((i <= vis.lastFirstPartial || i >= vis.firstLastPartial) ? 'vispart' : 'visible');
-        defs.push(that.setVisibleImage($('#seq-'+i), vistype, false));
+        that.setImageVisibilityClass($('#seq-'+i), vistype);
       }
-      // aggregate all the deferreds
-      $.when.apply($, defs).always(function() {
-        if (thenReres) {
-          // now batch process all the visibles
-          that.refreshVisibleImages().done(wrapUp);
-        } else {
-          wrapUp();
-        }
-      });
+      if (thenRefresh) {
+        // now batch process all the visibles
+        that.refreshImageSet().done(wrapUp);
+      } else {
+        wrapUp();
+      }
       // now request visnear images, but don't wait for them (async, not resync)
       this.setVisnear(vis);
       return deferred;
@@ -1290,15 +1305,9 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @param {jQuery} jqEnt image
    * @param {string} 'visible' true to make visible, 'not visible' to hide
    *   or 'visnear' to make visible but not re-res
-   * @param {boolean} refresh true to also refresh the image
-   * @return {object} jQuery deferred
    */
-  this.setVisibleImage = function(jqEnt, vis, refresh) {
+  this.setImageVisibilityClass = function(jqEnt, vis) {
     var that = this;
-    var deferred = $.Deferred();
-    var wrapUp = function() {
-      deferred.resolve();
-    };
     if (debug && false) {
       console.log('image-'+jqEnt.data('seq')+': making '+vis);
     }
@@ -1306,45 +1315,27 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     if (vis == 'not-visible') {
       // make it not-visible
       jqEnt.removeClass('visible');
-      wrapUp();
     } else {
-      // vis/visnear: make its src show, if not there already
+      // vis/visnear: make its src show, if not there already [async]
       var jqReresable = jqEnt.find('.reresable');
-      var reres = false;
       if (jqReresable.length) {
         var attr = jqReresable.attr('src');
         if (typeof attr === 'undefined' || attr === false) {
           jqReresable.attr('src', jqReresable.data('desrc'));
+          jqEnt.addClass('resizepending');
         }
       }
       if (vis == 'visnear') {
         // mark image as near visible
         jqEnt.removeClass('vispart visible').addClass('visnear');
-        // refresh image, but don't update its resolution
-        reres = false;
       } else if (vis == 'vispart') {
         // make it visible (may have previously been visnear)
         jqEnt.removeClass('visnear visible').addClass('vispart');
-        // when an image becomes visible refresh all its facets
-        reres = true;
       } else if (vis == 'visible') {
         // make it visible (may have previously been visnear)
         jqEnt.removeClass('vispart visnear').addClass('visible');
-        // when an image becomes visible refresh all its facets
-        reres = true;
-      }
-      // if we're single-refreshing on each call to this function
-      if (refresh) {
-        // refresh bounds then update resolution, update metric
-        this.refreshBounds(jqEnt).done(function() {
-          that.refreshImageResolution(jqEnt, reres).done(wrapUp);
-        });
-      } else {
-        // resolve immediately
-        wrapUp();
       }
     }
-    return deferred;
   };
 
   /**
@@ -1400,14 +1391,14 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     if (range.last_1 != vis.last) {
       // request visnear (after visibles), async
       for (var i = range.last_1 ; i <= range.last_n ; i++) {
-        this.setVisibleImage($('#seq-'+i), 'visnear', true);
+        this.setImageVisibilityClass($('#seq-'+i), 'visnear');
       }
     }
     // only do first visnear if there are some entries BEFORE visibles
     if (range.first_n != vis.first) {
       // request visnear (before visibles), async
       for (var i = range.first_1 ; i <= range.first_n ; i++) {
-        this.setVisibleImage($('#seq-'+i), 'visnear', true);
+        this.setImageVisibilityClass($('#seq-'+i), 'visnear');
       }
     }
   }
@@ -1503,7 +1494,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
    * @return {object} jQuery deferred
    */
   this.imageToggleFullscreen = function(eventContext) {
-    var jqEnt = this.getSelected();
+    var jqEnt = $sfun_selectedcell;
     switch (this.getType(jqEnt)) {
       case 'image':
         // toggle using hash change
@@ -2365,7 +2356,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     var jqYard = $('#sfun-yardstick-y');
     if (jqYard.length) return jqYard.height();
     // fall back to window
-    return $(window).height();
+    return $window.height();
   };
 
   /**
@@ -2375,7 +2366,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     var jqYard = $('#sfun-yardstick-x');
     if (jqYard.length) return jqYard.width();
     // fall back to window
-    return $(window).width();
+    return $window.width();
   };
 
   /**
@@ -2388,17 +2379,17 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   this.fire_scrollUpdate = function(left, top, eventContext) {
     var that = this;
     // crop top and left against origin (0) and max scroll position (documentWidth - viewportWidth)
-    var croppedLeft = this.round(Math.max(0, Math.min(left, $(document).width() - this.getViewportWidth())), 0);
-    var croppedHeight = this.round(Math.max(0, Math.min(top, $(document).height() - this.getViewportHeight())), 0);
+    var croppedLeft = this.round(Math.max(0, Math.min(left, $document.width() - this.getViewportWidth())), 0);
+    var croppedTop = this.round(Math.max(0, Math.min(top, $document.height() - this.getViewportHeight())), 0);
     // create a context, but parent it only if eventContext is not undefined
     var localContext = this.eventQueue.pushOrMerge({
-      'key': 'scroll:'+'x='+croppedLeft+'&y='+croppedHeight,
+      'key': 'scroll:'+'x='+croppedLeft+'&y='+croppedTop,
       'comment': 'localContext for fire_scrollUpdate',
       'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
     }, eventContext);
     // fire event: change the scroll position (comes through as single event)
-    $(document).scrollLeft(croppedLeft);
-    // $(document).scrollTop(croppedHeight);
+    $document.scrollLeft(croppedLeft);
+    $document.scrollTop(croppedTop);
     // localContext is resolved by handler_scrolled
     return localContext.deferred;
   };
@@ -2415,7 +2406,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       key: 'keypress:key='+key,
       'comment': 'localContext for fire_keyPress (keyToPress '+key+')'
     });
-    $(document).trigger(e);
+    $document.trigger(e);
     return localContext.deferred;
   };
 
@@ -2481,7 +2472,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     if (breadthChanged || directionChanged || forceChange) {
       // clear cell-specific dimensions and read back positions
       this.cellsClear();
-      this.visTableMajor.updateAll(this.getDirection(), $(this.containerSelector+' .selectablecell'));
+      this.visTableMajor.updateAll(this.getDirection(), $sfun_selectablecell);
     }
     // find out if we should trigger other events based on this hash change
     if (this.eventQueue.actOnContext(eventContext)) {
@@ -2504,7 +2495,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
    */
   this.handler_scrolled = function(event) {
     var that = this;
-    var sx = $(document).scrollLeft(), sy = $(document).scrollTop();
+    var sx = $document.scrollLeft(), sy = $document.scrollTop();
     // get context if we created the event, invent if it was user generated
     var eventContext = this.eventQueue.getOrInvent({
       'key': 'scroll:'+'x='+sx+'&y='+sy,
@@ -2515,14 +2506,14 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     }
     // process this event if we're meant to
     if (this.eventQueue.actOnContext(eventContext)) {
-// DELETE ME disabled buffering for event testing      // // don't process scroll event every time, buffer (dump duplicates)
-      // this.buffer('handler_scrolled_eventProcess',
-      // // function to execute if/when we are processing this event
-      // function() {
+      // don't process scroll event every time, buffer (dump duplicates)
+//       this.buffer('handler_scrolled_eventProcess',
+//       // function to execute if/when we are processing this event
+//       function() {
         return that.handler_scrolled_eventProcess(event, sx, sy).done(wrapUp);
-      // },
-      // // function to execute if we're dumping this event
-      // wrapUp, 250);
+//       },
+//       // function to execute if we're dumping this event
+//       wrapUp, 250);
     } else {
       // if we're not acting on the context, wrap it up
       return wrapUp();
@@ -2576,7 +2567,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       var wrapUp = function() {
         return that.eventQueue.resolve(eventContext);
       }
-      var xpos = $(document).scrollLeft();
+      var xpos = $document.scrollLeft();
       // get current cell size
       var cellsize = this.getCellSize();
       // if not currently aligned to cells, get extra gap to next cell boundary
@@ -2689,7 +2680,6 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
    * @return {string} output after substitution
    */
   this.substitute = function(template, view) {
-    Mustache.parse(template);
     var output = Mustache.render(template, view);
     return output;
   }

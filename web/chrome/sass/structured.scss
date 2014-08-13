@@ -30,7 +30,7 @@ $wide2: 2400px;
 }
 
 // ---------------------------------------------------------------------------
-// Core
+// Core: js and no-js
 
 .sfun {
   // setup container to allow for preseq cell size tweaking
@@ -132,37 +132,9 @@ $wide2: 2400px;
       // don't allow anything to bleed over the edge (to avoid superfluous scrollbars)
       overflow: hidden;
 
-      p.imgmetric {
-        line-height: 1.0em;
-        position: absolute;
-        z-index: 1;
-        font-size: 0.6em;
-        white-space: nowrap;
-        display: none;
-        
-        .size, .perc {
-          display: none;
-        }
-
-        &.super {
-          background-color: #009900;        
-          color: #BBFFBB;
-        }
-        
-        &.sub {
-          background-color: #990000;        
-          color: #FFBBBB;
-        }
-      }
-
-      // show metric if image is visible or part-visible
-      &.visible p.imgmetric, &.vispart p.imgmetric {
-        display: block;
-      }
-      // but not if it's in the process of reresing
-      &.reresing p.imgmetric {
-        display: none;
-      }
+      // currently these classes are only used by js
+      &.selectablecell {}
+      &.resizeablecell {}
 
       // cells can be selected, but the selection is shown (reflected) by an element within
       .selectreflector {
@@ -177,7 +149,7 @@ $wide2: 2400px;
         border-color: $highlight;
       }
 
-      a { 
+      a {
         // relative parent required for alignment of x-bound images and meta
         position: relative;
         // display block, height 100% required for aligning image metadata to base
@@ -203,6 +175,29 @@ $wide2: 2400px;
         > img.y-bound {
           height: 100%;
         }
+
+        .imgmetric {
+          line-height: 1.0em;
+          position: absolute;
+          z-index: 1;
+          font-size: 0.6em;
+          white-space: nowrap;
+          display: none;
+          
+          .size, .perc {
+            display: none;
+          }
+
+          &.super {
+            background-color: #009900;        
+            color: #BBFFBB;
+          }
+          
+          &.sub {
+            background-color: #990000;        
+            color: #FFBBBB;
+          }
+        } // imgmetric
 
         // metadata over bottom of image/cell
         .meta {
@@ -246,8 +241,7 @@ $wide2: 2400px;
               }
             }
           }
-
-        }
+        } // meta
 
         &:hover .meta {
           // show on hover
@@ -272,7 +266,7 @@ $wide2: 2400px;
         }
         
         // directories with preview images
-        div.directory {
+        .directory {
           background: url('/chrome/images/fullres/folder_back_light.png') no-repeat left top;
           background-size: 100% 100%;
           width: 100%;
@@ -319,11 +313,10 @@ $wide2: 2400px;
           .preview-3, .preview-4  {
             top: 16.4%;
           }
+        } // directory
+      } // a
 
-        }
-      }
-
-      // use CSS trick to make directories maintain aspect ratio, in combination with vertical centring
+        // use CSS trick to make directories maintain aspect ratio, in combination with vertical centring
       // http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio
       div.dummy1 {
         height: 50%;
@@ -348,10 +341,30 @@ $wide2: 2400px;
           bottom: 0;
           left: 0;
         }
+      } // a.directory-container
 
+      // show metric if image is visible or part-visible
+      &.visible .imgmetric, &.vispart p.imgmetric {
+        display: block;
       }
-      
-    }
+      // but not if it's in the process of reresing
+      &.reresing .imgmetric {
+        display: none;
+      }
+
+    } // .cell
   }
 }
 
+// ---------------------------------------------------------------------------
+// Core: js only
+
+.js .sfun {
+  .cell {
+    // hide images between loading thumbnail and resizing cell
+    &.resizepending {
+      visibility: hidden;
+    }  
+  }
+}
+      

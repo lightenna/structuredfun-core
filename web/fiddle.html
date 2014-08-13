@@ -1,0 +1,100 @@
+<html>
+<head>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+}
+
+ul {
+    height: 100%;
+}
+
+ul li {
+    width: 45%;
+    height: 45%;
+    border: 1px solid red;
+    float: left;
+    list-style-type: none;
+}
+
+/* Horizontal scrolling */
+ul.flow-x {
+    display: -webkit-flex;
+    -webkit-flex-flow: column wrap;
+    -webkit-align-items: center;
+    -webkit-justify-content: flex-start;
+    -webkit-align-content: flex-start;
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+    justify-content: flex-start;
+    align-content: flex-start;
+    height: 100%;
+}
+
+ul.flow-x li {
+    float: none;
+}
+
+</style>
+
+<script type="text/javascript" src="/chrome/vendor/jquery/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="/chrome/vendor/jquery/jquery.cookie-1.4.0.min.js"></script>
+<script type="text/javascript" src="/chrome/vendor/jquery/jquery.mousewheel-3.1.6.min.js"></script>
+<script type="text/javascript" src="/chrome/vendor/jquery/jquery.history-1.8b2.min.js"></script>
+<script type="text/javascript" src="/chrome/vendor/modernizr/modernizr.all.2p7p1.min.js"></script>
+<script type="text/javascript" src="/chrome/vendor/mustache/mustache-0.7.2.min.js"></script>
+<!--
+    Discovered that this QUnit call introduces the spurious scroll0,0 events
+<script type="text/javascript" src="/chrome/vendor/qunit/qunit-1.14.0.min.js"></script>
+-->
+<script>
+
+// bind to scroll event
+$(window).scroll(function(event) {
+  var sx = $(document).scrollLeft(), sy = $(document).scrollTop();
+  console.log('scrolled to '+sx+','+sy+'.');
+});
+
+$(document).ready(function() {
+  // get hash
+  var hash = window.location.hash;
+  if (hash.length) {
+    var seq = parseInt(hash.replace(/#!seq=/g,''));
+    // try and find this sequence number
+    var jq = $('#seq-'+seq);
+    if (jq.length) {
+      // find its position and scroll there
+      window.scrollTo(jq.offset().left, jq.offset().top);
+    }
+  }
+});
+
+</script>
+
+</head>
+<body>
+<ul class="flow-x">
+    <li id="seq-1">01</li>
+    <li id="seq-2">02</li>
+    <li id="seq-3">03</li>
+    <li id="seq-4">04</li>
+    <li id="seq-5">05</li>
+    <li id="seq-6">06</li>
+    <li id="seq-7">07</li>
+    <li id="seq-8">08</li>
+    <li id="seq-9">09</li>
+    <li id="seq-10">10</li>
+    <li id="seq-11">11</li>
+    <li id="seq-12">12</li>
+    <li id="seq-13">13</li>
+    <li id="seq-14">14</li>
+    <li id="seq-15">15</li>
+    <li id="seq-16">16</li>
+    <li id="seq-17">17</li>
+    <li id="seq-18">18</li>
+    <li id="seq-19">19</li>
+</ul>
+</body>

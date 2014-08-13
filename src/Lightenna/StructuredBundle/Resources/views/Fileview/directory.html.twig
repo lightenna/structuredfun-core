@@ -4,7 +4,7 @@
 <div id="gutterball" class="yardstick"></div>
 
 <div class="content">
-<ul class="sfun flow flow-{{ direction }} flow-{{ celltype }} flow-{{ breadth }}">
+<ul id="sfun" class="sfun flow flow-{{ direction }} flow-{{ celltype }} flow-{{ breadth }}">
 {% for file in dirlisting %}
 {% if file.type == 'directory' %}
   <li id="seq-{{ file.seq }}" class="cell selectablecell {{ file.type }}-type {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}" data-seq="{{ file.seq }}">
@@ -19,8 +19,8 @@
   </a></li>
 {% elseif (file.type == 'image') or (file.type == 'video') %}
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}" data-seq="{{ file.seq }}">
-    <p class="imgmetric super"><span class="size"><span class="width">{% if file.meta.width_loaded is defined %}{{ file.meta.width_loaded }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.height_loaded is defined %}{{ file.meta.height_loaded }}{% else %}-{% endif %}</span> @ </span><span class="perc">x%</span></p>
     <a class="media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
+      <p class="imgmetric super"><span class="size"><span class="width">{% if file.meta.width_loaded is defined %}{{ file.meta.width_loaded }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.height_loaded is defined %}{{ file.meta.height_loaded }}{% else %}-{% endif %}</span> @ </span><span class="perc">x%</span></p>
       <img class="reresable boundable {{ file.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"

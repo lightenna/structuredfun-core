@@ -1,73 +1,44 @@
 
-* it's time to tear out and refactor the hash changes
-  + start by pulling out the init stuff
-    + just attach the hash listener and see what it's like
+* cold load seq=high jumps in Chrome only
+  + something to do with the final stage
+    + from container offset to scroll
+
+* little bit of fun working on optimisation
+  + reducing js load
+    + Chrome profiling is most accurate
+
+* re-enabling buffering doesn't work
+  + it doesn't load any images
+
+* need to wait until there are no scroll events before realigning
+  + otherwise scrollbar goes all over the place
+  + could search the eventQueue for any other scroll: events
+    + could flag each event as started
+  + does buffering solve it?
+    + means that repeat calls get ignored
+      + not sure
+      + worth investigating first
+
+* scrolling backwards beyond visnear
+  + jumps forward to show selected
+    = try just buffering
 
 * cold load seq=1 doesn't draw anything
 
-* re-enable scroll buffering
+* rewrite test logic, just document here
+    + cold load 0
+    + cold load low seq
+    + cold load high seq
+    + load 0 skip low
+    + load low skip high
+    + load high skip low
 
-* new idea
-  + always draw page-0
-    + then jump up to page-X
-
-* straight jump from high-seq to low-seq (not reload)
-  + seems like we're catching the position too late
-  + or not locking the position early enough
-  + there are two routes through a handler_hashChanged
-    + setScrollPosition, which triggers other stuff
-    + refreshVisibility
-  + it's not the clearest split
-    + really need to nail those two cases
-      + and come up with a clearer definition of how they're different
-  + test cases
-
-    + cold load 0 = fine
-      + handler_hashChanged(seq=0 or '') from init()
-        + noChanges:refreshVisibility
-          + setVisibleAll
-          + refreshSelected
-
-    + cold load low seq = fine
-      1 handler_hashChanged(seq=6) from init()
-        + seqChanged:setScrollPosition(931,0)
-     2a handler_scrolled(0,0)
-      3 handler_hashChanged(seq=6, forceUpdate)
-     2b handler_scrolled(931,0)
-      4 handler_scrolled_eventProcess(931)
-        + images appear
-      5 handler_scrolled(557)
-      6 handler_scrolled_eventProcess(557)
-
-    + cold load high seq = fine
-      1 handler_hashChanged(seq=208) from init()
-        + seqChanged:setScrollPosition(32418,0)
-    [2a]handler_scrolled(0,0)
-    [2b]handler_scrolled(32418,0)
-      3 handler_hashChanged(seq=208, forceUpdate)
-      2 handler_scrolled(32418,0)
-      4 handler_scrolled_eventProcess(32418)
-        + images appear
-      5 handler_scrolled(31919,0), nullified
-     10 nullify scroll0,0 setScrollPosition
-
-    + load 0 skip low = fine
-      + handler_hashChanged
-      + handler_scrolled
-
-    + load low skip high = workable problem
-
-    + load high skip low = same workable problem
-      1 handler_hashChanged(seq=6) from init()
-        + seqChanged:setScrollPosition(931,0)
-     2b handler_scrolled(931,0)
-        + images appear
-      3 handler_scrolled_eventProcess(931)
+* jumping to seq creates different results to reloading to seq
+  + like before, seq gets kicked right by preseq images loading
 
 * offseq breaks preseq fix
 
-* jumping to offseq creates different results to reloading to offseq
-  + like before, offseq gets kicked right by preseq images loading
+* re-enable scroll buffering
 
 * staged scroll should go row-by-row or column-by-column
   + also centre using offseq=centre
@@ -1441,3 +1412,76 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
     + test: try and remove all the scrollTop calls for now
       + didn't make a difference
   = drowning in complexity, need to simplify
+
+* build jsfiddle demo of basic setup
+  + move fiddle to htdocs root
+  + work out what causes the scroll0,0 event
+    + vertical scroll fine
+    + horizontal scroll fine
+    + libraries ERROR
+      - turns out it was the QUnit library
+
+* it's time to tear out and refactor the hash changes
+  + start by pulling out the init stuff
+    + just attach the hash listener and see what it's like
+    = works ok, but reload problematic
+      + QUnit!
+
+* new idea
+  + always draw page-0
+    + then jump up to page-X
+  = abandoned for now
+
+* straight jump from high-seq to low-seq (not reload)
+  + seems like we're catching the position too late
+  + or not locking the position early enough
+  + there are two routes through a handler_hashChanged
+    + setScrollPosition, which triggers other stuff
+    + refreshVisibility
+  + it's not the clearest split
+    + really need to nail those two cases
+      + and come up with a clearer definition of how they're different
+  + test cases
+
+    + cold load 0 = fine
+      + handler_hashChanged(seq=0 or '') from init()
+        + noChanges:refreshVisibility
+          + setVisibleAll
+          + refreshSelected
+
+    + cold load low seq = fine
+      1 handler_hashChanged(seq=6) from init()
+        + seqChanged:setScrollPosition(931,0)
+     2a handler_scrolled(0,0)
+      3 handler_hashChanged(seq=6, forceUpdate)
+     2b handler_scrolled(931,0)
+      4 handler_scrolled_eventProcess(931)
+        + images appear
+      5 handler_scrolled(557)
+      6 handler_scrolled_eventProcess(557)
+
+    + cold load high seq = fine
+      1 handler_hashChanged(seq=208) from init()
+        + seqChanged:setScrollPosition(32418,0)
+    [2a]handler_scrolled(0,0)
+    [2b]handler_scrolled(32418,0)
+      3 handler_hashChanged(seq=208, forceUpdate)
+      2 handler_scrolled(32418,0)
+      4 handler_scrolled_eventProcess(32418)
+        + images appear
+      5 handler_scrolled(31919,0), nullified
+     10 nullify scroll0,0 setScrollPosition
+
+    + load 0 skip low = fine
+      + handler_hashChanged
+      + handler_scrolled
+
+    + load low skip high = workable problem
+
+    + load high skip low = same workable problem
+      1 handler_hashChanged(seq=6) from init()
+        + seqChanged:setScrollPosition(931,0)
+     2b handler_scrolled(931,0)
+        + images appear
+      3 handler_scrolled_eventProcess(931)
+
