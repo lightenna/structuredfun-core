@@ -20,6 +20,9 @@
       'template': this.getTemplate(),
       'callbackBind' : this.bindToTemplate()
     };
+    // pull in QUnit library
+    // @todo
+    // <script type="text/javascript" src="/chrome/vendor/qunit/qunit-1.14.0.min.js"></script>
     // not sure of init order, so push async
     sfun.push('headerAddButton', obj);
   };

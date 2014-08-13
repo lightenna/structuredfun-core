@@ -166,49 +166,18 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   text-align: center;
   overflow: hidden;
 }
-/* line 135, ../sass/structured.scss */
-.sfun.flow-pc > .cell p.imgmetric {
-  line-height: 1.0em;
-  position: absolute;
-  z-index: 1;
-  font-size: 0.6em;
-  white-space: nowrap;
-  display: none;
-}
-/* line 143, ../sass/structured.scss */
-.sfun.flow-pc > .cell p.imgmetric .size, .sfun.flow-pc > .cell p.imgmetric .perc {
-  display: none;
-}
-/* line 147, ../sass/structured.scss */
-.sfun.flow-pc > .cell p.imgmetric.super {
-  background-color: #009900;
-  color: #BBFFBB;
-}
-/* line 152, ../sass/structured.scss */
-.sfun.flow-pc > .cell p.imgmetric.sub {
-  background-color: #990000;
-  color: #FFBBBB;
-}
-/* line 159, ../sass/structured.scss */
-.sfun.flow-pc > .cell.visible p.imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
-  display: block;
-}
-/* line 163, ../sass/structured.scss */
-.sfun.flow-pc > .cell.reresing p.imgmetric {
-  display: none;
-}
-/* line 168, ../sass/structured.scss */
+/* line 140, ../sass/structured.scss */
 .sfun.flow-pc > .cell .selectreflector {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   border: 1px solid white;
 }
-/* line 176, ../sass/structured.scss */
+/* line 148, ../sass/structured.scss */
 .sfun.flow-pc > .cell.selected .selectreflector {
   border-color: magenta;
 }
-/* line 180, ../sass/structured.scss */
+/* line 152, ../sass/structured.scss */
 .sfun.flow-pc > .cell a {
   position: relative;
   display: block;
@@ -218,7 +187,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
   margin: 8px;
 }
-/* line 193, ../sass/structured.scss */
+/* line 165, ../sass/structured.scss */
 .sfun.flow-pc > .cell a > img.x-bound {
   position: relative;
   width: 100%;
@@ -227,11 +196,34 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 203, ../sass/structured.scss */
+/* line 175, ../sass/structured.scss */
 .sfun.flow-pc > .cell a > img.y-bound {
   height: 100%;
 }
-/* line 208, ../sass/structured.scss */
+/* line 179, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .imgmetric {
+  line-height: 1.0em;
+  position: absolute;
+  z-index: 1;
+  font-size: 0.6em;
+  white-space: nowrap;
+  display: none;
+}
+/* line 187, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .imgmetric .size, .sfun.flow-pc > .cell a .imgmetric .perc {
+  display: none;
+}
+/* line 191, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .imgmetric.super {
+  background-color: #009900;
+  color: #BBFFBB;
+}
+/* line 196, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .imgmetric.sub {
+  background-color: #990000;
+  color: #FFBBBB;
+}
+/* line 203, ../sass/structured.scss */
 .sfun.flow-pc > .cell a .meta {
   display: block;
   position: absolute;
@@ -247,34 +239,34 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
-/* line 227, ../sass/structured.scss */
+/* line 222, ../sass/structured.scss */
 .sfun.flow-pc > .cell a .meta .base {
   position: absolute;
   bottom: 0;
 }
-/* line 232, ../sass/structured.scss */
+/* line 227, ../sass/structured.scss */
 .sfun.flow-pc > .cell a .meta .base span {
   margin: 1.0em;
   display: block;
 }
-/* line 236, ../sass/structured.scss */
+/* line 231, ../sass/structured.scss */
 .sfun.flow-pc > .cell a .meta .base span.icons {
   height: 2.0em;
 }
-/* line 240, ../sass/structured.scss */
+/* line 235, ../sass/structured.scss */
 .sfun.flow-pc > .cell a .meta .base span.caption {
   font-weight: bold;
 }
-/* line 244, ../sass/structured.scss */
+/* line 239, ../sass/structured.scss */
 .sfun.flow-pc > .cell a .meta .base span.byline {
   margin-top: .5em;
 }
-/* line 252, ../sass/structured.scss */
+/* line 246, ../sass/structured.scss */
 .sfun.flow-pc > .cell a:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 260, ../sass/structured.scss */
+/* line 254, ../sass/structured.scss */
 .sfun.flow-pc > .cell a .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -289,8 +281,8 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 275, ../sass/structured.scss */
-.sfun.flow-pc > .cell a div.directory {
+/* line 269, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .directory {
   background: url("/chrome/images/fullres/folder_back_light.png") no-repeat left top;
   background-size: 100% 100%;
   width: 100%;
@@ -306,8 +298,8 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   }
    */
 }
-/* line 284, ../sass/structured.scss */
-.sfun.flow-pc > .cell a div.directory .overlay {
+/* line 278, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .directory .overlay {
   width: 100%;
   height: 100%;
   display: inline-block;
@@ -315,45 +307,58 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   top: 0;
   z-index: 1;
 }
-/* line 294, ../sass/structured.scss */
-.sfun.flow-pc > .cell a div.directory .preview {
+/* line 288, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .directory .preview {
   width: 42.7%;
   height: 38%;
   position: relative;
   margin-right: 3%;
 }
-/* line 309, ../sass/structured.scss */
-.sfun.flow-pc > .cell a div.directory .preview-2, .sfun.flow-pc > .cell a div.directory .preview-4 {
+/* line 303, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .directory .preview-2, .sfun.flow-pc > .cell a .directory .preview-4 {
   margin-right: 6%;
 }
-/* line 314, ../sass/structured.scss */
-.sfun.flow-pc > .cell a div.directory .preview-1, .sfun.flow-pc > .cell a div.directory .preview-2 {
+/* line 308, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .directory .preview-1, .sfun.flow-pc > .cell a .directory .preview-2 {
   top: 13%;
 }
-/* line 319, ../sass/structured.scss */
-.sfun.flow-pc > .cell a div.directory .preview-3, .sfun.flow-pc > .cell a div.directory .preview-4 {
+/* line 313, ../sass/structured.scss */
+.sfun.flow-pc > .cell a .directory .preview-3, .sfun.flow-pc > .cell a .directory .preview-4 {
   top: 16.4%;
 }
-/* line 328, ../sass/structured.scss */
+/* line 321, ../sass/structured.scss */
 .sfun.flow-pc > .cell div.dummy1 {
   height: 50%;
 }
-/* line 332, ../sass/structured.scss */
+/* line 325, ../sass/structured.scss */
 .sfun.flow-pc > .cell a.directory-container {
   display: inline-block;
   width: 100%;
   text-align: right;
   margin-top: -37.5%;
 }
-/* line 339, ../sass/structured.scss */
+/* line 332, ../sass/structured.scss */
 .sfun.flow-pc > .cell a.directory-container .dummy2 {
   padding-top: 75%;
 }
-/* line 344, ../sass/structured.scss */
+/* line 337, ../sass/structured.scss */
 .sfun.flow-pc > .cell a.directory-container div.directory {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
+}
+/* line 347, ../sass/structured.scss */
+.sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
+  display: block;
+}
+/* line 351, ../sass/structured.scss */
+.sfun.flow-pc > .cell.reresing .imgmetric {
+  display: none;
+}
+
+/* line 365, ../sass/structured.scss */
+.js .sfun .cell.resizepending {
+  visibility: hidden;
 }
