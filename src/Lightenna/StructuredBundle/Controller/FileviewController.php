@@ -11,10 +11,12 @@ class FileviewController extends ViewController {
     $filename = $this->convertRawToFilename($rawname);
     $name = self::convertRawToUrl($rawname);
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
-    $this->mfr = new CachedMetadataFileReader($filename, $this);
+    $this->mfr = new CachedMetadataFileReader(null, $this);
+    $this->mfr->rewrite($filename);
     $this->mfr->injectShares($name);
     $this->mfr->processDebugSettings();
     $thumbargs = new \stdClass();
+    // don't need to include thumb=true in thumbargs because it's a non-key arg
     $thumbargs->{'maxlongest'} = 200;
     $this->mfr->injectArgs($thumbargs);
     if ($this->mfr->isExisting()) {

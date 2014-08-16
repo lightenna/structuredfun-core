@@ -57,7 +57,12 @@ class MetadataFileReader extends FileReader {
     if (isset($info['APP13'])) {
       $iptc = new IptcWriter();
       $iptc->prime(iptcparse($info['APP13']));
-      $this->stats->{'meta'} = unserialize($iptc->get(IPTC_SPECIAL_INSTRUCTIONS));
+      // silence warning
+      $iptc_special = $iptc->get(IPTC_SPECIAL_INSTRUCTIONS);
+      $this->stats->{'meta'} = @unserialize($iptc_special);
+      if ($this->stats->{'meta'} === false) {
+        $this->stats->{'meta'} = new \stdClass();
+      }
     }
   }
   
@@ -118,7 +123,6 @@ class MetadataFileReader extends FileReader {
       $localmfr->setArgs($this->args);
       $imgdata = $localmfr->getOnlyIfCached();
       // @todo this print_r exposes that we're calling it twice
-      // print_r($localmfr->getStats());
       $localstats = $localmfr->getStats();
       // transfer metadata from cached copy to this directory entry
       if (isset($localstats->{'cachekey'})) {
