@@ -62,67 +62,77 @@ window.sfun = (function($, undefined) {
 
   this.init = function() {
     var that = this;
-    var active = $html.hasClass('allow-js');
-    if (active) $document.ready(function() {
-      // fill in jQuery cache
-      $sfun = $(that.containerSelector);
-      $sfun_flow = $(that.containerSelector+'.flow');
-      $sfun_selectablecell = $(that.containerSelector+' > .selectablecell');
-      $sfun_selectablecell_first = $(that.containerSelector+' > .selectablecell:first');
-      // render Mustache templates
-      $sfun_selectablecell.find('img').each(function() {
-        var template = $(this).data('template-src');
-        if (template != undefined) {
-          Mustache.parse(template);
-        }
+    // no-js (js turned-off in browser), disabled-js (js turned off in sfun)
+    if ($html.hasClass('disabled-js')) {
+      // js not turned off, so browser will ignore noscript alternatives
+      $document.ready(function() {
+        $('img[data-desrc!=""]').each(function() {
+          // manually swap in data-desrc to src
+          $(this).attr('src', $(this).data('desrc'));
+        });
       });
-      // process state in page HTML next
-      that.previous['direction'] = that.default['direction'] = that.getDirection();
-      that.previous['breadth'] = that.default['breadth'] = that.getBreadth();
-      that.previous['seq'] = that.default['seq'] = 0;
-      that.previous['offseq'] = that.default['offseq'] = 0;
-      // bind to page
-      that.bindToScroll();
-      that.bindToHeaderLinks();
-      that.bindToHotKeys();
-      that.bindToHashChange();
-      that.bindToImageLinks();
-      // if we're sideways scrolling, bind to scroll event
-      that.setDirection(that.getDirection());
-      // find all screenpc elements, extract pc and store as data- attribute
-      that.cellsInit();
-      // process state if set in URL (hash) first
-      that.handler_hashChanged(that.getHash(), true);
-      // execute queue of API calls
-      that.export.flush();
-      // attach listener to window for resize (rare, but should update)
-      $window.resize(function() {
-        that.buffer('init_resized',
-        // process event
-        function() {
-          // flush cache
-          this.getViewportWidth(true);
-          this.getViewportHeight(true);
-          // resize may have shown more images, so refresh visibility
-          that.refreshVisibility(0);          
-        },
-        // do nothing if dumped
-        function(){},
-        50); // 50ms
+    } else {
+      $document.ready(function() {
+        // fill in jQuery cache
+        $sfun = $(that.containerSelector);
+        $sfun_flow = $(that.containerSelector+'.flow');
+        $sfun_selectablecell = $(that.containerSelector+' > .selectablecell');
+        $sfun_selectablecell_first = $(that.containerSelector+' > .selectablecell:first');
+        // render Mustache templates
+        $sfun_selectablecell.find('img').each(function() {
+          var template = $(this).data('template-src');
+          if (template != undefined) {
+            Mustache.parse(template);
+          }
+        });
+        // process state in page HTML next
+        that.previous['direction'] = that.default['direction'] = that.getDirection();
+        that.previous['breadth'] = that.default['breadth'] = that.getBreadth();
+        that.previous['seq'] = that.default['seq'] = 0;
+        that.previous['offseq'] = that.default['offseq'] = 0;
+        // bind to page
+        that.bindToScroll();
+        that.bindToHeaderLinks();
+        that.bindToHotKeys();
+        that.bindToHashChange();
+        that.bindToImageLinks();
+        // if we're sideways scrolling, bind to scroll event
+        that.setDirection(that.getDirection());
+        // find all screenpc elements, extract pc and store as data- attribute
+        that.cellsInit();
+        // process state if set in URL (hash) first
+        that.handler_hashChanged(that.getHash(), true);
+        // execute queue of API calls
+        that.export.flush();
+        // attach listener to window for resize (rare, but should update)
+        $window.resize(function() {
+          that.buffer('init_resized',
+          // process event
+          function() {
+            // flush cache
+            this.getViewportWidth(true);
+            this.getViewportHeight(true);
+            // resize may have shown more images, so refresh visibility
+            that.refreshVisibility(0);          
+          },
+          // do nothing if dumped
+          function(){},
+          50); // 50ms
+        });
+
+        // DELETE ME
+        // dirty test to shortcut suite
+        var k = that;
+        $('.header').append('<p><a id="endkey" class="endkey" href="">Endkey</a></p>');
+        $('.endkey').click(function(event) {
+          event.preventDefault();
+          k.export.api_triggerKeypress(k.export.KEY_END).done(function() {
+            alert('key press returned');
+          });
+        });
+
       });
-
-// DELETE ME
-// dirty test to shortcut suite
-var k = that;
-$('.header').append('<p><a id="endkey" class="endkey" href="">Endkey</a></p>');
-$('.endkey').click(function(event) {
-  event.preventDefault();
-  k.export.api_triggerKeypress(k.export.KEY_END).done(function() {
-    alert('key press returned');
-  });
-});
-
-    });
+    }
   };
 
   // ----------------
@@ -306,15 +316,14 @@ $('.endkey').click(function(event) {
       // stop using container
       csel.css(property, 0);
       // scroll instead
-      var oldLeft = $document.scrollLeft();
-      var oldTop = $document.scrollTop();
+      var oldpos = { 'left': $document.scrollLeft(), 'top': $document.scrollTop() };
       // don't need to do using hashUpdate because we're keeping offseq where it is (probably 0)
-      var newLeft = (direction == 'x' ? oldLeft - scrolldiff : 0);
-      var newTop = (direction == 'x' ? 0 : oldTop - scrolldiff);
+      var newpos = { 'left': (direction == 'x' ? oldpos.left - scrolldiff : 0), 'top':(direction == 'x' ? 0 : oldpos.top - scrolldiff) };
       // if we're changing position, fire scroll
-      if ((newLeft != oldLeft) || (newTop != oldTop)) {
+      if ((newpos.left != oldpos.left) || (newpos.top != oldpos.top)) {
         // note: async scroll will not expose new cells, only realign without container offset
-        this.fire_scrollUpdate(newLeft, newTop, localContext);
+        // @todo need to crop this new position against viewport
+        this.fire_scrollUpdate(newpos, localContext);
       }
     } else {
       // add diff to current csel offset
@@ -1150,6 +1159,19 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     }
   }
 
+  /**
+   * @param {object} target position
+   *        {int} left distance from left of page in pixels
+   *        {int} top  distance from top of page in pixels
+   * @return {object} target position cropped against viewport
+   */
+  this.cropScrollPositionAgainstViewport = function(target) {
+    return {
+      'left': this.round(Math.max(0, Math.min(target.left, $document.width() - this.getViewportWidth())), 0),
+      'top': this.round(Math.max(0, Math.min(top, $document.height() - this.getViewportHeight())), 0)
+    };
+  }
+
   /** 
    * ensure that a given image lies within the current viewport
    * @param {int} seq image sequence number
@@ -1157,7 +1179,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * downstream of: EVENT
    * @return {object} jQuery deferred
    */
-  this.setScrollPosition = function(seq, offseq) {
+  this.envisionSeq = function(seq, offseq) {
     var jqEnt = $img(seq);
     var direction = this.getDirection();
     if (offseq == undefined) {
@@ -1167,35 +1189,29 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     if (jqEnt.length) {
       // get the cell's position
       var position = jqEnt.offset();
+      // work out the target position
+      var target = { 'left': (direction == 'x' ? position.left - offseq : 0), 'top':(direction == 'x' ? 0 : position.top - offseq) };
+      // crop the target position against reachable bounds
+      target = this.cropScrollPositionAgainstViewport(target);
+      // work out whether we're currently at the target position
       var fireScroll = false;
-      // if cell is not visible or only part visible, scroll
-      if (!this.isVisible(jqEnt, false)) {
-        fireScroll = true;
+      var scroll = { 'top': $window.scrollTop(), 'left': $window.scrollLeft() };
+      // check to see if our current scroll position reflects the target position
+      if (direction == 'x') {
+        if (target.left != scroll.left) {
+          fireScroll = true;
+        }
       } else {
-        var scroll = { 'top': $window.scrollTop(), 'left': $window.scrollLeft() };
-        // check to see if our current scroll position reflects the target position
-        if (direction == 'x') {
-          if (position.left - offseq != scroll.left) {
-            fireScroll = true;
-          }
-        } else {
-          if (position.top - offseq != scroll.top) {
-            fireScroll = true;
-          }
+        if (target.top != scroll.top) {
+          fireScroll = true;
         }
       }
-      // fire a scroll event if one is needed
-      if (fireScroll) {
-        if (direction == 'x') {
-          // get coordinate of selected image's cell
-          return this.fire_scrollUpdate(position.left - offseq, 0);
-        } else {
-          return this.fire_scrollUpdate(0, position.top - offseq);
-        }
-      } else {
-        // manually refresh the visible images
+      // if we are at the position, just refresh visibilty
+      if (!fireScroll) {
         return this.refreshVisibility(0);
       }
+      // otherwise scroll to the target position
+      return this.fire_scrollUpdate( target );
     }
     return $.Deferred().resolve();
   };
@@ -2384,25 +2400,23 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
 
   /**
    * change the visible portion of the page by moving the scrollbars
-   * @param {int} left distance from left of page in pixels
-   * @param {int} top  distance from top of page in pixels
+   * @param {object} target position
+   *        {int} left distance from left of page in pixels
+   *        {int} top  distance from top of page in pixels
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    * @return {object} jQuery deferred
    */
-  this.fire_scrollUpdate = function(left, top, eventContext) {
+  this.fire_scrollUpdate = function(target, eventContext) {
     var that = this;
-    // crop top and left against origin (0) and max scroll position (documentWidth - viewportWidth)
-    var croppedLeft = this.round(Math.max(0, Math.min(left, $document.width() - this.getViewportWidth())), 0);
-    var croppedTop = this.round(Math.max(0, Math.min(top, $document.height() - this.getViewportHeight())), 0);
     // create a context, but parent it only if eventContext is not undefined
     var localContext = this.eventQueue.pushOrMerge({
-      'key': 'scroll:'+'x='+croppedLeft+'&y='+croppedTop,
+      'key': 'scroll:'+'x='+target.left+'&y='+target.top,
       'comment': 'localContext for fire_scrollUpdate',
       'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
     }, eventContext);
     // fire event: change the scroll position (comes through as single event)
-    $document.scrollLeft(croppedLeft);
-    $document.scrollTop(croppedTop);
+    $document.scrollLeft(target.left);
+    $document.scrollTop(target.top);
     // localContext is resolved by handler_scrolled
     return localContext.deferred;
   };
@@ -2492,10 +2506,10 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       // update images based on what changed
       if (seqChanged || offseqChanged || breadthChanged || directionChanged || forceChange) {
         // scroll to the selected image, which triggers refresh on all .visible images
-        return this.setScrollPosition(obj.seq, obj.offseq).done(wrapUp);
-      } else {
-        // if nothing's changed, at least refresh visible images (e.g. first load from seq=0)
-        return this.refreshVisibility(0).done(wrapUp);
+        return this.envisionSeq(obj.seq, obj.offseq).done(wrapUp);
+      // } else {
+      //   // if nothing's changed, at least refresh visible images (e.g. first load from seq=0)
+      //   return this.refreshVisibility(0).done(wrapUp);
       }
     }
     return wrapUp();
@@ -2600,7 +2614,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
         increment = xpos + (scrolldir * event.deltaFactor * this.export.scrollMULTIPLIER);
       }
       // get current x position, increment and write back, firing scroll event
-      return this.fire_scrollUpdate(increment, 0).done(wrapUp);
+      return this.fire_scrollUpdate( { 'left': increment, 'top':0 } ).done(wrapUp);
     }
     return $.Deferred().resolve();
   }

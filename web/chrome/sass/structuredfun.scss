@@ -74,9 +74,9 @@ html.flow-y, html.no-flexbox.flow-x {
 }
 
 // use CSS hover if no javascript
-html.no-js {
-  .header:hover, .footer:hover {
-    width: 100%;
+html.no-js, html.disabled-js {
+  .header, .footer {
+    display: none;
   }
 }
 
