@@ -1,8 +1,4 @@
 
-* make sfun header expand on hover using CSS-only in non-JS version
-
-* create hamburger icon for sfun header
-
 * split out layout engines
   + using hooks
 
@@ -59,8 +55,6 @@
 * scrolling backwards beyond visnear
   + jumps forward to show selected
     = try just buffering
-
-* cold load seq=1 doesn't draw anything
 
 * rewrite test logic, just document here
     + cold load 0
@@ -1536,4 +1530,19 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * images with IPTC special whatsit create error
 
 * alignment of menu icon
+
+* make sfun header expand on hover using CSS-only in non-JS version
+  + actually all the header actions require JS
+    + so better not to show menu at all
+
+* create hamburger icon for sfun header
+
+* no-js or disabled-js
+  + show all the thumbnails
+  + no-js uses noscript alternative
+  + disabled-js will have to manually flip them in
+    + done in its own if clause
+
+* cold load seq=1 doesn't draw anything
+  + cold load seq=0 doing the same
 
