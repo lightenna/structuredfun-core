@@ -1,11 +1,48 @@
 
+* make sfun header expand on hover using CSS-only in non-JS version
+
+* create hamburger icon for sfun header
+
+* split out layout engines
+  + using hooks
+
+* losing a bit of the image
+  + shows up as mc yellow border missing
+  + also pink highlighter gets lost on bottom/right edges
+
+* directories in the middle of a set of images
+  + breaks next image on to new major (row/column)
+    + so following image ends up at 100% minor axis
+  + could just push all sub-folders to the end
+    + consistent with OS behaviours
+
+* start with pc, but set cell sizes using px after that
+  + otherwise we get very strange effects during resize (at high seq)
+
 * cold load seq=high jumps in Chrome only
   + something to do with the final stage
     + from container offset to scroll
+  + there's a difference in the cell widths between hash->setScroll and scrollHandler
+    + I suspect
+      + we're collapsing it somehow
+      + or chrome is collapsing it
+    + verify by
+      + checking fiddle
+        + doesn't seem to happen
+      + jquery checking the cell widths
+        + seem fine
+      + F10ing through things it does in between
 
 * little bit of fun working on optimisation
   + reducing js load
     + Chrome profiling is most accurate
+
+* eventually capture -8px margin on #sfun
+  + before changing it to realign major
+    + so that when we apply new value (to realign the major axis)
+    + it includes the -8px
+      + otherwise we show a little edge
+  + not sure if this is necessary or not
 
 * re-enabling buffering doesn't work
   + it doesn't load any images
@@ -1484,4 +1521,19 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
      2b handler_scrolled(931,0)
         + images appear
       3 handler_scrolled_eventProcess(931)
+
+* turn off JS
+  + work on no-js version
+  + disable js all together to see what it looks like
+
+* run tests from htdocs directory
+  phpunit -c app/
+
+* cached images not writing x-bound/y-bound
+  + injectargs is injecting them too late
+    + well after we've used getOrientation
+
+* images with IPTC special whatsit create error
+
+* alignment of menu icon
 

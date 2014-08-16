@@ -290,7 +290,8 @@ class ViewController extends Controller {
       }
     }
     $filename .= DIR_SEPARATOR . ltrim($name, DIR_SEPARATOR);
-    return $this->performFilenameSubstitution($name, $filename);
+    $sub = $this->performFilenameSubstitution($name, $filename);
+    return rtrim($sub, DIR_SEPARATOR);
   }
 
   /**

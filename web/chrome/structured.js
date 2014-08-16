@@ -35,7 +35,7 @@ window.sfun = (function($, undefined) {
   // default selector used to select top-level container
   this.containerSelector = '#sfun';
   // for screenpc width/height, set using px/pc
-  this.setScreenPcUsing = null;
+  this.setScreenPcUsing = 'pc';
 
   // jquery cache
   var $document = $(document);
@@ -62,10 +62,8 @@ window.sfun = (function($, undefined) {
 
   this.init = function() {
     var that = this;
-    // initialise vars
-    this.setScreenPcUsing = 'pc';
-    $document.ready(function() {
-    // $window.on('beforeunload', function() {
+    var active = $html.hasClass('allow-js');
+    if (active) $document.ready(function() {
       // fill in jQuery cache
       $sfun = $(that.containerSelector);
       $sfun_flow = $(that.containerSelector+'.flow');
@@ -94,7 +92,7 @@ window.sfun = (function($, undefined) {
       // find all screenpc elements, extract pc and store as data- attribute
       that.cellsInit();
       // process state if set in URL (hash) first
-      that.handler_hashChanged(that.getHash());
+      that.handler_hashChanged(that.getHash(), true);
       // execute queue of API calls
       that.export.flush();
       // attach listener to window for resize (rare, but should update)
@@ -102,6 +100,9 @@ window.sfun = (function($, undefined) {
         that.buffer('init_resized',
         // process event
         function() {
+          // flush cache
+          this.getViewportWidth(true);
+          this.getViewportHeight(true);
           // resize may have shown more images, so refresh visibility
           that.refreshVisibility(0);          
         },
@@ -769,7 +770,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       event.preventDefault();      
     }, function(event) {
       // leave header up for 2s, then collapse back down
-      $(this).stop(true, false).delay(2000).animate( { width: '2.0em', opacity: 0.5 }, 100);
+      $(this).stop(true, false).delay(2000).animate( { width: '2.5em', opacity: 0.5 }, 100);
     });
     // horizontal or vertical layout
     $('#flow-x').click(function(event) {
@@ -2352,21 +2353,33 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   /**
    * @return {real} height of viewport in pixels
    */
-  this.getViewportHeight = function() {
-    var jqYard = $('#sfun-yardstick-y');
-    if (jqYard.length) return jqYard.height();
-    // fall back to window
-    return $window.height();
+  this.getViewportHeight = function(force) {
+    if (this.getViewportHeight_static == undefined || force) {
+      var jqYard = $('#sfun-yardstick-y');
+      if (jqYard.length) {
+        this.getViewportHeight_static = jqYard.height();
+      } else {
+        // fall back to window
+        this.getViewportHeight_static = $window.height();
+      }
+    }
+    return this.getViewportHeight_static;
   };
 
   /**
    * @return {real} width of viewport in pixels
    */
-  this.getViewportWidth = function() {
-    var jqYard = $('#sfun-yardstick-x');
-    if (jqYard.length) return jqYard.width();
-    // fall back to window
-    return $window.width();
+  this.getViewportWidth = function(force) {
+    if (this.getViewportWidth_static == undefined || force) {
+      var jqYard = $('#sfun-yardstick-x');
+      if (jqYard.length) {
+        this.getViewportWidth_static = jqYard.width();
+      } else {
+        // fall back to window
+        this.getViewportWidth_static = $window.width();
+      }
+    }
+    return this.getViewportWidth_static;
   };
 
   /**

@@ -157,8 +157,6 @@ $wide2: 2400px;
         height: 100%;
         width: 100%;
         text-decoration: none;
-        font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
-        // font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
         margin: $alley;
 
         // landscape images
@@ -324,6 +322,7 @@ $wide2: 2400px;
 
       a.directory-container {
         display: inline-block;
+        height: auto;
         width: 100%;
         text-align: right;
         margin-top: -37.5%; // 4:3 / 2

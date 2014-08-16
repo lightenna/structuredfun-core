@@ -24,7 +24,7 @@
       <img class="reresable boundable {{ file.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
-           data-desrc="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
+           src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            data-template-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
            {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %}
            data-seq="{{ file.seq }}" />
