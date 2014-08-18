@@ -1,10 +1,9 @@
 
-* split out layout engines
-  + using hooks
+* blurring of first two images in HP set
 
-* losing a bit of the image
-  + shows up as mc yellow border missing
-  + also pink highlighter gets lost on bottom/right edges
+* remember dimensions of last resize
+  + and somehow tag on to cell
+    + so that we don't have to resize cells that we've already resized
 
 * directories in the middle of a set of images
   + breaks next image on to new major (row/column)
@@ -14,6 +13,10 @@
 
 * start with pc, but set cell sizes using px after that
   + otherwise we get very strange effects during resize (at high seq)
+
+* losing a bit of the image
+  + shows up as mc yellow border missing
+  + also pink highlighter gets lost on bottom/right edges
 
 * cold load seq=high jumps in Chrome only
   + something to do with the final stage
@@ -28,10 +31,6 @@
       + jquery checking the cell widths
         + seem fine
       + F10ing through things it does in between
-
-* little bit of fun working on optimisation
-  + reducing js load
-    + Chrome profiling is most accurate
 
 * eventually capture -8px margin on #sfun
   + before changing it to realign major
@@ -1545,4 +1544,62 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 
 * cold load seq=1 doesn't draw anything
   + cold load seq=0 doing the same
+
+* load of top-level container
+
+* pass .selected in with range
+
+* update vistable after cellsResize
+      // update vistable
+      // @todo should do this more selectively
+      that.visTableMajor.updateAll(direction, $sfun_selectablecell);
+      // use updated table to check visibles, but don't also tell then to reres yet
+      that.setVisibleAll(false);
+
+* need to check ratio (and therefore bounds) for range before calling flow_resizeCell
+    for (var i = 0 ; i<bucket.length ; ++i) {
+      var jqEnt = bucket[i];
+      var jqBoundable = jqEnt.find('.boundable');
+      if (jqBoundable.data('ratio') == undefined) {
+        // wait for image to be loaded in order to get ratio
+        defs[defs.length] = this.getLoadedResolution(jqEnt).done(function() {
+          that.setBound(jqEnt);
+        });
+      }
+    }
+
+* split out layout engines
+  + few options for how to implement these
+    + using hooks
+    + extend the sfun object
+  + api is elegant and gives us abstraction
+    + it's quite hard to split out cleanly
+  + extend is good, but it keeps everything functional
+    + which itself has issues
+    + growing complexity of structured.js is a problem
+      + proper abstraction is maybe a bit harder to code for
+        + but it does give us a proper ADT
+    + this is a pretty good way of developing an API architecture
+      + I'll learn from that
+    + API is a two way issue
+      + we can move all the functions out into an object
+        + and they need to be able to call out library functions in sfun
+      + but we also need call points in
+  + interesting question about pre and post activities
+    + post update vistable makes sense
+    + what about a pre-getLoadedResolution and setBound?
+      + sort of yes
+      + we don't want to have to load all the images
+        + but it seems reasonable to ask a layout engine to layout cells
+          + only when it knows what's in them
+  + working, but need to finish parse of structured-flow.js
+    + setBound
+      + sorted
+    + checking others
+
+* compute ratio in html (using cache) if possible
+
+* little bit of fun working on optimisation
+  + reducing js load
+    + Chrome profiling is most accurate
 

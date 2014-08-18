@@ -47,6 +47,11 @@ class FileReader {
     else {
       $this->file_part = substr($filename, 0, $end);
       list($this->file_part_path, $this->file_part_leaf) = $this->splitPathLeaf($this->file_part);
+      // catch situation where we're mistaking a directory for a file leaf
+      if ($this->file_part_leaf == '.' || $this->file_part_leaf == '..') {
+        $this->file_part_path = $this->file_part_path . $this->file_part_leaf;
+        $this->file_part_leaf = null;
+      }
       $this->zip_part = $this->zip_part_path = $this->zip_part_leaf = null;
     }
   }

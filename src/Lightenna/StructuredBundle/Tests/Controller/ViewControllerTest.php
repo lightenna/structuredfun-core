@@ -22,9 +22,9 @@ class ViewControllerTest extends WebTestCase
 		// test path without trailing /
 		$this->assertEquals($t->convertRawToFilename('data/my_directory'),$_SERVER['DOCUMENT_ROOT'].'/../../../data/my_directory');
 		// test blank path
-		$this->assertEquals($t->convertRawToFilename(''),$_SERVER['DOCUMENT_ROOT'].'/../../../');
+		$this->assertEquals($t->convertRawToFilename(''),$_SERVER['DOCUMENT_ROOT'].'/../../..');
 		// test path /
-		$this->assertEquals($t->convertRawToFilename('/'),$_SERVER['DOCUMENT_ROOT'].'/../../../');
+		$this->assertEquals($t->convertRawToFilename('/'),$_SERVER['DOCUMENT_ROOT'].'/../../..');
 		// test path .zip
 		$this->assertEquals($t->convertRawToFilename('mydir/my.zip'),$_SERVER['DOCUMENT_ROOT'].'/../../../mydir/my.zip');
 		// test path .zip to .jpg
