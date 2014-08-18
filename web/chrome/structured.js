@@ -24,8 +24,12 @@ if (typeof Function.prototype.inherits !== 'function') {
  */
 window.sfun = (function($, undefined) {
 
-  var debug = true;
+  // ---------
+  // CONSTANTS
+  // and private variables
+  // ---------
 
+  var debug = true;
   // default values for view state
   this.default = [];
   // the previous values for the view state (1 generation)
@@ -98,12 +102,12 @@ window.sfun = (function($, undefined) {
         that.bindToImageLinks();
         // if we're sideways scrolling, bind to scroll event
         that.setDirection(that.getDirection());
-        // find all screenpc elements, extract pc and store as data- attribute
-        that.cellsInit();
-        // process state if set in URL (hash) first
-        that.handler_hashChanged(that.getHash(), true);
+        // update vistable
+        that.visTableMajor.updateAll(that.getDirection(), $sfun_selectablecell);
         // execute queue of API calls
         that.export.flush();
+        // process state if set in URL (hash) first
+        that.handler_hashChanged(that.getHash(), true);
         // attach listener to window for resize (rare, but should update)
         $window.resize(function() {
           that.buffer('init_resized',
@@ -140,73 +144,26 @@ window.sfun = (function($, undefined) {
   // ----------------
 
   /**
-   * initialise the cells
-   */
-  this.cellsInit = function() {
-    var that = this;
-    var jqCells = $sfun_selectablecell;
-    jqCells.each(function() {
-      that.cellsGenerateDataPerc($(this));
-    });
-    // update vistable
-    this.visTableMajor.updateAll(this.getDirection(), jqCells);
-  };
-
-  /**
-   * Extract percentage and store as data- attribute
-   * @param {object} Query object
-   * @param {string} {width|height} axis to extract percentage for
-   */
-  this.cellsGenerateDataPerc = function(jqEnt) {
-    var pc
-    pc = jqEnt.width() * 100 / this.getViewportWidth();
-    jqEnt.data('screenpc-width', pc);
-    pc = jqEnt.height() * 100 / this.getViewportHeight();
-    jqEnt.data('screenpc-height', pc);
-  };
-
-  /**
    * @todo this currently assume that every cell is the same width on the major axis
    * @return {float} number of cells along the major axis
    */
-  this.cellsCountMajor = function() {
-    var direction = this.getDirection();
-    var jqEnt = $sfun_selectablecell_first;
-    if (direction == 'x') {
-      var pc = parseInt(jqEnt.data('screenpc-width'));
-    } else {
-      var pc = parseInt(jqEnt.data('screenpc-height'));
-    }
-    return (100 / pc);
+  this.getCountMajor = function() {
+    return 4;
   };
 
   /**
-   * load all ratios, calculate normalMinors their total
-   * @param  {array} bucket collection of cells
-   * @return {object} jQuery deferred with value of minorTotal
+   * check that ratio is set for each of the images
+   * @param  {object} range {first_1, last_n} range of sequence numbers
+   * @todo optimise
    */
-  this.cellResizeTotalMinor = function(bucket) {
-    var that = this;
+  this.checkRatios = function(range) {
     var deferred = $.Deferred();
     var defs = [];
-    var normalMinor, minorTotal = 0;
-    var direction = this.getDirection();
     var wrapUp = function() {
-      for (var i = 0 ; i<bucket.length ; ++i) {
-        var jqEnt = bucket[i];
-        var jqBoundable = jqEnt.find('.boundable');
-        if (debug && false) {
-          console.log('cellResizeTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
-        }
-        // calculate the normal minor based on ratio
-        normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() * jqBoundable.data('ratio'));
-        minorTotal += normalMinor;
-      }
-      // return minorTotal using the deferred
-      deferred.resolve(minorTotal);
+      deferred.resolve();
     }
-    for (var i = 0 ; i<bucket.length ; ++i) {
-      var jqEnt = bucket[i];
+    for (var i = range.first_1 ; i<= range.last_n ; ++i) {
+      var jqEnt = $img(i);
       var jqBoundable = jqEnt.find('.boundable');
       if (jqBoundable.data('ratio') == undefined) {
         // wait for image to be loaded in order to get ratio
@@ -215,200 +172,43 @@ window.sfun = (function($, undefined) {
         });
       }
     }
-    // wait for all their ratios to be loaded
-    $.when.apply($, defs).done(wrapUp);
+    $.when.apply($, defs).always(wrapUp);
     return deferred;
   }
 
-  /**
-   * resize all the minor axes
-   * @param  {array} bucket collection of cells
-   * @param  {real} minorTotal sum of all the minor axes
-   * @return {real} maxMajor
+  /** 
+   * @return {object} jQuery deferred
    */
-  this.cellResizeBucketMinor = function(bucket, minorTotal) {
-    var direction = this.getDirection();
-    var viewportMinor = (direction == 'x' ? this.getViewportHeight() : this.getViewportWidth());
-    // change the cell minor according to proportion of total
-    var proportionTotal = 0;
-    var maxMajor = 0;
-    for (var i = 0 ; i<bucket.length ; ++i) {
-      var jqEnt = bucket[i];
-      var jqBoundable = jqEnt.find('.boundable');
-      // calculate the normal minor based on ratio
-      var ratio = jqBoundable.data('ratio');
-      var normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() * ratio);
-      // calculate proportion as a percentage, round to 1 DP
-      var proportion = this.round( normalMinor * 100 / minorTotal, 1);
-      var absolute = this.round( normalMinor * viewportMinor / minorTotal, 1);
-      // if this is the last cell in the bucket, fill to 100%
-      if (i == bucket.length-1) {
-        proportion = 100 - proportionTotal;
-      } else {
-        // otherwise tot up proportions so far
-        proportionTotal += proportion;
-      }
-      // apply percentage to cell minor
-      jqEnt.css((direction == 'x' ? 'height': 'width'), (false ? absolute+'px' : proportion +'%'));
-      // update bound if necessary
-      this.setBound(jqEnt);
-      // calculate normal major, max
-      var newMinor = proportion * viewportMinor / 100;
-      maxMajor = Math.max(maxMajor, (direction == 'x' ? newMinor * ratio : newMinor / ratio));
-      if (debug && false) {
-        console.log('cellResizeBucketMinor-'+jqEnt.data('seq')+' minor['+normalMinor+'] major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+']');
-      }
-    }
-    return maxMajor;
-  }
-
-  /**
-   * resize all the major axes
-   * @param  {array} bucket collection of cells
-   * @param  {real} maxMajor the largest major axis
-   */
-  this.cellResizeBucketMajor = function(bucket, maxMajor) {
-    var direction = this.getDirection();
-    var viewportMajor = (direction == 'x' ? this.getViewportWidth() : this.getViewportHeight());
-    // calculate the new percentage major, bound (0-100), round (1DP)
-    var proportion = this.round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
-    var absolute = this.round(maxMajor,1);
-    // change all the majors
-    for (var i = 0 ; i<bucket.length ; ++i) {
-      var jqEnt = bucket[i];
-      jqEnt.css((direction == 'x' ? 'width': 'height'), (false ? absolute+'px' : proportion +'%'));
-      jqEnt.addClass('cell-specific');
-      if (debug && false) {
-        console.log('cellResizeBucketMajor-'+jqEnt.data('seq')+' major['+proportion+'%]');
-      }
-    }
-    for (var i = 0 ; i<bucket.length ; ++i) {
-      var jqEnt = bucket[i];
-      // make all images y-bound, as it's a simpler alignment than
-      var jqBoundable = jqEnt.find('.boundable');
-      jqBoundable.removeClass('x-bound').addClass('y-bound');
-      // also remove any 'pending resize' flags
-      jqEnt.removeClass('resizepending');
-    }
-  }
-
-  /**
-   * realign a given cell with its initial position
-   * @param  {object} jqSelected jQuery selected image
-   * @param  {real} initial selected major absolute coord
-   * @param  {boolean} useScroll true to align using scrollbar, false using container position
-   */
-  this.cellResizeRealignMajor = function(jqSelected, initial, useScroll) {
-    var direction = this.getDirection();
-    var coordabs = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
-    var diff = this.round(initial - coordabs, 2);
-    var csel = $sfun;
-    var property = (direction == 'x' ? 'left' : 'top');
-    // get the container's current csel offset (without 'px')
-    var cselOffset = this.round(parseFloat(csel.css(property)), 2);
-    if (useScroll) {
-      var scrolldiff = cselOffset + diff;
-      // create a null context to numb the event listener
-      var localContext = this.eventQueue.push({
-        'replaceEvent': function(){},
-        'comment': 'localContext for cellResizeRealignMajor, numb listener'
-      });
-      // stop using container
-      csel.css(property, 0);
-      // scroll instead
-      var oldpos = { 'left': $document.scrollLeft(), 'top': $document.scrollTop() };
-      // don't need to do using hashUpdate because we're keeping offseq where it is (probably 0)
-      var newpos = { 'left': (direction == 'x' ? oldpos.left - scrolldiff : 0), 'top':(direction == 'x' ? 0 : oldpos.top - scrolldiff) };
-      // if we're changing position, fire scroll
-      if ((newpos.left != oldpos.left) || (newpos.top != oldpos.top)) {
-        // note: async scroll will not expose new cells, only realign without container offset
-        // @todo need to crop this new position against viewport
-        this.fire_scrollUpdate(newpos, localContext);
-      }
-    } else {
-      // add diff to current csel offset
-      csel.css(property, cselOffset + diff);
-    }
-  }
-
-  /**
-   * refresh the visible cell sizes by minor axis then major
-   * @param {object} range {first_1, last_n} range of sequence numbers to resize
-   * @todo need to thoroughly analyse speed of this
-   */
-  this.cellsResize = function(range) {
+  this.cellsResize = function() {
     var that = this;
     var deferred = $.Deferred();
-    var defs = [];
-    var proportion, ratio, normalMinor, newMinor;
-    var direction = this.getDirection();
-    var count = this.cellsCountMajor();
-    var vis = this.getVisibleBoundaries();
-    var selectedMajorCoordabsInitial = 0;
-    var jqSelected = $sfun_selectedcell;
-    if (!jqSelected.length) {
-      // if we can't find the selected image, just use the first
-      jqSelected = $sfun_selectablecell_first;
-    }
-    // record the initial absolute coord of the image
-    selectedMajorCoordabsInitial = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
     var wrapUp = function() {
-      // now that all cells resized, realign using scrollbar instead of container position
-      that.cellResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, true);
-      // update vistable
-      // @todo should do this more selectively
-      that.visTableMajor.updateAll(direction, $sfun_selectablecell);
+      // when layoutManager completes a resize, capture cell boundaries
+      // @todo restrict update to range.first_1 to range.last_n
+      that.visTableMajor.updateAll(that.getDirection(), $sfun_selectablecell);
       // use updated table to check visibles, but don't also tell then to reres yet
       that.setVisibleAll(false);
-      // resolve deferred
       deferred.resolve();
     }
-    // fetch visible cells and group by major axis value
-    var cells = {};
-    // if range is undefined, use vis+visnear
-    if (typeof(range) == 'undefined') {
-      range = this.calcVisnear(vis.first, vis.last);
-    }
-    // iterate across visible and visnear cells
-    for (var i = range.first_1 ; i <= range.last_n ; ++i) {
-      var jqEnt = $('#seq-'+i);
-      // only include resizeablecells in the bucket
-      if (!jqEnt.hasClass('resizeablecell')) {
-        continue;
-      }
-      // pull out the major axis coord (absolute and relative to viewport edge)
-      var pos = jqEnt.offset();
-      var coordabs = (direction == 'x' ? pos.left : pos.top);
-      var coordrel = coordabs - (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
-      // if we don't have a bucket for this absolute coord, create one
-      if (!(cells[coordabs] instanceof Array)) {
-        cells[coordabs] = [];
-      }
-      // add jqEnt into bucket
-      cells[coordabs][cells[coordabs].length] = jqEnt;
-    }
-    // work through all visible buckets
-    for (var bucket in cells) {
-      var defid = defs.length;
-      defs[defid] = $.Deferred();
-      if (debug && false) {
-        console.log('cellsResize processing bucket['+bucket+'] of len['+cells[bucket].length+'] defid['+defid+']');
-      }
-      // function closure to wrap value of bucket
-      (function(bucket, def) {
-        // get ratio and total
-        this.cellResizeTotalMinor(cells[bucket]).done(function(minorTotal) {
-          // resize minor axis
-          maxMajor = that.cellResizeBucketMinor(cells[bucket], minorTotal);
-          // resize major axis
-          that.cellResizeBucketMajor(cells[bucket], maxMajor);
-          // realign selected against initial position
-          that.cellResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, false);
-          def.resolve();
-        });
-      })(bucket, defs[defid]);
-    }
-    $.when.apply($, defs).always(wrapUp);
+    var vis = this.getVisibleBoundaries();
+    // set range as visible cells including visnear
+    range = this.calcVisnear(vis.first, vis.last);
+    // add selected to range
+    range.selected = $sfun_selectedcell.data('seq');
+    // set ratio for images within range
+    this.checkRatios(range).done(function() {
+      // get the current layoutManager, if we have one
+      var layout = that.layoutManager.select(0);
+      if (layout.layoutResize != null) {
+        // tell it that we've resized cells
+        var laid = layout.layoutResize.call(layout.context, range);
+        // laid may be a deferred, but when can cope if it's not
+        $.when(laid).done(wrapUp);
+      } else {
+        wrapUp();
+      }      
+    });
+    // return our deferred either way
     return deferred;
   }
 
@@ -416,6 +216,7 @@ window.sfun = (function($, undefined) {
    * clear previously assigned cell-specific width and height
    */
   this.cellsClear = function() {
+    // @todo call layout_cellsClear
     $('.cell-specific').css( { 'width':'', 'height':'' } ).removeClass('cell-specific').removeClass('visible vispart visnear');
   }
 
@@ -1167,8 +968,8 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    */
   this.cropScrollPositionAgainstViewport = function(target) {
     return {
-      'left': this.round(Math.max(0, Math.min(target.left, $document.width() - this.getViewportWidth())), 0),
-      'top': this.round(Math.max(0, Math.min(top, $document.height() - this.getViewportHeight())), 0)
+      'left': this.export.api_round(Math.max(0, Math.min(target.left, $document.width() - this.getViewportWidth())), 0),
+      'top': this.export.api_round(Math.max(0, Math.min(top, $document.height() - this.getViewportHeight())), 0)
     };
   }
 
@@ -1932,7 +1733,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
        * @return {object} matched object, or null if not present
        */
       'select': function(ref) {
-        if (ref == -1) {
+        if ((ref == -1) || (ref > this.objarr.length)) {
           return null;
         }
         return this.objarr[ref];
@@ -1947,10 +1748,6 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
    */
   this.createVisTable = function() {
     return $.extend(this.createHashTable('visTable'), {
-
-      // CONSTANTS
-
-      // VARIABLES
 
       // FUNCTIONS
 
@@ -1986,6 +1783,22 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
    * - to store an indexed list of cell coordinates along the major axis
    */
   this['visTableMajor'] = this.createVisTable();
+
+  /**
+   * create a specialised hashTable for visTableMajor
+   */
+  this.createLayoutManager = function() {
+    return $.extend(this.createHashTable('layoutManager'), {
+      // FUNCTIONS
+      'lastEntry': null
+    });
+  }
+
+  /** 
+   * The layoutManager is used:
+   * - to store an indexed list of layout methods
+   */
+  this['layoutManager'] = this.createLayoutManager();
 
   /**
    * create a specialised hashTable for the eventQueue
@@ -2662,13 +2475,13 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       case that.export.KEY_PAGE_UP:
         if (!event.ctrlKey) {
           event.preventDefault();
-          return that.imageAdvanceBy(-1 * that.cellsCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
+          return that.imageAdvanceBy(-1 * that.getCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
         }
         break;
       case that.export.KEY_PAGE_DOWN:
         if (!event.ctrlKey) {
           event.preventDefault();
-          return that.imageAdvanceBy(that.cellsCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
+          return that.imageAdvanceBy(1 * that.getCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
         }
         break;
       case that.export.KEY_HOME:
@@ -2709,24 +2522,6 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
   this.substitute = function(template, view) {
     var output = Mustache.render(template, view);
     return output;
-  }
-
-  /**
-   * @return {real} mod function that works with negative numbers
-   */
-  this.negative_mod = function(x, m) {
-    if (x < 0) return (x+m);
-    return x % m;
-  }
-
-  /** 
-   * @param {real} k value to round
-   * @param {int} dp number of decimal places to round to
-   * @return {real} number rounded to dp
-   */
-  this.round = function(k, dp) {
-    var scalar = Math.pow(10, dp);
-    return Math.round(k * scalar) / scalar;
   }
 
   /**
@@ -2904,7 +2699,31 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
       // attach output to header
       $('.header').append(output);
       // allow element to bind its handlers
-      obj.callbackBind.call(this, obj);
+      obj.callback.call(obj.context, obj);
+    },
+
+    /**
+     * register a layout engine
+     * @param {object} obj arguments
+     */
+    'api_registerLayout': function(obj) {
+      that.layoutManager.push(obj);
+      // allow element to bind its handlers
+      obj.callback.call(obj.context, obj);
+    },
+
+    /**
+     * @return {object} jQuery object for cell
+     */
+    'api_getCell': function(seq) {
+      return $img(seq);
+    },
+
+    /**
+     * @return {string} direction of current view
+     */
+    'api_getDirection': function() {
+      return that.getDirection();
     },
 
     /**
@@ -2912,6 +2731,23 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
      */
     'api_getBreadth': function() {
       return that.getBreadth();
+    },
+
+    /**
+     * @return {int} return viewport width/height
+     */
+    'api_getViewportWidth': function() {
+      return that.getViewportWidth();
+    },
+    'api_getViewportHeight': function() {
+      return that.getViewportHeight();
+    },
+
+    /**
+     * @return {object} jQuery object for sfun layout root
+     */
+    'api_getLayoutRoot': function() {
+      return $sfun_flow;
     },
 
     /**
@@ -2924,8 +2760,8 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     /**
      * @return {float} number of cells on the major axis
      */
-    'api_cellsCountMajor': function() {
-      return that.cellsCountMajor();
+    'api_getCountMajor': function() {
+      return that.getCountMajor();
     },
 
     /**
@@ -2936,10 +2772,10 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     },
 
     /**
-     * @return {object} visibility table for major axis
+     * @param {object} jqEnt cell to check (and re-set) bounds for
      */
-    'api_createVisTable': function() {
-      return that.createVisTable();
+    'api_setBound': function(jqEnt) {
+      return that.setBound(jqEnt);
     },
 
     /**
@@ -2950,11 +2786,59 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     },
 
     /**
+     * fire scroll update
+     * @param  {object} pos  {left, top} new scroll coordinate
+     * @param  {boolean} numb true to numb listener
+     * @return {object} jQuery deferred
+     */
+    'api_triggerScroll': function(pos, numb) {
+      if (numb == undefined) {
+        numb = false;
+      }
+      if (numb) {
+        // create a null context to numb the event listener
+        var localContext = that.eventQueue.push({
+          'replaceEvent': function(){},
+          'comment': 'localContext for cellResizeRealignMajor, numb listener'
+        });
+        return that.fire_scrollUpdate(pos, localContext);
+      }
+      return that.fire_scrollUpdate(pos);
+    },
+ 
+    /**
      * jump to a specific image
      * @param {int} seq image to advance to
      */
     'api_imageAdvanceTo': function(seq) {
       return that.imageAdvanceTo(seq);
+    },
+
+    /**
+     * @return {real} mod function that works with negative numbers
+     */
+    'api_negative_mod': function(x, m) {
+      if (x < 0) return (x+m);
+      return x % m;
+    },
+
+    /** 
+     * @param {real} k value to round
+     * @param {int} dp number of decimal places to round to
+     * @return {real} number rounded to dp
+     */
+    'api_round': function(k, dp) {
+      var scalar = Math.pow(10, dp);
+      return Math.round(k * scalar) / scalar;
+    },
+
+    // Test suite support functions
+
+    /**
+     * @return {object} visibility table for major axis
+     */
+    'api_createVisTable': function() {
+      return that.createVisTable();
     },
 
     // no comma on last entry

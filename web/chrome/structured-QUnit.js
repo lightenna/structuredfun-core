@@ -14,11 +14,12 @@
 
   this.init = function() {
     var obj = {
+      'context': this,
+      'callback': this.bindToTemplate,
       'view': {
         'title': 'Test'
       },
-      'template': this.getTemplate(),
-      'callbackBind' : this.bindToTemplate()
+      'template': this.getTemplate()
     };
     // pull in QUnit library
     // @todo
@@ -32,11 +33,8 @@
     return str;
   }
 
-  this['bindToTemplate'] = function() {
-    var that = this;
-    return(function(obj) {
-      $('#header-test').click(that.getClickHandler());
-    });
+  this['bindToTemplate'] = function(obj) {
+    $('#header-test').click(this.getClickHandler());
   }
 
   this['getClickHandler'] = function() {
@@ -194,7 +192,7 @@ console.log('XXX test complete XXX');
     });
 
     test( 'vis non-vis simple', function() {
-      var cellcount = sfun.api_cellsCountMajor() * sfun.api_getBreadth();
+      var cellcount = sfun.api_getCountMajor() * sfun.api_getBreadth();
       window.location.hash = 'vis-non-vis-simple';
       var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
       // scroll to first off-screen element
