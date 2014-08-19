@@ -1,22 +1,6 @@
 
-* blurring of first two images in HP set
-
-* remember dimensions of last resize
-  + and somehow tag on to cell
-    + so that we don't have to resize cells that we've already resized
-
-* directories in the middle of a set of images
-  + breaks next image on to new major (row/column)
-    + so following image ends up at 100% minor axis
-  + could just push all sub-folders to the end
-    + consistent with OS behaviours
-
-* start with pc, but set cell sizes using px after that
-  + otherwise we get very strange effects during resize (at high seq)
-
-* losing a bit of the image
-  + shows up as mc yellow border missing
-  + also pink highlighter gets lost on bottom/right edges
+* disable flow for testing
+  + resizepending never gets cleared
 
 * cold load seq=high jumps in Chrome only
   + something to do with the final stage
@@ -31,6 +15,29 @@
       + jquery checking the cell widths
         + seem fine
       + F10ing through things it does in between
+  + start by disabling flow
+    + see if this occurs with just the basic layout
+
+* blurring of first two images in HP set
+  + this is to do with the execution order
+    + when the thumbnails are cached
+      + ratio gets loaded by the html
+    + we do a cellsResize
+    + not sure why that loads some very low-res thumbnails
+      + [viewport] resize is fine
+    + only seems to be the first load
+      + and only then of cached images
+
+* remember dimensions of last resize
+  + and somehow tag on to cell
+    + so that we don't have to resize cells that we've already resized
+
+* start with pc, but set cell sizes using px after that
+  + otherwise we get very strange effects during resize (at high seq)
+
+* losing a bit of the image
+  + shows up as mc yellow border missing
+  + also pink highlighter gets lost on bottom/right edges
 
 * eventually capture -8px margin on #sfun
   + before changing it to realign major
@@ -1602,4 +1609,11 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * little bit of fun working on optimisation
   + reducing js load
     + Chrome profiling is most accurate
+
+* directories in the middle of a set of images
+  + breaks next image on to new major (row/column)
+    + so following image ends up at 100% minor axis
+  + could just push all sub-folders to the end
+    + consistent with OS behaviours
+  + also a chance to sort (ha!) non-images at head of directory
 

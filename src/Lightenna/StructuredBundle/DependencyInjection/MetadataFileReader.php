@@ -79,11 +79,8 @@ class MetadataFileReader extends FileReader {
     }
     if ($this->isDirectory()) {
       // if we're processing a directory, loop through files and pull their metadata 
-      $seq = 0;
       foreach ($listing as $obj) {
         $this->parseDirectoryEntry($obj);
-        // add sequence number (zero-based; dense, not sparse; includes non-images)
-        $obj->{'seq'} = $seq++;
       }
     }
     // add in shares within this folder
@@ -101,6 +98,24 @@ class MetadataFileReader extends FileReader {
         );
         $newentry['path'] = $newentry['file'] = $newentry['file_original'] = $sh['path'];
         $listing[] = $newentry;
+      }
+    }
+    // sort directory based on entry type
+    usort($listing, function($a, $b) {
+      $typeorder = array('image', 'directory', 'genfile');
+      $refa = array_search($a->type, $typeorder);
+      $refb = array_search($b->type, $typeorder);
+      if ($refa == $refb) {
+        return ($a->name < $b->name) ? -1 : 1;
+      }
+      return ($refa < $refb) ? -1 : 1;
+    });
+    // finally add sequence number to each directory entry
+    if ($this->isDirectory()) {
+      $seq = 0;
+      foreach ($listing as $obj) {
+        // add sequence number (zero-based; dense, not sparse; includes non-images)
+        $obj->{'seq'} = $seq++;
       }
     }
     return $listing;

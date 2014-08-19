@@ -199,7 +199,7 @@ window.sfun = (function($, undefined) {
     this.checkRatios(range).done(function() {
       // get the current layoutManager, if we have one
       var layout = that.layoutManager.select(0);
-      if (layout.layoutResize != null) {
+      if (layout != null) {
         // tell it that we've resized cells
         var laid = layout.layoutResize.call(layout.context, range);
         // laid may be a deferred, but when can cope if it's not
@@ -1733,7 +1733,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
        * @return {object} matched object, or null if not present
        */
       'select': function(ref) {
-        if ((ref == -1) || (ref > this.objarr.length)) {
+        if ((ref == -1) || (ref >= this.objarr.length)) {
           return null;
         }
         return this.objarr[ref];
