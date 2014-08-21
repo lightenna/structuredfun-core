@@ -45,7 +45,7 @@ html.flexbox.flow-x {
 
   .sfun {
     // row-major order
-    &.flow-x {
+    &.flow, .flow {
       display: -webkit-flex;
       -webkit-flex-flow: column wrap;
       -webkit-align-items: center;
@@ -211,7 +211,6 @@ html.theme-dark {
       }
       
       .directory {
-        background-image: url('/chrome/images/fullres/folder_back_dark.png');
       }
     }
   }
