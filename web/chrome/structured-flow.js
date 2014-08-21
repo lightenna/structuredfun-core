@@ -23,7 +23,7 @@
       'layoutResize' : this.flow_cellsResize,
     };
     // not sure of init order, so push async
-    // sfun.push('registerLayout', obj);
+    //sfun.push('registerLayout', obj);
   };
 
   // Layout API
@@ -31,7 +31,8 @@
   /**
    * called by sfun when ready
    */
-  this.flow_register = function() {
+  this.flow_register = function(jqCells) {
+    jqCells.addClass('resizepending');
   }
 
   /**
@@ -115,11 +116,12 @@
     for (var i = 0 ; i<bucket.length ; ++i) {
       var jqEnt = bucket[i];
       var jqBoundable = jqEnt.find('.boundable');
+      var ratio = jqBoundable.data('ratio');
       if (debug && false) {
-        console.log('cellResizeTotalMinor-'+jqEnt.data('seq')+' ratio['+jqBoundable.data('ratio')+']');
+        console.log('cellResizeTotalMinor-'+jqEnt.data('seq')+' ratio['+ratio+']');
       }
       // calculate the normal minor based on ratio
-      normalMinor = (direction == 'x' ? jqEnt.width() / jqBoundable.data('ratio') : jqEnt.height() * jqBoundable.data('ratio'));
+      normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() * ratio);
       minorTotal += normalMinor;
     }
     return minorTotal;
