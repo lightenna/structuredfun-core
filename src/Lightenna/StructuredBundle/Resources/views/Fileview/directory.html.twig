@@ -11,22 +11,28 @@
   <div class="dummy1"></div>
   <a class="{{ file.type }}-container clickable selectreflector" href="/file{{ linkpath }}{{ file.name }}/">
     <div class="dummy2"></div>
-    <div class="directory boundable x-bound">
-      {# <img class="overlay" src="/chrome/images/fullres/folder_front_dark.png" alt="directory semi-opaque front" /> #}
-      {% for img_prev_n in 1..4 %}<img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" />{% endfor %}
-    </div>
+    <ul class="directory boundable x-bound">
+      {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="cell"><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }} loadable" data-desrc="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" />
+      <noscript><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" /></noscript></li>{% endfor %}
+    </ul>
     <span class="title">{{ file.alias|e }}</span>
   </a></li>
 {% elseif (file.type == 'image') or (file.type == 'video') %}
-  <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}" data-seq="{{ file.seq }}">
+  <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type" data-seq="{{ file.seq }}">
     <a class="media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
       <p class="imgmetric super"><span class="size"><span class="width">{% if file.meta.width_loaded is defined %}{{ file.meta.width_loaded }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.height_loaded is defined %}{{ file.meta.height_loaded }}{% else %}-{% endif %}</span> @ </span><span class="perc">x%</span></p>
-      <img class="reresable boundable {{ file.orientation }}-bound selectreflector"
+      <img class="loadable reresable boundable {{ file.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            data-desrc="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            data-template-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
-           {% if file.meta.ratio is defined %}data-ratio="{{ file.meta.ratio }}" {% endif %}{% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %}
+           {% if file.meta.ratio is defined %}data-ratio="{{ file.meta.ratio }}" {% endif %}
+           {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}
+{#
+           do not send the loaded-width and height, because we need to use the loaded event to trigger cell resize and image reres
+           {% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %}
+#}
+           data-loaded="false"
            data-seq="{{ file.seq }}" />
       <noscript><img class="{{ file.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %}{% if file.meta.ratio is defined %}data-ratio="{{ file.meta.ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
       <span class="meta">

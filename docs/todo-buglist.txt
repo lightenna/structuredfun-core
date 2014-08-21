@@ -1,6 +1,10 @@
 
-* disable flow for testing
-  + resizepending never gets cleared
+* folder images are loaded before everything else
+  + they're currently loaded with src
+    + use desrc instead
+  + may need another class or
+    + need to consider how we currently select images for desrc->src'ing
+  = working on making directories nestable
 
 * cold load seq=high jumps in Chrome only
   + something to do with the final stage
@@ -18,19 +22,19 @@
   + start by disabling flow
     + see if this occurs with just the basic layout
 
-* blurring of first two images in HP set
-  + this is to do with the execution order
-    + when the thumbnails are cached
-      + ratio gets loaded by the html
-    + we do a cellsResize
-    + not sure why that loads some very low-res thumbnails
-      + [viewport] resize is fine
-    + only seems to be the first load
-      + and only then of cached images
+* vispart on first load
+  + showing up as vispart images not reresing
 
 * remember dimensions of last resize
-  + and somehow tag on to cell
+  + and somehow tag onto cell
     + so that we don't have to resize cells that we've already resized
+--o--
+* remember dimensions of last reres
+  + and somehow tag onto cell
+    + so that we're not constantly asking images to reres unnecessarily
+
+* imagecreatefromstring is stumbling over gif
+  + look at AE
 
 * start with pc, but set cell sizes using px after that
   + otherwise we get very strange effects during resize (at high seq)
@@ -1616,4 +1620,50 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   + could just push all sub-folders to the end
     + consistent with OS behaviours
   + also a chance to sort (ha!) non-images at head of directory
+
+* disable flow for testing
+  + resizepending never gets cleared
+  = no longer gets set
+
+* order
+  + handler_hashChanged
+    + [handler_scrolled]
+  + refreshVisibility
+  + setVisibleAll
+    + loadThumbRefreshBounds
+    + cellsResize
+    + refreshImageResolution
+* key points
+  + cellResize has to have cell size and ratio only
+    = have multi-streamed
+      + now runs at same time as loading the thumbs
+
+* blurring of first two images in HP set
+  + this is to do with the execution order
+    + when the thumbnails are cached
+      + ratio gets loaded by the html
+    + we do a cellsResize
+    + not sure why that loads some very low-res thumbnails
+      + [viewport] resize is fine
+    + only seems to be the first load
+      + and only then of cached images
+    + doesn't seem to happen when we pause in debugger
+      + suspect we're reresing before the thumbnail loads
+  + it's not the first two images
+    + it's the portrait images
+      + because the cell height is tiny (35px) before image loaded into it
+    + try suspending the bound
+      - nope, same deal
+  + there's a tension between cellsResize and loaded-width
+    + the point of pushing loaded-width and ratio out in the html
+      + is to make the page loading faster
+    + if we have to wait for the thumb to load
+      + in order to decide if we should reres
+      + we might as well not push the loaded-res out with the html
+    + we can still send the native-res
+      + which means we won't have to do a imagemeta api call
+
+* detect whether visible boundaries have changed at all
+  + use to decide if cellsResize should go on to call reres
+  + crude optimisation, but effective
 

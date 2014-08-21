@@ -87,31 +87,29 @@ class MetadataFileReader extends FileReader {
     if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)])) {
       $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)];
       foreach ($shares as $k => &$sh) {
-        $newentry = array(
-          'name' => $sh['name'],
-          'alias' => (isset($sh['alias']) ? $sh['alias'] : $sh['name']),
-          'type' => 'directory',
-          'orientation' => 'x',
-          'hidden' => '',
-          'ext' => '',
-          'seq' => $seq++,
-        );
-        $newentry['path'] = $newentry['file'] = $newentry['file_original'] = $sh['path'];
+        $newentry = new \stdClass();
+        $newentry->{'name'} = $sh['name'];
+        $newentry->{'alias'} = (isset($sh['alias']) ? $sh['alias'] : $sh['name']);
+        $newentry->{'type'} = 'directory';
+        $newentry->{'orientation'} = 'x';
+        $newentry->{'hidden'} = '';
+        $newentry->{'ext'} = '';
+        $newentry->{'path'} = $newentry->{'file'} = $newentry->{'file_original'} = $sh['path'];
         $listing[] = $newentry;
       }
     }
-    // sort directory based on entry type
-    usort($listing, function($a, $b) {
-      $typeorder = array('image', 'directory', 'genfile');
-      $refa = array_search($a->type, $typeorder);
-      $refb = array_search($b->type, $typeorder);
-      if ($refa == $refb) {
-        return ($a->name < $b->name) ? -1 : 1;
-      }
-      return ($refa < $refb) ? -1 : 1;
-    });
-    // finally add sequence number to each directory entry
     if ($this->isDirectory()) {
+      // sort directory based on entry type
+      usort($listing, function($a, $b) {
+        $typeorder = array('image', 'directory', 'genfile');
+        $refa = array_search($a->type, $typeorder);
+        $refb = array_search($b->type, $typeorder);
+        if ($refa == $refb) {
+          return ($a->name < $b->name) ? -1 : 1;
+        }
+        return ($refa < $refb) ? -1 : 1;
+      });
+      // finally add sequence number to each directory entry
       $seq = 0;
       foreach ($listing as $obj) {
         // add sequence number (zero-based; dense, not sparse; includes non-images)
@@ -153,9 +151,11 @@ class MetadataFileReader extends FileReader {
     if (!self::checkImageDatastream($imgdata))
       return 'x';
     // create an image, then read out the width and height
-    $img = imagecreatefromstring($imgdata);
-    if (imagesx($img) < imagesy($img))
-      return 'y';
+    $img = @imagecreatefromstring($imgdata);
+    if ($img) {
+      if (imagesx($img) < imagesy($img))
+        return 'y';
+    }
     return 'x';
   }
 

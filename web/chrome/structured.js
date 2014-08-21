@@ -38,8 +38,6 @@ window.sfun = (function($, undefined) {
   this.resizeTimeout = null;
   // default selector used to select top-level container
   this.containerSelector = '#sfun';
-  // for screenpc width/height, set using px/pc
-  this.setScreenPcUsing = 'pc';
 
   // jquery cache
   var $document = $(document);
@@ -164,10 +162,10 @@ window.sfun = (function($, undefined) {
     }
     for (var i = range.first_1 ; i<= range.last_n ; ++i) {
       var jqEnt = $img(i);
-      var jqBoundable = jqEnt.find('.boundable');
-      if (jqBoundable.data('ratio') == undefined) {
+      var jqLoadable = jqEnt.find('.loadable');
+      if (jqLoadable.data('ratio') == undefined) {
         // wait for image to be loaded in order to get ratio
-        defs[defs.length] = this.getLoadedResolution(jqEnt).done(function() {
+        defs[defs.length] = this.waitLoadedGetResolution(jqEnt).done(function() {
           that.setBound(jqEnt);
         });
       }
@@ -182,15 +180,21 @@ window.sfun = (function($, undefined) {
   this.cellsResize = function() {
     var that = this;
     var deferred = $.Deferred();
+    var vis = this.getVisibleBoundaries();
     var wrapUp = function() {
       // when layoutManager completes a resize, capture cell boundaries
       // @todo restrict update to range.first_1 to range.last_n
       that.visTableMajor.updateAll(that.getDirection(), $sfun_selectablecell);
-      // use updated table to check visibles, but don't also tell then to reres yet
-      that.setVisibleAll(false);
+      // see if resize means that different images are visible
+      var aftervis = that.getVisibleBoundaries();
+      if (vis.first == aftervis.first && vis.last == aftervis.last) {
+        // no need to reset visibles
+      } else {
+        // use updated table to check visibles, but don't also tell then to reres yet
+        that.setVisibleAll(false);
+      }
       deferred.resolve();
     }
-    var vis = this.getVisibleBoundaries();
     // set range as visible cells including visnear
     range = this.calcVisnear(vis.first, vis.last);
     // add selected to range
@@ -229,14 +233,14 @@ window.sfun = (function($, undefined) {
    * @param jQuery cell that may have changed size
    * @return {object} $.Deferred
    */
-  this.refreshBounds = function(jqEnt) {
+  this.loadThumbRefreshBounds = function(jqEnt) {
     // find boundable entity
-    var jqBoundable = jqEnt.find('.boundable');
+    var jqBoundable = jqEnt.find('.loadable');
     if (jqBoundable.length) {
       // 1. update loaded resolution if necessary first
       if (jqBoundable.data('loaded-width') == undefined || jqBoundable.data('loaded-height') == undefined) {
-        // if getLoadedResolution succeeds, use loaded-width/height
-        return this.getLoadedResolution(jqEnt).done(function() {
+        // if waitLoadedGetResolution succeeds, use loaded-width/height
+        return this.waitLoadedGetResolution(jqEnt).done(function() {
           // 2a. once we've got the loaded- dimensions, check bounds
           setBound(jqEnt);
         });
@@ -387,7 +391,7 @@ console.log('passing back to imageReres-'+jqEnt.data('seq')+' to resolve');
       var bigger = imageContainerWidth > loadedWidth || imageContainerHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
       // optional debugging
-      if (debug && false) {
+      if (debug && true) {
         console.log('image-'+jqEnt.data('seq')+': checking resolution w['+imageContainerWidth+'] h['+imageContainerHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
       }
       // test to see if we're displaying an image at more than 100%
@@ -476,6 +480,9 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
           console.log('image-'+jqEnt.data('seq')+': fired request for native width and height');
         }
         return deferred;
+      } else {
+        // no need to update metadata
+        return $.Deferred().resolve();
       }
     }
     // if we couldn't find a suitable candidate and get it's metadata, fail out the deferred
@@ -523,28 +530,27 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     if (jqVisibles.length) {
       var deferred = $.Deferred();
       var defs = [];
-      // // stage 1: refresh bounds as a batch
-      // jqVisibles.each(function() {
-      //   var jqEnt = $(this);
-      //   defs.push(that.refreshBounds(jqEnt));
-      // });
-      // $.when.apply($, defs).always(function() {
-      //   defs = [];
-        // stage 2: refresh cell dimensions
-        that.cellsResize().always(function() {
-          // refresh jqVisibles because resize may have added more visible/vispart cells
-          jqVisibles = $(selector);
-          // stage 3: refresh resolutions as a batch
-          jqVisibles.each(function() {
-            var jqEnt = $(this);
-            defs.push(that.refreshImageResolution(jqEnt, true));
-          });
-          $.when.apply($, defs).always(function() {
-            // finally resolve
-            deferred.resolve();
-          });
+      // // stage 1a: make sure thumbnails loaded and refresh bounds as a batch
+      jqVisibles.each(function() {
+        var jqEnt = $(this);
+        defs.push(that.loadThumbRefreshBounds(jqEnt));
+      });
+      // stage 1b: refresh cell dimensions
+      defs.push(that.cellsResize());
+      $.when.apply($, defs).always(function() {
+        defs = [];
+        // refresh jqVisibles because resize may have added more visible/vispart cells
+        jqVisibles = $(selector);
+        // stage 3: refresh resolutions as a batch
+        jqVisibles.each(function() {
+          var jqEnt = $(this);
+          defs.push(that.refreshImageResolution(jqEnt, true));
         });
-      // });
+        $.when.apply($, defs).always(function() {
+          // finally resolve
+          deferred.resolve();
+        });
+      });
       return deferred;
     }
     return $.Deferred().resolve();
@@ -669,33 +675,33 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * @param {jQuery object} jqEnt image to check
    * @return {object} jQuery deferred
    */
-  this.getLoadedResolution = function(jqEnt) {
-    var jqReresable = jqEnt.find('.reresable');
-    if (jqReresable.length) {
+  this.waitLoadedGetResolution = function(jqEnt) {
+    var jqLoadable = jqEnt.find('.loadable');
+    if (jqLoadable.length) {
       // create local context for async processing
       var deferred = $.Deferred();
       // update loaded resolution
       var im = new Image();
       im.onload = function() {
-        jqReresable.data('loaded-width', im.width);
-        jqReresable.data('loaded-height', im.height);
+        jqLoadable.data('loaded-width', im.width);
+        jqLoadable.data('loaded-height', im.height);
         // never update the ratio, but set if unset
-        if (jqReresable.data('ratio') == undefined) {
-          jqReresable.data('ratio', im.width / im.height);
+        if (jqLoadable.data('ratio') == undefined) {
+          jqLoadable.data('ratio', im.width / im.height);
         }
         im = null;
         if (debug && false) {
-          console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+']');
+          console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqLoadable.data('loaded-width')+','+jqLoadable.data('loaded-height')+']');
         }
         // notify promise of resolution
         deferred.resolve();
       }
       // if the src attribute is defined, use it
-      if (jqReresable.attr('src') != undefined) {
-        im.src = jqReresable.attr('src');
+      if (jqLoadable.attr('src') != undefined) {
+        im.src = jqLoadable.attr('src');
       } else {
         // otherwise use data-desrc (thumbnail hasn't been loaded before)
-        im.src = jqReresable.data('desrc');
+        im.src = jqLoadable.data('desrc');
       }
       if (debug && false) {
         console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
@@ -703,6 +709,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       // return local context so that when we complete (resolve), our parents can execute
       return deferred;
     }
+    // if there are no loadable images, return a resolved deferred
     return $.Deferred().resolve();
   };
 
@@ -969,7 +976,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   this.cropScrollPositionAgainstViewport = function(target) {
     return {
       'left': this.export.api_round(Math.max(0, Math.min(target.left, $document.width() - this.getViewportWidth())), 0),
-      'top': this.export.api_round(Math.max(0, Math.min(top, $document.height() - this.getViewportHeight())), 0)
+      'top': this.export.api_round(Math.max(0, Math.min(target.top, $document.height() - this.getViewportHeight())), 0)
     };
   }
 
@@ -1140,7 +1147,6 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         var attr = jqReresable.attr('src');
         if (typeof attr === 'undefined' || attr === false) {
           jqReresable.attr('src', jqReresable.data('desrc'));
-          jqEnt.addClass('resizepending');
         }
       }
       if (vis == 'visnear') {
@@ -2709,7 +2715,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     'api_registerLayout': function(obj) {
       that.layoutManager.push(obj);
       // allow element to bind its handlers
-      obj.callback.call(obj.context, obj);
+      obj.callback.call(obj.context, $sfun_selectablecell);
     },
 
     /**
@@ -2799,7 +2805,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
         // create a null context to numb the event listener
         var localContext = that.eventQueue.push({
           'replaceEvent': function(){},
-          'comment': 'localContext for cellResizeRealignMajor, numb listener'
+          'comment': 'localContext for api_triggerScroll, numb listener'
         });
         return that.fire_scrollUpdate(pos, localContext);
       }
