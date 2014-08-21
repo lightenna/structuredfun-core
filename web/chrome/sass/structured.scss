@@ -10,6 +10,7 @@ $alley: 8px;
 // standard colours
 $highlight: #ff00ff;
 $background_html_light: #ffffff;
+$directory_light: #dddddd;
 
 // transition points between media queries
 $wide1: 1600px;
@@ -149,7 +150,7 @@ $wide2: 2400px;
         border-color: $highlight;
       }
 
-      a {
+      .container {
         // relative parent required for alignment of x-bound images and meta
         position: relative;
         // display block, height 100% required for aligning image metadata to base
@@ -160,7 +161,7 @@ $wide2: 2400px;
         margin: $alley;
 
         // landscape images
-        > img.x-bound {
+        img.x-bound {
           position: relative;
           width: 100%;
           top: 50%;
@@ -170,7 +171,7 @@ $wide2: 2400px;
         }
       
         // portrait images
-        > img.y-bound {
+        img.y-bound {
           height: 100%;
         }
 
@@ -248,99 +249,49 @@ $wide2: 2400px;
           transition: opacity 0.3s ease-in 0s;
         }
 
-        // title over directories
-        .title {
-          opacity:0.7;
-          filter:alpha(opacity=70); /* For IE8 and earlier */
-          height: 0;
-          line-height: 0;
-          top: -4.0em;
-          position: relative;
-          width: 100px;
-          background-color: $background_html_light;
-          color: #000000;
-          margin: 0 2.4% 0 2.7%;
-          padding: 0.5em;
-        }
-        
-        // directories with preview images
-        .directory {
-          background: url('/chrome/images/fullres/folder_back_light.png') no-repeat left top;
-          background-size: 100% 100%;
-          width: 100%;
-          height: 100%;
-          display: block;
-          text-align: right;
-          position: relative;
-  
-          .overlay {
-            width: 100%;
-            height: 100%;
-            display: inline-block;
-            // absolute position within relative container to do overlay with no effective height
-            position: absolute;
-            top: 0;
-            z-index: 1;
-          }
-  
-          .preview {
-            width: 42.7%;
-            height: 38%;
-            position: relative;
-            margin-right: 3%;
-          }
-          
-          /**
-           * disabled: currently aligning right
-          .preview-1, .preview-3 {
-            // used for text-align: left in parent
-            margin-left: 6%;
-          }
-           */
-
-          .preview-2, .preview-4 {
-            // used for text-align: right in parent
-            margin-right: 6%;
-          }
-
-          .preview-1, .preview-2  {
-            // have to use 'top' because 'margin-top' percentage calculated on element width!
-            top: 13%;
-          }
-  
-          .preview-3, .preview-4  {
-            top: 16.4%;
-          }
-        } // directory
       } // a
 
-        // use CSS trick to make directories maintain aspect ratio, in combination with vertical centring
-      // http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio
-      div.dummy1 {
-        height: 50%;
-      }
-
-      a.directory-container {
-        display: inline-block;
-        height: auto;
+      // directories with preview images
+      .directory {
+        border: 1px solid $directory_light;
         width: 100%;
-        text-align: right;
-        margin-top: -37.5%; // 4:3 / 2
-        // margin-top: -28.125%; // 16:9 / 2
-        
-        .dummy2 {
-          padding-top: 75%; // 4:3
-          // padding-top: 56.25%; // 16:9
-        }
-        
-        div.directory {
+        height: 100%;
+        position: relative;
+        margin: $alley;
+        border-radius: (2 * $alley);
+
+        .overlay {
+          width: 100%;
+          height: 100%;
+          display: inline-block;
+          // absolute position within relative container to do overlay with no effective height
           position: absolute;
           top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
+          z-index: 1;
         }
-      } // a.directory-container
+
+      } // directory
+
+      // title over directories
+      .title {
+        opacity:0.7;
+        filter:alpha(opacity=70); /* For IE8 and earlier */
+        height: 0;
+        line-height: 0;
+        top: -4.0em;
+        position: relative;
+        width: 100px;
+        background-color: $background_html_light;
+        color: #000000;
+        margin: 0 2.4% 0 2.7%;
+        padding: 0.5em;
+      } // title
+
+      // sub-cells are always 2x2
+      .subcell {
+        width: (100% / 2);
+        height: (100% / 2);
+      }
 
       // show metric if image is visible or part-visible
       &.visible .imgmetric, &.vispart p.imgmetric {

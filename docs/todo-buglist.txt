@@ -1,10 +1,21 @@
 
-* folder images are loaded before everything else
-  + they're currently loaded with src
-    + use desrc instead
-  + may need another class or
-    + need to consider how we currently select images for desrc->src'ing
-  = working on making directories nestable
+* make flow resize directories first
+  + then stick the crucial details on the outer li
+    + e.g. ratio
+  + so that the main resize will correctly proportion the cell
+  = close
+    + next step is to set the ratio on the parent
+
+* experiment with direction=y
+
+* experiment with alternative breadths
+
+* test removing width:100% from flow-pc > .cell a
+  + seems to bring the whole image back in view
+  + sort of fine but it creates some alignment issues under flow layout
+    + could be caused by flow not calculating widths/heights allowing for margin
+      + creates case where dimensions are off slightly
+      + which is why part of each image gets lost
 
 * cold load seq=high jumps in Chrome only
   + something to do with the final stage
@@ -1666,4 +1677,12 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * detect whether visible boundaries have changed at all
   + use to decide if cellsResize should go on to call reres
   + crude optimisation, but effective
+
+* folder images are loaded before everything else
+  + they're currently loaded with src
+    + use desrc instead
+  + may need another class or
+    + need to consider how we currently select images for desrc->src'ing
+  + aiming for same recursive structure
+  + work on bounding
 

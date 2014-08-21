@@ -23,7 +23,7 @@
       'layoutResize' : this.flow_cellsResize,
     };
     // not sure of init order, so push async
-    //sfun.push('registerLayout', obj);
+    sfun.push('registerLayout', obj);
   };
 
   // Layout API
@@ -31,8 +31,8 @@
   /**
    * called by sfun when ready
    */
-  this.flow_register = function(jqCells) {
-    jqCells.addClass('resizepending');
+  this.flow_register = function() {
+    $('.resizeablecell').addClass('resizepending');
   }
 
   /**
@@ -42,25 +42,18 @@
    */
   this.flow_cellsResize = function(range) {
     var that = this;
-    var deferred = $.Deferred();
-    var defs = [];
     var direction = sfun.api_getDirection();
-    var selectedMajorCoordabsInitial = 0;
     var jqSelected = sfun.api_getCell(range.selected);
     if (!jqSelected.length) {
       // if we can't find the selected image, just use the first
       jqSelected = sfun.api_getCell(range.first_1);
     }
     // record the initial absolute coord of the image
-    selectedMajorCoordabsInitial = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
-    var wrapUp = function() {
-      // now that all cells resized, realign using scrollbar instead of container position
-      that._cellsResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, true);
-      // resolve deferred
-      deferred.resolve();
-    }
+    var selectedMajorCoordabsInitial = (direction == 'x' ? jqSelected.offset().left : jqSelected.offset().top);
     // fetch visible cells and group by major axis value
     var cellGroup = {};
+    // also pull cells that contain nested cells
+    var subcellGroup = {};
     // iterate across visible and visnear cells
     for (var i = range.first_1 ; i <= range.last_n ; ++i) {
       var jqEnt = $('#seq-'+i);
@@ -68,42 +61,99 @@
       if (!jqEnt.hasClass('resizeablecell')) {
         continue;
       }
-      // pull out the major axis coord (absolute and relative to viewport edge)
-      var pos = jqEnt.offset();
-      var coordabs = (direction == 'x' ? pos.left : pos.top);
-      var coordrel = coordabs - (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
-      // if we don't have a bucket for this absolute coord, create one
-      if (!(cellGroup[coordabs] instanceof Array)) {
-        cellGroup[coordabs] = [];
-      }
-      // add jqEnt into bucket
-      cellGroup[coordabs][cellGroup[coordabs].length] = jqEnt;
+      // store cell in correct bucket, by position on major axis
+      this._bucketCell(jqEnt, direction, cellGroup);
+      // see if cell contains subcells
+      jqEnt.find('.subcell').each(function() {
+        // store subcell in correct bucket, by parent, then position on major axis
+        that._bucketCell($(this), direction, subcellGroup, jqEnt);
+      });
     }
-    // work through all visible buckets
-    for (var bucket in cellGroup) {
-      var defid = defs.length;
-      defs[defid] = $.Deferred();
+    // work through all subcell buckets first
+    for (var coordabs in subcellGroup) {
+      // use first cell to get parent
+      var jqParent = subcellGroup[coordabs][0].litter.jqParent;
+      // define parent for defining percentages of
+      var parent = {
+        'minor': (direction == 'x' ? jqParent.height() : jqParent.width()),
+        'major': (direction == 'x' ? jqParent.width() : jqParent.height())
+      };
+      this._processBucket(subcellGroup[coordabs], parent);
+      // @todo propagate data-ratio upto cell
+    }
+    // viewport is parent for defining percentages of
+    var viewport = {
+      'minor': (direction == 'x' ? sfun.api_getViewportHeight() : sfun.api_getViewportWidth()),
+      'major': (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight())
+    };
+    // work through all visible, top-level buckets
+    for (var coordabs in cellGroup) {
       if (debug && false) {
-        console.log('cellsResize processing bucket['+bucket+'] of len['+cellGroup[bucket].length+'] defid['+defid+']');
+        console.log('cellsResize processing bucket at['+coordabs+'] of len['+cellGroup[coordabs].length+']');
       }
-      // function closure to wrap value of bucket
-      (function(bucket, def) {
-        // get ratio and total
-        var minorTotal = this._cellsResizeTotalMinor(cellGroup[bucket]);
-        // resize minor axis
-        var maxMajor = that._cellsResizeBucketMinor(cellGroup[bucket], minorTotal);
-        // resize major axis
-        that._cellsResizeBucketMajor(cellGroup[bucket], maxMajor);
-        // realign selected against initial position
-        that._cellsResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, false);
-        def.resolve();
-      })(bucket, defs[defid]);
+      this._processBucket(cellGroup[coordabs], viewport, jqSelected, selectedMajorCoordabsInitial);
     }
-    $.when.apply($, defs).always(wrapUp);
-    return deferred;
+    // now that all cells resized, realign using scrollbar instead of container position
+    this._cellsResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, true);
+    // return a resolved deferred in case we wait to make any of this resync in the future
+    return $.Deferred().resolve();
   }
 
-  // Helper functions
+  //
+  // FUNCTIONS: Helpers
+  //
+
+  /**
+   * @param {array}  bucket                         array of jQuery entities
+   * @param {object} parent                         {major, minor} of parent element/viewport
+   * @param {object} [jqSelected]                   jQuery selected entity, used for comparison
+   * @param {float}  [selectedMajorCoordabsInitial]
+   */
+  this._processBucket = function(bucket, parent, jqSelected, selectedMajorCoordabsInitial) {
+    // get ratio and total
+    var minorTotal = this._cellsResizeTotalMinor(bucket);
+    // resize minor axis
+    var maxMajor = this._cellsResizeBucketMinor(bucket, minorTotal, parent.minor);
+    // resize major axis
+    this._cellsResizeBucketMajor(bucket, maxMajor, parent.major);
+    // tidy up afterwards
+    this._cellsResizeBucketComplete(bucket);
+    // find out if we need to realign
+    if (jqSelected == undefined || selectedMajorCoordabsInitial == undefined) {
+      // don't attempt to realign unless we've identified what we're aligning to
+    } else {
+      // realign selected against initial position
+      this._cellsResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, false);
+    }
+  }
+
+  /**
+   * find cell's position on major axis, but put in appropriate bucket
+   * @param  {object} jqEnt jQuery cell
+   * @param  {string} direction of flow
+   * @param  {object} group of buckets
+   * @param  {object} [jqParent] optional parent cell for this [sub]cell
+   */
+  this._bucketCell = function(jqEnt, direction, group, jqParent) {
+    var key = '';
+    // add parent to cell if set
+    if (jqParent != undefined) {
+      jqEnt.litter = jqEnt.litter || {};
+      jqEnt.litter.jqParent = jqParent;
+      // prepend parent name to bucket key
+      key += jqParent.data('seq')+'-';
+    }
+    // pull out the major axis coord
+    var pos = jqEnt.offset();
+    var coordabs = (direction == 'x' ? pos.left : pos.top);
+    key += '' + coordabs;
+    // if we don't have a bucket for this absolute coord, create one
+    if (!(group[key] instanceof Array)) {
+      group[key] = [];
+    }
+    // add jqEnt into bucket
+    group[key][group[key].length] = jqEnt;
+  }
 
   /**
    * calculate normalMinors their total
@@ -115,14 +165,14 @@
     var direction = sfun.api_getDirection();
     for (var i = 0 ; i<bucket.length ; ++i) {
       var jqEnt = bucket[i];
-      var jqBoundable = jqEnt.find('.boundable');
+      var jqBoundable = jqEnt.find('> .container > .boundable');
       var ratio = jqBoundable.data('ratio');
-      if (debug && false) {
-        console.log('cellResizeTotalMinor-'+jqEnt.data('seq')+' ratio['+ratio+']');
-      }
       // calculate the normal minor based on ratio
       normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() * ratio);
       minorTotal += normalMinor;
+      if (debug && false) {
+        console.log('cellsResizeTotalMinor-'+jqEnt.data('seq')+' ratio['+ratio+'] normalMinor['+normalMinor+']');
+      }
     }
     return minorTotal;
   }
@@ -133,21 +183,20 @@
    * @param  {real} minorTotal sum of all the minor axes
    * @return {real} maxMajor
    */
-  this._cellsResizeBucketMinor = function(bucket, minorTotal) {
+  this._cellsResizeBucketMinor = function(bucket, minorTotal, parentMinor) {
     var direction = sfun.api_getDirection();
-    var viewportMinor = (direction == 'x' ? sfun.api_getViewportHeight() : sfun.api_getViewportWidth());
     // change the cell minor according to proportion of total
     var proportionTotal = 0;
     var maxMajor = 0;
     for (var i = 0 ; i<bucket.length ; ++i) {
       var jqEnt = bucket[i];
-      var jqBoundable = jqEnt.find('.boundable');
+      var jqBoundable = jqEnt.find('> .container > .boundable');
       // calculate the normal minor based on ratio
       var ratio = jqBoundable.data('ratio');
       var normalMinor = (direction == 'x' ? jqEnt.width() / ratio : jqEnt.height() * ratio);
       // calculate proportion as a percentage, round to 1 DP
       var proportion = sfun.api_round( normalMinor * 100 / minorTotal, 1);
-      var absolute = sfun.api_round( normalMinor * viewportMinor / minorTotal, 1);
+      var absolute = sfun.api_round( normalMinor * parentMinor / minorTotal, 1);
       // if this is the last cell in the bucket, fill to 100%
       if (i == bucket.length-1) {
         proportion = 100 - proportionTotal;
@@ -160,7 +209,7 @@
       // update bound if necessary
       sfun.api_setBound(jqEnt);
       // calculate normal major, max
-      var newMinor = proportion * viewportMinor / 100;
+      var newMinor = proportion * parentMinor / 100;
       maxMajor = Math.max(maxMajor, (direction == 'x' ? newMinor * ratio : newMinor / ratio));
       if (debug && false) {
         console.log('cellResizeBucketMinor-'+jqEnt.data('seq')+' minor['+normalMinor+'] major['+(direction == 'x' ? normalMinor * ratio : normalMinor / ratio)+']');
@@ -174,11 +223,10 @@
    * @param  {array} bucket collection of cells
    * @param  {real} maxMajor the largest major axis
    */
-  this._cellsResizeBucketMajor = function(bucket, maxMajor) {
+  this._cellsResizeBucketMajor = function(bucket, maxMajor, parentMajor) {
     var direction = sfun.api_getDirection();
-    var viewportMajor = (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight());
     // calculate the new percentage major, bound (0-100), round (1DP)
-    var proportion = sfun.api_round(Math.max(0, Math.min(100, (maxMajor) * 100 / viewportMajor )),1);
+    var proportion = sfun.api_round(Math.max(0, Math.min(100, (maxMajor) * 100 / parentMajor )),1);
     var absolute = sfun.api_round(maxMajor,1);
     // change all the majors
     for (var i = 0 ; i<bucket.length ; ++i) {
@@ -189,10 +237,17 @@
         console.log('cellResizeBucketMajor-'+jqEnt.data('seq')+' major['+proportion+'%]');
       }
     }
+  }
+
+  /**
+   * tidy up after resize
+   * @param  {array} bucket collection of cells
+   */
+  this._cellsResizeBucketComplete = function(bucket) {
     for (var i = 0 ; i<bucket.length ; ++i) {
       var jqEnt = bucket[i];
       // make all images y-bound, as it's a simpler alignment than
-      var jqBoundable = jqEnt.find('.boundable');
+      var jqBoundable = jqEnt.find('> .container > .boundable');
       jqBoundable.removeClass('x-bound').addClass('y-bound');
       // also remove any 'pending resize' flags
       jqEnt.removeClass('resizepending');

@@ -19,7 +19,7 @@ html.flexbox.flow-x {
   overflow-x: scroll;
 }
 /* line 48, ../sass/structuredfun.scss */
-html.flexbox.flow-x .sfun.flow-x {
+html.flexbox.flow-x .sfun.flow, html.flexbox.flow-x .sfun .flow {
   display: -webkit-flex;
   -webkit-flex-flow: column wrap;
   -webkit-align-items: center;
@@ -170,12 +170,8 @@ html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #222222;
   color: #ffffff;
 }
-/* line 213, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun > .cell .directory {
-  background-image: url("/chrome/images/fullres/folder_back_dark.png");
-}
 
-/* line 223, ../sass/structuredfun.scss */
+/* line 222, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

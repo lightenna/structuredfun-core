@@ -7,19 +7,30 @@
 <ul id="sfun" class="sfun flow flow-{{ direction }} flow-{{ celltype }} flow-{{ breadth }}">
 {% for file in dirlisting %}
 {% if file.type == 'directory' %}
-  <li id="seq-{{ file.seq }}" class="cell selectablecell {{ file.type }}-type {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}" data-seq="{{ file.seq }}">
-  <div class="dummy1"></div>
-  <a class="{{ file.type }}-container clickable selectreflector" href="/file{{ linkpath }}{{ file.name }}/">
-    <div class="dummy2"></div>
-    <ul class="directory boundable x-bound">
-      {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="cell"><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }} loadable" data-desrc="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" />
-      <noscript><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" /></noscript></li>{% endfor %}
-    </ul>
-    <span class="title">{{ file.alias|e }}</span>
-  </a></li>
+  <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type" data-seq="{{ file.seq }}">
+    <a class="container directory-container clickable" href="/file{{ linkpath }}{{ file.name }}/">
+      <ul class="directory flow boundable x-bound">
+        {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="subcell" data-seq="{{ file.seq }}-{{ img_prev_n }}">
+        <span class="container directory-container">
+          <img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="loadable boundable"
+               data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
+               data-desrc="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
+               alt="directory preview thumbnail" />
+          <noscript><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" /></noscript>
+        </span>
+        </li>{% endfor %}
+      </ul>
+      <span class="meta">
+        <span class="base">
+          <span class="caption">{{ file.alias|e }}</span>
+          <span class="byline">{{ file.seq }}</span>
+        </span>
+      </span>
+    </a>
+  </li>
 {% elseif (file.type == 'image') or (file.type == 'video') %}
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type" data-seq="{{ file.seq }}">
-    <a class="media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
+    <a class="container media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
       <p class="imgmetric super"><span class="size"><span class="width">{% if file.meta.width_loaded is defined %}{{ file.meta.width_loaded }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.height_loaded is defined %}{{ file.meta.height_loaded }}{% else %}-{% endif %}</span> @ </span><span class="perc">x%</span></p>
       <img class="loadable reresable boundable {{ file.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
@@ -44,8 +55,8 @@
     </a>
   </li>
 {% else %}
-  <li id="seq-{{ file.seq }}" class="cell selectablecell {% if direction == 'x' %}screenpc-height{% else %}screenpc-width{% endif %}" data-seq="{{ file.seq }}">
-    <a href="#" class="selectreflector" data-seq="{{ file.seq }}">
+  <li id="seq-{{ file.seq }}" class="cell selectablecell" data-seq="{{ file.seq }}">
+    <a href="#" class="container selectreflector" data-seq="{{ file.seq }}">
       {{ file.alias }}
     </a>
   </li>

@@ -165,8 +165,8 @@ window.sfun = (function($, undefined) {
       var jqLoadable = jqEnt.find('.loadable');
       if (jqLoadable.data('ratio') == undefined) {
         // wait for image to be loaded in order to get ratio
-        defs[defs.length] = this.waitLoadedGetResolution(jqEnt).done(function() {
-          that.setBound(jqEnt);
+        defs[defs.length] = this.waitLoadedGetResolution(jqEnt, true).done(function() {
+          that.setBound(jqEnt, true);
         });
       }
     }
@@ -224,9 +224,34 @@ window.sfun = (function($, undefined) {
     $('.cell-specific').css( { 'width':'', 'height':'' } ).removeClass('cell-specific').removeClass('visible vispart visnear');
   }
 
-  // ------------------
-  // FUNCTIONS: refresh
-  // ------------------
+  // ---------------------
+  // FUNCTIONS: thumbnails
+  // ---------------------
+
+  /**
+   * load thumbnail for principal image in cell, then recurse on subcells
+   * @param  {object}  jqEnt   jQuery cell
+   * @param  {boolean} recurse true to recurse
+   */
+  this.loadThumb = function(jqEnt, recurse) {
+    var that = this;
+    // find principal images within this cell
+    var jqLoadable = jqEnt.find('> .container > .loadable');
+    if (jqLoadable.length) {
+      // load thumbnail by swapping in src, if src not already set [async]
+      var attr = jqLoadable.attr('src');
+      if (typeof attr === 'undefined' || attr === false) {
+        jqLoadable.attr('src', jqLoadable.data('desrc'));
+      }
+    }
+    // optionally recurse on sub-cells
+    if (recurse) {
+      jqEnt.find('.subcell').each(function() {
+        // only do 1 level of recursion
+        that.loadThumb($(this), false);
+      });
+    }
+  };
 
   /**
    * update (x/y)-bound on boundable image in cell
@@ -240,18 +265,22 @@ window.sfun = (function($, undefined) {
       // 1. update loaded resolution if necessary first
       if (jqBoundable.data('loaded-width') == undefined || jqBoundable.data('loaded-height') == undefined) {
         // if waitLoadedGetResolution succeeds, use loaded-width/height
-        return this.waitLoadedGetResolution(jqEnt).done(function() {
+        return this.waitLoadedGetResolution(jqEnt, true).done(function() {
           // 2a. once we've got the loaded- dimensions, check bounds
-          setBound(jqEnt);
+          setBound(jqEnt, true);
         });
       } else {
         // 2b. as we've already got the loaded- dimensions, check bounds
-        setBound(jqEnt);
+        setBound(jqEnt, true);
       }
     }
     // return a resolved deferred
     return $.Deferred().resolve();
   };
+
+  // ------------------
+  // FUNCTIONS: refresh
+  // ------------------
 
   /**
    * Read data about the image and update metric display
@@ -673,13 +702,20 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   /**
    * updated loaded-width and loaded-height data attributes
    * @param {jQuery object} jqEnt image to check
+   * @param {boolean} recurse true to load subcells too
    * @return {object} jQuery deferred
    */
-  this.waitLoadedGetResolution = function(jqEnt) {
-    var jqLoadable = jqEnt.find('.loadable');
+  this.waitLoadedGetResolution = function(jqEnt, recurse) {
+    var deferred = $.Deferred();
+    var defs = [];
+    var wrapUp = function() {
+      deferred.resolve();
+    }
+    // process principal image if cell has one
+    var jqLoadable = jqEnt.find('> .container > .loadable');
     if (jqLoadable.length) {
-      // create local context for async processing
-      var deferred = $.Deferred();
+      var principalDeferred = $.Deferred();
+      defs.push(principalDeferred);
       // update loaded resolution
       var im = new Image();
       im.onload = function() {
@@ -690,11 +726,11 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
           jqLoadable.data('ratio', im.width / im.height);
         }
         im = null;
-        if (debug && false) {
+        if (debug && true) {
           console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqLoadable.data('loaded-width')+','+jqLoadable.data('loaded-height')+']');
         }
         // notify promise of resolution
-        deferred.resolve();
+        principalDeferred.resolve();
       }
       // if the src attribute is defined, use it
       if (jqLoadable.attr('src') != undefined) {
@@ -706,11 +742,16 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       if (debug && false) {
         console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
       }
-      // return local context so that when we complete (resolve), our parents can execute
-      return deferred;
     }
-    // if there are no loadable images, return a resolved deferred
-    return $.Deferred().resolve();
+    // if set, recurse on subcells
+    if (recurse) {
+      jqEnt.find('.subcell').each(function() {
+        defs.push(that.waitLoadedGetResolution($(this), false));
+      });
+    }
+    // wait for all deps to be resolved (includes principal)
+    $.when.apply($, defs).done(wrapUp);
+    return deferred;
   };
 
   /**
@@ -884,7 +925,6 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
 
   /**
    * set all 'flow' elements to flow in the direction
-   * downstream of: EVENT
    */
   this.setDirection = function(direction) {
     var changed = (this.getDirection() !== direction);
@@ -896,7 +936,6 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   /**
    * set the width of the screen flow
    * e.g. number of cells vertically if in vertical mode
-   * downstream of: EVENT
    */
   this.setBreadth = function(breadth) {
     var changed = (this.getBreadth() !== breadth);
@@ -914,7 +953,6 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
 
   /**
    * @param int sequence number of image to make current
-   * downstream of: EVENT
    */
   this.setSeq = function(seq) {
     var changed = (this.getSeq() !== seq);
@@ -941,18 +979,20 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   }
 
   /**
-   * @param {object} jQuery entity
-   * downstream of: EVENT
+   * set bounds for a cell
+   * @param {object} jqEnt jQuery entity
+   * @param {boolean} recurse true to recurse on subcells
    */
-  this.setBound = function(jqEnt) {
-    var jqBoundable = jqEnt.find('.boundable');
+  this.setBound = function(jqEnt, recurse) {
+    var that = this;
+    var jqBoundable = jqEnt.find('> .container > .boundable');
     if (jqBoundable.length) {
       // detect if the image is bound by width/height in this container
       var ix = jqBoundable.data('loaded-width'), iy = jqBoundable.data('loaded-height');
       // read container width/height
       var cx = jqEnt.width(), cy = jqEnt.height();
       var cratio = cx / cy;
-      if (debug && false) {
+      if (debug && true) {
         console.log('image-'+jqEnt.data('seq')+': ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
       }
       var iratio = ix / iy;
@@ -964,6 +1004,13 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       }
       // apply class to image
       jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
+    }
+    // optionally recurse on sub-cells
+    if (recurse) {
+      jqEnt.find('.subcell').each(function() {
+        // only do 1 level of recursion
+        that.setBound($(this), false);
+      });
     }
   }
 
@@ -984,7 +1031,6 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
    * ensure that a given image lies within the current viewport
    * @param {int} seq image sequence number
    * @param {int} scroll offset to seq image [default: 0]
-   * downstream of: EVENT
    * @return {object} jQuery deferred
    */
   this.envisionSeq = function(seq, offseq) {
@@ -1141,14 +1187,9 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       // make it not-visible
       jqEnt.removeClass('visible');
     } else {
-      // vis/visnear: make its src show, if not there already [async]
-      var jqReresable = jqEnt.find('.reresable');
-      if (jqReresable.length) {
-        var attr = jqReresable.attr('src');
-        if (typeof attr === 'undefined' || attr === false) {
-          jqReresable.attr('src', jqReresable.data('desrc'));
-        }
-      }
+      // load thumbnails (for visible/vispart/visnear) and recurse
+      this.loadThumb(jqEnt, true);
+      // apply classes
       if (vis == 'visnear') {
         // mark image as near visible
         jqEnt.removeClass('vispart visible').addClass('visnear');
@@ -2715,7 +2756,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     'api_registerLayout': function(obj) {
       that.layoutManager.push(obj);
       // allow element to bind its handlers
-      obj.callback.call(obj.context, $sfun_selectablecell);
+      obj.callback.call(obj.context);
     },
 
     /**
@@ -2781,7 +2822,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
      * @param {object} jqEnt cell to check (and re-set) bounds for
      */
     'api_setBound': function(jqEnt) {
-      return that.setBound(jqEnt);
+      return that.setBound(jqEnt, true);
     },
 
     /**
