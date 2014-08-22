@@ -23,7 +23,7 @@
       'layoutResize' : this.flow_cellsResize,
     };
     // not sure of init order, so push async
-    sfun.push('registerLayout', obj);
+    //sfun.push('registerLayout', obj);
   };
 
   // Layout API
@@ -69,20 +69,32 @@
         that._bucketCell($(this), direction, subcellGroup, jqEnt);
       });
     }
-    // work through all subcell buckets first
+    // store list of cells with subcells
+    var parentList = [];
+    // work through all buckets of cells with subcells first
     for (var coordabs in subcellGroup) {
       // use first cell to get parent
       var jqParent = subcellGroup[coordabs][0].litter.jqParent;
       // define parent for defining percentages of
-      var parent = {
+      var parentBounds = {
         'minor': (direction == 'x' ? jqParent.height() : jqParent.width()),
         'major': (direction == 'x' ? jqParent.width() : jqParent.height())
       };
-      this._processBucket(subcellGroup[coordabs], parent);
-      // @todo propagate data-ratio upto cell
+      this._processBucket(subcellGroup[coordabs], parentBounds);
+      // store parent in list if not there already
+      if (parentList.indexOf(jqParent) == -1) {
+        parentList.push(jqParent);
+      }
+    }
+    // propagate data-ratio upto cell
+    for (var i=0 ; i<parentList.length ; ++i) {
+      var jqParent = parentList[i];
+      var subcellRatio = this._getSubcellCombinedRatio(jqParent);
+      // store the ratio on the boundable container (ul.directory)
+      jqParent.find('> .container > .boundable').data('ratio', subcellRatio);
     }
     // viewport is parent for defining percentages of
-    var viewport = {
+    var viewportBounds = {
       'minor': (direction == 'x' ? sfun.api_getViewportHeight() : sfun.api_getViewportWidth()),
       'major': (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight())
     };
@@ -91,7 +103,7 @@
       if (debug && false) {
         console.log('cellsResize processing bucket at['+coordabs+'] of len['+cellGroup[coordabs].length+']');
       }
-      this._processBucket(cellGroup[coordabs], viewport, jqSelected, selectedMajorCoordabsInitial);
+      this._processBucket(cellGroup[coordabs], viewportBounds, jqSelected, selectedMajorCoordabsInitial);
     }
     // now that all cells resized, realign using scrollbar instead of container position
     this._cellsResizeRealignMajor(jqSelected, selectedMajorCoordabsInitial, true);
@@ -102,6 +114,27 @@
   //
   // FUNCTIONS: Helpers
   //
+
+  /**
+   * @param  {[type]} jqEnt jQuery entity
+   * @return {float} ratio of container width to height
+   */
+  this._getSubcellCombinedRatio = function(jqEnt) {
+    var x1 = y1 = 99999, x2 = y2 = -99999;
+    // find bounding box of subcells
+    jqEnt.find('.subcell').each(function() {
+      var pos = $(this).offset();
+      x1 = Math.min(x1, pos.left);
+      y1 = Math.min(y1, pos.top);
+      x2 = Math.max(x2, pos.left + $(this).width());
+      y2 = Math.max(y2, pos.top + $(this).height());
+    });
+    // write loaded width and height on to ul.directory
+    var directory = jqEnt.find('> .container > .boundable');
+    directory.data({ 'loaded-width': (x2 - x1), 'loaded-height': (y2 - y1) });
+    // ratio is width/height
+    return (x2 - x1) /  (y2 - y1);
+  }
 
   /**
    * @param {array}  bucket                         array of jQuery entities
@@ -205,7 +238,11 @@
         proportionTotal += proportion;
       }
       // apply percentage to cell minor
-      jqEnt.css((direction == 'x' ? 'height': 'width'), (false ? absolute+'px' : proportion +'%'));
+      var propname = (direction == 'x' ? 'height': 'width');
+      jqEnt.css(propname, proportion +'%');
+      // set property using css calc to accommodate margins
+      jqEnt[0].style[propname] = 'calc('+proportion+'% - '+sfun.api_getAlley()+'px)';
+
       // update bound if necessary
       sfun.api_setBound(jqEnt);
       // calculate normal major, max
