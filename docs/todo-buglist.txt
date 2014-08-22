@@ -1,6 +1,7 @@
 
-* re-enabling buffering doesn't work
-  + it doesn't load any images
+* scroll:x=8 for first image
+  + because first cell now lives at 8px
+    + can probably cover with offseq
 
 * loading seq=high shows a tiny slice of the previous cell
   + happens for direction-x/y
@@ -1728,4 +1729,8 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
   = re-test
     + seems fine
     + chrome issue is separable
+
+* re-enabling buffering doesn't work
+  + it doesn't load any images
+    = fixed, bad name
 

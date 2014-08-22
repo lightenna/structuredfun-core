@@ -2422,13 +2422,13 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     // process this event if we're meant to
     if (this.eventQueue.actOnContext(eventContext)) {
       // don't process scroll event every time, buffer (dump duplicates)
-      // this.buffer('handler_scrolled_eventProcess',
-      // // function to execute if/when we are processing this event
-      // function() {
+      this.buffer('handler_scrolled_event',
+      // function to execute if/when we are processing this event
+      function() {
         return that.handler_scrolled_eventProcess(event, sx, sy).done(wrapUp);
-      // },
-      // // function to execute if we're dumping this event
-      // wrapUp, 250);
+      },
+      // function to execute if we're dumping this event
+      wrapUp, 250);
     } else {
       // if we're not acting on the context, wrap it up
       return wrapUp();
@@ -2624,7 +2624,7 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     if (disabled) {
       return successCallback();
     }
-    // reschdule is important when dragging, because the events come thick and fast
+    // reschedule is important when dragging, because the events come thick and fast
     var reschedule = true;
     if (typeof(this[name]) != 'undefined' && this[name]) {
       if (reschedule) {
