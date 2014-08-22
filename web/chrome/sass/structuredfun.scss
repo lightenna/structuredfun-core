@@ -32,6 +32,11 @@ $wide2: 2400px;
   width: $gutter;
   height: 0;
 }
+// alleyball to pass sass variables back to js
+#alleyball {
+  width: $alley;
+  height: 0;
+}
 
 html {
   background-color: $background_html_light;
@@ -158,9 +163,8 @@ html.no-js, html.disabled-js {
 // Structured container
 
 .sfun {
-  // offset the cell margins above and left
-  margin-top: (-($alley / 2) - $gutter);
-  margin-left: (-($alley / 2) - $gutter);
+  // offset the cell margins above and below
+  margin-top: (-($alley / 2));
 }
 
 // ---------------------------------------------------------------------------

@@ -63,13 +63,13 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   display: block;
 }
 
-/* line 22, ../sass/structured.scss */
+/* line 30, ../sass/structured.scss */
 #sfun-yardstick-x {
   width: 100%;
   height: 0;
 }
 
-/* line 26, ../sass/structured.scss */
+/* line 34, ../sass/structured.scss */
 #sfun-yardstick-y {
   width: 0;
   height: 100%;
@@ -77,116 +77,200 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   left: -1;
 }
 
-/* line 36, ../sass/structured.scss */
+/* line 44, ../sass/structured.scss */
 .sfun {
   position: relative;
   top: 0;
   left: 0;
 }
-/* line 42, ../sass/structured.scss */
+/* line 50, ../sass/structured.scss */
 .sfun.flow-em > .cell {
   width: 20em;
   height: 20em;
 }
-/* line 49, ../sass/structured.scss */
+/* line 57, ../sass/structured.scss */
 .sfun.flow-pc.flow-1 > .cell {
   width: 100%;
   height: 100%;
+  width: -webkit-calc(100% - 8px);
+  width: -moz-calc(100% - 8px);
+  width: calc(100% - 8px);
+  height: -webkit-calc(100% - 8px);
+  height: -moz-calc(100% - 8px);
+  height: calc(100% - 8px);
 }
 @media screen and (orientation: portrait) {
-  /* line 57, ../sass/structured.scss */
+  /* line 68, ../sass/structured.scss */
   .sfun.flow-pc.flow-2 > .cell {
     width: 50%;
     height: 25%;
+    width: -webkit-calc(50% - 8px);
+    width: -moz-calc(50% - 8px);
+    width: calc(50% - 8px);
+    height: -webkit-calc(25% - 8px);
+    height: -moz-calc(25% - 8px);
+    height: calc(25% - 8px);
   }
-  /* line 62, ../sass/structured.scss */
+  /* line 75, ../sass/structured.scss */
   .sfun.flow-pc.flow-4 > .cell {
     width: 25%;
     height: 12.5%;
+    width: -webkit-calc(25% - 8px);
+    width: -moz-calc(25% - 8px);
+    width: calc(25% - 8px);
+    height: -webkit-calc(12.5% - 8px);
+    height: -moz-calc(12.5% - 8px);
+    height: calc(12.5% - 8px);
   }
-  /* line 67, ../sass/structured.scss */
+  /* line 82, ../sass/structured.scss */
   .sfun.flow-pc.flow-8 > .cell {
     width: 12.5%;
     height: 6.25%;
+    width: -webkit-calc(12.5% - 8px);
+    width: -moz-calc(12.5% - 8px);
+    width: calc(12.5% - 8px);
+    height: -webkit-calc(6.25% - 8px);
+    height: -moz-calc(6.25% - 8px);
+    height: calc(6.25% - 8px);
   }
 }
 @media screen and (orientation: landscape) and (max-width: 1600px) {
-  /* line 76, ../sass/structured.scss */
+  /* line 93, ../sass/structured.scss */
   .sfun.flow-pc.flow-2 > .cell {
     width: 25%;
     height: 50%;
-  }
-  /* line 81, ../sass/structured.scss */
-  .sfun.flow-pc.flow-4 > .cell {
-    width: 12.5%;
-    height: 25%;
-  }
-  /* line 86, ../sass/structured.scss */
-  .sfun.flow-pc.flow-8 > .cell {
-    width: 6.25%;
-    height: 12.5%;
-  }
-}
-@media screen and (orientation: landscape) and (min-width: 1601px) and (max-width: 2400px) {
-  /* line 95, ../sass/structured.scss */
-  .sfun.flow-pc.flow-2 > .cell {
-    width: 16.66667%;
-    height: 50%;
+    width: -webkit-calc(25% - 8px);
+    width: -moz-calc(25% - 8px);
+    width: calc(25% - 8px);
+    height: -webkit-calc(50% - 8px);
+    height: -moz-calc(50% - 8px);
+    height: calc(50% - 8px);
   }
   /* line 100, ../sass/structured.scss */
   .sfun.flow-pc.flow-4 > .cell {
+    width: 12.5%;
+    height: 25%;
+    width: -webkit-calc(12.5% - 8px);
+    width: -moz-calc(12.5% - 8px);
+    width: calc(12.5% - 8px);
+    height: -webkit-calc(25% - 8px);
+    height: -moz-calc(25% - 8px);
+    height: calc(25% - 8px);
+  }
+  /* line 107, ../sass/structured.scss */
+  .sfun.flow-pc.flow-8 > .cell {
+    width: 6.25%;
+    height: 12.5%;
+    width: -webkit-calc(6.25% - 8px);
+    width: -moz-calc(6.25% - 8px);
+    width: calc(6.25% - 8px);
+    height: -webkit-calc(12.5% - 8px);
+    height: -moz-calc(12.5% - 8px);
+    height: calc(12.5% - 8px);
+  }
+}
+@media screen and (orientation: landscape) and (min-width: 1601px) and (max-width: 2400px) {
+  /* line 118, ../sass/structured.scss */
+  .sfun.flow-pc.flow-2 > .cell {
+    width: 16.66667%;
+    height: 50%;
+    width: -webkit-calc(16.66667% - 8px);
+    width: -moz-calc(16.66667% - 8px);
+    width: calc(16.66667% - 8px);
+    height: -webkit-calc(50% - 8px);
+    height: -moz-calc(50% - 8px);
+    height: calc(50% - 8px);
+  }
+  /* line 125, ../sass/structured.scss */
+  .sfun.flow-pc.flow-4 > .cell {
     width: 8.33333%;
     height: 25%;
+    width: -webkit-calc(8.33333% - 8px);
+    width: -moz-calc(8.33333% - 8px);
+    width: calc(8.33333% - 8px);
+    height: -webkit-calc(25% - 8px);
+    height: -moz-calc(25% - 8px);
+    height: calc(25% - 8px);
   }
-  /* line 105, ../sass/structured.scss */
+  /* line 132, ../sass/structured.scss */
   .sfun.flow-pc.flow-8 > .cell {
     width: 4.16667%;
     height: 12.5%;
+    width: -webkit-calc(4.16667% - 8px);
+    width: -moz-calc(4.16667% - 8px);
+    width: calc(4.16667% - 8px);
+    height: -webkit-calc(12.5% - 8px);
+    height: -moz-calc(12.5% - 8px);
+    height: calc(12.5% - 8px);
   }
 }
 @media screen and (orientation: landscape) and (min-width: 2400px) {
-  /* line 114, ../sass/structured.scss */
+  /* line 143, ../sass/structured.scss */
   .sfun.flow-pc.flow-2 > .cell {
     width: 12.5%;
     height: 50%;
+    width: -webkit-calc(12.5% - 8px);
+    width: -moz-calc(12.5% - 8px);
+    width: calc(12.5% - 8px);
+    height: -webkit-calc(50% - 8px);
+    height: -moz-calc(50% - 8px);
+    height: calc(50% - 8px);
   }
-  /* line 119, ../sass/structured.scss */
+  /* line 150, ../sass/structured.scss */
   .sfun.flow-pc.flow-4 > .cell {
     width: 6.25%;
     height: 25%;
+    width: -webkit-calc(6.25% - 8px);
+    width: -moz-calc(6.25% - 8px);
+    width: calc(6.25% - 8px);
+    height: -webkit-calc(25% - 8px);
+    height: -moz-calc(25% - 8px);
+    height: calc(25% - 8px);
   }
-  /* line 124, ../sass/structured.scss */
+  /* line 157, ../sass/structured.scss */
   .sfun.flow-pc.flow-8 > .cell {
     width: 3.125%;
     height: 12.5%;
+    width: -webkit-calc(3.125% - 8px);
+    width: -moz-calc(3.125% - 8px);
+    width: calc(3.125% - 8px);
+    height: -webkit-calc(12.5% - 8px);
+    height: -moz-calc(12.5% - 8px);
+    height: calc(12.5% - 8px);
   }
 }
-/* line 130, ../sass/structured.scss */
+/* line 165, ../sass/structured.scss */
 .sfun.flow-pc > .cell {
   text-align: center;
   overflow: hidden;
+  margin: -webkit-calc(4px);
+  margin: -moz-calc(4px);
+  margin: calc(4px);
 }
-/* line 141, ../sass/structured.scss */
+/* line 178, ../sass/structured.scss */
 .sfun.flow-pc > .cell .selectreflector {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   border: 1px solid white;
 }
-/* line 149, ../sass/structured.scss */
+/* line 186, ../sass/structured.scss */
 .sfun.flow-pc > .cell.selected .selectreflector {
   border-color: magenta;
 }
-/* line 153, ../sass/structured.scss */
+/* line 190, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container {
   position: relative;
   display: block;
   height: 100%;
   width: 100%;
   text-decoration: none;
-  margin: 8px;
+  margin: 4px;
+  margin: -webkit-calc(0px);
+  margin: -moz-calc(0px);
+  margin: calc(0px);
 }
-/* line 164, ../sass/structured.scss */
+/* line 203, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container img.x-bound {
   position: relative;
   width: 100%;
@@ -195,11 +279,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 174, ../sass/structured.scss */
+/* line 213, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container img.y-bound {
   height: 100%;
 }
-/* line 178, ../sass/structured.scss */
+/* line 217, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric {
   line-height: 1.0em;
   position: absolute;
@@ -208,21 +292,21 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   white-space: nowrap;
   display: none;
 }
-/* line 186, ../sass/structured.scss */
+/* line 225, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric .size, .sfun.flow-pc > .cell .container .imgmetric .perc {
   display: none;
 }
-/* line 190, ../sass/structured.scss */
+/* line 229, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric.super {
   background-color: #009900;
   color: #BBFFBB;
 }
-/* line 195, ../sass/structured.scss */
+/* line 234, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric.sub {
   background-color: #990000;
   color: #FFBBBB;
 }
-/* line 202, ../sass/structured.scss */
+/* line 241, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta {
   display: block;
   position: absolute;
@@ -238,43 +322,43 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
-/* line 221, ../sass/structured.scss */
+/* line 260, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base {
   position: absolute;
   bottom: 0;
 }
-/* line 226, ../sass/structured.scss */
+/* line 265, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span {
   margin: 1.0em;
   display: block;
 }
-/* line 230, ../sass/structured.scss */
+/* line 269, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.icons {
   height: 2.0em;
 }
-/* line 234, ../sass/structured.scss */
+/* line 273, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.caption {
   font-weight: bold;
 }
-/* line 238, ../sass/structured.scss */
+/* line 277, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.byline {
   margin-top: .5em;
 }
-/* line 245, ../sass/structured.scss */
+/* line 284, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 255, ../sass/structured.scss */
+/* line 294, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory {
   border: 1px solid #dddddd;
+  border-radius: 16px;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   position: relative;
-  margin: 8px;
-  border-radius: 16px;
 }
-/* line 263, ../sass/structured.scss */
+/* line 302, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory .overlay {
   width: 100%;
   height: 100%;
@@ -283,7 +367,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   top: 0;
   z-index: 1;
 }
-/* line 276, ../sass/structured.scss */
+/* line 315, ../sass/structured.scss */
 .sfun.flow-pc > .cell .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -298,21 +382,30 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 291, ../sass/structured.scss */
+/* line 330, ../sass/structured.scss */
 .sfun.flow-pc > .cell .subcell {
   width: 50%;
   height: 50%;
+  margin: -webkit-calc(4px);
+  margin: -moz-calc(4px);
+  margin: calc(4px);
+  width: -webkit-calc(50% - 8px);
+  width: -moz-calc(50% - 8px);
+  width: calc(50% - 8px);
+  height: -webkit-calc(50% - 8px);
+  height: -moz-calc(50% - 8px);
+  height: calc(50% - 8px);
 }
-/* line 297, ../sass/structured.scss */
+/* line 341, ../sass/structured.scss */
 .sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
   display: block;
 }
-/* line 301, ../sass/structured.scss */
+/* line 345, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reresing .imgmetric {
   display: none;
 }
 
-/* line 315, ../sass/structured.scss */
+/* line 359, ../sass/structured.scss */
 .js .sfun .cell.resizepending {
   visibility: hidden;
 }

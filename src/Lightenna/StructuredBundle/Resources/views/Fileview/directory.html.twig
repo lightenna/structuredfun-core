@@ -1,7 +1,7 @@
 {{ include('LightennaStructuredBundle:Fileview:partial.header.html.twig', {title: dirname, direction: direction}) }}
 <div id="sfun-yardstick-x" class="yardstick"></div>
 <div id="sfun-yardstick-y" class="yardstick"></div>
-<div id="gutterball" class="yardstick"></div>
+<div id="gutterball" class="yardstick"></div><div id="alleyball" class="yardstick"></div>
 
 <div class="content">
 <ul id="sfun" class="sfun flow flow-{{ direction }} flow-{{ celltype }} flow-{{ breadth }}">
@@ -12,9 +12,10 @@
       <ul class="directory flow boundable x-bound">
         {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="subcell" data-seq="{{ file.seq }}-{{ img_prev_n }}">
         <span class="container directory-container">
-          <img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="loadable boundable"
+          <img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="loadable boundable reresable"
                data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
                data-desrc="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
+               data-template-src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
                alt="directory preview thumbnail" />
           <noscript><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" /></noscript>
         </span>

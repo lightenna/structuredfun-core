@@ -10,15 +10,21 @@
 }
 
 /* line 36, ../sass/structuredfun.scss */
+#alleyball {
+  width: 8px;
+  height: 0;
+}
+
+/* line 41, ../sass/structuredfun.scss */
 html {
   background-color: white;
 }
 
-/* line 43, ../sass/structuredfun.scss */
+/* line 48, ../sass/structuredfun.scss */
 html.flexbox.flow-x {
   overflow-x: scroll;
 }
-/* line 48, ../sass/structuredfun.scss */
+/* line 53, ../sass/structuredfun.scss */
 html.flexbox.flow-x .sfun.flow, html.flexbox.flow-x .sfun .flow {
   display: -webkit-flex;
   -webkit-flex-flow: column wrap;
@@ -33,26 +39,26 @@ html.flexbox.flow-x .sfun.flow, html.flexbox.flow-x .sfun .flow {
   height: 100%;
 }
 
-/* line 65, ../sass/structuredfun.scss */
+/* line 70, ../sass/structuredfun.scss */
 html.flow-y, html.no-flexbox.flow-x {
   overflow-y: scroll;
 }
-/* line 70, ../sass/structuredfun.scss */
+/* line 75, ../sass/structuredfun.scss */
 html.flow-y .sfun li, html.no-flexbox.flow-x .sfun li {
   float: left;
 }
 
-/* line 78, ../sass/structuredfun.scss */
+/* line 83, ../sass/structuredfun.scss */
 html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-js .footer {
   display: none;
 }
 
-/* line 86, ../sass/structuredfun.scss */
+/* line 91, ../sass/structuredfun.scss */
 .page {
   font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
   height: 100%;
 }
-/* line 92, ../sass/structuredfun.scss */
+/* line 97, ../sass/structuredfun.scss */
 .page .header, .page .footer {
   clear: both;
   height: 2.5em;
@@ -80,7 +86,7 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#96c2ff', endColorstr='#ffffff',GradientType=0 );
   /* IE6-9 */
 }
-/* line 113, ../sass/structuredfun.scss */
+/* line 118, ../sass/structuredfun.scss */
 .page .header p, .page .header li, .page .footer p, .page .footer li {
   float: left;
   height: 100%;
@@ -89,24 +95,24 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   padding-top: 0.7em;
   padding-left: 3.0em;
 }
-/* line 122, ../sass/structuredfun.scss */
+/* line 127, ../sass/structuredfun.scss */
 .page .header p a, .page .header li a, .page .footer p a, .page .footer li a {
   text-decoration: none;
   color: black;
 }
-/* line 128, ../sass/structuredfun.scss */
+/* line 133, ../sass/structuredfun.scss */
 .page .header p.menu-icon, .page .header li.menu-icon, .page .footer p.menu-icon, .page .footer li.menu-icon {
   background-image: url("/chrome/images/fullres/menu-icon-64x64-black.png");
 }
-/* line 134, ../sass/structuredfun.scss */
+/* line 139, ../sass/structuredfun.scss */
 .page .header {
   top: 0;
 }
-/* line 139, ../sass/structuredfun.scss */
+/* line 144, ../sass/structuredfun.scss */
 .page .footer {
   bottom: 0;
 }
-/* line 143, ../sass/structuredfun.scss */
+/* line 148, ../sass/structuredfun.scss */
 .page .content {
   margin: 4px;
   height: 100%;
@@ -118,17 +124,16 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   user-select: none;
 }
 
-/* line 160, ../sass/structuredfun.scss */
+/* line 165, ../sass/structuredfun.scss */
 .sfun {
-  margin-top: -8px;
-  margin-left: -8px;
+  margin-top: -4px;
 }
 
-/* line 169, ../sass/structuredfun.scss */
+/* line 173, ../sass/structuredfun.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 173, ../sass/structuredfun.scss */
+/* line 177, ../sass/structuredfun.scss */
 html.theme-dark .page .header {
   color: white;
   background: #000000;
@@ -148,30 +153,30 @@ html.theme-dark .page .header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222',GradientType=0 );
   /* IE6-9 */
 }
-/* line 187, ../sass/structuredfun.scss */
+/* line 191, ../sass/structuredfun.scss */
 html.theme-dark .page .header p a, html.theme-dark .page .header li a {
   color: white;
 }
-/* line 190, ../sass/structuredfun.scss */
+/* line 194, ../sass/structuredfun.scss */
 html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu-icon {
   background-image: url("/chrome/images/fullres/menu-icon-64x64-white.png");
 }
-/* line 198, ../sass/structuredfun.scss */
+/* line 202, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell:not(.selected) .selectreflector {
   border-color: #222222;
 }
-/* line 203, ../sass/structuredfun.scss */
+/* line 207, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta {
   background-image: linear-gradient(rgba(34, 34, 34, 0), rgba(34, 34, 34, 0.8));
   color: #ffffff;
 }
-/* line 207, ../sass/structuredfun.scss */
+/* line 211, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #222222;
   color: #ffffff;
 }
 
-/* line 222, ../sass/structuredfun.scss */
+/* line 226, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

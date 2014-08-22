@@ -726,7 +726,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
           jqLoadable.data('ratio', im.width / im.height);
         }
         im = null;
-        if (debug && true) {
+        if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqLoadable.data('loaded-width')+','+jqLoadable.data('loaded-height')+']');
         }
         // notify promise of resolution
@@ -893,6 +893,21 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   }
 
   /**
+   * @return {int} width of alley (cell-to-cell) in pixels [default 0]
+   */
+  this.getAlley = function() {
+    if (this.getAlley_static == undefined) {
+      var jqAlley = $('#alleyball');
+      if (jqAlley.length) { 
+        this.getAlley_static = jqAlley.width();
+      } else {
+        this.getAlley_static = 0;
+      }
+    } 
+    return this.getAlley_static;
+  }
+
+  /**
    * @return {int | bool} next sequence number, or false on failure
    */
   this.getNextSeq = function(seq, increment) {
@@ -929,7 +944,8 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
   this.setDirection = function(direction) {
     var changed = (this.getDirection() !== direction);
     var invdir = (direction == 'x' ? 'y' : 'x');
-    $sfun_flow.addClass('flow-' + direction).removeClass('flow-' + invdir);
+    // set flow-<direction> on ul.flow and html
+    $sfun_flow.add($html).addClass('flow-' + direction).removeClass('flow-' + invdir);
     return changed;
   };
 
@@ -992,7 +1008,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       // read container width/height
       var cx = jqEnt.width(), cy = jqEnt.height();
       var cratio = cx / cy;
-      if (debug && true) {
+      if (debug && false) {
         console.log('image-'+jqEnt.data('seq')+': ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
       }
       var iratio = ix / iy;
@@ -1097,6 +1113,18 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
     if (firstMatch != -1) {
       vis.first = firstMatch.jqEnt.data('seq');
     }
+    // work backwards from spanning min boundary to include partials
+    for (var i = vis.first ; i >= 0 ; --i) {
+      var jqEnt = $('#seq-'+i);
+      var position = jqEnt.offset();
+      var posMajor = (direction == 'x' ? position.left + jqEnt.width() : position.top + jqEnt.height());
+      if (posMajor > min) {
+        vis.first = i;
+      } else {
+        // don't go further than first non-partial
+        break;
+      }
+    }
     // find last spanning max boundary
     var lastRef = this.visTableMajor.findCompare(max, this.export.compareLTE, true);
     var lastMatch = this.visTableMajor.select(lastRef);
@@ -1114,7 +1142,7 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
       if (posMajor < min) {
         vis.lastFirstPartial = i;
       } else {
-        // don't do further than first non-partial
+        // don't go further than first non-partial
         break;
       }
     }
@@ -2394,13 +2422,13 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
     // process this event if we're meant to
     if (this.eventQueue.actOnContext(eventContext)) {
       // don't process scroll event every time, buffer (dump duplicates)
-//       this.buffer('handler_scrolled_eventProcess',
-//       // function to execute if/when we are processing this event
-//       function() {
+      this.buffer('handler_scrolled_eventProcess',
+      // function to execute if/when we are processing this event
+      function() {
         return that.handler_scrolled_eventProcess(event, sx, sy).done(wrapUp);
-//       },
-//       // function to execute if we're dumping this event
-//       wrapUp, 250);
+      },
+      // function to execute if we're dumping this event
+      wrapUp, 250);
     } else {
       // if we're not acting on the context, wrap it up
       return wrapUp();
@@ -2764,6 +2792,13 @@ console.log('without-reresingImage-'+jqEnt.data('seq'));
      */
     'api_getCell': function(seq) {
       return $img(seq);
+    },
+
+    /**
+     * @return {int} Width of alley in pixels
+     */
+    'api_getAlley': function() {
+      return that.getAlley();
     },
 
     /**
