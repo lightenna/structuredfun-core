@@ -23,7 +23,7 @@
       'layoutResize' : this.flow_cellsResize,
     };
     // not sure of init order, so push async
-    //sfun.push('registerLayout', obj);
+    sfun.push('registerLayout', obj);
   };
 
   // Layout API
@@ -239,10 +239,13 @@
       }
       // apply percentage to cell minor
       var propname = (direction == 'x' ? 'height': 'width');
-      jqEnt.css(propname, proportion +'%');
-      // set property using css calc to accommodate margins
-      jqEnt[0].style[propname] = 'calc('+proportion+'% - '+sfun.api_getAlley()+'px)';
-
+      if (Modernizr.csscalc) {
+        // set property using css calc to accommodate margins
+        jqEnt[0].style[propname] = 'calc('+proportion+'% - '+sfun.api_getAlley()+'px)';      
+      } else {
+        jqEnt.css(propname, proportion +'%');        
+      }
+  
       // update bound if necessary
       sfun.api_setBound(jqEnt);
       // calculate normal major, max
