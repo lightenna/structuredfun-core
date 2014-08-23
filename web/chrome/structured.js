@@ -38,6 +38,8 @@ window.sfun = (function($, undefined) {
   this.resizeTimeout = null;
   // default selector used to select top-level container
   this.containerSelector = '#sfun';
+  // last image maxlongest, to shortcut reres using thumb size
+  this.lastMaxLongest = null;
 
   // jquery cache
   var $document = $(document);
@@ -241,7 +243,14 @@ window.sfun = (function($, undefined) {
       // load thumbnail by swapping in src, if src not already set [async]
       var attr = jqLoadable.attr('src');
       if (typeof attr === 'undefined' || attr === false) {
-        jqLoadable.attr('src', jqLoadable.data('desrc'));
+        // if we have already reres'd another image, use its size instead of the default thumbnail size
+        if ((this.lastMaxLongest != null) && jqLoadable.hasClass('reresable')) {
+          var highres = that.substitute(jqLoadable.data('template-src'), { 'maxwidth': this.lastMaxLongest, 'maxheight': this.lastMaxLongest } );
+          jqLoadable.attr('src', highres);
+        } else {
+          // otherwise just use desrc
+          jqLoadable.attr('src', jqLoadable.data('desrc'));          
+        }
       }
     }
     // optionally recurse on sub-cells
@@ -389,18 +398,13 @@ window.sfun = (function($, undefined) {
     if (!(type == 'image' || type == 'video')) {
       return $.Deferred().resolve();
     }
-// DELETE ME
-console.log('starting imageReres-'+jqEnt.data('seq')+', adding class reresing');
     // flag this image as updating its resolution
     jqEnt.addClass('reresing');
     // create local deferred and local wrapUp
     var deferred = $.Deferred();
     var wrapUp = function() {
-// DELETE ME
-console.log('passing back to imageReres-'+jqEnt.data('seq')+' to resolve');
-      // remove reresing status and refreshMetric
+      // remove reresing status
       jqEnt.removeClass('reresing');
-      that.refreshMetric(jqEnt);
       // resolve deferred
       deferred.resolve();
     };
@@ -434,8 +438,8 @@ console.log('passing back to imageReres-'+jqEnt.data('seq')+' to resolve');
           brackWidth = Math.min(Math.ceil(imageContainerWidth/resbracket) * resbracket, nativeWidth);
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
-// DELETE ME
-console.log('passing on to imageReres-'+jqEnt.data('seq'));
+            // store max longest to shortcut next thumb load
+            that.lastMaxLongest = brackWidth;
             // swap out image and wait for swap to complete
             that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': brackWidth } )).always(wrapUp);
           } else {
@@ -445,8 +449,8 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
           // same but pivot on height rather than width
           brackHeight = Math.min(Math.ceil(imageContainerHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
-// DELETE ME
-console.log('passing on to imageReres-'+jqEnt.data('seq'));
+            // store max longest to shortcut next thumb load
+            that.lastMaxLongest = brackHeight;
             // swap out image and wait for swap to complete
             that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxheight': brackHeight } )).always(wrapUp);
           } else {
@@ -529,16 +533,14 @@ console.log('passing on to imageReres-'+jqEnt.data('seq'));
     var deferred = $.Deferred();
     // final stage is to refresh the metric
     var wrapUp = function() {
-      // update metric
-      that.refreshMetric(jqEnt);
       // resolve deferred
       deferred.resolve();
+      // update metric [async]
+      that.refreshMetric(jqEnt);
     };
     if (reres) {
       // change out the image for a better resolution if one's available
       this.refreshResolution(jqEnt).always(function() {
-// DELETE ME
-console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         wrapUp();
       });
     } else {
@@ -1324,22 +1326,21 @@ console.log('resolved refresh-Image-function-'+jqEnt.data('seq'));
         if (jqReresable.data('ratio') == undefined) {
           jqReresable.data('ratio', this.width / this.height);
         }
+        // notify promise of resolution
+        deferred.resolve();
+        // process async actions
         if (debug && false) {
           console.log('image-'+jqEnt.data('seq')+': swapped out for ('+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+')');
         }
         that.refreshMetric(jqEnt);
         // flag as reres'd, no longer reresing
         jqEnt.removeClass('reresing');
-        // notify promise of resolution
-        deferred.resolve();
       }).each(function() {
         if(this.complete) $(this).load();
       });
       // return local context so that when we complete (resolve), our parents can execute
       return deferred;
     }
-// DELETE ME
-console.log('without-reresingImage-'+jqEnt.data('seq'));
     jqEnt.removeClass('reresing');
     return $.Deferred().resolve();
   };
