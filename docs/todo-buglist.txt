@@ -1,4 +1,12 @@
 
+* setBound on nearvis [async] after doing everything else
+
+* check that we only start doing stuff on nearvis AFTER we've done everything on visible/vispart
+  + there's a short delay then it seems like nothing is happening
+    + I suspect it's because we're doing nearvis
+
+* look at .find calls
+
 * scroll:x=8 for first image
   + because first cell now lives at 8px
     + can probably cover with offseq
@@ -1733,4 +1741,14 @@ getimagesize(): Read error! in /var/www/git/github.com/structuredfun-linux/struc
 * re-enabling buffering doesn't work
   + it doesn't load any images
     = fixed, bad name
+
+* little optimisation cycle
+  + concentrate on scroll and click
+    + refreshMetric
+
+* all cells are broadly the same size
+  + so after one cell has upped its resolution
+    + we should remember that and use it as the default thumbnail size
+    + which should mean we can skip refreshResolution
+  = worked really nicely
 
