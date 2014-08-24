@@ -29,6 +29,7 @@ window.sfun = (function($, undefined) {
   // and private variables
   // ---------
 
+  // debugging state
   var debug = true;
   // default values for view state
   this.default = [];
@@ -95,6 +96,7 @@ window.sfun = (function($, undefined) {
         that.previous['seq'] = that.default['seq'] = 0;
         that.previous['offseq'] = that.default['offseq'] = 0;
         // bind to page
+// START HERE
         that.bindToScroll();
         that.bindToHeaderLinks();
         that.bindToHotKeys();
@@ -373,7 +375,10 @@ window.sfun = (function($, undefined) {
       if (jqEnt.length) {
         // create and resolve a local context to allow us to numb listener
         var localContext = this.eventQueue.push({
-          'replaceEvent': function(){},
+          'replaceEvent': function(){
+            // just wrapUp this context
+            that.eventQueue.resolve(localContext);
+          },
           'comment': 'localContext for refreshSelected (image-'+jqEnt.data('seq')+')'
         });
         // use hash to select new and deselect old, but numb listener and parent deferred
@@ -551,10 +556,9 @@ window.sfun = (function($, undefined) {
 
   /**
    * refresh all visible images
-   * @param {object} jqEnt jquery entity
    * @return {object} jQuery deferred
    */
-  this.refreshImageSet = function() {
+  this.refreshVisibleImageSet = function() {
     var that = this;
     var selector = that.containerSelector+' .selectablecell.visible, '+that.containerSelector+' .selectablecell.vispart';
     var jqVisibles = $(selector);
@@ -581,6 +585,27 @@ window.sfun = (function($, undefined) {
           // finally resolve
           deferred.resolve();
         });
+      });
+      return deferred;
+    }
+    return $.Deferred().resolve();
+  };
+
+  /**
+   * refresh all visnear images
+   * @return {object} jQuery deferred
+   */
+  this.refreshVisnearImageSet = function() {
+    var that = this;
+    var selector = that.containerSelector+' .selectablecell.visnear';
+    var jqVisnears = $(selector);
+    if (jqVisnears.length) {
+      var deferred = $.Deferred();
+      var defs = [];
+      // stage 1a: make sure thumbnails loaded and refresh bounds as a batch
+      jqVisnears.each(function() {
+        var jqEnt = $(this);
+        defs.push(that.loadThumbRefreshBounds(jqEnt));
       });
       return deferred;
     }
@@ -1048,10 +1073,11 @@ window.sfun = (function($, undefined) {
   /** 
    * ensure that a given image lies within the current viewport
    * @param {int} seq image sequence number
-   * @param {int} scroll offset to seq image [default: 0]
+   * @param {int} [offseq] scroll offset to seq image [default: 0]
+   * @param {object} [eventContext] optional event context to attach this to
    * @return {object} jQuery deferred
    */
-  this.envisionSeq = function(seq, offseq) {
+  this.envisionSeq = function(seq, offseq, eventContext) {
     var jqEnt = $img(seq);
     var direction = this.getDirection();
     if (offseq == undefined) {
@@ -1062,7 +1088,7 @@ window.sfun = (function($, undefined) {
       // get the cell's position
       var position = jqEnt.offset();
       // work out the target position
-      var target = { 'left': (direction == 'x' ? position.left - offseq : 0), 'top':(direction == 'x' ? 0 : position.top - offseq) };
+      var target = { 'left': (direction == 'x' ? position.left - offseq : 0), 'top': (direction == 'x' ? 0 : position.top - offseq) };
       // crop the target position against reachable bounds
       target = this.cropScrollPositionAgainstViewport(target);
       // work out whether we're currently at the target position
@@ -1083,7 +1109,7 @@ window.sfun = (function($, undefined) {
         return this.refreshVisibility(0);
       }
       // otherwise scroll to the target position
-      return this.fire_scrollUpdate( target );
+      return this.fire_scrollUpdate(target, eventContext);
     }
     return $.Deferred().resolve();
   };
@@ -1190,12 +1216,12 @@ window.sfun = (function($, undefined) {
       }
       if (thenRefresh) {
         // now batch process all the visibles
-        that.refreshImageSet().done(wrapUp);
+        that.refreshVisibleImageSet().done(wrapUp);
       } else {
         wrapUp();
       }
       // now request visnear images, but don't wait for them (async, not resync)
-      this.setVisnear(vis);
+      ignored_deferred = this.setVisnearAll(vis);
       return deferred;
     }
     return $.Deferred().resolve();
@@ -1217,8 +1243,7 @@ window.sfun = (function($, undefined) {
       // make it not-visible
       jqEnt.removeClass('visible');
     } else {
-      // load thumbnails (for visible/vispart/visnear) and recurse
-      this.loadThumb(jqEnt, true);
+      var alsoload = false;
       // apply classes
       if (vis == 'visnear') {
         // mark image as near visible
@@ -1226,9 +1251,15 @@ window.sfun = (function($, undefined) {
       } else if (vis == 'vispart') {
         // make it visible (may have previously been visnear)
         jqEnt.removeClass('visnear visible').addClass('vispart');
+        alsoload = true;
       } else if (vis == 'visible') {
         // make it visible (may have previously been visnear)
         jqEnt.removeClass('vispart visnear').addClass('visible');
+        alsoload = true;
+      }
+      if (alsoload) {
+        // load thumbnails (for visible/vispart but not visnear) and recurse
+        this.loadThumb(jqEnt, true);
       }
     }
   };
@@ -1271,8 +1302,9 @@ window.sfun = (function($, undefined) {
   /**
    * flag blocks of images near (before & after) visibles
    * @param {object} vis range of visible images
+   * @return {object} jQuery deferred
    */
-  this.setVisnear = function(vis) {
+  this.setVisnearAll = function(vis) {
     // find visnear first and last visible
     var range = this.calcVisnear(vis.first, vis.last);
     // optional debugging
@@ -1296,6 +1328,8 @@ window.sfun = (function($, undefined) {
         this.setImageVisibilityClass($('#seq-'+i), 'visnear');
       }
     }
+    // now load visnears
+    return this.refreshVisnearImageSet();
   }
 
   // --------------------
@@ -1880,10 +1914,13 @@ window.sfun = (function($, undefined) {
    * create a specialised hashTable for the eventQueue
    * @return {object} hashTable object
    */
-  this.createEventQueue = function() {
+  this.createEventQueue = function(outer_class) {
     return $.extend(this.createHashTable('eventQueue'), {
 
       // CONSTANTS
+
+      // reference to outer class
+      sfun: outer_class,
 
       // time after which scroll events expire
       TIMEOUT_expireEVENT: 10000,
@@ -1909,6 +1946,9 @@ window.sfun = (function($, undefined) {
 
       // expiry timeout callback
       'expiryHandler': null,
+
+      // currently executing event
+      'criticalSection': null,
 
       // FUNCTIONS
 
@@ -1971,7 +2011,7 @@ window.sfun = (function($, undefined) {
         }, partial);
         // optional debugging message
         if (debug && true) {
-          console.log('+ pushed event context[' + this.render(obj) + '], q'+(this.length+1));
+          console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.length+1));
         }
         // if the object expires, schedule its removal
         if (obj.expires) {
@@ -2012,13 +2052,24 @@ window.sfun = (function($, undefined) {
 
       /**
        * push event object onto event queue and setup parenting
-       * can only cope with 1:1 parent:child relationships
+       * copes with 1:N parent:child relationships
+       * @param {object} parentContext 
        * @param {object} partial fields to override defaults
        */
       'pushChild': function(parentContext, partial) {
-        var that = this;
         // push partial in normal way
         var obj = this.push(partial);
+        // attach this obj as child to parent
+        return this.parent(parentContext, obj)
+      },
+
+      /**
+       * setup parenting
+       * @param {object} parentContext 
+       * @param {object} obj child event context to attach to parent
+       */
+      'parent': function(parentContext, obj) {
+        var that = this;
         if (typeof(parentContext) != 'undefined' && parentContext) {
           // store parent relationship
           obj.parent = parentContext;
@@ -2036,7 +2087,7 @@ window.sfun = (function($, undefined) {
               if (debug && true) {
                 console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
               }
-              resolve(parentContext);
+              that.resolve(parentContext);
             } else {
               if (debug && true) {
                 console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
@@ -2044,7 +2095,7 @@ window.sfun = (function($, undefined) {
             }
           });
           if (debug && true) {
-            console.log('  -> pushed event has parent context[' + this.render(obj.parent) + ']');
+            console.log('  + pushed event['+this.render(obj)+'] has parent['+this.render(obj.parent)+']');
           }
         }
         return obj;
@@ -2062,7 +2113,7 @@ window.sfun = (function($, undefined) {
           if (obj != null) {
             console.log('- pulled event context[' + this.render(obj) + '], q'+this.length);
           } else {
-            console.log('unfilled get request for key[' + key + ']');
+            console.log('o unfilled get request for key[' + key + ']');
           }
         }
         return obj;
@@ -2118,50 +2169,74 @@ window.sfun = (function($, undefined) {
       },
 
       /**
-       * wrap up act-on-event decision (include lookup)
-       * @param {string} key to search for
-       * @return {boolean} true if we should act on this event, false to ignore it (alternative called) 
-       */
-      'actOnEvent': function(key) {
-        // try and find an eventQueue object corresponding to this event (and pop if found)
-        var eventContext = this.get(key, true);
-        return this.actOnContext(eventContext);
-      },
-
-      /**
-       * wrap up act-on-event decision
+       * process act-on-event decision
+       * event contexts only get resolved when they've done their work
        * @param {object} eventContext
-       * @return {boolean} true if we should act on this event, false to ignore it (alternative called) 
+       * @param {function} func to call or store; this function contains its own wrapUp calls
        */
-      'actOnContext': function(eventContext) {
+      'actOnContext': function(eventContext, func) {
+        var that = this;
         if (eventContext != null) {
           // see how the eventContext is defined
           if (typeof(eventContext.replaceEvent) != 'undefined' && eventContext.replaceEvent) {
-            // process by calling replaceEvent instead of processing this event directly
-            eventContext.replaceEvent.call(this);
-            // flag that we're no longer going to process this event
-            return false;
+            // process by calling replaceEvent instead of processing this event directly; includes its own wrapUp
+            func = eventContext.replaceEvent;
+            // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
+            eventContext.replaceEvent = null;
+            // optional debugging message
+            if (debug && true) {
+              console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.criticalSection)+')');
+            }
+            // call func with outer class context; includes its own wrapUp
+            func.call(sfun);
+          }
+          // test to see if any other event is in its critical section
+          else if (this.criticalSection == null) {
+            // if not, flag event as in its critical section
+            this.criticalSection = eventContext;
+            // optional debugging message
+            if (debug && true) {
+              console.log('> entering critical section for '+this.render(eventContext));
+            }
+            // call func with outer class context; includes its own wrapUp
+            func.call(sfun);
+          }
+          // test to see if we're actually still in the same context (eventContext == criticalSection)
+          else if (eventContext.key == this.criticalSection.key) {
+            // we're reusing the same context, so just call and leave criticalSection alone
+            func.call(sfun);
+          }
+          else {
+            // this event depends on the end of the current critical one's chain
+            var lastDep = this.earliestAncestor(this.criticalSection);
+            // set this event up as dependent upon the lastDep
+            this.parent(eventContext, lastDep);
+            // optional debugging message
+            if (debug && true) {
+              console.log('_ delaying critical section for '+this.render(eventContext));
+            }
+            // when lastDep gets resolved, execute this function 
+            lastDep.deferred.done(function() {
+              if (debug && true) {
+                console.log('last dependent ('+that.render(lastDep)+') done, now entering critical section for '+that.render(eventContext));
+              }
+              // call func with outer class context; includes its own wrapUp
+              func.call(sfun);
+            });
           }
         }
-        // if we've no reason to ignore the event, then act on it
-        return true;
       },
 
       /**
-       * setup s2 as a dependency of s1
-       * @param  {object} s1 destination event context
-       * @param  {object} s2 source event context
-       * @return {object} s1 after aggregation
+       * work up through the parents to find the oldest ancestor
+       * @param {object} current
+       * @return {object} earliest ancestor (end of parent chain)
        */
-      'aggregate': function(s1, s2) {
-        // check that they're not equal (unbranched return of eventContext by subfunction)
-        if (!this.equals(s1, s2)) {
-          // check that s2 is a child of s1
-          if (s2.parent == s1) {
-            s1.deps[s1.deps.length] = s2;
-          }
+      'earliestAncestor': function(current) {
+        while (current.parent != null) {
+          current = current.parent;
         }
-        return s1;
+        return current;
       },
 
       /**
@@ -2183,7 +2258,7 @@ window.sfun = (function($, undefined) {
         // remove this object from the eventQueue
         var ref = this.removeObj(obj);
         if (debug && true) {
-          console.log('- resolve event context[' + this.render(obj) + '], q'+this.length);
+          console.log('- resolve event context[' + this.render(obj) + '], qlen now '+this.length);
         }
         // resolve its deferred if set
         if (obj.deferred != null) {
@@ -2203,7 +2278,7 @@ window.sfun = (function($, undefined) {
    * - to enable promises on certain event
    * - to bridge promises between fire_ and handler_
    */
-  this['eventQueue'] = this.createEventQueue();
+  this['eventQueue'] = this.createEventQueue(this);
 
   // -------------------------
   // FUNCTIONS: event triggers
@@ -2303,6 +2378,9 @@ window.sfun = (function($, undefined) {
       'comment': 'localContext for fire_scrollUpdate',
       'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
     }, eventContext);
+    if (debug && true) {
+      console.log('* fired scroll event '+this.eventQueue.render(localContext));
+    }
     // fire event: change the scroll position (comes through as single event)
     $document.scrollLeft(target.left);
     $document.scrollTop(target.top);
@@ -2391,17 +2469,16 @@ window.sfun = (function($, undefined) {
       this.visTableMajor.updateAll(this.getDirection(), $sfun_selectablecell);
     }
     // find out if we should trigger other events based on this hash change
-    if (this.eventQueue.actOnContext(eventContext)) {
+    this.eventQueue.actOnContext(eventContext, function(){
       // update images based on what changed
       if (seqChanged || offseqChanged || breadthChanged || directionChanged || forceChange) {
         // scroll to the selected image, which triggers refresh on all .visible images
-        return this.envisionSeq(obj.seq, obj.offseq).done(wrapUp);
-      // } else {
-      //   // if nothing's changed, at least refresh visible images (e.g. first load from seq=0)
-      //   return this.refreshVisibility(0).done(wrapUp);
+        return that.envisionSeq(obj.seq, obj.offseq, eventContext).done(wrapUp);
+      } else {
+        return wrapUp();
       }
-    }
-    return wrapUp();
+    });
+    return eventContext.deferred;
   }
 
   /**
@@ -2421,19 +2498,17 @@ window.sfun = (function($, undefined) {
       return that.eventQueue.resolve(eventContext);
     }
     // process this event if we're meant to
-    if (this.eventQueue.actOnContext(eventContext)) {
+    this.eventQueue.actOnContext(eventContext, function() {
       // don't process scroll event every time, buffer (dump duplicates)
-      this.buffer('handler_scrolled_event',
+      that.buffer('handler_scrolled_event',
       // function to execute if/when we are processing this event
       function() {
         return that.handler_scrolled_eventProcess(event, sx, sy).done(wrapUp);
       },
       // function to execute if we're dumping this event
-      wrapUp, 250);
-    } else {
-      // if we're not acting on the context, wrap it up
-      return wrapUp();
-    }
+      wrapUp, 250);      
+    });
+    return eventContext.deferred;
   }
 
   /**
@@ -2881,7 +2956,10 @@ window.sfun = (function($, undefined) {
       if (numb) {
         // create a null context to numb the event listener
         var localContext = that.eventQueue.push({
-          'replaceEvent': function(){},
+          'replaceEvent': function(){
+            // just wrapUp this context
+            that.eventQueue.resolve(localContext);
+          },
           'comment': 'localContext for api_triggerScroll, numb listener'
         });
         return that.fire_scrollUpdate(pos, localContext);

@@ -22,10 +22,10 @@
       'template': this.getTemplate()
     };
     // pull in QUnit library
-    // @todo
-    // <script type="text/javascript" src="/chrome/vendor/qunit/qunit-1.14.0.min.js"></script>
-    // not sure of init order, so push async
-    sfun.push('headerAddButton', obj);
+    // $.getScript("/chrome/vendor/qunit/qunit-1.14.0.min.js").done(function() {
+    //   // once script is loaded and executes, push header button async
+    //   sfun.push('headerAddButton', obj);
+    // });
   };
 
   this['getTemplate'] = function() {
@@ -115,7 +115,6 @@
           ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
         });
         QUnit.start();
-console.log('XXX test complete XXX');
         endTest();
       });
     });
