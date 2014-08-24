@@ -163,8 +163,9 @@ html.no-js, html.disabled-js {
 // Structured container
 
 .sfun {
-  // offset the cell margins above and below
+  // offset the cell margins above and left
   margin-top: (-($alley / 2));
+  margin-left: (-($alley));
 }
 
 // ---------------------------------------------------------------------------
