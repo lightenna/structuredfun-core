@@ -4,26 +4,6 @@
 @import "compass/reset";
 @import "base";
 
-// distance between two cells (alley)
-$alley: 8px;
-
-// standard colours
-$highlight: #ff00ff;
-$background_html_light: #ffffff;
-$directory_light: #dddddd;
-
-// transition points between media queries
-$wide1: 1600px;
-$wide2: 2400px;
-
-// ---------------------------------------------------------------------------
-// Mixins
-@mixin calc($property, $expression) { 
-  #{$property}: -webkit-calc(#{$expression});
-  #{$property}: -moz-calc(#{$expression});
-  #{$property}: calc(#{$expression});
-}
-
 // ---------------------------------------------------------------------------
 // Widgets to return real dimensions 
 

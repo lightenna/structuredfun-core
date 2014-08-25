@@ -1,32 +1,12 @@
 // ---------------------------------------------------------------------------
 // Imports
 
-// distance between two cells (alley) and two pages (gutter)
-$alley: 8px;
-$gutter: ($alley / 2);
-
-// standard colours
-$highlight: #ff00ff;
-
-// light theme colours
-$background_html_light: #ffffff;
-$text_light: #000000;
-
-// dark theme colours
-$background_html_dark: #222222;
-$text_dark: #ffffff;
-
-// transition points between media queries
-$wide1: 1600px;
-$wide2: 2400px;
+@import "compass/reset";
+@import "base";
 
 // ---------------------------------------------------------------------------
 // Layout
 
-// yardsticks to measure viewport's actual size
-.yardstick {
-  background: #0000ff;
-}
 // gutterball to pass sass variables back to js
 #gutterball {
   width: $gutter;
@@ -147,8 +127,13 @@ html.no-js, html.disabled-js {
 
   .content {
     // can't use padding without introducing a minor axis scrollbar
-    margin: $gutter;
     height: 100%;
+    margin: $gutter;
+    @include calc(margin, $gutter);
+    @include calc(height, (100%)+" - "+($gutter));
+    // simple margin on content introduces a scrollbar, 
+    //   hiding overflow on parent (.page) break horizontal scroll
+    //   overflow-y: hidden;
     // everything in content is unhighlightable
     -webkit-touch-callout: none;
     -webkit-user-select: none;
