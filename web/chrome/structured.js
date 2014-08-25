@@ -1143,9 +1143,11 @@ window.sfun = (function($, undefined) {
     // find first spanning min boundary
     var firstRef = this.visTableMajor.findCompare(min, this.export.compareGTE, false);
     var firstMatch = this.visTableMajor.select(firstRef);
-    if (firstMatch != -1) {
-      vis.first = firstMatch.jqEnt.data('seq');
+    if (firstMatch == null) {
+      // use the first entry in table
+      firstMatch = this.visTableMajor.select(0);
     }
+    vis.first = firstMatch.jqEnt.data('seq');
     // work backwards from spanning min boundary to include partials
     for (var i = vis.first ; i >= 0 ; --i) {
       var jqEnt = $('#seq-'+i);
@@ -1161,9 +1163,11 @@ window.sfun = (function($, undefined) {
     // find last spanning max boundary
     var lastRef = this.visTableMajor.findCompare(max, this.export.compareLTE, true);
     var lastMatch = this.visTableMajor.select(lastRef);
-    if (lastMatch != -1) {
-      vis.last = lastMatch.jqEnt.data('seq');
+    if (lastMatch == null) {
+      // use the last entry in the table
+      lastMatch = this.visTableMajor.select(this.visTableMajor.getSize()-1);
     }
+    vis.last = lastMatch.jqEnt.data('seq');
     // assume all visibles are non-partial, then test
     vis.lastFirstPartial = -1;
     vis.firstLastPartial = 99999;
@@ -1731,6 +1735,7 @@ window.sfun = (function($, undefined) {
         // process based on direction of comparison (LTE/GTE)
         if (comparison > 0) {
           if (minRef < 0 || minRef >= this.length) return -1;
+          currentElement = this.keyarr[minRef];
           // work forwards looking for identical value to first >= key
           return this.find(currentElement, false);
         } else {
@@ -1787,6 +1792,13 @@ window.sfun = (function($, undefined) {
        */
       'getCounter': function() {
         return this.counter;
+      },
+
+      /**
+       * @return {int} total number of entries in table
+       */
+      'getSize': function() {
+        return this.length;
       },
 
       /** 
@@ -2937,6 +2949,13 @@ window.sfun = (function($, undefined) {
      */
     'api_getVisTableMajor': function() {
       return that.visTableMajor;
+    },
+
+    /**
+     * @return {object} event queue
+     */
+    'api_getEventQueue': function() {
+      return that.eventQueue;
     },
 
     /**

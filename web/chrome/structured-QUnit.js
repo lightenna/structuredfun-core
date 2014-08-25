@@ -21,11 +21,8 @@
       },
       'template': this.getTemplate()
     };
-    // pull in QUnit library
-    // $.getScript("/chrome/vendor/qunit/qunit-1.14.0.min.js").done(function() {
-    //   // once script is loaded and executes, push header button async
-    //   sfun.push('headerAddButton', obj);
-    // });
+    // once script is loaded and executes, push header button async
+    sfun.push('headerAddButton', obj);
   };
 
   this['getTemplate'] = function() {
@@ -43,8 +40,11 @@
       // write QUnit harness into page
       var qs = '<div id="qunit"></div><div id="qunit-fixture"></div>';
       $('body').prepend(qs);
-      // execute tests
-      that.tests();
+      // pull in QUnit library (triggers scroll:x=0&y=0)
+      $.getScript("/chrome/vendor/qunit/qunit-1.14.0.min.js").done(function() {
+        // execute tests
+        that.tests();
+      });
       event.preventDefault();
     });
   }
@@ -66,6 +66,66 @@
      * 1. to reset the environment because tests can run in any order
      * 2. to drop us back at the top/left of the page after all tests finish
      */
+
+    test( 'check eventQueue merged', function() {
+      // use expect to ensure that we get our async test
+      expect(8);
+      var evq = sfun.api_getEventQueue();
+      // push a context
+      var localContext = evq.push({
+        'key': 'test:simple',
+        'comment': 'localContext for check eventQueue simple test'
+      });
+      // merge in a second context
+      var mergedContext = evq.pushOrMerge({
+        'key': 'test:merged',
+        'comment': 'second context created to merge localContext and mergedContext',
+      }, localContext);
+      // check that we've got two different contexts
+      notEqual( localContext, mergedContext, 'two contexts');
+      // fetch back context
+      var retrievedContext = evq.get('test:merged');
+      equal( mergedContext, retrievedContext, 'retrieved context same as local');
+      retrievedContext.deferred.done(function() {
+        // check that both contexts get resolved [async]
+        equal( localContext.deferred.state(), 'resolved', 'local context is now resolved [async]');
+        // check that merged gets resolved [async]
+        equal( mergedContext.deferred.state(), 'resolved', 'merged context is now resolved [async]');
+      });
+      // check that both contexts are pending
+      equal( localContext.deferred.state(), 'pending', 'local context is pending');
+      equal( mergedContext.deferred.state(), 'pending', 'merged context is pending');
+      // resolve just one (retrieved) merged context
+      evq.resolve(retrievedContext);
+      // check that it's resolved [sync]
+      equal( localContext.deferred.state(), 'resolved', 'local context is now resolved [sync]');
+      equal( mergedContext.deferred.state(), 'resolved', 'merged context is now resolved [sync]');
+    });
+
+    test( 'check eventQueue simple', function() {
+      // use expect to ensure that we get our async test
+      expect(4);
+      var evq = sfun.api_getEventQueue();
+      // push a context
+      var localContext = evq.push({
+        'key': 'test:simple',
+        'comment': 'localContext for check eventQueue simple test'
+      });
+      // fetch back context
+      var retrievedContext = evq.get('test:simple');
+      equal( localContext, retrievedContext, 'retrieved context same as local');
+      retrievedContext.deferred.done(function() {
+        // check that it's resolved [async]
+        equal( localContext.deferred.state(), 'resolved', 'context is now resolved [async]');
+      });
+      // check that it's pending
+      equal( localContext.deferred.state(), 'pending', 'context is pending');
+      // resolve
+      evq.resolve(retrievedContext);
+      // check that it's resolved [sync]
+      equal( localContext.deferred.state(), 'resolved', 'context is now resolved [sync]');
+    });
+
 /*
     test( 'check vistable working', function() {
       var vt = sfun.api_createVisTable();
@@ -80,7 +140,7 @@
       equal( vt.findCompare(-9999, sfun.compareLTE), -1, 'vistable found nothing <= -9999');
       equal( vt.findCompare(9999, sfun.compareGTE), -1, 'vistable found nothing >= 9999');
     });
-*/
+
     test( 'check enough images for test suite', function() {
       ok( sfun.api_getTotalEntries() >= 4 , sfun.api_getTotalEntries() + ' images in test set')
       // check basic properties of visTableMajor
@@ -88,7 +148,6 @@
       equal( sfun.api_getTotalEntries(), vt.length, vt.length + ' images in vistable');
     });
 
-/*
     test( 'reres of first page of images', function() {
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).then(function() {
@@ -103,7 +162,7 @@
         QUnit.start();
       });
     });
-*/
+
     test( 'reres of last page of images', function() {
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_END).then(function() {
@@ -118,7 +177,7 @@
         endTest();
       });
     });
-/*
+
     test( 'check image bounds', function() {
       QUnit.stop();
       $('ul.flow .selectablecell.visible .boundable').each(function() {
@@ -194,11 +253,10 @@
       var cellcount = sfun.api_getCountMajor() * sfun.api_getBreadth();
       window.location.hash = 'vis-non-vis-simple';
       var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
-      // scroll to first off-screen element
-      sfun.api_triggerKeypress(sfun.KEY_PAGE_DOWN);
       // wait for keypress event to process
       QUnit.stop();
-      setTimeout(function() {
+      // scroll to first off-screen element
+      sfun.api_triggerKeypress(sfun.KEY_PAGE_DOWN).done(function() {
         ok( $('ul.flow .selectablecell.selected').data('seq') != initialSeq, 'Page down selected a different image' );
         // check that first off-screen element (now on-screen) is cellcount
         ok( $('ul.flow .selectablecell.selected').data('seq') == $('#seq-'+cellcount).data('seq'), 'Page down selected the '+(cellcount+1)+'th image (seq '+cellcount+')' );
@@ -207,8 +265,8 @@
         // check that the first image is not visible
         ok( ! $('#seq-'+initialSeq).hasClass('visible'), 'Initially selected cell is no longer visible');
         endTest();
-        QUnit.start();
-      }, 1);
+        QUnit.start();        
+      });
     });
 
     test( 'vis block', function() {

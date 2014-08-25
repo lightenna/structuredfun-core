@@ -1,127 +1,15 @@
 
-* criticalsection code is currently [!commented] buggy
-  + we get into problems when a handler_scroll is a child of a handler_hash
-    + the handler_hash is waiting on the scroll
-      + but we're stopping the scroll from resolving because handler_hash is in its critical section
---o--
-Example 2: created by reloading (seq=20) while scrolling somewhere else
-  i.e. refresh means browser fires a scrollevent for new page (e.g. scroll:x=3239) that's different from where we should be (e.g. scroll:x=3590)
---o--
-o unfilled get request for key[hash:seq=20] structured.js:2115
-+ pushed event context[undefined:hash:seq=20, pending, invented context for handler_hashChanged], qlen now 1 structured.js:2013
-> entering critical section for undefined:hash:seq=20, pending, invented context for handler_hashChanged structured.js:2198
-- deprecated event context[undefined:hash:seq=20, pending, invented context for handler_hashChanged] in favour of [see next pushed], q0 structured.js:2045
-+ pushed event context[undefined:scroll:x=3590&y=0, pending, localContext for fire_scrollUpdate, was invented context for handler_hashChanged], qlen now 1 structured.js:2013
-* fired scroll event 1:scroll:x=3590&y=0, pending, localContext for fire_scrollUpdate, was invented context for handler_hashChanged structured.js:2381
-+ pushed event context[undefined:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate], qlen now 2 structured.js:2013
-* fired scroll event 2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate structured.js:2381
-- pulled event context[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate], q2 structured.js:2113
- - pulled not invented context[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled], q2 structured.js:2147
-  + pushed event[undefined:scroll:x=3590&y=0, pending, localContext for fire_scrollUpdate, was invented context for handler_hashChanged] has parent[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] structured.js:2097
-_ delaying critical section for 2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps structured.js:2215
-+ pushed event context[undefined:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate], qlen now 3 structured.js:2013
-* fired scroll event 3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate structured.js:2381
-- pulled event context[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate], q3 structured.js:2113
- - pulled not invented context[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled], q3 structured.js:2147
-  + pushed event[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] has parent[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] structured.js:2097
-_ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps structured.js:2215
-      + this looks like it's being caused by fire_scrollUpdate
-        + that's probably scroll events coming before the handler_hash has finished
-          + suggest we delay listening for scroll events until we've resolved the first handler_hash
-        + now this may create issues
-          + because we currently rely on the scroll handler to reposition the viewport
-          + that's important when we do an Example-2-style scroll-refresh
-            + or an Example-1-style initial load
-
-
-* make test suite work by dynamically including QUnit
-  + then move on to eventQueue test
-  = QUnit load is currently commented, because it triggers a scroll:x=0&y=0 (0,0)
-
 * write eventQueue test
   + need to test child resolving kicks parents
   + this needs to be thorough
     + there's now a lot of complexity in 
   + also test replaceEvent scenarios
 
-* double loading
-  + it may be related to scroll bug
-    + it was for seq=0
-    - but not for seq>0
-  + definitely doing 2 sets of loads
-    + verified in chrome
-      + we do one set of loads as part of the handler_hash
-      + and another as part of handler_scroll
-        + this happens because Chrome sends a scroll event back to where it was before
-    + firefox is harder
-      + inserting breakpoints changes the way it works
-      + need to prove this
-        + insert console.log statements
-          + to track the start of each handler_
-      = proved
---o--
-* critical section
-  + this speaks to a wider issue of handlers firing in the middle of other handlers
-    + or in parallel
-  + might need to protect the handlers so they can't run at the same time
-    + good opportunity to improve and extend buffer()
-    + single queue shared between both handlers
-      + stick everything on it
-        + investigate priming events with 'donotwait'
-          + so we don't introduce a universal 250ms delay
-    + could use eventQueue
-      + it is a queue (ordered list)
-      + we've got push, could create pop
-      - it's not how it works at the moment
-        + the handlers_ pop by referencing a key
-          + we're talking about making the handlers queue stuff
-        + now they kind of do that already
-          + because they create a local context
-      + could setup deps
-        + to make the new event dependent on the existing event one
-      + the current status
-        + all events get pushed on to the queue
-      + the change
-        + setup one event as 'currently-in-progress'
-          + inCriticalSection flag on eventContext
-            + use actOnEvent function as opportunity to flag it
-        + modify push
-          + if another eventContext is inCriticalSection
-            + flag the current event as 'do-not-act'
-            + make the current event dependent on the one inCriticalSection (crit-dep)
-      + change seems pretty simple
-        + need to understand interaction with buffer()
-        + will end up adding a lot of crit-deps that simply resolve
-          + but that should be ok
-            + can always come back to it later
-            + besides, that what we do already in handler_scrolled
-    + eventQueue child -> completes -> kicks parent
-      + currently can only cope with a single parent
-        + if we allow multiple parents
-          + we can use the existing mechanism
-      + this is actually a little more complicated
-        + we need to end up with a queue
-          + so it's not as simple as just making all events parents of the critical
-          + we need to chain them
-          + this needs its own test
-    + actOnContext is the right place for it
-      + but there are a few different drivers
-        + actOnContext needs to return true/false
-        + not sure if actOnContext should resolve the deferred
-          + or whether the calling function (handler_) should
-          = the latter
-            + it's more consistent
-          + therefore return true or false
-    + tricky bug may be hiding
-      + if we setup replaceEvent to resolve itself
-        + what happens when another event merges with it?
-
-
 * setBound on nearvis [async] after doing everything else
   + may need to disable caching to test it
     + because at the moment we push bound out with the HTML
   + can't be sure, but it looks like we're setting it already
-  = investigate in really large image set
+  = investigate in really large image set (MB)
 
 * check that we only start doing stuff on nearvis AFTER we've done everything on visible/vispart
   + there's a short delay then it seems like nothing is happening
@@ -1933,4 +1821,134 @@ _ delaying critical section for 1:scroll:x=3590&y=0, pending, localContext for f
              + but goes through the same actOnEvent logic
                + which at the moment only sees the critical section
                = now have a detection in place to guard against this
+
+* criticalsection code is currently [!commented] buggy
+  + we get into problems when a handler_scroll is a child of a handler_hash
+    + the handler_hash is waiting on the scroll
+      + but we're stopping the scroll from resolving because handler_hash is in its critical section
+--o--
+Example 2: created by reloading (seq=20) while scrolling somewhere else
+  i.e. refresh means browser fires a scrollevent for new page (e.g. scroll:x=3239) that's different from where we should be (e.g. scroll:x=3590)
+--o--
+o unfilled get request for key[hash:seq=20] structured.js:2115
++ pushed event context[undefined:hash:seq=20, pending, invented context for handler_hashChanged], qlen now 1 structured.js:2013
+> entering critical section for undefined:hash:seq=20, pending, invented context for handler_hashChanged structured.js:2198
+- deprecated event context[undefined:hash:seq=20, pending, invented context for handler_hashChanged] in favour of [see next pushed], q0 structured.js:2045
++ pushed event context[undefined:scroll:x=3590&y=0, pending, localContext for fire_scrollUpdate, was invented context for handler_hashChanged], qlen now 1 structured.js:2013
+* fired scroll event 1:scroll:x=3590&y=0, pending, localContext for fire_scrollUpdate, was invented context for handler_hashChanged structured.js:2381
++ pushed event context[undefined:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate], qlen now 2 structured.js:2013
+* fired scroll event 2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate structured.js:2381
+- pulled event context[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate], q2 structured.js:2113
+ - pulled not invented context[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled], q2 structured.js:2147
+  + pushed event[undefined:scroll:x=3590&y=0, pending, localContext for fire_scrollUpdate, was invented context for handler_hashChanged] has parent[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] structured.js:2097
+_ delaying critical section for 2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps structured.js:2215
++ pushed event context[undefined:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate], qlen now 3 structured.js:2013
+* fired scroll event 3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate structured.js:2381
+- pulled event context[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate], q3 structured.js:2113
+ - pulled not invented context[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled], q3 structured.js:2147
+  + pushed event[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] has parent[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] structured.js:2097
+_ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps structured.js:2215
+      + this looks like it's being caused by fire_scrollUpdate
+        + that's probably scroll events coming before the handler_hash has finished
+          + suggest we delay listening for scroll events until we've resolved the first handler_hash
+        + now this may create issues
+          + because we currently rely on the scroll handler to reposition the viewport
+          + that's important when we do an Example-2-style scroll-refresh
+            + or an Example-1-style initial load
+        = implemented manual call
+
+* make test suite work by dynamically including QUnit
+  + then move on to eventQueue test
+  = QUnit load is currently commented, because it triggers a scroll:x=0&y=0 (0,0)
+    + uncommented, but delayed load until click
+    = that worked incredibly well
+
+* double loading
+  + it may be related to scroll bug
+    + it was for seq=0
+    - but not for seq>0
+  + definitely doing 2 sets of loads
+    + verified in chrome
+      + we do one set of loads as part of the handler_hash
+      + and another as part of handler_scroll
+        + this happens because Chrome sends a scroll event back to where it was before
+    + firefox is harder
+      + inserting breakpoints changes the way it works
+      + need to prove this
+        + insert console.log statements
+          + to track the start of each handler_
+      = proved
+--o--
+* critical section
+  + this speaks to a wider issue of handlers firing in the middle of other handlers
+    + or in parallel
+  + might need to protect the handlers so they can't run at the same time
+    + good opportunity to improve and extend buffer()
+    + single queue shared between both handlers
+      + stick everything on it
+        + investigate priming events with 'donotwait'
+          + so we don't introduce a universal 250ms delay
+    + could use eventQueue
+      + it is a queue (ordered list)
+      + we've got push, could create pop
+      - it's not how it works at the moment
+        + the handlers_ pop by referencing a key
+          + we're talking about making the handlers queue stuff
+        + now they kind of do that already
+          + because they create a local context
+      + could setup deps
+        + to make the new event dependent on the existing event one
+      + the current status
+        + all events get pushed on to the queue
+      + the change
+        + setup one event as 'currently-in-progress'
+          + inCriticalSection flag on eventContext
+            + use actOnEvent function as opportunity to flag it
+        + modify push
+          + if another eventContext is inCriticalSection
+            + flag the current event as 'do-not-act'
+            + make the current event dependent on the one inCriticalSection (crit-dep)
+      + change seems pretty simple
+        + need to understand interaction with buffer()
+        + will end up adding a lot of crit-deps that simply resolve
+          + but that should be ok
+            + can always come back to it later
+            + besides, that what we do already in handler_scrolled
+    + eventQueue child -> completes -> kicks parent
+      + currently can only cope with a single parent
+        + if we allow multiple parents
+          + we can use the existing mechanism
+      + this is actually a little more complicated
+        + we need to end up with a queue
+          + so it's not as simple as just making all events parents of the critical
+          + we need to chain them
+          + this needs its own test
+    + actOnContext is the right place for it
+      + but there are a few different drivers
+        + actOnContext needs to return true/false
+        + not sure if actOnContext should resolve the deferred
+          + or whether the calling function (handler_) should
+          = the latter
+            + it's more consistent
+          + therefore return true or false
+    + tricky bug may be hiding
+      + if we setup replaceEvent to resolve itself
+        + what happens when another event merges with it?
+        = coded against it
+
+* test whole test suite
+  + work's remarkably well
+    + really nearly there for iteration #1!
+  + trigger key press is returning a deferred
+    + but it isn't waiting long enough for the scroll event to complete
+      + probably no bundling up child events
+      + firefox illustrates it nicely using endkey dirty test
+        + shows the right cells
+          - but they haven't been rendered (no thumbs/reres/imgmetric)
+      + the event log is very complicated
+        + many events are getting merged
+          + and somehow one it getting resolved too early
+      + best way to fix it is to write the eventQueue test
+
+* debug vistable test
 
