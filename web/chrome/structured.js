@@ -1672,6 +1672,9 @@ window.sfun = (function($, undefined) {
        * @return {string} render simple string of object
        */
       'render': function(obj) {
+        if (obj == null) {
+          return '<no object>';
+        }
         return obj.key;
       },
 
@@ -1973,6 +1976,9 @@ window.sfun = (function($, undefined) {
        * @return {string} render simple string of object
        */
       'render': function(obj) {
+        if (obj == null) {
+          return '<no event context>';
+        }
         var output = obj.id + ':' + obj.key + ', ' + obj.deferred.state();
         if (obj.comment) {
           output += ', ' + obj.comment;
@@ -2026,10 +2032,6 @@ window.sfun = (function($, undefined) {
           'deferred': deferred,
           'deps': []
         }, partial);
-        // optional debugging message
-        if (debug && true) {
-          console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.length+1));
-        }
         // if the object expires, schedule its removal
         if (obj.expires) {
           // clear old timeout
@@ -2042,7 +2044,12 @@ window.sfun = (function($, undefined) {
           }, this.TIMEOUT_expireEVENT);
         }
         // push
-        return this._push(obj);
+        var retval = this._push(obj);
+        // optional debugging message
+        if (debug && true) {
+          console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.length+1));
+        }
+        return retval;
       },
 
       /**
@@ -2104,7 +2111,13 @@ window.sfun = (function($, undefined) {
               if (debug && true) {
                 console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
               }
-              that.resolve(parentContext);
+              // wait until all other pending functions (like this .done) have been processed
+              obj.deferred.done(function() {
+                // then resolve the parent context
+                that.resolve(parentContext);
+                // this is important, because otherwise the parentContext's pending functions could be processed
+                // before the childContext's pending functions
+              });
             } else {
               if (debug && true) {
                 console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
@@ -2186,6 +2199,23 @@ window.sfun = (function($, undefined) {
       },
 
       /**
+       * @param {object} eventContext to flag as being in its critical section
+       */
+      'setCriticalSection': function(eventContext) {
+        var that = this;
+        // setup back-to-one function for use in callbacks
+        var scheduleCriticalReset = function() {
+          // if nothing else has swiped it already
+          if (that.criticalSection == eventContext) {
+            // flag that nothing is in its critical section
+            that.criticalSection = null;
+          }
+        };
+        this.criticalSection = eventContext;
+        this.criticalSection.deferred.done(scheduleCriticalReset);
+      },
+
+      /**
        * process act-on-event decision
        * event contexts only get resolved when they've done their work
        * @param {object} eventContext
@@ -2193,6 +2223,7 @@ window.sfun = (function($, undefined) {
        */
       'actOnContext': function(eventContext, func) {
         var that = this;
+        // only act if we've been given a real eventContext
         if (eventContext != null) {
           // see how the eventContext is defined
           if (typeof(eventContext.replaceEvent) != 'undefined' && eventContext.replaceEvent) {
@@ -2210,7 +2241,7 @@ window.sfun = (function($, undefined) {
           // test to see if any other event is in its critical section
           else if (this.criticalSection == null) {
             // if not, flag event as in its critical section
-            this.criticalSection = eventContext;
+            this.setCriticalSection(eventContext);
             // optional debugging message
             if (debug && true) {
               console.log('> entering critical section for '+this.render(eventContext));
@@ -2232,11 +2263,13 @@ window.sfun = (function($, undefined) {
             if (debug && true) {
               console.log('_ delaying critical section for '+this.render(eventContext));
             }
-            // when lastDep gets resolved, execute this function 
+            // when lastDep gets resolved, execute func
             lastDep.deferred.done(function() {
               if (debug && true) {
-                console.log('last dependent ('+that.render(lastDep)+') done, now entering critical section for '+that.render(eventContext));
+                console.log('> last dependent ('+that.render(lastDep)+') resolved, now entering critical section for '+that.render(eventContext));
               }
+              // flag next context as in its critical section
+              that.setCriticalSection(eventContext);
               // call func with outer class context; includes its own wrapUp
               func.call(sfun);
             });
@@ -2275,7 +2308,7 @@ window.sfun = (function($, undefined) {
         // remove this object from the eventQueue
         var ref = this.removeObj(obj);
         if (debug && true) {
-          console.log('- resolve event context[' + this.render(obj) + '], qlen now '+this.length);
+          console.log('Q resolve event context[' + this.render(obj) + '], qlen now '+this.length);
         }
         // resolve its deferred if set
         if (obj.deferred != null) {

@@ -1,15 +1,10 @@
 
-* write eventQueue test
-  + need to test child resolving kicks parents
-  + this needs to be thorough
-    + there's now a lot of complexity in 
-  + also test replaceEvent scenarios
-
 * setBound on nearvis [async] after doing everything else
   + may need to disable caching to test it
     + because at the moment we push bound out with the HTML
   + can't be sure, but it looks like we're setting it already
   = investigate in really large image set (MB)
+  - don't appear to be loading nearvis at all
 
 * check that we only start doing stuff on nearvis AFTER we've done everything on visible/vispart
   + there's a short delay then it seems like nothing is happening
@@ -1951,4 +1946,16 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
       + best way to fix it is to write the eventQueue test
 
 * debug vistable test
+
+* cheeky vertical scrollbar
+  + sorted with calc() again
+
+* write eventQueue test
+  + need to test child resolving kicks parents
+  + this needs to be thorough
+    + there's now a lot of complexity in there
+
+* test replaceEvent scenarios
+
+* test actOnContext
 

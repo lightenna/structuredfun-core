@@ -1,14 +1,34 @@
 // ---------------------------------------------------------------------------
-// Imports
-
-@import "susy";
+// Nested Imports
 
 // ---------------------------------------------------------------------------
-// Basic Grid
+// Variables
 
-$total-columns  : 12;
-$column-width   : 4em;
-$gutter-width   : 1em;
-$grid-padding   : $gutter-width;
+// distance between two cells (alley) and two pages (gutter)
+$alley: 8px;
+$gutter: ($alley / 2);
 
-$show-grid-backgrounds  : true;
+// standard colours
+$highlight: #ff00ff;
+
+// light theme colours
+$background_html_light: #ffffff;
+$directory_light: #dddddd;
+$text_light: #000000;
+
+// dark theme colours
+$background_html_dark: #222222;
+$text_dark: #ffffff;
+
+// transition points between media queries
+$wide1: 1600px;
+$wide2: 2400px;
+
+// ---------------------------------------------------------------------------
+// Mixins
+@mixin calc($property, $expression) { 
+  #{$property}: -webkit-calc(#{$expression});
+  #{$property}: -moz-calc(#{$expression});
+  #{$property}: calc(#{$expression});
+}
+
