@@ -25,9 +25,13 @@ _ delaying critical section for 2:scroll:x=3239&y=0, pending, localContext for f
  - pulled not invented context[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled], q3 structured.js:2147
   + pushed event[2:scroll:x=3239&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] has parent[3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps] structured.js:2097
 _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for fire_scrollUpdate, instead of invented context for handler_scrolled, 1 deps structured.js:2215
-       + this looks like it's being caused by fire_scrollUpdate
-         + that's probably scroll events coming before the handler_hash has finished
-           + suggest we delay listening for scroll events until we've resolved the first handler_hash
+      + this looks like it's being caused by fire_scrollUpdate
+        + that's probably scroll events coming before the handler_hash has finished
+          + suggest we delay listening for scroll events until we've resolved the first handler_hash
+        + now this may create issues
+          + because we currently rely on the scroll handler to reposition the viewport
+          + that's important when we do an Example-2-style scroll-refresh
+            + or an Example-1-style initial load
 
 
 * make test suite work by dynamically including QUnit

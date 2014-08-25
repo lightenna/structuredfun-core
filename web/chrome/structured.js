@@ -96,11 +96,8 @@ window.sfun = (function($, undefined) {
         that.previous['seq'] = that.default['seq'] = 0;
         that.previous['offseq'] = that.default['offseq'] = 0;
         // bind to page
-// START HERE
-        that.bindToScroll();
         that.bindToHeaderLinks();
         that.bindToHotKeys();
-        that.bindToHashChange();
         that.bindToImageLinks();
         // if we're sideways scrolling, bind to scroll event
         that.setDirection(that.getDirection());
@@ -109,7 +106,11 @@ window.sfun = (function($, undefined) {
         // execute queue of API calls
         that.export.flush();
         // process state if set in URL (hash) first
-        that.handler_hashChanged(that.getHash(), true);
+        that.handler_hashChanged(that.getHash(), true).done(function() {
+          // don't bind to event handlers until we've processed the initial hash
+          that.bindToHashChange();
+          that.bindToScroll();
+        });
         // attach listener to window for resize (rare, but should update)
         $window.resize(function() {
           that.buffer('init_resized',
@@ -621,13 +622,17 @@ window.sfun = (function($, undefined) {
    */
   this.bindToScroll = function() {
     var that = this;
-    $window.scroll(function(event) {
-      that.handler_scrolled(event);
-      event.preventDefault();
-    });
-    $window.mousewheel(function(event) {
-      that.handler_mouseWheeled(event);
-    });
+    if (this.bindToScroll_static == undefined) {
+      $window.scroll(function(event) {
+        that.handler_scrolled(event);
+        event.preventDefault();
+      });
+      $window.mousewheel(function(event) {
+        that.handler_mouseWheeled(event);
+      });
+      // flag that we've attached our listeners
+      this.bindToScroll_static = true;
+    }
   };
 
   /**
@@ -2384,6 +2389,11 @@ window.sfun = (function($, undefined) {
     // fire event: change the scroll position (comes through as single event)
     $document.scrollLeft(target.left);
     $document.scrollTop(target.top);
+    // if we've yet to setup an event handler
+    if (this.bindToScroll_static == undefined) {
+      // manually call handler
+      this.handler_scrolled({});
+    }
     // localContext is resolved by handler_scrolled
     return localContext.deferred;
   };
