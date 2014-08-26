@@ -367,7 +367,7 @@ window.sfun = (function($, undefined) {
   this.refreshSelected = function(scrolldir) {
     var jqEnt = $sfun_selectedcell;
     // if no selection, or the current selection isn't visible
-    if (!jqEnt.length || !jqEnt.hasClass('visible')) {
+    if (!jqEnt.length || !(jqEnt.hasClass('visible') || jqEnt.hasClass('vispart'))) {
       if (debug && false) {
         console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
       }
@@ -756,6 +756,10 @@ window.sfun = (function($, undefined) {
         // never update the ratio, but set if unset
         if (jqLoadable.data('ratio') == undefined) {
           jqLoadable.data('ratio', im.width / im.height);
+        }
+        // if we've loaded the image for the first time, swap it in (fallback)
+        if (jqLoadable.attr('src') == undefined) {
+          jqLoadable.attr('src', im.src);
         }
         im = null;
         if (debug && false) {
@@ -1150,7 +1154,7 @@ window.sfun = (function($, undefined) {
     vis.first = firstMatch.jqEnt.data('seq');
     // work backwards from spanning min boundary to include partials
     for (var i = vis.first ; i >= 0 ; --i) {
-      var jqEnt = $('#seq-'+i);
+      var jqEnt = $img(i);
       var position = jqEnt.offset();
       var posMajor = (direction == 'x' ? position.left + jqEnt.width() : position.top + jqEnt.height());
       if (posMajor > min) {
@@ -1173,7 +1177,7 @@ window.sfun = (function($, undefined) {
     vis.firstLastPartial = 99999;
     // check first visibles for partial visibility
     for (var i = vis.first ; i <= vis.last ; ++i) {
-      var jqEnt = $('#seq-'+i);
+      var jqEnt = $img(i);
       var position = jqEnt.offset();
       var posMajor = (direction == 'x' ? position.left : position.top);
       if (posMajor < min) {
@@ -1185,7 +1189,7 @@ window.sfun = (function($, undefined) {
     }
     // check last visibles for partial visibility
     for (var i = vis.last ; i >= vis.first ; i--) {
-      var jqEnt = $('#seq-'+i);
+      var jqEnt = $img(i);
       var position = jqEnt.offset();
       var posMajor = (direction == 'x' ? position.left + jqEnt.width() : position.top + jqEnt.height());
       if (posMajor > max) {
@@ -1221,7 +1225,7 @@ window.sfun = (function($, undefined) {
       var vis = this.getVisibleBoundaries();
       for (var i = vis.first ; i <= vis.last ; i++) {
         var vistype = ((i <= vis.lastFirstPartial || i >= vis.firstLastPartial) ? 'vispart' : 'visible');
-        that.setImageVisibilityClass($('#seq-'+i), vistype);
+        that.setImageVisibilityClass($img(i), vistype);
       }
       if (thenRefresh) {
         // now batch process all the visibles
@@ -1327,14 +1331,14 @@ window.sfun = (function($, undefined) {
     if (range.last_1 != vis.last) {
       // request visnear (after visibles), async
       for (var i = range.last_1 ; i <= range.last_n ; i++) {
-        this.setImageVisibilityClass($('#seq-'+i), 'visnear');
+        this.setImageVisibilityClass($img(i), 'visnear');
       }
     }
     // only do first visnear if there are some entries BEFORE visibles
     if (range.first_n != vis.first) {
       // request visnear (before visibles), async
       for (var i = range.first_1 ; i <= range.first_n ; i++) {
-        this.setImageVisibilityClass($('#seq-'+i), 'visnear');
+        this.setImageVisibilityClass($img(i), 'visnear');
       }
     }
     // now load visnears
@@ -2057,21 +2061,32 @@ window.sfun = (function($, undefined) {
        * @param {object} partial fields to override defaults
        */
       'pushOrMerge': function(partial, peer) {
-        var obj = {};
         if (typeof(peer) != 'undefined') {
-          obj = peer;
-          // remove old object from queue
-          this.removeObj(peer);
+          // capture old position
+          var ref = this.find(peer.key);
+          // capture old description for debugging
+          var olddesc = '';
+          if (debug) {
+            olddesc = this.render(peer);
+          }
           // aggregate the comments to enable clearer historical tracking
           if (partial.comment) {
-            partial.comment += ', was ' + obj.comment;
+            partial.comment += ', was ' + peer.comment;
           }
+          // merge in set fields
+          $.extend(peer, partial);
+          // manually update old indices
+          if (ref != -1) {
+            this.keyarr[ref] = peer.key
+          }
+          // optional debugging
           if (debug && true) {
-            console.log('- deprecated event context[' + this.render(peer) + '] in favour of [see next pushed], q'+this.length);
+            console.log('  - merged event context[' + this.render(peer) + '] into old context['+olddesc+'], unaffected q'+this.length);
           }
+          return peer;
         }
-        // overwrite obj fields with partial values
-        return this.push($.extend(obj, partial));
+        // otherwise push new context with partial values
+        return this.push($.extend({}, partial));
       },
 
       /**

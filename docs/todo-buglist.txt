@@ -1,10 +1,46 @@
 
-* setBound on nearvis [async] after doing everything else
-  + may need to disable caching to test it
-    + because at the moment we push bound out with the HTML
-  + can't be sure, but it looks like we're setting it already
-  = investigate in really large image set (MB)
-  - don't appear to be loading nearvis at all
+* border missing from directories
+
+* end key test not completing in proper time
+  + can't actually select end entity if it's a directory
+    + selection bounces back from 10 to 9
+
+* merging a context leaves two nearly identical event contexts on the stack
+  + makes for some confusing debugging messages
+    + need to decide if pushOrMerge should remove old objects from the stack
+      + I think it should
+    + but how do we handle its deferred
+      + can't resolve
+      + want to move things hanging on it over to new item
+  + merge is a bit of a mess
+    + we leave things hanging on the old deferred
+    + not currently updating critical section
+  + neater to just pull new attributes into old context
+    = done that
+  + however there are subtleties
+    + when merging a context
+      + we take over its key
+    + that means that future attempts to pull by the old key will fail
+      + which means new contexts get invented when they shouldn't
+  + there are a few options
+    + don't merge
+      + just parent
+        + resolving the child will kick the parent
+    + merge
+      + but keep all the old keys
+        + key:object becomes N:1
+          + not 1:N, so never multiple objects under 1 key
+        + this doesn't work with our current keyarr
+  + what is the essence of a merge?
+    + it's only called in a fire_ type scenario
+      + which is the bridge function to a handler_
+  = will think on it
+
+* images getting stuck in reresing
+  + waiting for timeout before completing
+    + suspect it's a critical section/delaying bug
+
+* work on test suite
 
 * check that we only start doing stuff on nearvis AFTER we've done everything on visible/vispart
   + there's a short delay then it seems like nothing is happening
@@ -1958,4 +1994,21 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
 * test replaceEvent scenarios
 
 * test actOnContext
+
+* setBound on nearvis [async] after doing everything else
+  + may need to disable caching to test it
+    + because at the moment we push bound out with the HTML
+  + can't be sure, but it looks like we're setting it already
+  = investigate in really large image set (MB)
+  - don't appear to be loading nearvis at all
+    + we are actually loading the images
+      + but we don't seem to be swapping them in
+  = little bit messy
+    + for visible images
+      + we load the thumbnail when they're given their visible/vispart class
+    + for visnear images
+      + we load the thumbnail in a slightly gorky part-of waitLoadedGetResolution
+      + better to do it all on the class
+        + if we can do it async
+  = may return to this, but not now
 

@@ -9,7 +9,7 @@
 {% if file.type == 'directory' %}
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type" data-seq="{{ file.seq }}">
     <a class="container directory-container clickable" href="/file{{ linkpath }}{{ file.name }}/">
-      <ul class="directory flow boundable x-bound">
+      <ul class="directory flow boundable selectreflector">
         {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="subcell" data-seq="{{ file.seq }}-{{ img_prev_n }}">
         <span class="container directory-container">
           <img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="loadable boundable reresable"
