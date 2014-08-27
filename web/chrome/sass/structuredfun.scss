@@ -185,7 +185,7 @@ html.theme-dark {
     }
 
     .content .sfun > .cell {
-      &:not(.selected) .selectreflector {
+      &:not(.selected) .media-container .selectreflector {
         border-color: $background_html_dark;
       }
 

@@ -217,6 +217,8 @@
       // push a parent context
       var parentContext = evq.push({
         'key': 'test:parent',
+        // flag that parent should resolve once child is resolved
+        'autoresolve': true,
         'comment': 'parent context for check eventQueue parent test'
       });
       // push a child context
