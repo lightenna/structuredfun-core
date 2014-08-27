@@ -1,40 +1,9 @@
 
-* border missing from directories
+* get eventQueue emptying out properly
 
 * end key test not completing in proper time
   + can't actually select end entity if it's a directory
     + selection bounces back from 10 to 9
-
-* merging a context leaves two nearly identical event contexts on the stack
-  + makes for some confusing debugging messages
-    + need to decide if pushOrMerge should remove old objects from the stack
-      + I think it should
-    + but how do we handle its deferred
-      + can't resolve
-      + want to move things hanging on it over to new item
-  + merge is a bit of a mess
-    + we leave things hanging on the old deferred
-    + not currently updating critical section
-  + neater to just pull new attributes into old context
-    = done that
-  + however there are subtleties
-    + when merging a context
-      + we take over its key
-    + that means that future attempts to pull by the old key will fail
-      + which means new contexts get invented when they shouldn't
-  + there are a few options
-    + don't merge
-      + just parent
-        + resolving the child will kick the parent
-    + merge
-      + but keep all the old keys
-        + key:object becomes N:1
-          + not 1:N, so never multiple objects under 1 key
-        + this doesn't work with our current keyarr
-  + what is the essence of a merge?
-    + it's only called in a fire_ type scenario
-      + which is the bridge function to a handler_
-  = will think on it
 
 * images getting stuck in reresing
   + waiting for timeout before completing
@@ -2011,4 +1980,59 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
       + better to do it all on the class
         + if we can do it async
   = may return to this, but not now
+
+* border missing from directories
+
+* merging a context leaves two nearly identical event contexts on the stack
+  + makes for some confusing debugging messages
+    + need to decide if pushOrMerge should remove old objects from the stack
+      + I think it should
+    + but how do we handle its deferred
+      + can't resolve
+      + want to move things hanging on it over to new item
+  + merge is a bit of a mess
+    + we leave things hanging on the old deferred
+    + not currently updating critical section
+  + neater to just pull new attributes into old context
+    = done that
+  + however there are subtleties
+    + when merging a context
+      + we take over its key
+    + that means that future attempts to pull by the old key will fail
+      + which means new contexts get invented when they shouldn't
+  + there are a few options
+    + don't merge
+      + just parent
+        + resolving the child will kick the parent
+    + merge
+      + but keep all the old keys
+        + key:object becomes N:1
+          + not 1:N, so never multiple objects under 1 key
+        + this doesn't work with our current keyarr
+  + what is the essence of a merge?
+    + it's only called in a fire_ type scenario
+      + which is the bridge function to a handler_
+    + I'm leaning towards parent
+      + merge is quite destructive
+        + we're losing granularity
+        + parent preserves more information
+          + also resolves are clearer when there's parenting
+      + keep merge function the way it is
+        + might be useful for other things
+        + but write a new parent version and replace in fire_ family
+  + not sure about auto-resolve for parents
+    + they should sort of resolve themselves
+      + because everything else does
+    + going to take it out for now
+      + might reprise it later
+  + parenting is good
+
+* need to bind to scroll earlier than completion of handler_hash
+  + handler_hash only resolved when all nearvis loaded
+    + when is the earliest we could accept scroll events
+      - hard to tell
+        + it's when the browser has given us the first scroll event
+          + if it's going to give us it!
+      + but we could rely on the critical section
+        + probably safe to bind once handler_hash is in its critical section
 

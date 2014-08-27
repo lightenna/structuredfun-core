@@ -106,11 +106,10 @@ window.sfun = (function($, undefined) {
         // execute queue of API calls
         that.export.flush();
         // process state if set in URL (hash) first
-        that.handler_hashChanged(that.getHash(), true).done(function() {
-          // don't bind to event handlers until we've processed the initial hash
-          that.bindToHashChange();
-          that.bindToScroll();
-        });
+        that.handler_hashChanged(that.getHash(), true);
+        // don't bind to event handlers until we've started the initial hash (in its critical section)
+        that.bindToHashChange();
+        that.bindToScroll();
         // attach listener to window for resize (rare, but should update)
         $window.resize(function() {
           that.buffer('init_resized',
@@ -1958,6 +1957,8 @@ window.sfun = (function($, undefined) {
         'deferred': null,
         // has no parent
         'parent': null,
+        // doesn't automatically resolve when its children get resolved
+        'autoresolve': false,
         // has no dependencies
         'deps': null,
         // never expires
@@ -2058,48 +2059,57 @@ window.sfun = (function($, undefined) {
 
       /**
        * push event object or merge if a peer is set
+       *   this does create issues if we try to pull based on the old key
        * @param {object} partial fields to override defaults
        */
-      'pushOrMerge': function(partial, peer) {
-        if (typeof(peer) != 'undefined') {
-          // capture old position
-          var ref = this.find(peer.key);
-          // capture old description for debugging
-          var olddesc = '';
-          if (debug) {
-            olddesc = this.render(peer);
-          }
-          // aggregate the comments to enable clearer historical tracking
-          if (partial.comment) {
-            partial.comment += ', was ' + peer.comment;
-          }
-          // merge in set fields
-          $.extend(peer, partial);
-          // manually update old indices
-          if (ref != -1) {
-            this.keyarr[ref] = peer.key
-          }
-          // optional debugging
-          if (debug && true) {
-            console.log('  - merged event context[' + this.render(peer) + '] into old context['+olddesc+'], unaffected q'+this.length);
-          }
-          return peer;
+      'pushOrParent': function(partial, peer) {
+        if (typeof(peer) == 'undefined') {
+          // if no peer, push new context with partial values
+          return this.push($.extend({}, partial));
         }
-        // otherwise push new context with partial values
-        return this.push($.extend({}, partial));
+        // capture old position
+        var ref = this.find(peer.key);
+        // capture old description for debugging
+        var olddesc = '';
+        if (debug) {
+          olddesc = this.render(peer);
+        }
+        // aggregate the comments to enable clearer historical tracking
+        if (partial.comment) {
+          partial.comment += ', was ' + peer.comment;
+        }
+        // merge in set fields
+        $.extend(peer, partial);
+        // manually update old indices
+        if (ref != -1) {
+          this.keyarr[ref] = peer.key
+        }
+        // optional debugging
+        if (debug && true) {
+          console.log('  - merged event context[' + this.render(peer) + '] into old context['+olddesc+'], unaffected q len now'+this.length);
+        }
+        return peer;
       },
 
       /**
        * push event object onto event queue and setup parenting
        * copes with 1:N parent:child relationships
-       * @param {object} parentContext 
        * @param {object} partial fields to override defaults
+       * @param {object} parentContext 
        */
-      'pushChild': function(parentContext, partial) {
+      'pushOrParent': function(partial, parent) {
+        if (typeof(parent) == 'undefined') {
+          // if no parent, just push the partial
+          return this.push(partial);
+        }
+        // aggregate the comments to enable clearer historical tracking
+        if (partial.comment) {
+          partial.comment += ', inherited from ' + parent.comment + ' (which is now upstream)';
+        }
         // push partial in normal way
         var obj = this.push(partial);
         // attach this obj as child to parent
-        return this.parent(parentContext, obj)
+        return this.parent(parent, obj);
       },
 
       /**
@@ -2115,32 +2125,38 @@ window.sfun = (function($, undefined) {
           parentContext.deps[parentContext.deps.length] = obj;
           // setup promise on resolution of child to resolve parent
           obj.deferred.done(function() {
-            // test to see if parent has outstanding deps
+            // remove this from parent's outstanding deps
             var ref = parentContext.deps.indexOf(obj);
             if (ref != -1) {
               // delete this dep from parent
               parentContext.deps.splice(ref, 1);
             }
-            // if we've resolved all the deps, resolve this promise
-            if (parentContext.deps.length == 0) {
-              if (debug && true) {
-                console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
+            // currently we don't automatically
+            if (parentContext.autoresolve != false) {
+              // if we've resolved all the parnet's deps, resolve parent
+              if (parentContext.deps.length == 0) {
+                if (debug && true) {
+                  console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
+                }
+                // wait until all other pending functions (like this .done) have been processed
+                obj.deferred.done(function() {
+                  // then resolve the parent context
+                  that.resolve(parentContext);
+                  // this is important, because otherwise the parentContext's pending functions could be processed
+                  // before the childContext's pending functions
+                });
+              } else {
+                if (debug && true) {
+                  console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
+                }              
               }
-              // wait until all other pending functions (like this .done) have been processed
-              obj.deferred.done(function() {
-                // then resolve the parent context
-                that.resolve(parentContext);
-                // this is important, because otherwise the parentContext's pending functions could be processed
-                // before the childContext's pending functions
-              });
-            } else {
-              if (debug && true) {
-                console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
-              }              
             }
+            // flag as no longer parented
+            obj.parent = null;
           });
+          // optional debugging
           if (debug && true) {
-            console.log('  + pushed event['+this.render(obj)+'] has parent['+this.render(obj.parent)+']');
+            console.log('  - parented event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.length);
           }
         }
         return obj;
@@ -2269,6 +2285,11 @@ window.sfun = (function($, undefined) {
             // we're reusing the same context, so just call and leave criticalSection alone
             func.call(sfun);
           }
+          // test to see if we're in the parent's context (parent eventContext == criticalSection)
+          else if (this.isParentOf(this.criticalSection, eventContext)) {
+            // call and leave criticalSection alone
+            func.call(sfun);
+          }
           else {
             // this event depends on the end of the current critical one's chain
             var lastDep = this.earliestAncestor(this.criticalSection);
@@ -2302,6 +2323,22 @@ window.sfun = (function($, undefined) {
           current = current.parent;
         }
         return current;
+      },
+
+      /**
+       * @param  {object} s1 event context
+       * @param  {object} s2 event context
+       * @return {boolean} true if s1 is a parent of s2
+       */
+      'isParentOf': function(s1, s2) {
+        while (s2.parent != null) {
+          if (s2.parent == s1) {
+            return true;
+          }
+          // make s2 its parent and test again
+          s2 = s2.parent;
+        }
+        return false;
       },
 
       /**
@@ -2369,7 +2406,7 @@ window.sfun = (function($, undefined) {
     // convert to hash string
     hash = this.hashGenerate(obj);
     // always create a context [so we can resolve something], but parent it only if eventContext is not undefined
-    var localContext = this.eventQueue.pushOrMerge({
+    var localContext = this.eventQueue.pushOrParent({
       'key': 'hash:'+hash,
       'comment': 'localContext for fire_hashUpdate'
     }, eventContext);
@@ -2438,7 +2475,7 @@ window.sfun = (function($, undefined) {
   this.fire_scrollUpdate = function(target, eventContext) {
     var that = this;
     // create a context, but parent it only if eventContext is not undefined
-    var localContext = this.eventQueue.pushOrMerge({
+    var localContext = this.eventQueue.pushOrParent({
       'key': 'scroll:'+'x='+target.left+'&y='+target.top,
       'comment': 'localContext for fire_scrollUpdate',
       'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
@@ -2466,7 +2503,7 @@ window.sfun = (function($, undefined) {
    */
   this.fire_keyPress = function(key, eventContext) {
     var e = jQuery.Event( 'keydown', { which: key } );
-    var localContext = this.eventQueue.pushOrMerge({
+    var localContext = this.eventQueue.pushOrParent({
       key: 'keypress:key='+key,
       'comment': 'localContext for fire_keyPress (keyToPress '+key+')'
     });
@@ -2648,7 +2685,7 @@ window.sfun = (function($, undefined) {
         increment = xpos + (scrolldir * event.deltaFactor * this.export.scrollMULTIPLIER);
       }
       // get current x position, increment and write back, firing scroll event
-      return this.fire_scrollUpdate( { 'left': increment, 'top':0 } ).done(wrapUp);
+      return this.fire_scrollUpdate( { 'left': increment, 'top':0 } , eventContext).done(wrapUp);
     }
     return $.Deferred().resolve();
   }

@@ -229,7 +229,7 @@ html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu
   background-image: url("/chrome/images/fullres/menu-icon-64x64-white.png");
 }
 /* line 188, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun > .cell:not(.selected) .selectreflector {
+html.theme-dark .page .content .sfun > .cell:not(.selected) .media-container .selectreflector {
   border-color: #222222;
 }
 /* line 193, ../sass/structuredfun.scss */
