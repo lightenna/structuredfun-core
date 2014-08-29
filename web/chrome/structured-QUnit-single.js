@@ -1,6 +1,6 @@
 /**
  * StructuredFun javascript
- * QUnit test harness for single troublesome tests
+ * QUnit test harness
  */
 (function($, sfun, undefined) {
 
@@ -12,30 +12,29 @@
   // FUNCTIONS
   // ---------
 
-  this.init = function() {
+  var init = function() {
     var obj = {
       'context': this,
-      'callback': this.bindToTemplate,
+      'callback': bindToTemplate,
       'view': {
         'title': 'Test'
       },
-      'template': this.getTemplate()
+      'template': getTemplate()
     };
     // once script is loaded and executes, push header button async
     sfun.push('headerAddButton', obj);
   };
 
-  this['getTemplate'] = function() {
-    var str = '<p><a href="#" id="header-test">{{ title }}</a></p>';
+  var getTemplate = function() {
+    var str = '<p><a href="#" id="header-test-single">{{ title }}</a></p>';
     return str;
   }
 
-  this['bindToTemplate'] = function(obj) {
-    $('#header-test').click(this.getClickHandler());
+  var bindToTemplate = function(obj) {
+    $('#header-test-single').click(getClickHandler());
   }
 
-  this['getClickHandler'] = function() {
-    var that = this;
+  var getClickHandler = function() {
     return(function(event) {
       // write QUnit harness into page
       var qs = '<div id="qunit"></div><div id="qunit-fixture"></div>';
@@ -43,7 +42,7 @@
       // pull in QUnit library (triggers scroll:x=0&y=0)
       $.getScript("/chrome/vendor/qunit/qunit-1.14.0.min.js").done(function() {
         // execute tests
-        that.tests();
+        tests();
       });
       event.preventDefault();
     });
@@ -56,7 +55,7 @@
   /**
    * execute tests
    */
-  this['tests'] = function() {
+  var tests = function() {
     QUnit.init();
     var endTest = function() {
       window.location.hash = '#!';
@@ -96,6 +95,6 @@
   }
 
   // call init function
-  this.init();
+  init();
 
 })(jQuery, window.sfun, undefined);

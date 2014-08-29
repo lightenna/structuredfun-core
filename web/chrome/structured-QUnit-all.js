@@ -12,30 +12,29 @@
   // FUNCTIONS
   // ---------
 
-  this.init = function() {
+  var init = function() {
     var obj = {
       'context': this,
-      'callback': this.bindToTemplate,
+      'callback': bindToTemplate,
       'view': {
         'title': 'Test all'
       },
-      'template': this.getTemplate()
+      'template': getTemplate()
     };
     // once script is loaded and executes, push header button async
     sfun.push('headerAddButton', obj);
   };
 
-  this['getTemplate'] = function() {
+  var getTemplate = function() {
     var str = '<p><a href="#" id="header-test-all">{{ title }}</a></p>';
     return str;
   }
 
-  this['bindToTemplate'] = function(obj) {
-    $('#header-test-all').click(this.getClickHandler());
+  var bindToTemplate = function(obj) {
+    $('#header-test-all').click(getClickHandler());
   }
 
-  this['getClickHandler'] = function() {
-    var that = this;
+  var getClickHandler = function() {
     return(function(event) {
       // write QUnit harness into page
       var qs = '<div id="qunit"></div><div id="qunit-fixture"></div>';
@@ -43,7 +42,7 @@
       // pull in QUnit library (triggers scroll:x=0&y=0)
       $.getScript("/chrome/vendor/qunit/qunit-1.14.0.min.js").done(function() {
         // execute tests
-        that.tests();
+        tests();
       });
       event.preventDefault();
     });
@@ -56,7 +55,7 @@
   /**
    * execute tests
    */
-  this['tests'] = function() {
+  var tests = function() {
     QUnit.init();
     var endTest = function() {
       window.location.hash = '#!';
@@ -71,7 +70,7 @@
       ok( sfun.api_getTotalEntries() >= 4 , sfun.api_getTotalEntries() + ' images in test set')
       // check basic properties of visTableMajor
       var vt = sfun.api_getVisTableMajor();
-      equal( sfun.api_getTotalEntries(), vt.length, vt.length + ' images in vistable');
+      equal( sfun.api_getTotalEntries(), vt.getSize(), ' correct number of images in vistable');
     });
 
     test( 'check vistable working', function() {
@@ -463,6 +462,6 @@
   }
 
   // call init function
-  this.init();
+  init();
 
 })(jQuery, window.sfun, undefined);
