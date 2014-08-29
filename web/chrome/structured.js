@@ -32,17 +32,17 @@ window.sfun = (function($, undefined) {
   // debugging state
   var debug = true;
   // default values for view state
-  this.default = [];
+  var state_default = [];
   // the previous values for the view state (1 generation)
-  this.previous = [];
+  var state_previous = [];
   // ms to wait after resize event before re-bound/re-res
-  this.resizeTimeout = null;
+  var resize_timeout = null;
   // default selector used to select top-level container
-  this.containerSelector = '#sfun';
+  var container_selector = '#sfun';
   // last image maxlongest, to shortcut reres using thumb size
-  this.lastMaxLongest = null;
+  var last_max_longest = null;
 
-  // jquery cache
+  // jQuery cache
   var $document = $(document);
   var $window = $(window);
   var $html = $('html');
@@ -52,6 +52,8 @@ window.sfun = (function($, undefined) {
   var $sfun_selectablecell_first;
   var $sfun_selectedcell = [];
   var $sfun_selectablecell_img = [];
+
+  // jQuery selector caching
   var $img = function(seq) {
     // if we haven't yet cached the selector, or the last time it didn't exist
     if ($sfun_selectablecell_img[seq] == undefined || !$sfun_selectablecell_img[seq].length) {
@@ -65,7 +67,7 @@ window.sfun = (function($, undefined) {
   // FUNCTIONS
   // ---------
 
-  this.init = function() {
+  var init = function() {
     var that = this;
     // no-js (js turned-off in browser), disabled-js (js turned off in sfun)
     if ($html.hasClass('disabled-js')) {
@@ -79,10 +81,10 @@ window.sfun = (function($, undefined) {
     } else {
       $document.ready(function() {
         // fill in jQuery cache
-        $sfun = $(that.containerSelector);
-        $sfun_flow = $(that.containerSelector+'.flow');
-        $sfun_selectablecell = $(that.containerSelector+' > .selectablecell');
-        $sfun_selectablecell_first = $(that.containerSelector+' > .selectablecell:first');
+        $sfun = $(container_selector);
+        $sfun_flow = $(container_selector+'.flow');
+        $sfun_selectablecell = $(container_selector+' > .selectablecell');
+        $sfun_selectablecell_first = $(container_selector+' > .selectablecell:first');
         // render Mustache templates
         $sfun_selectablecell.find('img').each(function() {
           var template = $(this).data('template-src');
@@ -91,35 +93,35 @@ window.sfun = (function($, undefined) {
           }
         });
         // process state in page HTML next
-        that.previous['direction'] = that.default['direction'] = that.getDirection();
-        that.previous['breadth'] = that.default['breadth'] = that.getBreadth();
-        that.previous['seq'] = that.default['seq'] = 0;
-        that.previous['offseq'] = that.default['offseq'] = 0;
+        state_previous['direction'] = state_default['direction'] = getDirection();
+        state_previous['breadth'] = state_default['breadth'] = getBreadth();
+        state_previous['seq'] = state_default['seq'] = 0;
+        state_previous['offseq'] = state_default['offseq'] = 0;
         // bind to page
-        that.bindToHeaderLinks();
-        that.bindToHotKeys();
-        that.bindToImageLinks();
+        bindToHeaderLinks();
+        bindToHotKeys();
+        bindToImageLinks();
         // if we're sideways scrolling, bind to scroll event
-        that.setDirection(that.getDirection());
+        setDirection(getDirection());
         // update vistable
-        that.visTableMajor.updateAll(that.getDirection(), $sfun_selectablecell);
+        visTableMajor.updateAll(getDirection(), $sfun_selectablecell);
         // execute queue of API calls
-        that.export.flush();
+        exp.flush();
         // process state if set in URL (hash) first
-        that.handler_hashChanged(that.getHash(), true);
+        handlerHashChanged(getHash(), true);
         // don't bind to event handlers until we've started the initial hash (in its critical section)
-        that.bindToHashChange();
-        that.bindToScroll();
+        bindToHashChange();
+        bindToScroll();
         // attach listener to window for resize (rare, but should update)
         $window.resize(function() {
-          that.buffer('init_resized',
+          buffer('init_resized',
           // process event
           function() {
             // flush cache
-            this.getViewportWidth(true);
-            this.getViewportHeight(true);
+            getViewportWidth(true);
+            getViewportHeight(true);
             // resize may have shown more images, so refresh visibility
-            that.refreshVisibility(0);          
+            refreshVisibility(0);          
           },
           // do nothing if dumped
           function(){},
@@ -132,7 +134,7 @@ window.sfun = (function($, undefined) {
         $('.header').append('<p><a id="endkey" class="endkey" href="">Endkey</a></p>');
         $('.endkey').click(function(event) {
           event.preventDefault();
-          k.export.api_triggerKeypress(k.export.KEY_END).done(function() {
+          exp.api_triggerKeypress(exp.KEY_END).done(function() {
             alert('key press returned');
           });
         });
@@ -149,7 +151,7 @@ window.sfun = (function($, undefined) {
    * @todo this currently assume that every cell is the same width on the major axis
    * @return {float} number of cells along the major axis
    */
-  this.getCountMajor = function() {
+  var getCountMajor = function() {
     return 4;
   };
 
@@ -158,55 +160,55 @@ window.sfun = (function($, undefined) {
    * @param  {object} range {first_1, last_n} range of sequence numbers
    * @todo optimise
    */
-  this.checkRatios = function(range) {
-    var deferred = $.Deferred();
+  var checkRatios = function(range) {
+    var deferred = getDeferred();
     var defs = [];
     var wrapUp = function() {
       deferred.resolve();
     }
     for (var i = range.first_1 ; i<= range.last_n ; ++i) {
-      var jqEnt = $img(i);
-      var jqLoadable = jqEnt.find('.loadable');
-      if (jqLoadable.data('ratio') == undefined) {
+      var $ent = $img(i);
+      var $loadable = $ent.find('.loadable');
+      if ($loadable.data('ratio') == undefined) {
         // wait for image to be loaded in order to get ratio
-        defs[defs.length] = this.waitLoadedGetResolution(jqEnt, true).done(function() {
-          that.setBound(jqEnt, true);
+        defs[defs.length] = waitLoadedGetResolution($ent, true).done(function() {
+          setBound($ent, true);
         });
       }
     }
     $.when.apply($, defs).always(wrapUp);
     return deferred;
-  }
+  };
 
   /** 
    * @return {object} jQuery deferred
    */
-  this.cellsResize = function() {
+  var cellsResize = function() {
     var that = this;
-    var deferred = $.Deferred();
-    var vis = this.getVisibleBoundaries();
+    var deferred = getDeferred();
+    var vis = getVisibleBoundaries();
     var wrapUp = function() {
       // when layoutManager completes a resize, capture cell boundaries
       // @todo restrict update to range.first_1 to range.last_n
-      that.visTableMajor.updateAll(that.getDirection(), $sfun_selectablecell);
+      visTableMajor.updateAll(getDirection(), $sfun_selectablecell);
       // see if resize means that different images are visible
-      var aftervis = that.getVisibleBoundaries();
+      var aftervis = getVisibleBoundaries();
       if (vis.first == aftervis.first && vis.last == aftervis.last) {
         // no need to reset visibles
       } else {
         // use updated table to check visibles, but don't also tell then to reres yet
-        that.setVisibleAll(false);
+        setVisibleAll(false);
       }
       deferred.resolve();
     }
     // set range as visible cells including visnear
-    range = this.calcVisnear(vis.first, vis.last);
+    var range = calcVisnear(vis.first, vis.last);
     // add selected to range
     range.selected = $sfun_selectedcell.data('seq');
     // set ratio for images within range
-    this.checkRatios(range).done(function() {
+    checkRatios(range).done(function() {
       // get the current layoutManager, if we have one
-      var layout = that.layoutManager.select(0);
+      var layout = layoutManager.select(0);
       if (layout != null) {
         // tell it that we've resized cells
         var laid = layout.layoutResize.call(layout.context, range);
@@ -218,15 +220,15 @@ window.sfun = (function($, undefined) {
     });
     // return our deferred either way
     return deferred;
-  }
+  };
 
   /**
    * clear previously assigned cell-specific width and height
    */
-  this.cellsClear = function() {
+  var cellsClear = function() {
     // @todo call layout_cellsClear
     $('.cell-specific').css( { 'width':'', 'height':'' } ).removeClass('cell-specific').removeClass('visible vispart visnear');
-  }
+  };
 
   // ---------------------
   // FUNCTIONS: thumbnails
@@ -234,32 +236,32 @@ window.sfun = (function($, undefined) {
 
   /**
    * load thumbnail for principal image in cell, then recurse on subcells
-   * @param  {object}  jqEnt   jQuery cell
+   * @param  {object}  $ent   jQuery cell
    * @param  {boolean} recurse true to recurse
    */
-  this.loadThumb = function(jqEnt, recurse) {
+  var loadThumb = function($ent, recurse) {
     var that = this;
     // find principal images within this cell
-    var jqLoadable = jqEnt.find('> .container > .loadable');
-    if (jqLoadable.length) {
+    var $loadable = $ent.find('> .container > .loadable');
+    if ($loadable.length) {
       // load thumbnail by swapping in src, if src not already set [async]
-      var attr = jqLoadable.attr('src');
+      var attr = $loadable.attr('src');
       if (typeof attr === 'undefined' || attr === false) {
         // if we have already reres'd another image, use its size instead of the default thumbnail size
-        if ((this.lastMaxLongest != null) && jqLoadable.hasClass('reresable')) {
-          var highres = that.substitute(jqLoadable.data('template-src'), { 'maxwidth': this.lastMaxLongest, 'maxheight': this.lastMaxLongest } );
-          jqLoadable.attr('src', highres);
+        if ((last_max_longest != null) && $loadable.hasClass('reresable')) {
+          var highres = substitute($loadable.data('template-src'), { 'maxwidth': last_max_longest, 'maxheight': last_max_longest } );
+          $loadable.attr('src', highres);
         } else {
           // otherwise just use desrc
-          jqLoadable.attr('src', jqLoadable.data('desrc'));          
+          $loadable.attr('src', $loadable.data('desrc'));          
         }
       }
     }
     // optionally recurse on sub-cells
     if (recurse) {
-      jqEnt.find('.subcell').each(function() {
+      $ent.find('.subcell').each(function() {
         // only do 1 level of recursion
-        that.loadThumb($(this), false);
+        loadThumb($(this), false);
       });
     }
   };
@@ -269,24 +271,24 @@ window.sfun = (function($, undefined) {
    * @param jQuery cell that may have changed size
    * @return {object} $.Deferred
    */
-  this.loadThumbRefreshBounds = function(jqEnt) {
+  var loadThumbRefreshBounds = function($ent) {
     // find boundable entity
-    var jqBoundable = jqEnt.find('.loadable');
-    if (jqBoundable.length) {
+    var $boundable = $ent.find('.loadable');
+    if ($boundable.length) {
       // 1. update loaded resolution if necessary first
-      if (jqBoundable.data('loaded-width') == undefined || jqBoundable.data('loaded-height') == undefined) {
+      if ($boundable.data('loaded-width') == undefined || $boundable.data('loaded-height') == undefined) {
         // if waitLoadedGetResolution succeeds, use loaded-width/height
-        return this.waitLoadedGetResolution(jqEnt, true).done(function() {
+        return waitLoadedGetResolution($ent, true).done(function() {
           // 2a. once we've got the loaded- dimensions, check bounds
-          setBound(jqEnt, true);
+          setBound($ent, true);
         });
       } else {
         // 2b. as we've already got the loaded- dimensions, check bounds
-        setBound(jqEnt, true);
+        setBound($ent, true);
       }
     }
     // return a resolved deferred
-    return $.Deferred().resolve();
+    return getDeferred().resolve();
   };
 
   // ------------------
@@ -295,37 +297,37 @@ window.sfun = (function($, undefined) {
 
   /**
    * Read data about the image and update metric display
-   * @param {object} jqEnt jQuery object for image
+   * @param {object} $ent jQuery object for image
    */
-  this.refreshMetric = function(jqEnt) {
+  var refreshMetric = function($ent) {
     // find the imgmetric if it's set
-    var jqReresable = jqEnt.find('.reresable');
-    var jqMetric = jqEnt.find('.imgmetric');
+    var $reresable = $ent.find('.reresable');
+    var $metric = $ent.find('.imgmetric');
     var perc;
-    if (jqMetric.length && jqReresable.length) {
-      var width_current = jqReresable.width(), height_current = jqReresable.height();
-      var width_native = jqReresable.data('native-width'), height_native = jqReresable.data('native-height');
+    if ($metric.length && $reresable.length) {
+      var width_current = $reresable.width(), height_current = $reresable.height();
+      var width_native = $reresable.data('native-width'), height_native = $reresable.data('native-height');
       // calculate percentage based on image area, or width
       // perc = Math.round((width_current * height_current) * 100 / (width_native * height_native));
       perc = Math.round(width_current * 100 / width_native);
       if (debug && false) {
         // show the size of the image that's been loaded into this img container
-        jqMetric.find('span.width').html(Math.round(jqReresable.data('loaded-width')));
-        jqMetric.find('span.height').html(Math.round(jqReresable.data('loaded-height')));
-        jqMetric.find('span.size').show();
+        $metric.find('span.width').html(Math.round($reresable.data('loaded-width')));
+        $metric.find('span.height').html(Math.round($reresable.data('loaded-height')));
+        $metric.find('span.size').show();
       } else {
         // update with current image width and height
-        jqMetric.find('span.width').html(Math.round(width_current));
-        jqMetric.find('span.height').html(Math.round(height_current));
+        $metric.find('span.width').html(Math.round(width_current));
+        $metric.find('span.height').html(Math.round(height_current));
       }
       if (!isNaN(perc)) {
-        jqMetric.find('span.perc').html(perc+'%').show();
+        $metric.find('span.perc').html(perc+'%').show();
       }
       // analyse to see if we're over/under the native res
       if (width_current > width_native || height_current > height_native) {
-        jqMetric.removeClass('super').addClass('sub');
+        $metric.removeClass('super').addClass('sub');
       } else {
-        jqMetric.removeClass('sub').addClass('super');          
+        $metric.removeClass('sub').addClass('super');          
       }
     }
   };
@@ -333,14 +335,14 @@ window.sfun = (function($, undefined) {
   /**
    * check that the image metric is in the right place
    */
-  this.refreshMetricPosition = function(jqEnt) {
-    var jqMetric = jqEnt.find('.imgmetric');
-    if (jqMetric.length) {
-      var jqImg = jqEnt.find('.reresable');
-      if (jqImg.length) {
-        var position = jqImg.offset();
+  var refreshMetricPosition = function($ent) {
+    var $metric = $ent.find('.imgmetric');
+    if ($metric.length) {
+      var $image = $ent.find('.reresable');
+      if ($image.length) {
+        var position = $image.offset();
         // move the metric to the corner of the image using absolute coords
-        jqMetric.css( { 'top': position.top, 'left': position.left });
+        $metric.css( { 'top': position.top, 'left': position.left });
       }
     }
   };
@@ -350,11 +352,11 @@ window.sfun = (function($, undefined) {
    * @param {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
    * @return {object} jQuery deferred
    */
-  this.refreshVisibility = function(scrolldir) {
+  var refreshVisibility = function(scrolldir) {
     var that = this;
     // always test all images for visibility, reres, check selection
-    return this.setVisibleAll(true).always(function() {
-      that.refreshSelected(scrolldir);
+    return setVisibleAll(true).always(function() {
+      refreshSelected(scrolldir);
     });
   };
 
@@ -363,74 +365,72 @@ window.sfun = (function($, undefined) {
    * @param {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
    * @return {object} jQuery deferred
    */
-  this.refreshSelected = function(scrolldir) {
-    var jqEnt = $sfun_selectedcell;
+  var refreshSelected = function(scrolldir) {
+    var $ent = $sfun_selectedcell;
     // if no selection, or the current selection isn't visible
-    if (!jqEnt.length || !(jqEnt.hasClass('visible') || jqEnt.hasClass('vispart'))) {
+    if (!$ent.length || !($ent.hasClass('visible') || $ent.hasClass('vispart'))) {
       if (debug && false) {
-        console.log('previously selected image '+jqEnt.data('seq')+' no longer visible');
+        console.log('previously selected image '+$ent.data('seq')+' no longer visible');
       }
       // find the next visible one in the scroll direction
-      jqEnt = $(this.containerSelector+' .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
-      if (jqEnt.length) {
+      $ent = $(container_selector+' .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
+      if ($ent.length) {
         // create and resolve a local context to allow us to numb listener
-        var localContext = this.eventQueue.push({
-          'replaceEvent': function(){
-            // just wrapUp this context
-            that.eventQueue.resolve(localContext);
-          },
-          'comment': 'localContext for refreshSelected (image-'+jqEnt.data('seq')+')'
+        var localContext = eventQueue.push({
+          'key': 'selected='+$ent.data('seq'),
+          'comment': 'localContext for refreshSelected (image-'+$ent.data('seq')+')',
+          'replaceEvent': true
         });
         // use hash to select new and deselect old, but numb listener and parent deferred
-        return this.imageAdvanceTo(jqEnt.data('seq'), localContext);
+        return imageAdvanceTo($ent.data('seq'), localContext);
       }
     }
-    return $.Deferred().resolve();
+    return getDeferred().resolve();
   };
 
   /**
    * Check the display resolution of the image and swap out src if higher res available 
    * @return {object} jQuery deferred
    */
-  this.refreshResolution = function(jqEnt) {
+  var refreshResolution = function($ent) {
     var that = this;
-    var jqReresable = jqEnt.find('.reresable');
-    if (!jqReresable.length) {
-      return $.Deferred().resolve();
+    var $reresable = $ent.find('.reresable');
+    if (!$reresable.length) {
+      return getDeferred().resolve();
     }
     // don't attempt to check image resolution on directory
-    var type = this.getType(jqEnt);
+    var type = getType($ent);
     if (!(type == 'image' || type == 'video')) {
-      return $.Deferred().resolve();
+      return getDeferred().resolve();
     }
     // flag this image as updating its resolution
-    jqEnt.addClass('reresing');
+    $ent.addClass('reresing');
     // create local deferred and local wrapUp
-    var deferred = $.Deferred();
+    var deferred = getDeferred();
     var wrapUp = function() {
       // remove reresing status
-      jqEnt.removeClass('reresing');
+      $ent.removeClass('reresing');
       // resolve deferred
       deferred.resolve();
     };
     // loaded width/height should be set when thumbnail/last reres loaded
-    var loadedWidth = jqReresable.data('loaded-width');
-    var loadedHeight = jqReresable.data('loaded-height');
-    var imageContainerWidth = jqReresable.width() * window.devicePixelRatio;
-    var imageContainerHeight = jqReresable.height() * window.devicePixelRatio;
+    var loadedWidth = $reresable.data('loaded-width');
+    var loadedHeight = $reresable.data('loaded-height');
+    var imageContainerWidth = $reresable.width() * window.devicePixelRatio;
+    var imageContainerHeight = $reresable.height() * window.devicePixelRatio;
     // try and refresh the metadata
-    this.refreshMetadata(jqEnt)
+    refreshMetadata($ent)
     .done(function() {
       // if successful, use metadata to make decision about reres
-      var nativeWidth = jqReresable.data('native-width');
-      var nativeHeight = jqReresable.data('native-height');
+      var nativeWidth = $reresable.data('native-width');
+      var nativeHeight = $reresable.data('native-height');
       // analyse
       var resbracket = 250, brackWidth, brackHeight;
       var bigger = imageContainerWidth > loadedWidth || imageContainerHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
       // optional debugging
       if (debug && true) {
-        console.log('image-'+jqEnt.data('seq')+': checking resolution w['+imageContainerWidth+'] h['+imageContainerHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
+        console.log('image-'+$ent.data('seq')+': checking resolution w['+imageContainerWidth+'] h['+imageContainerHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
       }
       // test to see if we're displaying an image at more than 100%
       if (bigger && available) {
@@ -444,9 +444,9 @@ window.sfun = (function($, undefined) {
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
             // store max longest to shortcut next thumb load
-            that.lastMaxLongest = brackWidth;
+            last_max_longest = brackWidth;
             // swap out image and wait for swap to complete
-            that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': brackWidth } )).always(wrapUp);
+            imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': brackWidth } )).always(wrapUp);
           } else {
             wrapUp();
           }
@@ -455,9 +455,9 @@ window.sfun = (function($, undefined) {
           brackHeight = Math.min(Math.ceil(imageContainerHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
             // store max longest to shortcut next thumb load
-            that.lastMaxLongest = brackHeight;
+            last_max_longest = brackHeight;
             // swap out image and wait for swap to complete
-            that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxheight': brackHeight } )).always(wrapUp);
+            imageReres($ent, substitute($reresable.data('template-src'), { 'maxheight': brackHeight } )).always(wrapUp);
           } else {
             wrapUp();
           }
@@ -468,10 +468,10 @@ window.sfun = (function($, undefined) {
     })
     .fail(function() {
       // if we can't refresh the metadata, try and manage without it
-      if (typeof(jqReresable.data('loaded-width')) != 'undefined' && typeof(jqReresable.data('loaded-height')) != 'undefined') {
+      if (typeof($reresable.data('loaded-width')) != 'undefined' && typeof($reresable.data('loaded-height')) != 'undefined') {
         if ((imageContainerWidth > loadedWidth) || (imageContainerHeight > loadedHeight)) {
           // don't know native width, so just request at loadedWidth/Height
-          that.imageReres(jqEnt, that.substitute(jqReresable.data('template-src'), { 'maxwidth': imageContainerWidth, 'maxheight': imageContainerHeight } )).always(wrapUp);
+          imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': imageContainerWidth, 'maxheight': imageContainerHeight } )).always(wrapUp);
         } else {
           wrapUp();
         }
@@ -486,25 +486,25 @@ window.sfun = (function($, undefined) {
    * Request metadata about this image from the server if we don't have it
    * @return {object} jQuery deferred
    */
-  this.refreshMetadata = function(jqEnt) {
+  var refreshMetadata = function($ent) {
     var that = this;
-    var jqReresable = jqEnt.find('.reresable');
-    if (jqReresable.length && jqReresable.data('meta-src')) {
+    var $reresable = $ent.find('.reresable');
+    if ($reresable.length && $reresable.data('meta-src')) {
       // test to see if we have the metadata
-      if (typeof(jqReresable.data('native-width')) == 'undefined' || typeof(jqReresable.data('native-height')) == 'undefined') {
-        var deferred = $.Deferred();
+      if (typeof($reresable.data('native-width')) == 'undefined' || typeof($reresable.data('native-height')) == 'undefined') {
+        var deferred = getDeferred();
         // fire ajax request
         $.ajax({
-          url: jqReresable.data('meta-src'),
+          url: $reresable.data('meta-src'),
           dataType: 'json',
         })
         .done(function(data, textStatus, jqXHR) {
           if (typeof(data.meta) != 'undefined') {
             // if we get a response, set the missing metadata to the image
-            jqReresable.data('native-width', data.meta.width);
-            jqReresable.data('native-height', data.meta.height);
+            $reresable.data('native-width', data.meta.width);
+            $reresable.data('native-height', data.meta.height);
             if (debug && false) {
-              console.log('image-'+jqEnt.data('seq')+': received native width['+jqReresable.data('native-width')+'] height['+jqReresable.data('native-height')+']');
+              console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
             }
           }
           // resolve the context
@@ -515,37 +515,37 @@ window.sfun = (function($, undefined) {
           deferred.reject();
         });
         if (debug && false) {
-          console.log('image-'+jqEnt.data('seq')+': fired request for native width and height');
+          console.log('image-'+$ent.data('seq')+': fired request for native width and height');
         }
         return deferred;
       } else {
         // no need to update metadata
-        return $.Deferred().resolve();
+        return getDeferred().resolve();
       }
     }
     // if we couldn't find a suitable candidate and get it's metadata, fail out the deferred
-    return $.Deferred().reject();
+    return getDeferred().reject();
   };
 
   /**
    * refresh a single image, but ensure that it's loaded first
-   * @param {object} jqEnt jquery entity
+   * @param {object} $ent jQuery entity
    * @param {boolean} reres also refresh the image's resolution
    * @return {object} jQuery deferred
    */
-  this.refreshImageResolution = function(jqEnt, reres) {
+  var refreshImageResolution = function($ent, reres) {
     var that = this;
-    var deferred = $.Deferred();
+    var deferred = getDeferred();
     // final stage is to refresh the metric
     var wrapUp = function() {
       // resolve deferred
       deferred.resolve();
       // update metric [async]
-      that.refreshMetric(jqEnt);
+      refreshMetric($ent);
     };
     if (reres) {
       // change out the image for a better resolution if one's available
-      this.refreshResolution(jqEnt).always(function() {
+      refreshResolution($ent).always(function() {
         wrapUp();
       });
     } else {
@@ -558,28 +558,28 @@ window.sfun = (function($, undefined) {
    * refresh all visible images
    * @return {object} jQuery deferred
    */
-  this.refreshVisibleImageSet = function() {
+  var refreshVisibleImageSet = function() {
     var that = this;
-    var selector = that.containerSelector+' .selectablecell.visible, '+that.containerSelector+' .selectablecell.vispart';
-    var jqVisibles = $(selector);
-    if (jqVisibles.length) {
-      var deferred = $.Deferred();
+    var selector = container_selector+' .selectablecell.visible, '+container_selector+' .selectablecell.vispart';
+    var $visibles = $(selector);
+    if ($visibles.length) {
+      var deferred = getDeferred();
       var defs = [];
       // // stage 1a: make sure thumbnails loaded and refresh bounds as a batch
-      jqVisibles.each(function() {
-        var jqEnt = $(this);
-        defs.push(that.loadThumbRefreshBounds(jqEnt));
+      $visibles.each(function() {
+        var $ent = $(this);
+        defs.push(loadThumbRefreshBounds($ent));
       });
       // stage 1b: refresh cell dimensions
-      defs.push(that.cellsResize());
+      defs.push(cellsResize());
       $.when.apply($, defs).always(function() {
         defs = [];
-        // refresh jqVisibles because resize may have added more visible/vispart cells
-        jqVisibles = $(selector);
+        // refresh $visibles because resize may have added more visible/vispart cells
+        $visibles = $(selector);
         // stage 3: refresh resolutions as a batch
-        jqVisibles.each(function() {
-          var jqEnt = $(this);
-          defs.push(that.refreshImageResolution(jqEnt, true));
+        $visibles.each(function() {
+          var $ent = $(this);
+          defs.push(refreshImageResolution($ent, true));
         });
         $.when.apply($, defs).always(function() {
           // finally resolve
@@ -588,28 +588,28 @@ window.sfun = (function($, undefined) {
       });
       return deferred;
     }
-    return $.Deferred().resolve();
+    return getDeferred().resolve();
   };
 
   /**
    * refresh all visnear images
    * @return {object} jQuery deferred
    */
-  this.refreshVisnearImageSet = function() {
+  var refreshVisnearImageSet = function() {
     var that = this;
-    var selector = that.containerSelector+' .selectablecell.visnear';
-    var jqVisnears = $(selector);
-    if (jqVisnears.length) {
-      var deferred = $.Deferred();
+    var selector = container_selector+' .selectablecell.visnear';
+    var $visnears = $(selector);
+    if ($visnears.length) {
+      var deferred = getDeferred();
       var defs = [];
       // stage 1a: make sure thumbnails loaded and refresh bounds as a batch
-      jqVisnears.each(function() {
-        var jqEnt = $(this);
-        defs.push(that.loadThumbRefreshBounds(jqEnt));
+      $visnears.each(function() {
+        var $ent = $(this);
+        defs.push(loadThumbRefreshBounds($ent));
       });
       return deferred;
     }
-    return $.Deferred().resolve();
+    return getDeferred().resolve();
   };
 
   // ------------------
@@ -619,15 +619,15 @@ window.sfun = (function($, undefined) {
   /**
    * process events generated by mouse wheel/trackpad scrolling
    */
-  this.bindToScroll = function() {
+  var bindToScroll = function() {
     var that = this;
     if (this.bindToScroll_static == undefined) {
       $window.scroll(function(event) {
-        that.handler_scrolled(event);
+        handlerScrolled(event);
         event.preventDefault();
       });
       $window.mousewheel(function(event) {
-        that.handler_mouseWheeled(event);
+        handlerMouseWheeled(event);
       });
       // flag that we've attached our listeners
       this.bindToScroll_static = true;
@@ -637,7 +637,7 @@ window.sfun = (function($, undefined) {
   /**
    * turn header links into clickable buttons
    */
-  this.bindToHeaderLinks = function() {
+  var bindToHeaderLinks = function() {
     var that = this;
     // fade out header, then setup hover listeners
     $('.header').css('opacity', 0.5).hover(function(event) {
@@ -650,11 +650,11 @@ window.sfun = (function($, undefined) {
     });
     // horizontal or vertical layout
     $('#flow-x').click(function(event) {
-      that.fire_hashUpdate( { 'direction': 'x' }, false);
+      fireHashUpdate( { 'direction': 'x' }, false);
       event.preventDefault();
     });
     $('#flow-y').click(function(event) {
-      that.fire_hashUpdate( { 'direction': 'y' }, false);
+      fireHashUpdate( { 'direction': 'y' }, false);
       event.preventDefault();
     });
     // light or dark theme
@@ -668,19 +668,19 @@ window.sfun = (function($, undefined) {
     });
     // 1x, 2x, 4x, or 8x
     $('#flow-1').click(function(event) {
-      that.fire_hashUpdate( { 'breadth': 1 }, false);
+      fireHashUpdate( { 'breadth': 1 }, false);
       event.preventDefault();
     });
     $('#flow-2').click(function(event) {
-      that.fire_hashUpdate( { 'breadth': 2 }, false);
+      fireHashUpdate( { 'breadth': 2 }, false);
       event.preventDefault();
     });
     $('#flow-4').click(function(event) {
-      that.fire_hashUpdate( { 'breadth': 4 }, false);
+      fireHashUpdate( { 'breadth': 4 }, false);
       event.preventDefault();
     });
     $('#flow-8').click(function(event) {
-      that.fire_hashUpdate( { 'breadth': 8 }, false);
+      fireHashUpdate( { 'breadth': 8 }, false);
       event.preventDefault();
     });
     
@@ -689,10 +689,10 @@ window.sfun = (function($, undefined) {
   /**
    * Bind to hotkeys for navigation
    */
-  this.bindToHotKeys = function() {
+  var bindToHotKeys = function() {
     var that = this;
     $document.keydown(function(event) {
-      that.handler_keyPressed(event);
+      handlerKeyPressed(event);
     });
   };
 
@@ -700,28 +700,28 @@ window.sfun = (function($, undefined) {
    * listen for changes to the hash
    * see https://github.com/browserstate/history.js
    */
-  this.bindToHashChange = function() {
+  var bindToHashChange = function() {
     var that = this;
     // bind to the hash change (not state hashes)
     History.Adapter.bind(window, 'anchorchange', function(event) {
       event.preventDefault();
-      that.handler_hashChanged(that.getHash());
+      handlerHashChanged(getHash());
     });
   };
 
   /**
    *  if the image is clicked, redirect to in-page image
    */
-  this.bindToImageLinks = function() {
+  var bindToImageLinks = function() {
     var that = this;
-    // bind to click using delegated event handler (http://api.jquery.com/on/), instead of individual N handlers
+    // bind to click using delegated event handler (http://api.jQuery.com/on/), instead of individual N handlers
     $sfun.on('click', '.selectablecell a.media-container', function(event) {
       // select image, then toggle
       var seq = $(this).parents('.selectablecell').data('seq');
       // seq changes don't go into history
-      that.fire_hashUpdate( { 'seq': seq }, false);
+      fireHashUpdate( { 'seq': seq }, false);
       // this is a bit nasty, because it's doing 2 hash updates in quick succession
-      that.imageToggleFullscreen();
+      imageToggleFullscreen();
       event.preventDefault();
     });
   };
@@ -732,56 +732,56 @@ window.sfun = (function($, undefined) {
 
   /**
    * updated loaded-width and loaded-height data attributes
-   * @param {jQuery object} jqEnt image to check
+   * @param {jQuery object} $ent image to check
    * @param {boolean} recurse true to load subcells too
    * @return {object} jQuery deferred
    */
-  this.waitLoadedGetResolution = function(jqEnt, recurse) {
-    var deferred = $.Deferred();
+  var waitLoadedGetResolution = function($ent, recurse) {
+    var deferred = getDeferred();
     var defs = [];
     var wrapUp = function() {
       deferred.resolve();
     }
     // process principal image if cell has one
-    var jqLoadable = jqEnt.find('> .container > .loadable');
-    if (jqLoadable.length) {
-      var principalDeferred = $.Deferred();
+    var $loadable = $ent.find('> .container > .loadable');
+    if ($loadable.length) {
+      var principalDeferred = getDeferred();
       defs.push(principalDeferred);
       // update loaded resolution
       var im = new Image();
       im.onload = function() {
-        jqLoadable.data('loaded-width', im.width);
-        jqLoadable.data('loaded-height', im.height);
+        $loadable.data('loaded-width', im.width);
+        $loadable.data('loaded-height', im.height);
         // never update the ratio, but set if unset
-        if (jqLoadable.data('ratio') == undefined) {
-          jqLoadable.data('ratio', im.width / im.height);
+        if ($loadable.data('ratio') == undefined) {
+          $loadable.data('ratio', im.width / im.height);
         }
         // if we've loaded the image for the first time, swap it in (fallback)
-        if (jqLoadable.attr('src') == undefined) {
-          jqLoadable.attr('src', im.src);
+        if ($loadable.attr('src') == undefined) {
+          $loadable.attr('src', im.src);
         }
         im = null;
         if (debug && false) {
-          console.log('image-'+jqEnt.data('seq')+': loaded resolution updated ['+jqLoadable.data('loaded-width')+','+jqLoadable.data('loaded-height')+']');
+          console.log('image-'+$ent.data('seq')+': loaded resolution updated ['+$loadable.data('loaded-width')+','+$loadable.data('loaded-height')+']');
         }
         // notify promise of resolution
         principalDeferred.resolve();
       }
       // if the src attribute is defined, use it
-      if (jqLoadable.attr('src') != undefined) {
-        im.src = jqLoadable.attr('src');
+      if ($loadable.attr('src') != undefined) {
+        im.src = $loadable.attr('src');
       } else {
         // otherwise use data-desrc (thumbnail hasn't been loaded before)
-        im.src = jqLoadable.data('desrc');
+        im.src = $loadable.data('desrc');
       }
       if (debug && false) {
-        console.log('image-'+jqEnt.data('seq')+': fired update loaded resolution request');
+        console.log('image-'+$ent.data('seq')+': fired update loaded resolution request');
       }
     }
     // if set, recurse on subcells
     if (recurse) {
-      jqEnt.find('.subcell').each(function() {
-        defs.push(that.waitLoadedGetResolution($(this), false));
+      $ent.find('.subcell').each(function() {
+        defs.push(waitLoadedGetResolution($(this), false));
       });
     }
     // wait for all deps to be resolved (includes principal)
@@ -794,7 +794,7 @@ window.sfun = (function($, undefined) {
    * (needs flexbox)
    * @return current flow direction
    */
-  this.getDirection = function() {
+  var getDirection = function() {
     var direction = 'y';
     if ($html.hasClass('flexbox') && $sfun.hasClass('flow-x')) {
       direction = 'x';
@@ -806,12 +806,11 @@ window.sfun = (function($, undefined) {
    * Get the flow breadth
    * @return current flow breadth
    */
-  this.getBreadth = function() {
+  var getBreadth = function() {
     var breadth = 2;
-    var jq = $sfun;
-    if (jq.hasClass('flow-1')) breadth = 1;
-    if (jq.hasClass('flow-4')) breadth = 4;
-    if (jq.hasClass('flow-8')) breadth = 8;
+    if ($sfun.hasClass('flow-1')) breadth = 1;
+    if ($sfun.hasClass('flow-4')) breadth = 4;
+    if ($sfun.hasClass('flow-8')) breadth = 8;
     return breadth;
   };
 
@@ -819,7 +818,7 @@ window.sfun = (function($, undefined) {
    * page scroll offset to sequence number is stored in the html tag [default to 0]
    * @return {int} scroll offset to seq
    */
-  this.getOffseq = function() {
+  var getOffseq = function() {
     var offseq = $html.data('offseq');
     if (offseq == undefined) {
       return 0;
@@ -828,15 +827,14 @@ window.sfun = (function($, undefined) {
   }
 
   /**
+   * get cell size for first cell
    * @return {float} current size of cell along the major axis
    */
-  this.getCellSize = function() {
-    // get first cell
-    var jq = $sfun_selectablecell_first;
-    if (this.getDirection() == 'x') {
-      return jq.width();
+  var getCellSize = function() {
+    if (getDirection() == 'x') {
+      return $sfun_selectablecell_first.width();
     } else {
-      return jq.height();
+      return $sfun_selectablecell_first.height();
     }
   };
 
@@ -848,43 +846,19 @@ window.sfun = (function($, undefined) {
    *   offseq: scroll offset to sequence
    * @return {object} get URL default hash arguments
    */
-  this.getDefaults = function() {
-    return { 'direction': this.default['direction'], 'breadth': this.default['breadth'], 'seq': this.default['seq'], 'offseq': this.default['offseq'] };
+  var getDefaults = function() {
+    return { 'direction': state_default['direction'], 'breadth': state_default['breadth'], 'seq': state_default['seq'], 'offseq': state_default['offseq'] };
   }
-
-  /**
-   * @param {int} edge majoraxis value of edge to find cell at
-   */
-  this.getCellAt = function(edge) {
-    // START HERE
-    // think hashTable of cell edges, zero-based
-  };
-
-  /** 
-   * @param {int} scrolldir Direction [and amount] of scroll
-   * @param {int} edgeAlign majoraxis value of edge to align to
-   */
-  this.getCellAlignExtra = function(scrolldir, edgeAlign) {
-    var extra = 0;
-    // find cell
-    var matchCell = this.getCellAt(edgeAlign);
-    // get edges of cell
-    // see if we're aligned
-    if (1 == 0) {
-      // find next edge in scroll direction
-    }
-    return extra;
-  };
 
   /**
    * @return {int} sequence number of currently selected cell [default to 0]
    */
-  this.getSeq = function() {
-    var jqEnt = $sfun_selectedcell;
-    if (!jqEnt.length) {
+  var getSeq = function() {
+    var $ent = $sfun_selectedcell;
+    if (!$ent.length) {
       return 0;
     }
-    var seq = jqEnt.data('seq');
+    var seq = $ent.data('seq');
     if (seq == undefined) {
       return 0;
     }
@@ -894,20 +868,19 @@ window.sfun = (function($, undefined) {
   /**
    * @return {int} total number of entities (max entry seq+1)
    */
-  this.getTotalEntries = function() {
-    var jq = $(this.containerSelector+' .selectablecell:last');
-    return (parseInt(jq.data('seq'))+1);
+  var getTotalEntries = function() {
+    return (parseInt($(container_selector+' .selectablecell:last').data('seq'))+1);
   };
 
   /**
    * @return {string} type of entity
    */
-  this.getType = function(jqEnt) {
-    if (jqEnt.hasClass('image-type')) {
+  var getType = function($ent) {
+    if ($ent.hasClass('image-type')) {
       return 'image';
-    } else if (jqEnt.hasClass('video-type')) {
+    } else if ($ent.hasClass('video-type')) {
       return 'video';
-    } else if (jqEnt.hasClass('directory-type')) {
+    } else if ($ent.hasClass('directory-type')) {
       return 'directory';
     }
   };
@@ -915,11 +888,11 @@ window.sfun = (function($, undefined) {
   /**
    * @return {int} width of page outer border (gutter) in pixels [default 0]
    */
-  this.getGutter = function() {
+  var getGutter = function() {
     if (this.getGutter_static == undefined) {
-      var jqGut = $('#gutterball');
-      if (jqGut.length) { 
-        this.getGutter_static = jqGut.width();
+      var $gut = $('#gutterball');
+      if ($gut.length) { 
+        this.getGutter_static = $gut.width();
       } else {
         this.getGutter_static = 0;
       }
@@ -930,11 +903,11 @@ window.sfun = (function($, undefined) {
   /**
    * @return {int} width of alley (cell-to-cell) in pixels [default 0]
    */
-  this.getAlley = function() {
+  var getAlley = function() {
     if (this.getAlley_static == undefined) {
-      var jqAlley = $('#alleyball');
-      if (jqAlley.length) { 
-        this.getAlley_static = jqAlley.width();
+      var $alley = $('#alleyball');
+      if ($alley.length) { 
+        this.getAlley_static = $alley.width();
       } else {
         this.getAlley_static = 0;
       }
@@ -945,13 +918,13 @@ window.sfun = (function($, undefined) {
   /**
    * @return {int | bool} next sequence number, or false on failure
    */
-  this.getNextSeq = function(seq, increment) {
+  var getNextSeq = function(seq, increment) {
     var startingPointSeq = seq;
     do {
-      seq = (seq+increment) % this.getTotalEntries();
+      seq = (seq+increment) % getTotalEntries();
       // wrap around
       if (seq < 0 && increment < 0) {
-        seq = this.getTotalEntries()-1;
+        seq = getTotalEntries()-1;
       }
       if ($img(seq).length) {
         return seq;
@@ -964,7 +937,7 @@ window.sfun = (function($, undefined) {
    * return a shared deferred if one exists, or create one if not
    * @return {jQuery} deferred
    */
-  this.getDeferred = function() {
+  var getDeferred = function() {
     return new $.Deferred();
   };
 
@@ -976,8 +949,8 @@ window.sfun = (function($, undefined) {
   /**
    * set all 'flow' elements to flow in the direction
    */
-  this.setDirection = function(direction) {
-    var changed = (this.getDirection() !== direction);
+  var setDirection = function(direction) {
+    var changed = (getDirection() !== direction);
     var invdir = (direction == 'x' ? 'y' : 'x');
     // set flow-<direction> on ul.flow and html
     $sfun_flow.add($html).addClass('flow-' + direction).removeClass('flow-' + invdir);
@@ -988,8 +961,8 @@ window.sfun = (function($, undefined) {
    * set the width of the screen flow
    * e.g. number of cells vertically if in vertical mode
    */
-  this.setBreadth = function(breadth) {
-    var changed = (this.getBreadth() !== breadth);
+  var setBreadth = function(breadth) {
+    var changed = (getBreadth() !== breadth);
     // remove all the other breadths
     for (var i=1 ; i <= 8 ; i=i*2) {
       // don't remove the breadth we're setting
@@ -1005,8 +978,8 @@ window.sfun = (function($, undefined) {
   /**
    * @param int sequence number of image to make current
    */
-  this.setSeq = function(seq) {
-    var changed = (this.getSeq() !== seq);
+  var setSeq = function(seq) {
+    var changed = (getSeq() !== seq);
     var position;
     if ($sfun_selectedcell.length) {
       // deselect old image
@@ -1022,7 +995,7 @@ window.sfun = (function($, undefined) {
    * page scroll offset to sequence number is stored in the html tag
    * @param {int} offset scroll offset to seq
    */
-  this.setOffseq = function(offseq) {
+  var setOffseq = function(offseq) {
     var current = $html.data('offseq');
     var changed = (current !== offseq && current !== undefined);
     $html.data('offseq', offseq);
@@ -1031,20 +1004,20 @@ window.sfun = (function($, undefined) {
 
   /**
    * set bounds for a cell
-   * @param {object} jqEnt jQuery entity
+   * @param {object} $ent jQuery entity
    * @param {boolean} recurse true to recurse on subcells
    */
-  this.setBound = function(jqEnt, recurse) {
+  var setBound = function($ent, recurse) {
     var that = this;
-    var jqBoundable = jqEnt.find('> .container > .boundable');
-    if (jqBoundable.length) {
+    var $boundable = $ent.find('> .container > .boundable');
+    if ($boundable.length) {
       // detect if the image is bound by width/height in this container
-      var ix = jqBoundable.data('loaded-width'), iy = jqBoundable.data('loaded-height');
+      var ix = $boundable.data('loaded-width'), iy = $boundable.data('loaded-height');
       // read container width/height
-      var cx = jqEnt.width(), cy = jqEnt.height();
+      var cx = $ent.width(), cy = $ent.height();
       var cratio = cx / cy;
       if (debug && false) {
-        console.log('image-'+jqEnt.data('seq')+': ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
+        console.log('image-'+$ent.data('seq')+': ['+ix+','+iy+'] checking bound within ['+cx+','+cy+']');
       }
       var iratio = ix / iy;
       var direction = ((cratio / iratio) > 1.0 ? 'y' : 'x');
@@ -1054,13 +1027,13 @@ window.sfun = (function($, undefined) {
             + iratio + ']: ' + (cratio / iratio).toPrecision(3) + '= ' + direction + '-bound');
       }
       // apply class to image
-      jqBoundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
+      $boundable.addClass(direction + '-bound').removeClass(invdir + '-bound');
     }
     // optionally recurse on sub-cells
     if (recurse) {
-      jqEnt.find('.subcell').each(function() {
+      $ent.find('.subcell').each(function() {
         // only do 1 level of recursion
-        that.setBound($(this), false);
+        setBound($(this), false);
       });
     }
   }
@@ -1071,10 +1044,10 @@ window.sfun = (function($, undefined) {
    *        {int} top  distance from top of page in pixels
    * @return {object} target position cropped against viewport
    */
-  this.cropScrollPositionAgainstViewport = function(target) {
+  var cropScrollPositionAgainstViewport = function(target) {
     return {
-      'left': this.export.api_round(Math.max(0, Math.min(target.left, $document.width() - this.getViewportWidth())), 0),
-      'top': this.export.api_round(Math.max(0, Math.min(target.top, $document.height() - this.getViewportHeight())), 0)
+      'left': exp.api_round(Math.max(0, Math.min(target.left, $document.width() - getViewportWidth())), 0),
+      'top': exp.api_round(Math.max(0, Math.min(target.top, $document.height() - getViewportHeight())), 0)
     };
   }
 
@@ -1085,41 +1058,53 @@ window.sfun = (function($, undefined) {
    * @param {object} [eventContext] optional event context to attach this to
    * @return {object} jQuery deferred
    */
-  this.envisionSeq = function(seq, offseq, eventContext) {
-    var jqEnt = $img(seq);
-    var direction = this.getDirection();
+  var envisionSeq = function(seq, offseq, eventContext) {
+    var $ent = $img(seq);
+    var direction = getDirection();
     if (offseq == undefined) {
       offseq = 0;
     }
     // if we found the cell
-    if (jqEnt.length) {
+    if ($ent.length) {
       // get the cell's position
-      var position = jqEnt.offset();
+      var position = $ent.offset();
       // work out the target position
       var target = { 'left': (direction == 'x' ? position.left - offseq : 0), 'top': (direction == 'x' ? 0 : position.top - offseq) };
-      // crop the target position against reachable bounds
-      target = this.cropScrollPositionAgainstViewport(target);
-      // work out whether we're currently at the target position
-      var fireScroll = false;
-      var scroll = { 'top': $window.scrollTop(), 'left': $window.scrollLeft() };
-      // check to see if our current scroll position reflects the target position
-      if (direction == 'x') {
-        if (target.left != scroll.left) {
-          fireScroll = true;
-        }
-      } else {
-        if (target.top != scroll.top) {
-          fireScroll = true;
-        }
-      }
-      // if we are at the position, just refresh visibilty
-      if (!fireScroll) {
-        return this.refreshVisibility(0);
-      }
-      // otherwise scroll to the target position
-      return this.fire_scrollUpdate(target, eventContext);
+      // pass target to shared function
+      return envisionPos(target, eventContext);
     }
-    return $.Deferred().resolve();
+    return getDeferred().resolve();
+  };
+
+  /** 
+   * ensure that a given target position lies within the current viewport
+   * @param {object} target {left, top} position in pixels
+   * @param {object} [eventContext] optional event context to attach this to
+   * @return {object} jQuery deferred
+   */
+  var envisionPos = function(target, eventContext) {
+    var direction = getDirection();
+    // crop the target position against reachable bounds
+    target = cropScrollPositionAgainstViewport(target);
+    // work out whether we're currently at the target position
+    var fireScroll = false;
+    var scroll = { 'top': $window.scrollTop(), 'left': $window.scrollLeft() };
+    // check to see if our current scroll position reflects the target position
+    if (direction == 'x') {
+      if (target.left != scroll.left) {
+        fireScroll = true;
+      }
+    } else {
+      if (target.top != scroll.top) {
+        fireScroll = true;
+      }
+    }
+    // if we are at the position, just refresh visibilty
+    if (!fireScroll) {
+      return refreshVisibility(0);
+    }
+    // otherwise scroll to the target position
+    return fireScrollUpdate(target, eventContext);
   };
 
   /**
@@ -1127,35 +1112,35 @@ window.sfun = (function($, undefined) {
    * @return {object} describing visible cells
    *   first:seq of first visible, last:seq of last visible
    */
-  this.getVisibleBoundaries = function() {
+  var getVisibleBoundaries = function() {
     var vis = {};
     var min, max;
     // cells' offset is a couple of pixels left of image
-    var rounding = this.getGutter()+1;
-    var direction = this.getDirection();
+    var rounding = getGutter()+1;
+    var direction = getDirection();
     // get screen bounds along major axis (min and max)
     if (direction == 'x') {
       // min is left bar minus rounding for border/margin
       min = $document.scrollLeft() - rounding;
       // max is right bar minus rounding for border/margin
-      max = $document.scrollLeft() + this.getViewportWidth() - rounding;
+      max = $document.scrollLeft() + getViewportWidth() - rounding;
     } else {
       min = $document.scrollTop() - rounding;
-      max = $document.scrollTop() + this.getViewportHeight() - rounding;
+      max = $document.scrollTop() + getViewportHeight() - rounding;
     }
     // find first spanning min boundary
-    var firstRef = this.visTableMajor.findCompare(min, this.export.compareGTE, false);
-    var firstMatch = this.visTableMajor.select(firstRef);
+    var firstRef = visTableMajor.findCompare(min, exp.compareGTE, false);
+    var firstMatch = visTableMajor.select(firstRef);
     if (firstMatch == null) {
       // use the first entry in table
-      firstMatch = this.visTableMajor.select(0);
+      firstMatch = visTableMajor.select(0);
     }
-    vis.first = firstMatch.jqEnt.data('seq');
+    vis.first = firstMatch.$ent.data('seq');
     // work backwards from spanning min boundary to include partials
     for (var i = vis.first ; i >= 0 ; --i) {
-      var jqEnt = $img(i);
-      var position = jqEnt.offset();
-      var posMajor = (direction == 'x' ? position.left + jqEnt.width() : position.top + jqEnt.height());
+      var $ent = $img(i);
+      var position = $ent.offset();
+      var posMajor = (direction == 'x' ? position.left + $ent.width() : position.top + $ent.height());
       if (posMajor > min) {
         vis.first = i;
       } else {
@@ -1164,20 +1149,20 @@ window.sfun = (function($, undefined) {
       }
     }
     // find last spanning max boundary
-    var lastRef = this.visTableMajor.findCompare(max, this.export.compareLTE, true);
-    var lastMatch = this.visTableMajor.select(lastRef);
+    var lastRef = visTableMajor.findCompare(max, exp.compareLTE, true);
+    var lastMatch = visTableMajor.select(lastRef);
     if (lastMatch == null) {
       // use the last entry in the table
-      lastMatch = this.visTableMajor.select(this.visTableMajor.getSize()-1);
+      lastMatch = visTableMajor.select(visTableMajor.getSize()-1);
     }
-    vis.last = lastMatch.jqEnt.data('seq');
+    vis.last = lastMatch.$ent.data('seq');
     // assume all visibles are non-partial, then test
     vis.lastFirstPartial = -1;
     vis.firstLastPartial = 99999;
     // check first visibles for partial visibility
     for (var i = vis.first ; i <= vis.last ; ++i) {
-      var jqEnt = $img(i);
-      var position = jqEnt.offset();
+      var $ent = $img(i);
+      var position = $ent.offset();
       var posMajor = (direction == 'x' ? position.left : position.top);
       if (posMajor < min) {
         vis.lastFirstPartial = i;
@@ -1188,9 +1173,9 @@ window.sfun = (function($, undefined) {
     }
     // check last visibles for partial visibility
     for (var i = vis.last ; i >= vis.first ; i--) {
-      var jqEnt = $img(i);
-      var position = jqEnt.offset();
-      var posMajor = (direction == 'x' ? position.left + jqEnt.width() : position.top + jqEnt.height());
+      var $ent = $img(i);
+      var position = $ent.offset();
+      var posMajor = (direction == 'x' ? position.left + $ent.width() : position.top + $ent.height());
       if (posMajor > max) {
         vis.firstLastPartial = i;
       } else {
@@ -1207,71 +1192,70 @@ window.sfun = (function($, undefined) {
    * @param {boolean} thenRefresh true to also refresh new vis images
    * @return {object} jQuery deferred
    */
-  this.setVisibleAll = function(thenRefresh) {
+  var setVisibleAll = function(thenRefresh) {
     var that = this;
-    var jqCells = $sfun_selectablecell;
     // test to see if we found any selectable cells
-    if (jqCells.length) {
-      var deferred = $.Deferred();
+    if ($sfun_selectablecell.length) {
+      var deferred = getDeferred();
       var defs = [];
       var wrapUp = function() {
         // resolve the deferred
         deferred.resolve();
       }
       // clear all the visible images
-      jqCells.removeClass('visible vispart visnear');
+      $sfun_selectablecell.removeClass('visible vispart visnear');
       // derive boundaries of visible cells
-      var vis = this.getVisibleBoundaries();
+      var vis = getVisibleBoundaries();
       for (var i = vis.first ; i <= vis.last ; i++) {
         var vistype = ((i <= vis.lastFirstPartial || i >= vis.firstLastPartial) ? 'vispart' : 'visible');
-        that.setImageVisibilityClass($img(i), vistype);
+        setImageVisibilityClass($img(i), vistype);
       }
       if (thenRefresh) {
         // now batch process all the visibles
-        that.refreshVisibleImageSet().done(wrapUp);
+        refreshVisibleImageSet().done(wrapUp);
       } else {
         wrapUp();
       }
       // now request visnear images, but don't wait for them (async, not resync)
-      ignored_deferred = this.setVisnearAll(vis);
+      var ignored_deferred = setVisnearAll(vis);
       return deferred;
     }
-    return $.Deferred().resolve();
+    return getDeferred().resolve();
   };
 
   /**
    * either flag an image as visible or not visible
-   * @param {jQuery} jqEnt image
+   * @param {jQuery} $ent image
    * @param {string} 'visible' true to make visible, 'not visible' to hide
    *   or 'visnear' to make visible but not re-res
    */
-  this.setImageVisibilityClass = function(jqEnt, vis) {
+  var setImageVisibilityClass = function($ent, vis) {
     var that = this;
     if (debug && false) {
-      console.log('image-'+jqEnt.data('seq')+': making '+vis);
+      console.log('image-'+$ent.data('seq')+': making '+vis);
     }
     // process visibility string
     if (vis == 'not-visible') {
       // make it not-visible
-      jqEnt.removeClass('visible');
+      $ent.removeClass('visible');
     } else {
       var alsoload = false;
       // apply classes
       if (vis == 'visnear') {
         // mark image as near visible
-        jqEnt.removeClass('vispart visible').addClass('visnear');
+        $ent.removeClass('vispart visible').addClass('visnear');
       } else if (vis == 'vispart') {
         // make it visible (may have previously been visnear)
-        jqEnt.removeClass('visnear visible').addClass('vispart');
+        $ent.removeClass('visnear visible').addClass('vispart');
         alsoload = true;
       } else if (vis == 'visible') {
         // make it visible (may have previously been visnear)
-        jqEnt.removeClass('vispart visnear').addClass('visible');
+        $ent.removeClass('vispart visnear').addClass('visible');
         alsoload = true;
       }
       if (alsoload) {
         // load thumbnails (for visible/vispart but not visnear) and recurse
-        this.loadThumb(jqEnt, true);
+        loadThumb($ent, true);
       }
     }
   };
@@ -1281,9 +1265,9 @@ window.sfun = (function($, undefined) {
    * @param  {int} last_0 last visible is visnear_0
    * @return {object} {last_1, last_n, first_1, first_n}
    */
-  this.calcVisnear = function(first_np1, last_0) {
-    var cellcount = this.getTotalEntries();
-    var reach = this.getBreadth() * this.export.breadthMULTIPLIER;
+  var calcVisnear = function(first_np1, last_0) {
+    var cellcount = getTotalEntries();
+    var reach = getBreadth() * exp.breadthMULTIPLIER;
     var range = {};
     // compute those near the last visible
     range.last_1 = last_0 + 1;
@@ -1316,9 +1300,9 @@ window.sfun = (function($, undefined) {
    * @param {object} vis range of visible images
    * @return {object} jQuery deferred
    */
-  this.setVisnearAll = function(vis) {
+  var setVisnearAll = function(vis) {
     // find visnear first and last visible
-    var range = this.calcVisnear(vis.first, vis.last);
+    var range = calcVisnear(vis.first, vis.last);
     // optional debugging
     if (debug && false) {
       console.log('images-('+range.first_1+' to '+range.first_n+'): making visnear (before visibles)');
@@ -1330,18 +1314,18 @@ window.sfun = (function($, undefined) {
     if (range.last_1 != vis.last) {
       // request visnear (after visibles), async
       for (var i = range.last_1 ; i <= range.last_n ; i++) {
-        this.setImageVisibilityClass($img(i), 'visnear');
+        setImageVisibilityClass($img(i), 'visnear');
       }
     }
     // only do first visnear if there are some entries BEFORE visibles
     if (range.first_n != vis.first) {
       // request visnear (before visibles), async
       for (var i = range.first_1 ; i <= range.first_n ; i++) {
-        this.setImageVisibilityClass($img(i), 'visnear');
+        setImageVisibilityClass($img(i), 'visnear');
       }
     }
     // now load visnears
-    return this.refreshVisnearImageSet();
+    return refreshVisnearImageSet();
   }
 
   // --------------------
@@ -1350,45 +1334,45 @@ window.sfun = (function($, undefined) {
 
   /**
    * Swap out image using a temporary image (to get triggered on load event)
-   * Can't just switch src on jqEnt, because that image is already loaded
+   * Can't just switch src on $ent, because that image is already loaded
    * Firebug doesn't show the updated data- attributes, but they are updated
    * @return {object} jQuery deferred
    */
-  this.imageReres = function(jqEnt, path) {
+  var imageReres = function($ent, path) {
     var that = this;
-    var jqReresable = jqEnt.find('.reresable');
-    if (jqReresable.length) {
-      var deferred = $.Deferred();
+    var $reresable = $ent.find('.reresable');
+    if ($reresable.length) {
+      var deferred = getDeferred();
       // create temporary image container
       var img = $('<img id="dynamic" />');
       // attach listener to catch when the new image has loaded
       img.attr('src', path).one('load', function() {
         // now that it's pre-cached by the temp, apply to original image
-        jqReresable.attr('src', path);
+        $reresable.attr('src', path);
         // store loaded width and height
-        jqReresable.data('loaded-width', this.width);
-        jqReresable.data('loaded-height', this.height);
+        $reresable.data('loaded-width', this.width);
+        $reresable.data('loaded-height', this.height);
         // never update the ratio, but set if unset
-        if (jqReresable.data('ratio') == undefined) {
-          jqReresable.data('ratio', this.width / this.height);
+        if ($reresable.data('ratio') == undefined) {
+          $reresable.data('ratio', this.width / this.height);
         }
         // notify promise of resolution
         deferred.resolve();
         // process async actions
         if (debug && false) {
-          console.log('image-'+jqEnt.data('seq')+': swapped out for ('+jqReresable.data('loaded-width')+','+jqReresable.data('loaded-height')+')');
+          console.log('image-'+$ent.data('seq')+': swapped out for ('+$reresable.data('loaded-width')+','+$reresable.data('loaded-height')+')');
         }
-        that.refreshMetric(jqEnt);
+        refreshMetric($ent);
         // flag as reres'd, no longer reresing
-        jqEnt.removeClass('reresing');
+        $ent.removeClass('reresing');
       }).each(function() {
         if(this.complete) $(this).load();
       });
       // return local context so that when we complete (resolve), our parents can execute
       return deferred;
     }
-    jqEnt.removeClass('reresing');
-    return $.Deferred().resolve();
+    $ent.removeClass('reresing');
+    return getDeferred().resolve();
   };
 
   /**
@@ -1397,20 +1381,19 @@ window.sfun = (function($, undefined) {
    * @param {object} eventContext optional event context for decorating an existing deferred
    * @return {object} jQuery deferred
    */
-  this.imageAdvanceBy = function(increment, eventContext) {
+  var imageAdvanceBy = function(increment, eventContext) {
     var that = this;
     // start with the current image
-    var seq = this.getSeq();
+    var seq = getSeq();
     var wrapUp = function() {
       if (eventContext) {
-        return that.eventQueue.resolve(eventContext);
+        return eventQueue.resolve(eventContext);
       }
-      return $.Deferred().resolve();
     }
-    if (seq >= 0 && seq < this.getTotalEntries()) {
+    if (seq >= 0 && seq < getTotalEntries()) {
       // iterate to find next image
-      if ((seq = this.getNextSeq(seq, increment)) !== false) {
-        return this.imageAdvanceTo(seq, eventContext).done(wrapUp);
+      if ((seq = getNextSeq(seq, increment)) !== false) {
+        return imageAdvanceTo(seq, eventContext).done(wrapUp);
       }
     } else {
       console.log('warning: erroneous seq('+seq+') returned by getseq');
@@ -1423,9 +1406,9 @@ window.sfun = (function($, undefined) {
    * @param {int} image sequence number
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    */
-  this.imageAdvanceTo = function(seq, eventContext) {
+  var imageAdvanceTo = function(seq, eventContext) {
     // update using hash change
-    return this.fire_hashUpdate( { 'seq': seq }, false, eventContext);
+    return fireHashUpdate( { 'seq': seq }, false, eventContext);
   };
 
   /**
@@ -1433,25 +1416,25 @@ window.sfun = (function($, undefined) {
    * @param {object} eventContext optional event context for decorating an existing deferred
    * @return {object} jQuery deferred
    */
-  this.imageToggleFullscreen = function(eventContext) {
-    var jqEnt = $sfun_selectedcell;
-    switch (this.getType(jqEnt)) {
+  var imageToggleFullscreen = function(eventContext) {
+    var $ent = $sfun_selectedcell;
+    switch (getType($ent)) {
       case 'image':
         // toggle using hash change
-        if (this.getBreadth() == 1) {
-          return this.fire_hashUpdate( { 'breadth': this.previous['breadth'] }, false, eventContext);
+        if (getBreadth() == 1) {
+          return fireHashUpdate( { 'breadth': state_previous['breadth'] }, false, eventContext);
         } else {
-          return this.fire_hashUpdate( { 'breadth': 1 }, false, eventContext);
+          return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
         }
         break;
       case 'directory':
-        var jqClickable = jqEnt.find('.clickable');
-        if (jqClickable.length) {
-          window.location = jqClickable.attr('href');
+        var $clickable = $ent.find('.clickable');
+        if ($clickable.length) {
+          window.location = $clickable.attr('href');
         }
         break;
     }
-    return this.eventQueue.resolve(eventContext);
+    return eventQueue.resolve(eventContext);
   };
 
   // ------------------
@@ -1461,7 +1444,7 @@ window.sfun = (function($, undefined) {
   /**
    * change up a directory
    */
-  this.urlChangeUp = function() {
+  var urlChangeUp = function() {
     var url = window.location.href;
     var lastChar = url.length;
     var lastHash = url.lastIndexOf('#');
@@ -1478,9 +1461,9 @@ window.sfun = (function($, undefined) {
       // new URL should include slash
       var newUrl = url.substring(0, previousSlash+1);
       // append filtered hash
-      var filteredHash = this.getFilteredHash();
+      var filteredHash = getFilteredHash();
       // redirect to new page
-      this.urlGoto(newUrl + this.export.stringHASHBANG + filteredHash);
+      urlGoto(newUrl + exp.stringHASHBANG + filteredHash);
     }
     return false;
   };
@@ -1489,7 +1472,7 @@ window.sfun = (function($, undefined) {
    * redirect to another url
    * @param {string} newUrl new location
    */
-  this.urlGoto = function(newUrl) {
+  var urlGoto = function(newUrl) {
     window.location.href = newUrl;
   };
 
@@ -1502,11 +1485,11 @@ window.sfun = (function($, undefined) {
    * @param {object} values as an object
    * @return {string} hash as string (without a # prepend)
    */
-  this.hashGenerate = function(obj) {
+  var hashGenerate = function(obj) {
     var hash = '';
     for (var key in obj) {
         // only set name:value pair if not default
-      if (obj[key] == this.default[key]) {
+      if (obj[key] == state_default[key]) {
         // don't set the hash, because we'll fall back to the default anyway
       } else {
         if (hash != '') {
@@ -1523,7 +1506,7 @@ window.sfun = (function($, undefined) {
    * @param  {string} h2 second hash
    * @return {boolean} true if the two hashes are equivalent
    */
-  this.hashEquals = function(h1, h2) {
+  var hashEquals = function(h1, h2) {
     return(h1 == h2);
   };
 
@@ -1532,13 +1515,13 @@ window.sfun = (function($, undefined) {
    * @param {string} hash string
    * @return {object} hash values as an object
    */
-  this.hashParse = function(hash) {
+  var hashParse = function(hash) {
     var output = {};
     // look for hash arguments
     if (hash.length > 1) {
       // strip leading #! if set
-      var hblen = this.export.stringHASHBANG.length;
-      if (hash.substr(0, hblen) == this.export.stringHASHBANG) {
+      var hblen = exp.stringHASHBANG.length;
+      if (hash.substr(0, hblen) == exp.stringHASHBANG) {
         hash = hash.substr(hblen);
       }
       // override defaults if set
@@ -1570,12 +1553,12 @@ window.sfun = (function($, undefined) {
    * @param {object} hash name:value pairs
    * @return {boolean} true if they're ok
    */
-  this.hashValidate = function(hash) {
+  var hashValidate = function(hash) {
     var deleteCount = 0;
     for (var attrname in hash) {
       switch(attrname) {
         case 'seq':
-          if (!((hash[attrname] >= 0) && (hash[attrname] < this.getTotalEntries()))) {
+          if (!((hash[attrname] >= 0) && (hash[attrname] < getTotalEntries()))) {
             deleteCount++;
             // remove entry from hash
             delete hash[attrname];
@@ -1596,7 +1579,7 @@ window.sfun = (function($, undefined) {
    * @param {string} namearg name of the table (used for debugging messages)
    * @return {object} hashTable object
    */
-  this.createHashTable = function(namearg) {
+  var createHashTable = function(namearg) {
     if (typeof(namearg) == 'undefined') {
       namearg = '<unnamed>';
     }
@@ -1635,7 +1618,6 @@ window.sfun = (function($, undefined) {
        * wipe the hash table
        */
       'wipe': function() {
-        this.length = 0;
         this.objarr.length = 0;
         this.keyarr.length = 0;
         // don't reset counter because old objects may still be floating about
@@ -1647,7 +1629,8 @@ window.sfun = (function($, undefined) {
        * @param {object} obj to push
        */
       'push': function(obj) {
-        return this._push(obj);
+        this._push(obj);
+        return obj;
       },
 
       /**
@@ -1655,20 +1638,19 @@ window.sfun = (function($, undefined) {
        * @param {object} obj to push
        */
       '_push': function(obj) {
-        var ref = this.length;
+        // get next free position, but don't store in obj because it can change
+        var ref = this.getSize();
         // store ID and ready for next ID request
-        obj.id = this.counter++;
+        obj.idx = 1000 + this.counter++;
         // store in object array
         this.objarr[ref] = obj;
         // store in the index array(s), allow duplicate keys
         this.keyarr[ref] = obj.key;
-        // increment length (by refreshing it)
-        this.length = this.objarr.length;
         // optional debugging
         if (debug && false) {
-          console.log('pushed object['+this.render(obj)+'] on to ref['+ref+'] '+this.name+' hashTable, now has '+this.length+'elements');
+          console.log('pushed object['+this.render(obj)+'] on to ref['+ref+'] '+this.name+' hashTable, now has '+this.getSize()+'elements');
         }
-        return obj;
+        return ref;
       },
 
       /**
@@ -1713,7 +1695,7 @@ window.sfun = (function($, undefined) {
         }
         // binary search
         var minRef = 0;
-        var maxRef = this.length - 1;
+        var maxRef = this.getSize() - 1;
         var currentRef;
         var currentElement;
         while (minRef <= maxRef) {
@@ -1740,12 +1722,12 @@ window.sfun = (function($, undefined) {
         }
         // process based on direction of comparison (LTE/GTE)
         if (comparison > 0) {
-          if (minRef < 0 || minRef >= this.length) return -1;
+          if (minRef < 0 || minRef >= this.getSize()) return -1;
           currentElement = this.keyarr[minRef];
           // work forwards looking for identical value to first >= key
           return this.find(currentElement, false);
         } else {
-          if (maxRef < 0 || maxRef >= this.length) return -1;
+          if (maxRef < 0 || maxRef >= this.getSize()) return -1;
           currentElement = this.keyarr[maxRef];
           // work backwards looking for identical value to last <= key
           return this.find(currentElement, true);
@@ -1788,8 +1770,6 @@ window.sfun = (function($, undefined) {
         this.objarr.splice(ref, 1);
         // delete from the index array
         this.keyarr.splice(ref, 1);
-        // update outer length for continuity
-        this.length = this.objarr.length;
       },
 
       /**
@@ -1804,7 +1784,7 @@ window.sfun = (function($, undefined) {
        * @return {int} total number of entries in table
        */
       'getSize': function() {
-        return this.length;
+        return this.objarr.length;
       },
 
       /** 
@@ -1879,27 +1859,27 @@ window.sfun = (function($, undefined) {
   /**
    * create a specialised hashTable for visTableMajor
    */
-  this.createVisTable = function() {
-    return $.extend(this.createHashTable('visTable'), {
+  var createVisTable = function() {
+    return $.extend(createHashTable('visTable'), {
 
       // FUNCTIONS
 
       /**
        * update coordinates stored for each cell
        * @param  {string} direction x or y
-       * @param  {object} jqCells jQuery list of cells
+       * @param  {object} $sfun_selectablecell jQuery list of cells
        */
-      'updateAll': function(direction, jqCells) {
+      'updateAll': function(direction, $sfun_selectablecell) {
         var vt = this;
         // wipe previous table
         vt.wipe();
         // read in new values
-        jqCells.each(function() {
-          var jqEnt = $(this);
-          var position = jqEnt.offset();
+        $sfun_selectablecell.each(function() {
+          var $ent = $(this);
+          var position = $ent.offset();
           // create object
           var obj = {
-            'jqEnt': jqEnt,
+            '$ent': $ent,
             'key': (direction == 'x' ? position.left : position.top)
           };
           // push object into hashTable
@@ -1915,30 +1895,25 @@ window.sfun = (function($, undefined) {
    * The visTableMajor is used:
    * - to store an indexed list of cell coordinates along the major axis
    */
-  this['visTableMajor'] = this.createVisTable();
-
-  /**
-   * create a specialised hashTable for visTableMajor
-   */
-  this.createLayoutManager = function() {
-    return $.extend(this.createHashTable('layoutManager'), {
-      // FUNCTIONS
-      'lastEntry': null
-    });
-  }
+  var visTableMajor = createVisTable();
 
   /** 
    * The layoutManager is used:
    * - to store an indexed list of layout methods
    */
-  this['layoutManager'] = this.createLayoutManager();
+  var layoutManager = function() {
+    return $.extend(createHashTable('layoutManager'), {
+      // FUNCTIONS
+      'lastEntry': null
+    });
+  }();
 
   /**
    * create a specialised hashTable for the eventQueue
    * @return {object} hashTable object
    */
-  this.createEventQueue = function(outer_class) {
-    return $.extend(this.createHashTable('eventQueue'), {
+  var createEventQueue = function(outer_class) {
+    return $.extend(createHashTable('eventQueue'), {
 
       // CONSTANTS
 
@@ -1949,7 +1924,7 @@ window.sfun = (function($, undefined) {
       TIMEOUT_expireEVENT: 10000,
 
       // default event object 
-      'defaultEventObject': {
+      'default_event_object': {
         'key': '<unset:',
         // don't replace the event handler
         'replaceEvent': null,
@@ -1964,16 +1939,21 @@ window.sfun = (function($, undefined) {
         // never expires
         'expires': null,
         // comment is an empty string (for rendering)
-        'comment': ''
+        'comment': '',
+        // no id yet
+        'idx': null
       },
 
       // VARIABLES
 
       // expiry timeout callback
-      'expiryHandler': null,
+      'expiry_handler': null,
 
       // currently executing event
-      'criticalSection': null,
+      'critical_section': null,
+
+      // array of eventContexts that haven't been received by a handler
+      unhandled: [],
 
       // FUNCTIONS
 
@@ -1984,7 +1964,7 @@ window.sfun = (function($, undefined) {
         if (obj == null) {
           return '<no event context>';
         }
-        var output = obj.id + ':' + obj.key + ', ' + obj.deferred.state();
+        var output = obj.idx + ':' + obj.key + ', ' + obj.deferred.state();
         if (obj.comment) {
           output += ', ' + obj.comment;
         }
@@ -2002,7 +1982,8 @@ window.sfun = (function($, undefined) {
           console.log('checking expiries');
         }
         var obj, timenow = this.getTime();
-        for (var i=0 ; i<this.length ; ++i) {
+        // note dynamic getSize() call, because list is changing during loop
+        for (var i=0 ; i<this.getSize() ; ++i) {
           obj = this.objarr[i];
           if (obj.expires != null) {
             if (timenow > obj.expires) {
@@ -2010,6 +1991,8 @@ window.sfun = (function($, undefined) {
                 console.log('expiring eventContext['+obj.key+']');
               }
               this.resolve(obj);
+              // beware: resolve deletes at most 1 elements from array, so redo
+              i--;
             }
           }
         }
@@ -2029,32 +2012,40 @@ window.sfun = (function($, undefined) {
        */
       'push': function(partial) {
         var that = this;
-        // create new deferred, but ignore if already set in partial
-        var deferred = $.Deferred();
         // compose new object ($.extend gives right to left precedence)
-        var obj = $.extend({}, this.defaultEventObject, {
-          'key': this.defaultEventObject.key + this.getCounter() + '>',
-          'deferred': deferred,
-          'deps': []
-        }, partial);
+        var obj = $.extend({},
+          // 1: statuc defaults
+          this.default_event_object, {
+            // 2: dynamic defaults
+            'key': this.default_event_object.key + this.getCounter() + '>',
+            // create new deferred, but ignore if already set in partial
+            'deferred': getDeferred(),
+            // set expiry
+            'expires': eventQueue.getTime() + eventQueue.TIMEOUT_expireEVENT,
+            'deps': []
+          },
+          // 3: overrides from call
+          partial);
         // if the object expires, schedule its removal
         if (obj.expires) {
           // clear old timeout
-          if (that.expiryHandler != null) {
-            clearTimeout(that.expiryHandler);
+          if (that.expiry_handler != null) {
+            clearTimeout(that.expiry_handler);
           }
           // schedule a check after the timeout
-          this.expiryHandler = setTimeout(function() {
+          this.expiry_handler = setTimeout(function() {
             that.checkExpiries();
           }, this.TIMEOUT_expireEVENT);
         }
         // push
-        var retval = this._push(obj);
+        var ref = this._push(obj);
+        // also add key to unhandled list (3rd list after objarr and keyarr)
+        this.unhandled[ref] = obj.key;
         // optional debugging message
         if (debug && true) {
-          console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.length+1));
+          console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.getSize()));
         }
-        return retval;
+        return obj;
       },
 
       /**
@@ -2062,7 +2053,7 @@ window.sfun = (function($, undefined) {
        *   this does create issues if we try to pull based on the old key
        * @param {object} partial fields to override defaults
        */
-      'pushOrParent': function(partial, peer) {
+      'pushOrMerge': function(partial, peer) {
         if (typeof(peer) == 'undefined') {
           // if no peer, push new context with partial values
           return this.push($.extend({}, partial));
@@ -2086,7 +2077,7 @@ window.sfun = (function($, undefined) {
         }
         // optional debugging
         if (debug && true) {
-          console.log('  - merged event context[' + this.render(peer) + '] into old context['+olddesc+'], unaffected q len now'+this.length);
+          console.log('  - merged event context[' + this.render(peer) + '] into old context['+olddesc+'], unaffected q len now'+this.getSize());
         }
         return peer;
       },
@@ -2109,7 +2100,7 @@ window.sfun = (function($, undefined) {
         // push partial in normal way
         var obj = this.push(partial);
         // attach this obj as child to parent
-        return this.parent(parent, obj);
+        return this.parent(obj, parent);
       },
 
       /**
@@ -2117,12 +2108,14 @@ window.sfun = (function($, undefined) {
        * @param {object} parentContext 
        * @param {object} obj child event context to attach to parent
        */
-      'parent': function(parentContext, obj) {
+      'parent': function(obj, parentContext) {
         var that = this;
         if (typeof(parentContext) != 'undefined' && parentContext) {
-          // store parent relationship
+          // store parent relationship (bidirectional)
           obj.parent = parentContext;
           parentContext.deps[parentContext.deps.length] = obj;
+          // child inherits certain parental attributes
+          obj.replaceEvent = parentContext.replaceEvent;
           // setup promise on resolution of child to resolve parent
           obj.deferred.done(function() {
             // remove this from parent's outstanding deps
@@ -2156,7 +2149,7 @@ window.sfun = (function($, undefined) {
           });
           // optional debugging
           if (debug && true) {
-            console.log('  - parented event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.length);
+            console.log('  - parented event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.getSize());
           }
         }
         return obj;
@@ -2168,12 +2161,14 @@ window.sfun = (function($, undefined) {
        * @param {bool} [alsoRemove] true to delete matched elements
        * @return {object} matched object or null if not found
        */
-      'get': function(key, alsoRemove) {
-        var obj = this._get(key, alsoRemove);
-        if (debug && true) {
-          if (obj != null) {
-            console.log('- pulled event context[' + this.render(obj) + '], q'+this.length);
-          } else {
+      'get': function(key) {
+        var obj = this._get(key, false);
+        if (obj != null) {
+          if (debug && false) {
+            console.log('- pulled event context[' + this.render(obj) + '], q'+this.getSize());
+          }
+        } else {
+          if (debug && true) {
             console.log('o unfilled get request for key[' + key + ']');
           }
         }
@@ -2182,33 +2177,41 @@ window.sfun = (function($, undefined) {
 
       /** 
        * @param {object} partial fields to override defaults
-       * @param {bool} [alsoRemove] true to delete matched elements
-       * @return {object} matched object or created object
+       * @return {object} created object if fresh, matched object if unhandled, or null if this context is currently processing
        */
-      'getOrInvent': function(partial, alsoRemove) {
+      'getOrInvent': function(partial) {
         var retrieved = null;
         if (typeof(partial.key) != 'undefined') {
-          retrieved = this.get(partial.key, alsoRemove);
+          retrieved = this.get(partial.key);
         }
-        if (typeof(alsoRemove) == 'undefined') {
-          alsoRemove = false;
-        }
+        // if this is a fresh event that we didn't fire
         if (retrieved == null) {
           // create object using shallow copy of defaults, then overwrite set fields
           retrieved = this.invent(partial);
-          // only store if we're not removing
-          if (!alsoRemove) {
-            this.push(retrieved);
+          // store, which will add to unhandled list
+          retrieved = this.push(retrieved);
+        }
+        // otherwise if we've fired (and not resolved) this event
+        else {
+          // @todo could optimise this slightly wasteful second search
+          var ref = this.find(retrieved.key);
+          // if we're currently processing this event
+          if (this.unhandled[ref] == null) {
+            // mute this second call
+            return null;
           }
-        } else {
           // aggregate the comments to enable clearer historical tracking
           if (retrieved.comment) {
             retrieved.comment += ', instead of ' + partial.comment;
           }
           if (debug && true) {
-            console.log(' - pulled not invented context[' + this.render(retrieved) + '], q'+this.length);
+            console.log('* handler caught fired event context[' + this.render(retrieved) + '], q'+this.getSize());
           }
         }
+        // nullify this key from the 'unhandled' list; don't delete because need to preserve sync between lists
+        var ref = this.find(retrieved.key);
+        this.unhandled[ref] = null;
+        // return context
         return retrieved;
       },
 
@@ -2222,8 +2225,8 @@ window.sfun = (function($, undefined) {
           partial.key = '<unset>';
         }
         // create object using shallow copy of defaults, then overwrite set fields
-        var retrieved = $.extend({}, this.defaultEventObject, {
-          'deferred': $.Deferred(),
+        var retrieved = $.extend({}, this.default_event_object, {
+          'deferred': getDeferred(),
           'deps': [],
         }, partial);
         return retrieved;
@@ -2237,13 +2240,13 @@ window.sfun = (function($, undefined) {
         // setup back-to-one function for use in callbacks
         var scheduleCriticalReset = function() {
           // if nothing else has swiped it already
-          if (that.criticalSection == eventContext) {
+          if (that.critical_section == eventContext) {
             // flag that nothing is in its critical section
-            that.criticalSection = null;
+            that.critical_section = null;
           }
         };
-        this.criticalSection = eventContext;
-        this.criticalSection.deferred.done(scheduleCriticalReset);
+        this.critical_section = eventContext;
+        this.critical_section.deferred.done(scheduleCriticalReset);
       },
 
       /**
@@ -2256,45 +2259,47 @@ window.sfun = (function($, undefined) {
         var that = this;
         // only act if we've been given a real eventContext
         if (eventContext != null) {
-          // see how the eventContext is defined
-          if (typeof(eventContext.replaceEvent) != 'undefined' && eventContext.replaceEvent) {
-            // process by calling replaceEvent instead of processing this event directly; includes its own wrapUp
-            func = eventContext.replaceEvent;
+          // should we be nullifying this event
+          if (eventContext.replaceEvent != null) {
+            // process by calling local wrap up instead of processing this event directly
+            func = function() {
+              that.resolve(eventContext);
+            };
             // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
             eventContext.replaceEvent = null;
             // optional debugging message
             if (debug && true) {
-              console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.criticalSection)+')');
+              console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.critical_section)+')');
             }
-            // call func with outer class context; includes its own wrapUp
+            // call func with outer class context; already wrapped up
             func.call(sfun);
           }
           // test to see if any other event is in its critical section
-          else if (this.criticalSection == null) {
+          else if (this.critical_section == null) {
             // if not, flag event as in its critical section
             this.setCriticalSection(eventContext);
             // optional debugging message
             if (debug && true) {
               console.log('> entering critical section for '+this.render(eventContext));
             }
-            // call func with outer class context; includes its own wrapUp
-            func.call(sfun);
+            // call func with outer class context, then wrap up
+            this.contextCallAndWrapUp(func, eventContext);
           }
-          // test to see if we're actually still in the same context (eventContext == criticalSection)
-          else if (eventContext.key == this.criticalSection.key) {
-            // we're reusing the same context, so just call and leave criticalSection alone
-            func.call(sfun);
+          // test to see if we're actually still in the same context (eventContext == critical_section)
+          else if (eventContext.key == this.critical_section.key) {
+            // we're reusing the same context, so just call and leave critical_section alone
+            this.contextCallAndWrapUp(func, eventContext);
           }
-          // test to see if we're in the parent's context (parent eventContext == criticalSection)
-          else if (this.isParentOf(this.criticalSection, eventContext)) {
-            // call and leave criticalSection alone
-            func.call(sfun);
+          // test to see if we're in the parent's context (parent eventContext == critical_section)
+          else if (this.isParentOf(this.critical_section, eventContext)) {
+            // call and leave critical_section alone
+            this.contextCallAndWrapUp(func, eventContext);
           }
           else {
             // this event depends on the end of the current critical one's chain
-            var lastDep = this.earliestAncestor(this.criticalSection);
-            // set this event up as dependent upon the lastDep
-            this.parent(eventContext, lastDep);
+            var lastDep = this.earliestAncestor(this.critical_section);
+            // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
+            this.parent(lastDep, eventContext);
             // optional debugging message
             if (debug && true) {
               console.log('_ delaying critical section for '+this.render(eventContext));
@@ -2306,11 +2311,25 @@ window.sfun = (function($, undefined) {
               }
               // flag next context as in its critical section
               that.setCriticalSection(eventContext);
-              // call func with outer class context; includes its own wrapUp
-              func.call(sfun);
+              // call func with outer class context
+              that.contextCallAndWrapUp(func, eventContext);
             });
           }
+          return eventContext.deferred;
         }
+        // otherwise just return a nice resolved deferred
+        return getDeferred().resolve();
+      },
+
+      /**
+       * call function, then wrap up its context
+       * @param  {[type]} func         function to call
+       * @param  {[type]} eventContext context to wrap up
+       */
+      'contextCallAndWrapUp': function(func, eventContext) {
+        var that = this;
+        // use jQuery when() as it copes with deferreds and non-deferreds
+        $.when(func.call(sfun)).always(function(){ that.resolve(eventContext) });
       },
 
       /**
@@ -2319,7 +2338,7 @@ window.sfun = (function($, undefined) {
        * @return {object} earliest ancestor (end of parent chain)
        */
       'earliestAncestor': function(current) {
-        while (current.parent != null) {
+        while ((current != null) && (current.parent != null)) {
           current = current.parent;
         }
         return current;
@@ -2357,17 +2376,23 @@ window.sfun = (function($, undefined) {
        * @return {object} jQuery deferred
        */
       'resolve': function(obj, returnValue) {
-        // remove this object from the eventQueue
-        var ref = this.removeObj(obj);
-        if (debug && true) {
-          console.log('Q resolve event context[' + this.render(obj) + '], qlen now '+this.length);
-        }
-        // resolve its deferred if set
-        if (obj.deferred != null) {
-          return obj.deferred.resolve(returnValue);
+        if (obj != null) {
+          // remove this object from the eventQueue
+          var ref = this.removeObj(obj);
+          // also delete from local lists
+          if (ref != -1) {
+            this.unhandled.splice(ref, 1);
+          }
+          if (debug && true) {
+            console.log('Q resolve event context[' + this.render(obj) + '], qlen now '+this.getSize());
+          }
+          // resolve its deferred if set
+          if (obj.deferred != null) {
+            return obj.deferred.resolve(returnValue);
+          }
         }
         // always return a resolved deferred
-        return $.Deferred().resolve(returnValue);
+        return getDeferred().resolve(returnValue);
       },
 
       lastEntry: null
@@ -2378,9 +2403,9 @@ window.sfun = (function($, undefined) {
    * The eventQueue is used:
    * - to stop the hashChanged listener from firing for certain hash changes
    * - to enable promises on certain event
-   * - to bridge promises between fire_ and handler_
+   * - to bridge promises between fire_ and handler
    */
-  this['eventQueue'] = this.createEventQueue(this);
+  var eventQueue = createEventQueue(this);
 
   // -------------------------
   // FUNCTIONS: event triggers
@@ -2394,40 +2419,40 @@ window.sfun = (function($, undefined) {
    * @return {object} updated event context
    * @return {object} jQuery deferred
    */
-  this.fire_hashUpdate = function(options, push, eventContext) {
+  var fireHashUpdate = function(options, push, eventContext) {
     var hash = '', fromHash, readback;
     // start with defaults
-    var obj = this.getDefaults();
+    var obj = getDefaults();
     // overwrite with current hash values
-    fromHash = this.hashParse(this.getHash());
-    this.merge(obj, fromHash);
+    fromHash = hashParse(getHash());
+    merge(obj, fromHash);
     // overwrite with options
-    this.merge(obj, options);
+    merge(obj, options);
     // convert to hash string
-    hash = this.hashGenerate(obj);
+    hash = hashGenerate(obj);
     // always create a context [so we can resolve something], but parent it only if eventContext is not undefined
-    var localContext = this.eventQueue.pushOrParent({
+    var localContext = eventQueue.pushOrParent({
       'key': 'hash:'+hash,
       'comment': 'localContext for fire_hashUpdate'
     }, eventContext);
-    // if hash would have no effect (would not trigger handler_hashChanged)
-    if (this.hashEquals(this.getHash(), hash)) {
-      return this.eventQueue.resolve(localContext);
+    // if hash would have no effect (would not trigger handlerHashChanged)
+    if (hashEquals(getHash(), hash)) {
+      return eventQueue.resolve(localContext);
     } else {
-      // fire event: change the window.location.hash, allow handler_ to resolve context
+      // fire event: change the window.location.hash, allow handler to resolve context
       if (push) {
-        History.pushState({}, null, this.export.stringHASHBANG + hash);
+        History.pushState({}, null, exp.stringHASHBANG + hash);
       } else {
         // -- doesn't always work!
-        History.replaceState({}, 'Image', this.export.stringHASHBANG + hash);
+        History.replaceState({}, 'Image', exp.stringHASHBANG + hash);
         // have to read it back and check; History hashes come back without #
         readback = History.getHash();
-        if ((this.export.stringHASHBANG + hash) != ('#'+readback)) {
+        if ((exp.stringHASHBANG + hash) != ('#'+readback)) {
           // -- leaves a messy history trail
-          window.location.hash = this.export.stringHASHBANG + hash;
+          window.location.hash = exp.stringHASHBANG + hash;
         }
       }
-      // localContext is resolved by handler_hashChanged
+      // localContext is resolved by handlerHashChanged
       return localContext.deferred;
     }
   };
@@ -2435,11 +2460,11 @@ window.sfun = (function($, undefined) {
   /**
    * @return {real} height of viewport in pixels
    */
-  this.getViewportHeight = function(force) {
+  var getViewportHeight = function(force) {
     if (this.getViewportHeight_static == undefined || force) {
-      var jqYard = $('#sfun-yardstick-y');
-      if (jqYard.length) {
-        this.getViewportHeight_static = jqYard.height();
+      var $yard = $('#sfun-yardstick-y');
+      if ($yard.length) {
+        this.getViewportHeight_static = $yard.height();
       } else {
         // fall back to window
         this.getViewportHeight_static = $window.height();
@@ -2451,11 +2476,11 @@ window.sfun = (function($, undefined) {
   /**
    * @return {real} width of viewport in pixels
    */
-  this.getViewportWidth = function(force) {
+  var getViewportWidth = function(force) {
     if (this.getViewportWidth_static == undefined || force) {
-      var jqYard = $('#sfun-yardstick-x');
-      if (jqYard.length) {
-        this.getViewportWidth_static = jqYard.width();
+      var $yard = $('#sfun-yardstick-x');
+      if ($yard.length) {
+        this.getViewportWidth_static = $yard.width();
       } else {
         // fall back to window
         this.getViewportWidth_static = $window.width();
@@ -2472,16 +2497,15 @@ window.sfun = (function($, undefined) {
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    * @return {object} jQuery deferred
    */
-  this.fire_scrollUpdate = function(target, eventContext) {
+  var fireScrollUpdate = function(target, eventContext) {
     var that = this;
     // create a context, but parent it only if eventContext is not undefined
-    var localContext = this.eventQueue.pushOrParent({
+    var localContext = eventQueue.pushOrParent({
       'key': 'scroll:'+'x='+target.left+'&y='+target.top,
-      'comment': 'localContext for fire_scrollUpdate',
-      'expires': this.eventQueue.getTime() + this.eventQueue.TIMEOUT_expireEVENT
+      'comment': 'localContext for fire_scrollUpdate'
     }, eventContext);
     if (debug && true) {
-      console.log('* fired scroll event '+this.eventQueue.render(localContext));
+      console.log('* fired scroll event '+eventQueue.render(localContext));
     }
     // fire event: change the scroll position (comes through as single event)
     $document.scrollLeft(target.left);
@@ -2489,9 +2513,9 @@ window.sfun = (function($, undefined) {
     // if we've yet to setup an event handler
     if (this.bindToScroll_static == undefined) {
       // manually call handler
-      this.handler_scrolled({});
+      handlerScrolled({});
     }
-    // localContext is resolved by handler_scrolled
+    // localContext is resolved by handlerScrolled
     return localContext.deferred;
   };
 
@@ -2501,10 +2525,10 @@ window.sfun = (function($, undefined) {
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    * @return {object} jQuery deferred
    */
-  this.fire_keyPress = function(key, eventContext) {
+  var fireKeyPress = function(key, eventContext) {
     var e = jQuery.Event( 'keydown', { which: key } );
-    var localContext = this.eventQueue.pushOrParent({
-      key: 'keypress:key='+key,
+    var localContext = eventQueue.pushOrParent({
+      'key': 'keypress:key='+key,
       'comment': 'localContext for fire_keyPress (keyToPress '+key+')'
     });
     $document.trigger(e);
@@ -2522,70 +2546,63 @@ window.sfun = (function($, undefined) {
    * @param {boolean} forceChange true to force the handler to reapply the hash state to the DOM [default: false]
    * @return {object} jQuery Deferred
    */
-  this.handler_hashChanged = function(hash, forceChange) {
+  var handlerHashChanged = function(hash, forceChange) {
     var that = this;
     // apply argument defaults
     if (forceChange == undefined) {
       forceChange = false;
     }
     // get context if we created the event, invent if it was user generated
-    var eventContext = this.eventQueue.getOrInvent({
+    var eventContext = eventQueue.getOrInvent({
       'key': 'hash:'+hash,
-      'comment': 'invented context for handler_hashChanged'
+      'comment': 'invented context for handlerHashChanged'
     });
-    var wrapUp = function() {
-      // return via resolve
-      return that.eventQueue.resolve(eventContext);
-    }
     // start with defaults
-    var obj = this.getDefaults();
+    var obj = getDefaults();
     // overwrite with current hash values
-    var fromHash = this.hashParse(hash);
+    var fromHash = hashParse(hash);
     // check the hash values are valid, fallback to defaults if not
-    if (!this.hashValidate(fromHash)) {
+    if (!hashValidate(fromHash)) {
       console.log('illegal hash values, falling back to defaults');
     }
-    this.merge(obj, fromHash);
+    merge(obj, fromHash);
     // update previous values if changed
-    var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq(), coffseq = this.getOffseq();
+    var cdirection = getDirection(), cbreadth = getBreadth(), cseq = getSeq(), coffseq = getOffseq();
     if (cdirection != obj.direction) {
-      this.previous['direction'] = cdirection;
+      state_previous['direction'] = cdirection;
     }
     if (cbreadth != obj.breadth) {
-      this.previous['breadth'] = cbreadth;
+      state_previous['breadth'] = cbreadth;
     }
     if (cseq != obj.seq) {
-      this.previous['seq'] = cseq;
+      state_previous['seq'] = cseq;
     }
     if (coffseq != obj.offseq) {
-      this.previous['offseq'] = coffseq;
+      state_previous['offseq'] = coffseq;
     }
     // stage 1: apply [hash] state to DOM
     // direction changes potentially affect ??? images
-    var directionChanged = this.setDirection(obj.direction);
+    var directionChanged = setDirection(obj.direction);
     // breadth changes potentially affect all images
-    var breadthChanged = this.setBreadth(obj.breadth);
+    var breadthChanged = setBreadth(obj.breadth);
     // seq changes at most only affect the image being selected
-    var seqChanged = this.setSeq(obj.seq);
+    var seqChanged = setSeq(obj.seq);
     // seqoffset changes at most only affect the images being viewed
-    var offseqChanged = this.setOffseq(obj.offseq);
+    var offseqChanged = setOffseq(obj.offseq);
     // updates based on certain types of change
     if (breadthChanged || directionChanged || forceChange) {
       // clear cell-specific dimensions and read back positions
-      this.cellsClear();
-      this.visTableMajor.updateAll(this.getDirection(), $sfun_selectablecell);
+      cellsClear();
+      visTableMajor.updateAll(getDirection(), $sfun_selectablecell);
     }
     // find out if we should trigger other events based on this hash change
-    this.eventQueue.actOnContext(eventContext, function(){
+    return eventQueue.actOnContext(eventContext, function(){
       // update images based on what changed
       if (seqChanged || offseqChanged || breadthChanged || directionChanged || forceChange) {
         // scroll to the selected image, which triggers refresh on all .visible images
-        return that.envisionSeq(obj.seq, obj.offseq, eventContext).done(wrapUp);
-      } else {
-        return wrapUp();
+        return envisionSeq(obj.seq, obj.offseq, eventContext);
       }
     });
-    return eventContext.deferred;
   }
 
   /**
@@ -2593,29 +2610,25 @@ window.sfun = (function($, undefined) {
    * @return {object} jQuery deferred
    * downstream of: EVENT scroll
    */
-  this.handler_scrolled = function(event) {
+  var handlerScrolled = function(event) {
     var that = this;
     var sx = $document.scrollLeft(), sy = $document.scrollTop();
     // get context if we created the event, invent if it was user generated
-    var eventContext = this.eventQueue.getOrInvent({
+    var eventContext = eventQueue.getOrInvent({
       'key': 'scroll:'+'x='+sx+'&y='+sy,
-      'comment': 'invented context for handler_scrolled'
+      'comment': 'invented context for handlerScrolled'
     });
-    var wrapUp = function() {
-      return that.eventQueue.resolve(eventContext);
-    }
     // process this event if we're meant to
-    this.eventQueue.actOnContext(eventContext, function() {
-      // don't process scroll event every time, buffer (dump duplicates)
-      that.buffer('handler_scrolled_event',
-      // function to execute if/when we are processing this event
-      function() {
-        return that.handler_scrolled_eventProcess(event, sx, sy).done(wrapUp);
-      },
-      // function to execute if we're dumping this event
-      wrapUp, 250);      
+    return eventQueue.actOnContext(eventContext, function() {
+      // // don't process scroll event every time, buffer (dump duplicates)
+      // buffer('handlerScrolled_event',
+      // // function to execute if/when we are processing this event
+      // function() {
+        return handlerScrolled_eventProcess(event, sx, sy);
+      // },
+      // // function to execute if we're dumping this event
+      // wrapUp, 250);      
     });
-    return eventContext.deferred;
   }
 
   /**
@@ -2623,54 +2636,120 @@ window.sfun = (function($, undefined) {
    * @return {object} jQuery deferred
    * downstream of: EVENT scroll
    */
-  this.handler_scrolled_eventProcess = function(event, sx, sy) {
+  var handlerScrolled_eventProcess = function(event, sx, sy) {
     // invert deltas to match scroll wheel
-    if (this.scroll_lastX == undefined) {
+    if (this.scroll_lastX_static == undefined) {
       event.deltaX = 0 - sx;
       event.deltaY = 0 - sy;
     } else {
-      event.deltaX = 0 - (sx - this.scroll_lastX);
-      event.deltaY = 0 - (sy - this.scroll_lastY);
+      event.deltaX = 0 - (sx - this.scroll_lastX_static);
+      event.deltaY = 0 - (sy - this.scroll_lastY_static);
     }
     event.deltaFactor = 1;
     // remember scroll coords for next time
-    this.scroll_lastX = sx;
-    this.scroll_lastY = sy;
+    this.scroll_lastX_static = sx;
+    this.scroll_lastY_static = sy;
     if (debug && false) {
       console.log('scroll dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
     // see if scroll has made any new images visible
     var scrolldir = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 0 - event.deltaX : 0 - event.deltaY);
-    return this.refreshVisibility(scrolldir);
+    return refreshVisibility(scrolldir);
   };
 
   /**
-   * process events generated by mouse wheel scrolling
-   * downstream of: EVENT mouse wheeled
+   * process events generated by key presses
+   * downstream of: EVENT key pressed
    * @return {object} jQuery deferred
    */
-  this.handler_mouseWheeled = function(event) {
+  var handlerKeyPressed = function(event) {
+    var that = this;
+    // create an event context for this handler, or use stored one
+    var eventContext = eventQueue.getOrInvent({
+      'key': 'keypress:'+'key='+event.which,
+      'comment': 'invented context for handlerKeyPressed'
+    });
+    // optional debugging information
+    if (debug && false) {
+      console.log('keydown event code['+event.which+']');
+    }
+    return eventQueue.actOnContext(eventContext, function() {
+      // process key press
+      switch (event.which) {
+        case exp.KEY_ARROW_LEFT:
+          if (!event.altKey) {
+            event.preventDefault();
+            // advance to previous image
+            return imageAdvanceBy(-1, eventContext);
+          }
+          break;
+        case exp.KEY_ARROW_UP:
+          if (event.altKey) {
+            event.preventDefault();
+            urlChangeUp();
+          }
+          break;
+        case exp.KEY_ARROW_RIGHT:
+        case exp.KEY_TAB:
+        case exp.KEY_ARROW_DOWN:
+          // advance to next image
+          event.preventDefault();
+          return imageAdvanceBy(1, eventContext);
+        case exp.KEY_PAGE_UP:
+          if (!event.ctrlKey) {
+            event.preventDefault();
+            return imageAdvanceBy(-1 * getCountMajor() * getBreadth(), eventContext);
+          }
+          break;
+        case exp.KEY_PAGE_DOWN:
+          if (!event.ctrlKey) {
+            event.preventDefault();
+            return imageAdvanceBy(1 * getCountMajor() * getBreadth(), eventContext);
+          }
+          break;
+        case exp.KEY_HOME:
+          event.preventDefault();
+          return imageAdvanceTo(0, eventContext);
+        case exp.KEY_END:
+          event.preventDefault();
+          return imageAdvanceTo(getTotalEntries()-1, eventContext);
+        case exp.KEY_RETURN:
+          event.preventDefault();
+          return imageToggleFullscreen(eventContext);
+        case exp.KEY_NUMBER_1:
+          event.preventDefault();
+          return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
+        case exp.KEY_NUMBER_2:
+          event.preventDefault();
+          returnfireHashUpdate( { 'breadth': 2 }, false, eventContext);
+        case exp.KEY_NUMBER_4:
+          event.preventDefault();
+          return fireHashUpdate( { 'breadth': 4 }, false, eventContext);
+        case exp.KEY_NUMBER_8:
+          event.preventDefault();
+          return fireHashUpdate( { 'breadth': 8 }, false, eventContext);
+      }
+    });
+  }
+
+  /**
+   * process events generated by mouse wheel scrolling
+   * mouseWheeled is a dumb event; we never fire it, so it doesn't have a context
+   * downstream of: EVENT mouse wheeled
+   */
+  var handlerMouseWheeled = function(event) {
     var that = this;
     var cellsnap = true;
     // work out what direction we're applying this mouse-wheel scroll to
-    var direction = this.getDirection();
+    var direction = getDirection();
     // active mousewheel reaction is dependent on which direction we're flowing in
     if (direction == 'x') {
       event.preventDefault();
-      // invent context as all mouse wheel events are user generated
-      var eventContext = this.eventQueue.invent({
-        'key': 'wheel:dir='+direction,
-        'comment': 'invented context for handler_mouseWheeled'
-      });
-      var wrapUp = function() {
-        return that.eventQueue.resolve(eventContext);
-      }
       var xpos = $document.scrollLeft();
       // get current cell size
-      var cellsize = this.getCellSize();
+      var cellsize = getCellSize();
       // if not currently aligned to cells, get extra gap to next cell boundary
       var scrolldir = 0 - event.deltaY;
-        // @todo include extra
       // optional debugging
       if (debug && false) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
@@ -2679,92 +2758,13 @@ window.sfun = (function($, undefined) {
       var increment;
       if (cellsnap) {
         // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
-        var extra = this.getCellAlignExtra(scrolldir, scrolldir > 0 ? xpos + this.getViewportWidth() : xpos);
-        increment = xpos + (scrolldir * cellsize) + extra;
+        increment = xpos + (scrolldir * cellsize);
       } else {
-        increment = xpos + (scrolldir * event.deltaFactor * this.export.scrollMULTIPLIER);
+        increment = xpos + (scrolldir * event.deltaFactor * exp.scrollMULTIPLIER);
       }
       // get current x position, increment and write back, firing scroll event
-      return this.fire_scrollUpdate( { 'left': increment, 'top':0 } , eventContext).done(wrapUp);
+      envisionPos( { 'left': increment, 'top':0 } );
     }
-    return $.Deferred().resolve();
-  }
-
-  /**
-   * process events generated by key presses
-   * downstream of: EVENT key pressed
-   * @return {object} jQuery deferred
-   */
-  this.handler_keyPressed = function(event) {
-    var that = this;
-    // create an event context for this handler, or use stored one
-    var eventContext = this.eventQueue.getOrInvent({
-      'key': 'keypress:'+'key='+event.which,
-      'comment': 'invented context for handler_keyPressed'
-    });
-    var wrapUp = function() {
-      return that.eventQueue.resolve(eventContext);
-    }
-    // optional debugging information
-    if (debug && false) {
-      console.log('keydown event code['+event.which+']');
-    }
-    // process key press
-    switch (event.which) {
-      case that.export.KEY_ARROW_LEFT:
-        if (!event.altKey) {
-          event.preventDefault();
-          // advance to previous image
-          return that.imageAdvanceBy(-1, eventContext).done(wrapUp);
-        }
-        break;
-      case that.export.KEY_ARROW_UP:
-        if (event.altKey) {
-          event.preventDefault();
-          that.urlChangeUp();
-        }
-        break;
-      case that.export.KEY_ARROW_RIGHT:
-      case that.export.KEY_TAB:
-      case that.export.KEY_ARROW_DOWN:
-        // advance to next image
-        event.preventDefault();
-        return that.imageAdvanceBy(1, eventContext).done(wrapUp);
-      case that.export.KEY_PAGE_UP:
-        if (!event.ctrlKey) {
-          event.preventDefault();
-          return that.imageAdvanceBy(-1 * that.getCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
-        }
-        break;
-      case that.export.KEY_PAGE_DOWN:
-        if (!event.ctrlKey) {
-          event.preventDefault();
-          return that.imageAdvanceBy(1 * that.getCountMajor() * that.getBreadth(), eventContext).done(wrapUp);
-        }
-        break;
-      case that.export.KEY_HOME:
-        event.preventDefault();
-        return that.imageAdvanceTo(0, eventContext).done(wrapUp);
-      case that.export.KEY_END:
-        event.preventDefault();
-        return that.imageAdvanceTo(that.getTotalEntries()-1, eventContext).done(wrapUp);
-      case that.export.KEY_RETURN:
-        event.preventDefault();
-        return that.imageToggleFullscreen(eventContext).done(wrapUp);
-      case that.export.KEY_NUMBER_1:
-        event.preventDefault();
-        return that.fire_hashUpdate( { 'breadth': 1 }, false, eventContext).done(wrapUp);
-      case that.export.KEY_NUMBER_2:
-        event.preventDefault();
-        returnthat.fire_hashUpdate( { 'breadth': 2 }, false, eventContext).done(wrapUp);
-      case that.export.KEY_NUMBER_4:
-        event.preventDefault();
-        return that.fire_hashUpdate( { 'breadth': 4 }, false, eventContext).done(wrapUp);
-      case that.export.KEY_NUMBER_8:
-        event.preventDefault();
-        return that.fire_hashUpdate( { 'breadth': 8 }, false, eventContext).done(wrapUp);
-    }
-    return wrapUp();
   }
 
   // ------------------
@@ -2777,7 +2777,7 @@ window.sfun = (function($, undefined) {
    * @param  {object} view collection of values to substitute
    * @return {string} output after substitution
    */
-  this.substitute = function(template, view) {
+  var substitute = function(template, view) {
     var output = Mustache.render(template, view);
     return output;
   }
@@ -2788,7 +2788,7 @@ window.sfun = (function($, undefined) {
    * @param obj1
    * @param obj2
    */
-  this.merge = function(obj1, obj2){
+  var merge = function(obj1, obj2){
     for (var attrname in obj2) {
       obj1[attrname] = obj2[attrname];
     }
@@ -2801,7 +2801,7 @@ window.sfun = (function($, undefined) {
    * @param {function} dropCallback to call if we're dropping this event
    * @param {int} timeout in milliseconds, needs to be about 200ms for normal dragging
    */
-  this.buffer = function(name, successCallback, dropCallback, timeout) {
+  var buffer = function(name, successCallback, dropCallback, timeout) {
     // option to disable buffer
     var disabled = false;
     if (disabled) {
@@ -2831,13 +2831,13 @@ window.sfun = (function($, undefined) {
   }
 
   /**
-   * @param {jQuery} jqEntity the cell
+   * @param {jQuery} $entity the cell
    * @param {bool} True to include partially visible cells
    * @return {bool} True if this image is currently visible in the viewport
    */
-  this.isVisible = function(jqEnt, partial) {
-    if (jqEnt.hasClass('visible')) return true;
-    if (partial && jqEnt.hasClass('vispart')) return true;
+  var isVisible = function($ent, partial) {
+    if ($ent.hasClass('visible')) return true;
+    if (partial && $ent.hasClass('vispart')) return true;
     return false;
   }
 
@@ -2848,7 +2848,7 @@ window.sfun = (function($, undefined) {
    *          to search for
    * @return true if the haystack ends with the needle
    */
-  this.endswith = function(haystack, needle) {
+  var endswith = function(haystack, needle) {
     // roll on ECMAScript 6
     return haystack.indexOf(needle, haystack.length - needle.length) !== -1;
   }
@@ -2858,10 +2858,10 @@ window.sfun = (function($, undefined) {
    * @param {string} hash to strip
    * @return {string} stripped output
    */
-  this.stripBang = function(hash) {
+  var stripBang = function(hash) {
     var output;
-    // re = new RegExp('/^['+this.export.stringHASHBANG+']*/','g');
-    re = new RegExp('^['+this.export.stringHASHBANG+']','g');
+    // re = new RegExp('/^['+exp.stringHASHBANG+']*/','g');
+    re = new RegExp('^['+exp.stringHASHBANG+']','g');
     output = hash.replace(re,'');
     return output;
   }
@@ -2869,15 +2869,15 @@ window.sfun = (function($, undefined) {
   /**
    * @return {string} browser's hash without whatever stringHASHBANG we're using
    */
-  this.getHash = function() {
-    return this.stripBang(History.getHash());
+  var getHash = function() {
+    return stripBang(History.getHash());
   }
 
   /**
    * @return {string} browser's hash minus a few attributes
    */
-  this.getFilteredHash = function() {
-    return this.getHash();
+  var getFilteredHash = function() {
+    return getHash();
   }
 
   // ---------------------
@@ -2888,8 +2888,7 @@ window.sfun = (function($, undefined) {
   // FUNCTIONS: External API
   // -----------------
 
-  var that = this;
-  this.export = {
+  var exp = {
     // queue function calls until document ready
     'q': [],
 
@@ -2923,23 +2922,23 @@ window.sfun = (function($, undefined) {
     // CONSTANTS
     // ---------
 
-    KEY_ARROW_LEFT: 37,
-    KEY_ARROW_RIGHT: 39,
-    KEY_ARROW_UP: 38,
-    KEY_ARROW_DOWN: 40,
-    KEY_TAB: 9,
-    KEY_HOME: 36,
-    KEY_END: 35,
-    KEY_PAGE_UP: 33,
-    KEY_PAGE_DOWN: 34,
-    KEY_SHIFT: 16,
-    KEY_CTRL: 17,
-    KEY_ALT: 18,
-    KEY_RETURN: 13,
-    KEY_NUMBER_1: 49,
-    KEY_NUMBER_2: 50,
-    KEY_NUMBER_4: 52,
-    KEY_NUMBER_8: 56,
+    'KEY_ARROW_LEFT': 37,
+    'KEY_ARROW_RIGHT': 39,
+    'KEY_ARROW_UP': 38,
+    'KEY_ARROW_DOWN': 40,
+    'KEY_TAB': 9,
+    'KEY_HOME': 36,
+    'KEY_END': 35,
+    'KEY_PAGE_UP': 33,
+    'KEY_PAGE_DOWN': 34,
+    'KEY_SHIFT': 16,
+    'KEY_CTRL': 17,
+    'KEY_ALT': 18,
+    'KEY_RETURN': 13,
+    'KEY_NUMBER_1': 49,
+    'KEY_NUMBER_2': 50,
+    'KEY_NUMBER_4': 52,
+    'KEY_NUMBER_8': 56,
 
     stringHASHBANG: '#!',
     pullImgSrcTHRESHOLD: 20,
@@ -2953,7 +2952,7 @@ window.sfun = (function($, undefined) {
      * @param {object} obj arguments
      */
     'api_headerAddButton': function(obj) {
-      var output = that.substitute(obj.template, obj.view);
+      var output = substitute(obj.template, obj.view);
       // attach output to header
       $('.header').append(output);
       // allow element to bind its handlers
@@ -2965,7 +2964,7 @@ window.sfun = (function($, undefined) {
      * @param {object} obj arguments
      */
     'api_registerLayout': function(obj) {
-      that.layoutManager.push(obj);
+      layoutManager.push(obj);
       // allow element to bind its handlers
       obj.callback.call(obj.context);
     },
@@ -2981,31 +2980,31 @@ window.sfun = (function($, undefined) {
      * @return {int} Width of alley in pixels
      */
     'api_getAlley': function() {
-      return that.getAlley();
+      return getAlley();
     },
 
     /**
      * @return {string} direction of current view
      */
     'api_getDirection': function() {
-      return that.getDirection();
+      return getDirection();
     },
 
     /**
      * @return {int} breadth of current view
      */
     'api_getBreadth': function() {
-      return that.getBreadth();
+      return getBreadth();
     },
 
     /**
      * @return {int} return viewport width/height
      */
     'api_getViewportWidth': function() {
-      return that.getViewportWidth();
+      return getViewportWidth();
     },
     'api_getViewportHeight': function() {
-      return that.getViewportHeight();
+      return getViewportHeight();
     },
 
     /**
@@ -3019,42 +3018,42 @@ window.sfun = (function($, undefined) {
      * @return {int} total number of entries
      */
     'api_getTotalEntries': function() {
-      return that.getTotalEntries();
+      return getTotalEntries();
     },
 
     /**
      * @return {float} number of cells on the major axis
      */
     'api_getCountMajor': function() {
-      return that.getCountMajor();
+      return getCountMajor();
     },
 
     /**
      * @return {object} visibility table for major axis
      */
     'api_getVisTableMajor': function() {
-      return that.visTableMajor;
+      return visTableMajor;
     },
 
     /**
      * @return {object} event queue
      */
     'api_getEventQueue': function() {
-      return that.eventQueue;
+      return eventQueue;
     },
 
     /**
-     * @param {object} jqEnt cell to check (and re-set) bounds for
+     * @param {object} $ent cell to check (and re-set) bounds for
      */
-    'api_setBound': function(jqEnt) {
-      return that.setBound(jqEnt, true);
+    'api_setBound': function($ent) {
+      return setBound($ent, true);
     },
 
     /**
      * helper function to make testing key presses easier
      */
     'api_triggerKeypress': function(key) {
-      return that.fire_keyPress(key);
+      return fireKeyPress(key);
     },
 
     /**
@@ -3069,16 +3068,13 @@ window.sfun = (function($, undefined) {
       }
       if (numb) {
         // create a null context to numb the event listener
-        var localContext = that.eventQueue.push({
-          'replaceEvent': function(){
-            // just wrapUp this context
-            that.eventQueue.resolve(localContext);
-          },
+        var localContext = eventQueue.push({
+          'replaceEvent': true,
           'comment': 'localContext for api_triggerScroll, numb listener'
         });
-        return that.fire_scrollUpdate(pos, localContext);
+        return envisionPos(pos, localContext);
       }
-      return that.fire_scrollUpdate(pos);
+      return envisionPos(pos);
     },
  
     /**
@@ -3086,7 +3082,7 @@ window.sfun = (function($, undefined) {
      * @param {int} seq image to advance to
      */
     'api_imageAdvanceTo': function(seq) {
-      return that.imageAdvanceTo(seq);
+      return imageAdvanceTo(seq);
     },
 
     /**
@@ -3113,7 +3109,7 @@ window.sfun = (function($, undefined) {
      * @return {object} visibility table for major axis
      */
     'api_createVisTable': function() {
-      return that.createVisTable();
+      return createVisTable();
     },
 
     // no comma on last entry
@@ -3121,7 +3117,7 @@ window.sfun = (function($, undefined) {
   };
 
   // call init function then return API object
-  this.init();
-  return this.export;
+  init();
+  return exp;
 
 })(jQuery, undefined);

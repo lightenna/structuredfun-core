@@ -1,13 +1,58 @@
 
-* get eventQueue emptying out properly
-
-* end key test not completing in proper time
-  + can't actually select end entity if it's a directory
-    + selection bounces back from 10 to 9
-
-* images getting stuck in reresing
-  + waiting for timeout before completing
-    + suspect it's a critical section/delaying bug
+* scrolling suddenly jerks back
+  + then forward again after check expiries
+    + set a break point on check expiries
+--o--
+* thinking about re-writing bufer
+  + making it implicit
+    + hash:seqs are queue up on the stack
+      + when we've got a new one
+        + there's really no value in going to the old one
+        + might as well dump it
+          + have to be a little bit careful of parents
+            + this hash:seq could be part of a long chain
+            + I think we're just going to resolve() it
+              + which handles parent
+                + just need to check it doesn't have children
+                + which it can't because it hasn't run yet
+                  + no critical_section delayed children
+                  + no fired events downstream
+    + this is exactly the same for the scrolls
+      + we basically just want to resolve them to
+        + which is what we do in buffer
+  + nice to do it for everything
+    + we need some mechanism of identifying similar events
+      + suggest key up to first :
+      + could always later come back and define families
+  * actOnContext seems to be the place for vetting events
+    + need to understand how we're currently delaying them
+      + they seem to be getting lost because
+        + they are children of refreshSelected events
+          + that resolve without them [async]
+        + I think we fire another fireHashUpdate so quickly
+          + that the browser never processes the original hash:seq
+          - no, that's not correct
+        + browser does catch it
+          + but we use 'replaceEvent' in place
+            + which I guess nulls it and doesn't resolve it
+    + idea 1: stop doing that
+      + find out why we're replaceEventing and not resolving
+    + idea 2: give hash:seqs an expire
+      + so that checkExpiries tidies them up
+  + 1 it's because in parent() we're giving children the replaceEvent
+    + of their parents
+      + so the parent just gets resolved
+        + maybe replace replaceEvent with a flag
+          + nullify
+  + considering shift to resolve all contexts as part of the actOnContext
+    + yes
+    + change actOnContext first
+      + then progressively remove the wrapUp functions
+        + testing all the way
+    + done
+--o--
+  + re-introduce buffering for [scroll] events
+    + should apply to all events
 
 * work on test suite
 
@@ -2035,4 +2080,39 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
           + if it's going to give us it!
       + but we could rely on the critical section
         + probably safe to bind once handler_hash is in its critical section
+
+* sfun is an image collection tool
+  + for people who collect and organise images
+
+* get eventQueue emptying out properly
+  + buffered scroll events die in the queue
+  + resolve can always take something out of the queue
+    + fallback
+  + introduce a new 3rd list to track 'unfilled' contexts
+    + fill list?
+      + unhandled
+    + new subtle issue
+      + if we match against unhandled
+        + getOrInvent will now invent a new context
+      + need to do a clever thing in getOrInvent
+        + get matches it using the keyarr list
+          + but if the corresponding entry in unhandled is null
+            + that means we're already processing this event
+            + and it hasn't yet been resolved
+            + so don't process it again
+    + unhandled array may be a chance to get rid of criticalSection?
+      + maybe not
+      + criticalSection covers case where an [unfired] scroll event starts processing in the middle of a hash event
+  + major variable renaming
+    + all local
+      + apart from static, which I can live with
+    + much more consistent now
+
+* end key test not completing in proper time
+  + can't actually select end entity if it's a directory
+    + selection bounces back from 10 to 9
+
+* images getting stuck in reresing
+  + waiting for timeout before completing
+    + suspect it's a critical section/delaying bug
 
