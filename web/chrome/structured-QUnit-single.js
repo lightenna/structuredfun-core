@@ -61,36 +61,6 @@
       window.location.hash = '#!';
     }
 
-    test( 'reres of first page of images', function() {
-      QUnit.stop();
-      sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
-        equal( $('ul.flow .selectablecell.selected').data('seq'), 0, 'Home selected #0 image' );
-        $('ul.flow .selectablecell.visible .reresable').each(function() {
-          var imw = $(this).width(), imh = $(this).height();
-          var jqEnt = $(this).parents('li');
-          var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
-          ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
-        });
-        endTest();
-        QUnit.start();
-      });
-    });
-
-    test( 'reres of last page of images', function() {
-      QUnit.stop();
-      sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
-        equal( $('ul.flow .selectablecell.selected').data('seq'), (sfun.api_getTotalEntries()-1), 'End selected last image' );
-        $('ul.flow .selectablecell.visible .reresable').each(function() {
-          var imw = $(this).width(), imh = $(this).height();
-          var jqEnt = $(this).parents('li');
-          var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
-          ok( imw <= lodw && imh <= lodh, 'image #'+jqEnt.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
-        });
-        QUnit.start();
-        endTest();
-      });
-    });
-
     QUnit.start();
   }
 

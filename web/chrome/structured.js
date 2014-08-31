@@ -429,7 +429,7 @@ window.sfun = (function($, undefined) {
       var bigger = imageContainerWidth > loadedWidth || imageContainerHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;
       // optional debugging
-      if (debug && true) {
+      if (debug && false) {
         console.log('image-'+$ent.data('seq')+': checking resolution w['+imageContainerWidth+'] h['+imageContainerHeight+'] nativeWidth['+nativeWidth+'] nativeHeight['+nativeHeight+'] loadedWidth['+loadedWidth+'] loadedHeight['+loadedHeight+']');
       }
       // test to see if we're displaying an image at more than 100%
@@ -718,10 +718,7 @@ window.sfun = (function($, undefined) {
     $sfun.on('click', '.selectablecell a.media-container', function(event) {
       // select image, then toggle
       var seq = $(this).parents('.selectablecell').data('seq');
-      // seq changes don't go into history
-      fireHashUpdate( { 'seq': seq }, false);
-      // this is a bit nasty, because it's doing 2 hash updates in quick succession
-      imageToggleFullscreen();
+      imageToggleFullscreen(seq);
       event.preventDefault();
     });
   };
@@ -1413,18 +1410,19 @@ window.sfun = (function($, undefined) {
 
   /**
    * switch between the default breadth and fullscreen
+   * @param {int} seq image to make fullscreen
    * @param {object} eventContext optional event context for decorating an existing deferred
    * @return {object} jQuery deferred
    */
-  var imageToggleFullscreen = function(eventContext) {
-    var $ent = $sfun_selectedcell;
+  var imageToggleFullscreen = function(seq, eventContext) {
+    var $ent = $img(seq);
     switch (getType($ent)) {
       case 'image':
         // toggle using hash change
         if (getBreadth() == 1) {
-          return fireHashUpdate( { 'breadth': state_previous['breadth'] }, false, eventContext);
+          return fireHashUpdate( { 'breadth': state_previous['breadth'], 'seq': seq }, false, eventContext);
         } else {
-          return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
+          return fireHashUpdate( { 'breadth': 1, 'seq': seq }, false, eventContext);
         }
         break;
       case 'directory':
@@ -1678,6 +1676,34 @@ window.sfun = (function($, undefined) {
           ref = this.keyarr.lastIndexOf(key);
         } else {
           ref = this.keyarr.indexOf(key);
+        }
+        return ref;
+      },
+
+      /**
+       * @param {mixed} key to search for, as regular expression without slashes
+       * @param {bool} [findLast] true to find last occurrence of this key
+       * @return {int} array reference or -1 if not found
+       */
+      'findRegex': function(key, findLast) {
+        var ref;
+        // set defaults on optional arguments
+        if (typeof(findLast) == 'undefined') {
+          findLast = false;
+        }
+        // prep search loop
+        var re = new RegExp(key, 'g');
+        $matches = [];
+        for (var i=0 ; i<this.keyarr.length ; i++) {
+          // try and match the key against this key
+          if (this.keyarr[i].match(re) != null) {
+            // store position of match
+            ref = i;
+            if (!findLast) {
+              // if we're not looking for the last one, break at the first match
+              break;
+            }
+          }
         }
         return ref;
       },
@@ -2715,7 +2741,7 @@ window.sfun = (function($, undefined) {
           return imageAdvanceTo(getTotalEntries()-1, eventContext);
         case exp.KEY_RETURN:
           event.preventDefault();
-          return imageToggleFullscreen(eventContext);
+          return imageToggleFullscreen(getSeq(), eventContext);
         case exp.KEY_NUMBER_1:
           event.preventDefault();
           return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
@@ -2739,7 +2765,6 @@ window.sfun = (function($, undefined) {
    */
   var handlerMouseWheeled = function(event) {
     var that = this;
-    var cellsnap = true;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = getDirection();
     // active mousewheel reaction is dependent on which direction we're flowing in
@@ -2755,6 +2780,7 @@ window.sfun = (function($, undefined) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
       // calculate increment based on cell snap
+      var cellsnap = true;
       var increment;
       if (cellsnap) {
         // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
@@ -2861,7 +2887,7 @@ window.sfun = (function($, undefined) {
   var stripBang = function(hash) {
     var output;
     // re = new RegExp('/^['+exp.stringHASHBANG+']*/','g');
-    re = new RegExp('^['+exp.stringHASHBANG+']','g');
+    var re = new RegExp('^['+exp.stringHASHBANG+']','g');
     output = hash.replace(re,'');
     return output;
   }
@@ -2970,6 +2996,23 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @param  {string} regkey key as regular expression
+     * @return {object} eventContext.deferred if found, a resolved deferred if not
+     */
+    'api_bindToContext': function(regkey) {
+      // find last matching key
+      var ref = eventQueue.findRegex(regkey, true);
+      if (ref == -1) {
+        return getDeferred().resolve();
+      }
+      var context = eventQueue.select(ref);
+      if (context == null) {
+        return getDeferred().resolve();
+      }
+      return context.deferred;
+    },
+
+    /**
      * @return {object} jQuery object for cell
      */
     'api_getCell': function(seq) {
@@ -2995,6 +3038,13 @@ window.sfun = (function($, undefined) {
      */
     'api_getBreadth': function() {
       return getBreadth();
+    },
+
+    /**
+     * @return {int} currently selected entity
+     */
+    'api_getSeq': function() {
+      return getSeq();
     },
 
     /**
@@ -3047,6 +3097,21 @@ window.sfun = (function($, undefined) {
      */
     'api_setBound': function($ent) {
       return setBound($ent, true);
+    },
+
+    /**
+     * trigger a click and allow caller to bind to its context
+     * @param  {object} $ent jQuery entity to click
+     * @return {object} jQuery deferred
+     */
+    'api_triggerClick': function($ent) {
+      $ent.trigger('click');
+      // get earliest context for current [post-click] hash
+      var context = eventQueue.get(getHash());
+      if (context == null) {
+        return getDeferred().resolve();
+      }
+      return context.deferred;
     },
 
     /**
