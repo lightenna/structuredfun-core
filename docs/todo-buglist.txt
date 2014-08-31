@@ -1,12 +1,14 @@
 
-* work on test suite
-  + need to check that api_keypress is really waiting until its resolved
-    + properly, all the way through to completion of sub-contexts
-      + as we need the hash to have completed
-        + to have selected the right image
-  + first 'click' event comes through jQuery
-    + not sfun
-      + so no mechanism to wait for done() right now
+* fix failing test
+  + 'reres of last page of images'
+    + failing only sometimes in Firefox
+
+* introduce progressive scroll test
+  + scroll to middle
+  + check that we have > 1000px + viewport headroom
+  + fire 100 x 10px scroll events in sequence
+    + check that the final one gets resolved
+      + check that position of browser after final event
 
 * play with image overlays
   + couple of possible routes
@@ -2157,4 +2159,15 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
 * work on test suite
   + need to redo eventQueue tests
     + actOnContext now resolves its own contexts
+
+* work on test suite
+  + need to check that api_keypress is really waiting until its resolved
+    + properly, all the way through to completion of sub-contexts
+      + as we need the hash to have completed
+        + to have selected the right image
+  + first 'click' event comes through jQuery
+    + not sfun
+      + so no mechanism to wait for done() right now
+  + very close now
+    + having some good complete runs
 
