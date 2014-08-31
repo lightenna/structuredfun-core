@@ -65,7 +65,7 @@
      * 1. to reset the environment because tests can run in any order
      * 2. to drop us back at the top/left of the page after all tests finish
      */
-
+/*
     test( 'check enough images for test suite', function() {
       ok( sfun.api_getTotalEntries() >= 4 , sfun.api_getTotalEntries() + ' images in test set')
       // check basic properties of visTableMajor
@@ -89,39 +89,37 @@
 
     test( 'check eventQueue act-on critical delay', function() {
       expect(5);
+      var result = true;
       var evq = sfun.api_getEventQueue();
       var localContext = evq.push({
         'key': 'test:act-on critical first'
-      });
-      // act on first context
-      QUnit.stop();
-      evq.actOnContext(localContext, function() {
-        // check we're now flagged as being in our critical section
-        equal( evq.criticalSection, localContext, 'localContext is flagged criticalSection');
-        QUnit.start();
       });
       // create a second context
       var delayedContext = evq.push({
         'key': 'test:act-on critical delayed'
       });
+      // act on first context
       QUnit.stop();
-      var result = true;
-      // try to act on it; it should get delayed and queued
-      evq.actOnContext(delayedContext, function() {
-        // use semaphor to mark that we've been run (toggle result)
-        result = !result;
-        // when we eventually run, should be flagged as being in our critical section
-        equal( evq.criticalSection, delayedContext, 'delayedContext is flagged criticalSection');
+      evq.actOnContext(localContext, function() {
+        // check we're now flagged as being in our critical section
+        equal( evq.critical_section, localContext, 'localContext is flagged criticalSection');
+        // try to act on it; it should get delayed and queued
+        evq.actOnContext(delayedContext, function() {
+          // use semaphor to mark that we've been run (toggle result)
+          result = !result;
+          // when we eventually run, should be flagged as being in our critical section
+          equal( evq.critical_section, delayedContext, 'delayedContext is flagged criticalSection');
+        });
+        // check that delayedContext got delayed; result should still be in its original state (true)
+        equal(result, true, 'delayedContext has not been run yet');
         QUnit.start();
       });
-      // check that delayedContext got delayed; result should still be in its original state (true)
-      equal(result, true, 'delayedContext has not been run yet');
       // resolve first context
       evq.resolve(localContext);
       // check that delayedContext has not been run
       equal(result, false, 'delayedContext has now been run');
       // check that delayedContext also got resolved
-      equal( delayedContext.deferred.state(), 'resolved', 'delayedContext was implicitly resolved');
+      equal(delayedContext.deferred.state(), 'resolved', 'delayedContext was implicitly resolved');
     });
 
     test( 'check eventQueue act-on simple with critical', function() {
@@ -130,7 +128,7 @@
       // no action, just shouldn't generate an error
       evq.actOnContext(null);
       // check nothing is in its critical section
-      equal( evq.criticalSection, null, 'nothing in criticalSection');
+      equal( evq.critical_section, null, 'nothing in criticalSection');
       var localContext = evq.push({
         'key': 'test:act-on simple',
         'comment': 'localContext for check eventQueue act-on simple test'
@@ -139,11 +137,11 @@
       QUnit.stop();
       evq.actOnContext(localContext, function() {
         // check we're now flagged as being in our critical section
-        equal( evq.criticalSection, localContext, 'localContext is flagged criticalSection');
+        equal( evq.critical_section, localContext, 'localContext is flagged criticalSection');
         QUnit.start();
       });
       evq.resolve(localContext);
-      notEqual( evq.criticalSection, localContext, 'localContext is no longer flagged as criticalSection');
+      notEqual( evq.critical_section, localContext, 'localContext is no longer flagged as criticalSection');
     });
 
     test( 'check eventQueue act-on replace', function() {
@@ -152,15 +150,17 @@
       var localContext = evq.push({
         'key': 'test:act-on replace',
         'comment': 'localContext for check eventQueue simple test',
-        'replaceEvent': function() {
-          ok(true, 'act-on uses replaced function');
-          QUnit.start();
-        }
+        'replaceEvent': true
       });
       // act-on the replaced function, not the passed one
       QUnit.stop();
       evq.actOnContext(localContext, function() {
-        ok(false, 'act on '+localContext.key+' not using replaced function');
+        ok(false, 'act on '+localContext.key+' not replacing event');
+        QUnit.start();
+      });
+      // check that the localContext gets resolved without calling func
+      localContext.deferred.then(function() {
+        ok(true, 'act on '+localContext.key+' resolved properly');
         QUnit.start();
       });
       evq.resolve(localContext);
@@ -173,10 +173,12 @@
       // push a parent context
       var parentContext = evq.push({
         'key': 'test:parent multi',
-        'comment': 'parent context for check eventQueue parent multi-child test'
+        'comment': 'parent context for check eventQueue parent multi-child test',
+        // flag that parent should resolve once child is resolved
+        'autoresolve': true
       });
       // push first child context
-      var child1 = evq.pushChild(parentContext, {
+      var child1 = evq.push({
         'key': 'test:child1',
         'comment': 'child1 context for check eventQueue parent multi-child test'
       });
@@ -185,7 +187,8 @@
         'key': 'test:child2',
         'comment': 'child2 context for check eventQueue parent multi-child test'
       });
-      evq.parent(parentContext, child2);
+      evq.parent(child1, parentContext);
+      evq.parent(child2, parentContext);
       // setup add-mux test variable
       var result = 3;
       // attach functions to each context
@@ -221,10 +224,11 @@
         'comment': 'parent context for check eventQueue parent test'
       });
       // push a child context
-      var childContext = evq.pushChild(parentContext, {
+      var childContext = evq.push({
         'key': 'test:child',
         'comment': 'child context for check eventQueue parent test'
       });
+      evq.parent(childContext, parentContext);
       // setup add-mux test variable
       var result = 3;
       // attach functions to each context
@@ -276,7 +280,7 @@
 
     test( 'check eventQueue merged', function() {
       // use expect to ensure that we get our async test
-      expect(8);
+      expect(7);
       var evq = sfun.api_getEventQueue();
       // push a context
       var localContext = evq.push({
@@ -288,8 +292,6 @@
         'key': 'test:merged',
         'comment': 'second context created to merge localContext and mergedContext',
       }, localContext);
-      // check that we've got two different contexts
-      notEqual( localContext, mergedContext, 'two contexts');
       // fetch back context
       var retrievedContext = evq.get('test:merged');
       equal( mergedContext, retrievedContext, 'retrieved context same as local');
@@ -311,8 +313,8 @@
 
     test( 'reres of first page of images', function() {
       QUnit.stop();
-      sfun.api_triggerKeypress(sfun.KEY_HOME).then(function() {
-        ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
+      sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
+        equal( $('ul.flow .selectablecell.selected').data('seq'), 0, 'Home selected #0 image' );
         $('ul.flow .selectablecell.visible .reresable').each(function() {
           var imw = $(this).width(), imh = $(this).height();
           var jqEnt = $(this).parents('li');
@@ -326,8 +328,8 @@
 
     test( 'reres of last page of images', function() {
       QUnit.stop();
-      sfun.api_triggerKeypress(sfun.KEY_END).then(function() {
-        ok( $('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
+      sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
+        equal( $('ul.flow .selectablecell.selected').data('seq'), (sfun.api_getTotalEntries()-1), 'End selected last image' );
         $('ul.flow .selectablecell.visible .reresable').each(function() {
           var imw = $(this).width(), imh = $(this).height();
           var jqEnt = $(this).parents('li');
@@ -365,37 +367,54 @@
     test( 'image click #1, return, arrow next', function() {
       window.location.hash = 'image_click_1';
       var initialBreadth = sfun.api_getBreadth();
-      $('#seq-1').find('a').trigger('click');
-      sfun.api_triggerKeypress(sfun.KEY_RETURN);
-      ok( sfun.api_getBreadth() == initialBreadth, 'Returned to initial breadth value ('+initialBreadth+')' );
-      sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
-      ok( $('ul.flow .selectablecell.selected').data('seq') == 2, 'Right arrow selected #2 image (#1+1)' );
-      endTest();
+      QUnit.stop();
+      sfun.api_triggerClick($('#seq-1').find('a')).done(function() {
+        equal(sfun.api_getSeq(), 1, 'Click selected #1 image');
+        equal(sfun.api_getBreadth(), 1, 'Showing image full-screen');
+        sfun.api_triggerKeypress(sfun.KEY_RETURN).done(function() {
+          equal(sfun.api_getBreadth(), initialBreadth, 'Returned to initial breadth value');
+          sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT).done(function(){
+            equal($('ul.flow .selectablecell.selected').data('seq'), 2, 'Right arrow selected #2 image (#1+1)' );
+            QUnit.start();
+            endTest();
+          });
+        });
+      });
     });
 
     test( 'set breadth 4, image click #1, return', function() {
       window.location.hash = 'breadth_4_image_click_1';
-      sfun.api_triggerKeypress(sfun.KEY_NUMBER_4);
-      ok( sfun.api_getBreadth() == 4, 'Selected breadth value 4' );
-      // click to fullscreen, then return back
-      $('#seq-1').find('a').trigger('click');
-      sfun.api_triggerKeypress(sfun.KEY_RETURN);
-      ok( sfun.api_getBreadth() == 4, 'Returned to breadth value (4)' );
-      endTest();
+      QUnit.stop();
+      sfun.api_triggerKeypress(sfun.KEY_NUMBER_4).done(function() {
+        equal(sfun.api_getBreadth(), 4, 'Selected breadth' );
+        // click to fullscreen, then return back
+        sfun.api_triggerClick($('#seq-1').find('a')).done(function() {
+          equal(sfun.api_getBreadth(), 1, 'Viewing full-screen' );
+          sfun.api_triggerKeypress(sfun.KEY_RETURN).done(function() {
+            equal(sfun.api_getBreadth(), 4, 'Returned to selected breadth' );
+            QUnit.start();
+            endTest();
+          });
+        });
+      });
     });
 
     test( 'end select last, home select first, arrow next', function() {
       window.location.hash = 'end_select_last';
-      $('#seq-0').parents('a').trigger('click');
-      sfun.api_triggerKeypress(sfun.KEY_END);
-      ok( $('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
-      sfun.api_triggerKeypress(sfun.KEY_HOME);
-      ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
-      sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT);
-      ok( $('ul.flow .selectablecell.selected').data('seq') == 1, 'Right arrow selected #1 image' );
-      endTest();
+      QUnit.stop();
+      sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
+        ok( $('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
+        sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
+          ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image' );
+          sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT).done(function() {
+            ok( $('ul.flow .selectablecell.selected').data('seq') == 1, 'Right arrow selected #1 image' );
+            QUnit.start();
+            endTest();
+          });
+        });
+      });
     });
-
+*/
     test( 'end arrow next wrap-around', function() {
       var last = sfun.api_getTotalEntries()-1;
       window.location.hash = 'end_arrow_next';
@@ -429,7 +448,7 @@
         QUnit.start();        
       });
     });
-
+/*
     test( 'vis block', function() {
       window.location.hash = 'vis-block';
       sfun.api_triggerKeypress(sfun.KEY_HOME);
@@ -457,7 +476,7 @@
         QUnit.start();
       }, 1);
     });
-
+*/
     QUnit.start();
   }
 

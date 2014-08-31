@@ -1,60 +1,28 @@
 
-* scrolling suddenly jerks back
-  + then forward again after check expiries
-    + set a break point on check expiries
---o--
-* thinking about re-writing bufer
-  + making it implicit
-    + hash:seqs are queue up on the stack
-      + when we've got a new one
-        + there's really no value in going to the old one
-        + might as well dump it
-          + have to be a little bit careful of parents
-            + this hash:seq could be part of a long chain
-            + I think we're just going to resolve() it
-              + which handles parent
-                + just need to check it doesn't have children
-                + which it can't because it hasn't run yet
-                  + no critical_section delayed children
-                  + no fired events downstream
-    + this is exactly the same for the scrolls
-      + we basically just want to resolve them to
-        + which is what we do in buffer
-  + nice to do it for everything
-    + we need some mechanism of identifying similar events
-      + suggest key up to first :
-      + could always later come back and define families
-  * actOnContext seems to be the place for vetting events
-    + need to understand how we're currently delaying them
-      + they seem to be getting lost because
-        + they are children of refreshSelected events
-          + that resolve without them [async]
-        + I think we fire another fireHashUpdate so quickly
-          + that the browser never processes the original hash:seq
-          - no, that's not correct
-        + browser does catch it
-          + but we use 'replaceEvent' in place
-            + which I guess nulls it and doesn't resolve it
-    + idea 1: stop doing that
-      + find out why we're replaceEventing and not resolving
-    + idea 2: give hash:seqs an expire
-      + so that checkExpiries tidies them up
-  + 1 it's because in parent() we're giving children the replaceEvent
-    + of their parents
-      + so the parent just gets resolved
-        + maybe replace replaceEvent with a flag
-          + nullify
-  + considering shift to resolve all contexts as part of the actOnContext
-    + yes
-    + change actOnContext first
-      + then progressively remove the wrapUp functions
-        + testing all the way
-    + done
---o--
-  + re-introduce buffering for [scroll] events
-    + should apply to all events
-
 * work on test suite
+  + need to check that api_keypress is really waiting until its resolved
+    + properly, all the way through to completion of sub-contexts
+      + as we need the hash to have completed
+        + to have selected the right image
+  + first 'click' event comes through jQuery
+    + not sfun
+      + so no mechanism to wait for done() right now
+
+* play with image overlays
+  + couple of possible routes
+    + python to opencv to imagemeta
+  + image augmentation database
+    + at the point of serving up an image
+      + look for more metadata in central DB
+        + annotate the image that's returned to the browser
+        + look at options for pulling metadata directly from image using JS
+
+* could pursue buffer() for speed
+  + we're processing too much during a scroll
+    + stick a delayUntil on a context
+  + everytime we put an event into its critical section
+    + we want to check for and resolve redundant events
+      + do that first, then do delay
 
 * check that we only start doing stuff on nearvis AFTER we've done everything on visible/vispart
   + there's a short delay then it seems like nothing is happening
@@ -2115,4 +2083,78 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
 * images getting stuck in reresing
   + waiting for timeout before completing
     + suspect it's a critical section/delaying bug
+
+* scrolling suddenly jerks back
+  + then forward again after check expiries
+    + set a break point on check expiries
+--o--
+* thinking about re-writing bufer
+  + making it implicit
+    + hash:seqs are queue up on the stack
+      + when we've got a new one
+        + there's really no value in going to the old one
+        + might as well dump it
+          + have to be a little bit careful of parents
+            + this hash:seq could be part of a long chain
+            + I think we're just going to resolve() it
+              + which handles parent
+                + just need to check it doesn't have children
+                + which it can't because it hasn't run yet
+                  + no critical_section delayed children
+                  + no fired events downstream
+    + this is exactly the same for the scrolls
+      + we basically just want to resolve them to
+        + which is what we do in buffer
+  + nice to do it for everything
+    + we need some mechanism of identifying similar events
+      + suggest key up to first :
+      + could always later come back and define families
+  * actOnContext seems to be the place for vetting events
+    + need to understand how we're currently delaying them
+      + they seem to be getting lost because
+        + they are children of refreshSelected events
+          + that resolve without them [async]
+        + I think we fire another fireHashUpdate so quickly
+          + that the browser never processes the original hash:seq
+          - no, that's not correct
+        + browser does catch it
+          + but we use 'replaceEvent' in place
+            + which I guess nulls it and doesn't resolve it
+    + idea 1: stop doing that
+      + find out why we're replaceEventing and not resolving
+    + idea 2: give hash:seqs an expire
+      + so that checkExpiries tidies them up
+  + 1 it's because in parent() we're giving children the replaceEvent
+    + of their parents
+      + so the parent just gets resolved
+        + maybe replace replaceEvent with a flag
+          + nullify
+  + considering shift to resolve all contexts as part of the actOnContext
+    + yes
+    + change actOnContext first
+      + then progressively remove the wrapUp functions
+        + testing all the way
+    + done
+--o--
+  + re-introduce buffering for [scroll] events
+    + should apply to all events
+      + to discard an event
+        + we just remove it from the unhandled queue
+        + need to be a bit careful of parents
+          + they need resolving when the peer gets resolved
+          + actually buffer() just resolved them instantly
+            + we can do that
+            + but let them hang around in 2q (not unhandled)
+              + so that if a handler gets them 
+                + we spin right past
+    + in actOnContext
+      + search list for event key root (e.g. hash: or scroll:)
+        + find all events that aren't in their critical_section
+  + can't do buffering until we resolve _why_ the skipping is happening
+    + can't replicate that right now
+      + I think shelve this for now
+
+* work on test suite
+  + need to redo eventQueue tests
+    + actOnContext now resolves its own contexts
 
