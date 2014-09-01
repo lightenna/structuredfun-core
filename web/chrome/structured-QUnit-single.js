@@ -88,21 +88,37 @@
             if (limitPos - startPos < 1000) {
               ok(true, 'image set not large enough to conduct scroll test');
             } else {
-              var target = { 'left': 0, 'top': 0 };
+              // work out where we should end up
+              var iterCount = 100;
+              var iterMux = 10;
+              var target = {
+                'left': (direction == 'x' ? startPos + iterCount*iterMux : 0),
+                'top': (direction == 'x' ? 0 : startPos + iterCount*iterMux)
+              };
+              // bind to final scroll event
+              var targetKey = 'scroll:x='+target.left+'&y='+target.top;
+              sfun.api_bindToContext(targetKey).done(function() {
+                ok(true, 'target scroll event ('+targetKey+') triggered and resolved');
+                QUnit.start();
+              });
+              var iter = { 'left': 0, 'top': 0 };
               // fire 100 x 10px scroll events in sequence
-              for (var i=0 ; i<100 ; i++) {
+              for (var i=0 ; i<=iterCount ; i++) {
                 if (direction == 'x') {
-                  target.left = startPos + (i * 10);
+                  iter.left = startPos + (i * iterMux);
                 } else {
-                  target.top = startPos + (i * 10);
+                  iter.top = startPos + (i * iterMux);
                 }
-                // fire, but not using api_triggerScroll, as browser drag doesn't do that!
-                $(document).scrollLeft(target.left);
-                $(document).scrollTop(target.top);
-              }
 // START HERE
+// slow down firing by using callback
+                // fire, but not using api_triggerScroll, as browser drag doesn't do that!
+                $(document).scrollLeft(iter.left);
+                $(document).scrollTop(iter.top);
+              }
+              // test scroll position
+              var endPos = (direction == 'x' ? $(document).scrollLeft() : $(document).scrollTop());
+              equal(endPos, startPos + iterCount*iterMux, 'finished in correct scroll position');
             }
-            QUnit.start();
             endTest();
           });
         });
