@@ -63,6 +63,8 @@
 
     test( 'rapid scroll event queuing', function() {
       window.location.hash = 'rapid-scroll';
+      // clear hash because this test uses bindToContext
+      window.location.hash = '';
       var direction = sfun.api_getDirection();
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
@@ -75,13 +77,11 @@
           // store major axis position of final image then use to calculate scroll limit
           var position = $selected.offset();
           var limitPos = (direction == 'x' ? position.left - sfun.api_getViewportWidth() : position.top - sfun.api_getViewportHeight());
-          // scroll to middle
-          var middleSeq = Math.floor((finalSeq - initialSeq) / 2);
-          // scroll to middle image
-          sfun.api_imageAdvanceTo(middleSeq).done(function() {
+          // scroll back to first page
+          sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
             $selected = $('ul.flow .selectablecell.selected');
-            equal($selected.data('seq'), middleSeq, 'Selected middle image (#'+middleSeq+')' );
-            // use position of middle image as startPos
+            equal($selected.data('seq'), initialSeq, 'Selected first image (#'+initialSeq+') again' );
+            // use position as startPos
             var position = $selected.offset();
             var startPos = (direction == 'x' ? position.left : position.top);
             // check that we have 1000 pixels to scroll within
@@ -90,34 +90,43 @@
             } else {
               // work out where we should end up
               var iterCount = 100;
-              var iterMux = 10;
+              // use integer mux so that product is integer
+              // this is important for getting/setting scroll position
+              var iterMux = Math.floor((limitPos - startPos) / iterCount);
+              var iterStep = 1;
               var target = {
                 'left': (direction == 'x' ? startPos + iterCount*iterMux : 0),
                 'top': (direction == 'x' ? 0 : startPos + iterCount*iterMux)
               };
               // bind to final scroll event
               var targetKey = 'scroll:x='+target.left+'&y='+target.top;
-              sfun.api_bindToContext(targetKey).done(function() {
+              sfun.api_bindToContext(targetKey, true).done(function() {
                 ok(true, 'target scroll event ('+targetKey+') triggered and resolved');
                 QUnit.start();
               });
               var iter = { 'left': 0, 'top': 0 };
-              // fire 100 x 10px scroll events in sequence
-              for (var i=0 ; i<=iterCount ; i++) {
+              // fire iterCount x iterMux px scroll events in sequence, one every 1 ms
+              var i = 1;
+              var interval = setInterval(function() {
+                // prep next position
                 if (direction == 'x') {
                   iter.left = startPos + (i * iterMux);
                 } else {
                   iter.top = startPos + (i * iterMux);
                 }
-// START HERE
-// slow down firing by using callback
                 // fire, but not using api_triggerScroll, as browser drag doesn't do that!
                 $(document).scrollLeft(iter.left);
                 $(document).scrollTop(iter.top);
-              }
-              // test scroll position
-              var endPos = (direction == 'x' ? $(document).scrollLeft() : $(document).scrollTop());
-              equal(endPos, startPos + iterCount*iterMux, 'finished in correct scroll position');
+                // increment count
+                i += iterStep;
+                // notice count is 1-based
+                if (i > iterCount) {
+                  clearInterval(interval);
+                  // test scroll position
+                  var endPos = (direction == 'x' ? $(document).scrollLeft() : $(document).scrollTop());
+                  equal(endPos, startPos + iterCount*iterMux, 'finished in correct scroll position');
+                }
+              }, 1);
             }
             endTest();
           });
