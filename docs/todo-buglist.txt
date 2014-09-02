@@ -1,14 +1,58 @@
 
+* rapid scroll is a great test
+  + nicely illustrates delaying
+    + worth coaxing that test to be as hard as possible
+  + shows a couple of things
+    1 selected events never get resolved
+      + they only get cleaned up by checkExpiries
+        + they are async
+          + so they're not holding anything up
+          + but they can be resolved earlier
+        + should resolve on replaceEvent
+        + looks like replaceEvent functions aren't resolving their parents
+          = now they do
+    2 scroll is currently sticky
+      + it's not currently jumping out of order
+        + at least not on this computer
+      + but it's not smooth
+      + looking at the logs
+        + there are heaps of queued scroll events
+          + that all get resolved at the end
+          + I think they could all get dumped
+            + my only worry is that dumping might hide other problems
+        = will test on larger, slower image set
+      + but let's work on selectively dropping events
+        + 3rd queue seems to be the way to do it
+          + that means deciding what to drop in getOrInvent
+      + say there are many rapid [scroll] events
+        + A B C D E F G H
+      + dump by removing from unhandled array
+      + 2-deep dumping algorithm
+        + we catch A
+          + start processing it
+        + B gets queued
+        + C gets queued
+          + dump B
+        ...
+        + H gets queued
+          + dump G
+      + dumping is a little more complicated
+        + when dumping B
+          + C needs to get parented to A
+      + getOrInvent is tricky
+        + by the time we get the call from getOrInvent
+          + the event has already been fired by the browser
+        + we've got a very short space of time to decide if we're going to decide
+          + to process, queue (by parenting) or nullify (by returning null)
+        + there's got to be a sort of 3rd way here
+          + when we're processing C (in getOrInvent)
+            + we're going into the A-B parenting relationship
+              + already setup in actOnContext
+            + and unpicking it
+
 * fix failing test
   + 'reres of last page of images'
     + failing only sometimes in Firefox
-
-* introduce progressive scroll test
-  + scroll to middle
-  + check that we have > 1000px + viewport headroom
-  + fire 100 x 10px scroll events in sequence
-    + check that the final one gets resolved
-      + check that position of browser after final event
 
 * play with image overlays
   + couple of possible routes
@@ -2170,4 +2214,11 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
       + so no mechanism to wait for done() right now
   + very close now
     + having some good complete runs
+
+* introduce progressive scroll test
+  + scroll to middle
+  + check that we have > 1000px + viewport headroom
+  + fire 100 x 10px scroll events in sequence
+    + check that the final one gets resolved
+      + check that position of browser after final event
 

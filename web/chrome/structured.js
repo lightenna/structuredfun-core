@@ -2150,9 +2150,9 @@ window.sfun = (function($, undefined) {
               // delete this dep from parent
               parentContext.deps.splice(ref, 1);
             }
-            // currently we don't automatically
-            if (parentContext.autoresolve != false) {
-              // if we've resolved all the parnet's deps, resolve parent
+            // we don't resolve parent contexts by default
+            if (parentContext.autoresolve == true || parentContext.replaceEvent == true) {
+              // if we've resolved all the parent's deps, resolve parent
               if (parentContext.deps.length == 0) {
                 if (debug && true) {
                   console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
@@ -2278,6 +2278,7 @@ window.sfun = (function($, undefined) {
       /**
        * process act-on-event decision
        * event contexts only get resolved when they've done their work
+       * actOnContext takes a context, so consider unhandled[] (which is upstream in getOrInvent)
        * @param {object} eventContext
        * @param {function} func to call or store; this function contains its own wrapUp calls
        */
@@ -2287,18 +2288,16 @@ window.sfun = (function($, undefined) {
         if (eventContext != null) {
           // should we be nullifying this event
           if (eventContext.replaceEvent != null) {
-            // process by calling local wrap up instead of processing this event directly
-            func = function() {
-              that.resolve(eventContext);
-            };
+            // process by calling null function then wrap up, instead of processing this event directly
+            func = function(){};
             // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
             eventContext.replaceEvent = null;
             // optional debugging message
             if (debug && true) {
               console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.critical_section)+')');
             }
-            // call func with outer class context; already wrapped up
-            func.call(sfun);
+            // call func with outer class context, then wrap up
+            this.contextCallAndWrapUp(func, eventContext);
           }
           // test to see if any other event is in its critical section
           else if (this.critical_section == null) {
@@ -2318,6 +2317,7 @@ window.sfun = (function($, undefined) {
           }
           // test to see if we're in the parent's context (parent eventContext == critical_section)
           else if (this.isParentOf(this.critical_section, eventContext)) {
+// not sure about this
             // call and leave critical_section alone
             this.contextCallAndWrapUp(func, eventContext);
           }
@@ -2997,9 +2997,10 @@ window.sfun = (function($, undefined) {
 
     /**
      * @param  {string} regkey key as regular expression
+     * @param  {boolean} wait for context if it doesn't exist
      * @return {object} eventContext.deferred if found, a resolved deferred if not
      */
-    'api_bindToContext': function(regkey) {
+    'api_bindToContext': function(regkey, wait) {
       // find last matching key
       var ref = eventQueue.findRegex(regkey, true);
       if (ref == -1) {
@@ -3007,7 +3008,16 @@ window.sfun = (function($, undefined) {
       }
       var context = eventQueue.select(ref);
       if (context == null) {
-        return getDeferred().resolve();
+        if (wait) {
+          // create an eventContext ahead of the event we're waiting for
+          var context = eventQueue.push({
+            'key': regkey,
+            'comment': 'localContext for api_bindToContext key['+regkey+']'
+          });
+        } else {
+          // if not waiting, just return a resolved deferred
+          return getDeferred().resolve();
+        }
       }
       return context.deferred;
     },
