@@ -49,6 +49,27 @@
             + we're going into the A-B parenting relationship
               + already setup in actOnContext
             + and unpicking it
+        + getOrInvent pulls matching element from eventQueue
+          + or creates it
+            + so think 'C'
+          + at the time we see 'C' we don't know if we're going to queue it (parent it)
+            + because we're just inventing it or pulling it from the eventQueue
+          + alternative time to do dumping is when we queue
+            + which makes it part of actOnContext
+            + we're getting towards the idea of two kinds of 'parent'
+              + real parents
+                + where the parent spawned the child event
+              + execution order parents
+                + where the parent needs to be executed when the child completes
+            + we generally use it in the second context
+          + the only time this comes up is when we process a torrent of events
+            + we end up with a very unrealistic chain of unrelated events
+              + the only interesting thing is we do it in the opposite direction
+              + handlerHash -> fireScroll
+                + sets up scroll event as child of handlerHash
+              + actOnEvent B, while executing A
+                + sets up B as a _parent_ of A
+                  + so that when A completes, B gets kicked
       + I think this progressive dumping will work
         = holding
 
