@@ -20,7 +20,7 @@
           + that all get resolved at the end
           + I think they could all get dumped
             + my only worry is that dumping might hide other problems
-        = will test on larger, slower image set
+        = ok, tested on larger, slower image set
       + but let's work on selectively dropping events
         + 3rd queue seems to be the way to do it
           + that means deciding what to drop in getOrInvent
@@ -49,6 +49,11 @@
             + we're going into the A-B parenting relationship
               + already setup in actOnContext
             + and unpicking it
+      + I think this progressive dumping will work
+        = holding
+
+* mousewheel getting delayed while images loading
+  + must never delay the mousewheel
 
 * fix failing test
   + 'reres of last page of images'
