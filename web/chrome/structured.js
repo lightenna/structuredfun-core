@@ -2130,9 +2130,9 @@ window.sfun = (function($, undefined) {
       },
 
       /**
-       * setup parenting
-       * @param {object} parentContext 
+       * setup parenting from s1 (child) to s2 (parent)
        * @param {object} obj child event context to attach to parent
+       * @param {object} parentContext parent event context
        */
       'parent': function(obj, parentContext) {
         var that = this;
@@ -2317,7 +2317,7 @@ window.sfun = (function($, undefined) {
           }
           // test to see if we're in the parent's context (parent eventContext == critical_section)
           else if (this.isParentOf(this.critical_section, eventContext)) {
-// not sure about this
+            // @todo review because I'm not sure about this
             // call and leave critical_section alone
             this.contextCallAndWrapUp(func, eventContext);
           }
