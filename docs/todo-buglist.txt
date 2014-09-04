@@ -1,4 +1,12 @@
 
+* load correct-res shortcut not working
+  + it is working
+    + it's just that the nearvis image loads
+      + are somehow still using the thumb res
+      + it was nearvis
+    + insert into test suite
+* write test to check that correct-res shorcut is working
+
 * rapid scroll is a great test
   + nicely illustrates delaying
     + worth coaxing that test to be as hard as possible
@@ -65,11 +73,16 @@
           + the only time this comes up is when we process a torrent of events
             + we end up with a very unrealistic chain of unrelated events
               + the only interesting thing is we do it in the opposite direction
-              + handlerHash -> fireScroll
+              1 handlerHash -> fireScroll
                 + sets up scroll event as child of handlerHash
-              + actOnEvent B, while executing A
+              2 actOnEvent B, while executing A
                 + sets up B as a _parent_ of A
                   + so that when A completes, B gets kicked
+              + these two things shouldn't be in the same queue
+                + 1 should be chains of events
+                  + using the existing mechanism
+                + 2 should be some kind of macro level thing
+                  + like a straight-forward list at the eventQueue object level
       + I think this progressive dumping will work
         = holding
 
@@ -79,6 +92,9 @@
 * fix failing test
   + 'reres of last page of images'
     + failing only sometimes in Firefox
+
+* directory thumbnails need to load bounded
+  + partial flash looks weird
 
 * play with image overlays
   + couple of possible routes
@@ -2247,4 +2263,13 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
   + fire 100 x 10px scroll events in sequence
     + check that the final one gets resolved
       + check that position of browser after final event
+
+* introduce re-res of nearvis
+  + only if last_max_longest is null
+    + because that's the only time we see a flash of low-res images
+  + when reres is false
+    + we load the low-res/thumb
+  + when reres is true
+    + we don't seem to load the image at all
+    = seems to be solved by bracketing
 

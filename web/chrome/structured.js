@@ -25,6 +25,15 @@ if (typeof Function.prototype.inherits !== 'function') {
 window.sfun = (function($, undefined) {
 
   // ---------
+  // POLYFILLS
+  // ---------
+
+  // jQuery selector refresh
+  $.fn.refresh = function() {
+      return $(this.selector);
+  };
+
+  // ---------
   // CONSTANTS
   // and private variables
   // ---------
@@ -555,63 +564,62 @@ window.sfun = (function($, undefined) {
   };
 
   /**
-   * refresh all visible images
+   * refresh and reres all visible images
    * @return {object} jQuery deferred
    */
   var refreshVisibleImageSet = function() {
+    return refreshAnImageSet($(container_selector+' .selectablecell.visible, '+container_selector+' .selectablecell.vispart'), true);
+  };
+
+  /**
+   * refresh all visnear images, generally don't reres
+   * @return {object} jQuery deferred
+   */
+  var refreshVisnearImageSet = function() {
+    // reres only if the shortcut is null
+    return refreshAnImageSet($(container_selector+' .selectablecell.visnear'), (last_max_longest == null));
+  };
+
+  /**
+   * refresh a specified set of images
+   * @param  {object} $set jQuery entity for selection
+   * @param  {boolean} reres true to also reres the images after loading thumbs
+   * @return {object} jQuery deferred
+   */
+  var refreshAnImageSet = function($set, reres) {
     var that = this;
-    var selector = container_selector+' .selectablecell.visible, '+container_selector+' .selectablecell.vispart';
-    var $visibles = $(selector);
-    if ($visibles.length) {
+    if ($set.length) {
       var deferred = getDeferred();
       var defs = [];
-      // // stage 1a: make sure thumbnails loaded and refresh bounds as a batch
-      $visibles.each(function() {
+      // stage 1a: make sure thumbnails loaded and refresh bounds as a batch
+      $set.each(function() {
         var $ent = $(this);
         defs.push(loadThumbRefreshBounds($ent));
       });
       // stage 1b: refresh cell dimensions
       defs.push(cellsResize());
       $.when.apply($, defs).always(function() {
-        defs = [];
-        // refresh $visibles because resize may have added more visible/vispart cells
-        $visibles = $(selector);
-        // stage 3: refresh resolutions as a batch
-        $visibles.each(function() {
-          var $ent = $(this);
-          defs.push(refreshImageResolution($ent, true));
-        });
-        $.when.apply($, defs).always(function() {
-          // finally resolve
+        // stage 2: if we're reresing the images
+        if (reres) {
+          defs = [];
+          // refresh $set because resize may have added more visible/vispart/visnear cells
+          $set = $set.refresh();
+          // stage 3: refresh resolutions as a batch
+          $set.each(function() {
+            defs.push(refreshImageResolution($(this), true));
+          });
+          $.when.apply($, defs).always(function() {
+            // finally resolve
+            deferred.resolve();
+          });
+        } else {
           deferred.resolve();
-        });
+        }
       });
       return deferred;
     }
     return getDeferred().resolve();
   };
-
-  /**
-   * refresh all visnear images
-   * @return {object} jQuery deferred
-   */
-  var refreshVisnearImageSet = function() {
-    var that = this;
-    var selector = container_selector+' .selectablecell.visnear';
-    var $visnears = $(selector);
-    if ($visnears.length) {
-      var deferred = getDeferred();
-      var defs = [];
-      // stage 1a: make sure thumbnails loaded and refresh bounds as a batch
-      $visnears.each(function() {
-        var $ent = $(this);
-        defs.push(loadThumbRefreshBounds($ent));
-      });
-      return deferred;
-    }
-    return getDeferred().resolve();
-  };
-
   // ------------------
   // FUNCTIONS: Binding
   // ------------------
@@ -764,13 +772,12 @@ window.sfun = (function($, undefined) {
         // notify promise of resolution
         principalDeferred.resolve();
       }
-      // if the src attribute is defined, use it
-      if ($loadable.attr('src') != undefined) {
-        im.src = $loadable.attr('src');
-      } else {
-        // otherwise use data-desrc (thumbnail hasn't been loaded before)
-        im.src = $loadable.data('desrc');
+      // if the src attribute is undefined, set it
+      if ($loadable.attr('src') == undefined) {
+        // use common loadThumb to set it, but don't recurse
+        loadThumb($ent, false);
       }
+      im.src = $loadable.attr('src');
       if (debug && false) {
         console.log('image-'+$ent.data('seq')+': fired update loaded resolution request');
       }
@@ -1085,7 +1092,7 @@ window.sfun = (function($, undefined) {
     target = cropScrollPositionAgainstViewport(target);
     // work out whether we're currently at the target position
     var fireScroll = false;
-    var scroll = { 'top': $window.scrollTop(), 'left': $window.scrollLeft() };
+    var scroll = { 'top': $document.scrollTop(), 'left': $document.scrollLeft() };
     // check to see if our current scroll position reflects the target position
     if (direction == 'x') {
       if (target.left != scroll.left) {
