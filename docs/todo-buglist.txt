@@ -83,6 +83,16 @@
                   + using the existing mechanism
                 + 2 should be some kind of macro level thing
                   + like a straight-forward list at the eventQueue object level
+              + how much do we re-write now
+                + I think first thing is to test the effectiveness of dumping events
+                + I'm also not sure that we really want to split these into two queues
+                  + the intersection between those queues requires management
+          + events go through a few key stages
+            + getOrInvent, simple single events, no deps
+              + they don't get handled until after actOnContext
+            + actOnContext, some processing done but no downstream events
+              + safe to make parents of current critical_section
+                + can hunt for similar peers
       + I think this progressive dumping will work
         = holding
 
