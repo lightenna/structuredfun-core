@@ -166,7 +166,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * check that ratio is set for each of the images
-   * @param  {object} range {first_1, last_n} range of sequence numbers
+   * @param {object} range {first_1, last_n} range of sequence numbers
    * @todo optimise
    */
   var checkRatios = function(range) {
@@ -245,8 +245,8 @@ window.sfun = (function($, undefined) {
 
   /**
    * load thumbnail for principal image in cell, then recurse on subcells
-   * @param  {object}  $ent   jQuery cell
-   * @param  {boolean} recurse true to recurse
+   * @param {object}  $ent   jQuery cell
+   * @param {boolean} recurse true to recurse
    */
   var loadThumb = function($ent, recurse) {
     var that = this;
@@ -582,8 +582,8 @@ window.sfun = (function($, undefined) {
 
   /**
    * refresh a specified set of images
-   * @param  {object} $set jQuery entity for selection
-   * @param  {boolean} reres true to also reres the images after loading thumbs
+   * @param {object} $set jQuery entity for selection
+   * @param {boolean} reres true to also reres the images after loading thumbs
    * @return {object} jQuery deferred
    */
   var refreshAnImageSet = function($set, reres) {
@@ -1265,8 +1265,8 @@ window.sfun = (function($, undefined) {
   };
 
   /**
-   * @param  {int} first_np1 first visible is visnear_n+1
-   * @param  {int} last_0 last visible is visnear_0
+   * @param {int} first_np1 first visible is visnear_n+1
+   * @param {int} last_0 last visible is visnear_0
    * @return {object} {last_1, last_n, first_1, first_n}
    */
   var calcVisnear = function(first_np1, last_0) {
@@ -1507,8 +1507,8 @@ window.sfun = (function($, undefined) {
   };
 
   /**
-   * @param  {string} h1 first hash
-   * @param  {string} h2 second hash
+   * @param {string} h1 first hash
+   * @param {string} h2 second hash
    * @return {boolean} true if the two hashes are equivalent
    */
   var hashEquals = function(h1, h2) {
@@ -1875,7 +1875,7 @@ window.sfun = (function($, undefined) {
 
       /**
        * get the object at a certain position in the table
-       * @param  {int} ref position in table
+       * @param {int} ref position in table
        * @return {object} matched object, or null if not present
        */
       'select': function(ref) {
@@ -1899,8 +1899,8 @@ window.sfun = (function($, undefined) {
 
       /**
        * update coordinates stored for each cell
-       * @param  {string} direction x or y
-       * @param  {object} $sfun_selectablecell jQuery list of cells
+       * @param {string} direction x or y
+       * @param {object} $sfun_selectablecell jQuery list of cells
        */
       'updateAll': function(direction, $sfun_selectablecell) {
         var vt = this;
@@ -2188,6 +2188,18 @@ window.sfun = (function($, undefined) {
         return obj;
       },
 
+      /**
+       * @param {string} key
+       * @return {string} regex pattern to match key's family
+       */
+      'getKeyFamily': function(key) {
+        var colonPos = key.indexOf(':');
+        if (colonPos != -1) {
+          return key.substr(0, colonPos+1) + '.*';
+        }
+        return key;
+      },
+
       /** 
        * interface function to get from table
        * @param {string} key to search for
@@ -2329,24 +2341,8 @@ window.sfun = (function($, undefined) {
             this.contextCallAndWrapUp(func, eventContext);
           }
           else {
-            // this event depends on the end of the current critical one's chain
-            var lastDep = this.earliestAncestor(this.critical_section);
-            // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
-            this.parent(lastDep, eventContext);
-            // optional debugging message
-            if (debug && true) {
-              console.log('_ delaying critical section for '+this.render(eventContext));
-            }
-            // when lastDep gets resolved, execute func
-            lastDep.deferred.done(function() {
-              if (debug && true) {
-                console.log('> last dependent ('+that.render(lastDep)+') resolved, now entering critical section for '+that.render(eventContext));
-              }
-              // flag next context as in its critical section
-              that.setCriticalSection(eventContext);
-              // call func with outer class context
-              that.contextCallAndWrapUp(func, eventContext);
-            });
+            // delay func by queuing (parent on earliestAncestor), but clean chain
+            this.contextCleanChainAndParent(func, eventContext);
           }
           return eventContext.deferred;
         }
@@ -2356,14 +2352,89 @@ window.sfun = (function($, undefined) {
 
       /**
        * call function, then wrap up its context
-       * @param  {[type]} func         function to call
-       * @param  {[type]} eventContext context to wrap up
+       * @param {function} func function to call
+       * @param {object} eventContext context to wrap up
        */
       'contextCallAndWrapUp': function(func, eventContext) {
         var that = this;
         // use jQuery when() as it copes with deferreds and non-deferreds
         $.when(func.call(sfun)).always(function(){ that.resolve(eventContext) });
       },
+
+      /**
+       * work through ancestor chain, dump similar peers, attach this context
+       * @param {function} func function to call
+       * @param {object} eventContext context to attach
+       */
+      'contextCleanChainAndParent': function(func, eventContext) {
+        var that = this;
+        // remove any peers to this event from the queue first
+        this.dumpAncestors(this.getKeyFamily(eventContext.key), this.critical_section);
+        // @todo could optimise this slightly inefficient repeat find
+        // this event depends on the end of the current critical one's chain
+        var lastDep = this.earliestAncestor(this.critical_section);
+        // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
+        this.parent(lastDep, eventContext);
+        // optional debugging message
+        if (debug && true) {
+          console.log('_ delaying critical section for '+this.render(eventContext));
+        }
+        // when lastDep gets resolved, execute func
+        lastDep.deferred.done(function() {
+          if (debug && true) {
+            console.log('> last dependent ('+that.render(lastDep)+') resolved, now entering critical section for '+that.render(eventContext));
+          }
+          // flag next context as in its critical section
+          that.setCriticalSection(eventContext);
+          // call func with outer class context
+          that.contextCallAndWrapUp(func, eventContext);
+        });
+      },
+
+      /**
+       * work up through the parents and remove those matching key
+       * @param {string} regkey regex pattern to match peers by family
+       * @param {object} current root context in parent chain
+       */
+      'dumpAncestors': function(regkey, current) {
+        var re = new RegExp(regkey, 'g');
+        // start with root's parent because we don't want to dump current critial_section
+        current = current.parent;
+        while ((current != null) && (current.parent != null)) {
+          // test to see if current key matches regkey
+          if (current.key.match(re) != null) {
+console.log('*** FOUND candidate to dump['+current.key+'] for regkey['+regkey+']');
+            // remove ancestor from parent chain; point at next in chain/null
+            current = this.deleteAncestor(current);
+          } else {
+            // move on to next iteration
+            current = current.parent;
+          }
+        }
+      },
+
+      /**
+       * remove an ancestor from the parent chain
+       * @param {object} current eventContex to remove from parent chain
+       * @return {object} next eventContext in chain after deleted one, or null if none
+       */
+      'deleteAncestor': function(current) {
+        var parent = current.parent;
+        var children = current.deps;
+        // tell the children initially that they no longer have a parent
+        for (var i=0 ; i<children.length ; ++i) {
+          children[i].parent = null;
+        }
+        // if there is a parent, setup each child
+        if (parent != null) {
+          // add children to parent
+          for (var i=0 ; i<children.length ; ++i) {
+            this.parent(children[i], parent);
+          }
+        }
+        // return parent, or null if there's none
+        return parent;
+      }
 
       /**
        * work up through the parents to find the oldest ancestor
@@ -2378,8 +2449,8 @@ window.sfun = (function($, undefined) {
       },
 
       /**
-       * @param  {object} s1 event context
-       * @param  {object} s2 event context
+       * @param {object} s1 event context
+       * @param {object} s2 event context
        * @return {boolean} true if s1 is a parent of s2
        */
       'isParentOf': function(s1, s2) {
@@ -2394,8 +2465,8 @@ window.sfun = (function($, undefined) {
       },
 
       /**
-       * @param  {object} s1 event context
-       * @param  {object} s2 event context
+       * @param {object} s1 event context
+       * @param {object} s2 event context
        * @return {boolean} true if s1 and s2 are the same context
        */
       'equals': function(s1, s2) {
@@ -2806,8 +2877,8 @@ window.sfun = (function($, undefined) {
 
   /**
    * substitute values into a mustache template
-   * @param  {string} template in mustache format
-   * @param  {object} view collection of values to substitute
+   * @param {string} template in mustache format
+   * @param {object} view collection of values to substitute
    * @return {string} output after substitution
    */
   var substitute = function(template, view) {
@@ -3003,8 +3074,8 @@ window.sfun = (function($, undefined) {
     },
 
     /**
-     * @param  {string} regkey key as regular expression
-     * @param  {boolean} wait for context if it doesn't exist
+     * @param {string} regkey key as regular expression
+     * @param {boolean} wait for context if it doesn't exist
      * @return {object} eventContext.deferred if found, a resolved deferred if not
      */
     'api_bindToContext': function(regkey, wait) {
@@ -3118,7 +3189,7 @@ window.sfun = (function($, undefined) {
 
     /**
      * trigger a click and allow caller to bind to its context
-     * @param  {object} $ent jQuery entity to click
+     * @param {object} $ent jQuery entity to click
      * @return {object} jQuery deferred
      */
     'api_triggerClick': function($ent) {
@@ -3140,8 +3211,8 @@ window.sfun = (function($, undefined) {
 
     /**
      * fire scroll update
-     * @param  {object} pos  {left, top} new scroll coordinate
-     * @param  {boolean} numb true to numb listener
+     * @param {object} pos  {left, top} new scroll coordinate
+     * @param {boolean} numb true to numb listener
      * @return {object} jQuery deferred
      */
     'api_triggerScroll': function(pos, numb) {
