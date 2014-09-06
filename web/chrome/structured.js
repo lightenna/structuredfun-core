@@ -1967,6 +1967,8 @@ window.sfun = (function($, undefined) {
         'parent': null,
         // has no dependencies
         'deps': null,
+        // has not been handled yet
+        'handled': false,
         // has no action
         'action': function(){},
         // never expires
@@ -1984,9 +1986,6 @@ window.sfun = (function($, undefined) {
 
       // currently executing event
       'critical_section': null,
-
-      // array of eventContexts that haven't been received by a handler
-      unhandled: [],
 
       // FUNCTIONS
 
@@ -2072,8 +2071,6 @@ window.sfun = (function($, undefined) {
         }
         // push
         var ref = this._push(obj);
-        // also add key to unhandled list (3rd list after objarr and keyarr)
-        this.unhandled[ref] = obj.key;
         // optional debugging message
         if (debug && true) {
           console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.getSize()));
@@ -2211,7 +2208,7 @@ window.sfun = (function($, undefined) {
 
       /** 
        * @param {object} partial fields to override defaults
-       * @return {object} created object if fresh, matched object if unhandled, or null if this context is currently processing
+       * @return {object} created object if fresh or matched object if found
        */
       'getOrInvent': function(partial) {
         var retrieved = null;
@@ -2227,13 +2224,6 @@ window.sfun = (function($, undefined) {
         }
         // otherwise if we've fired (and not resolved) this event
         else {
-          // @todo could optimise this slightly wasteful second search
-          var ref = this.find(retrieved.key);
-          // if we're currently processing this event
-          if (this.unhandled[ref] == null) {
-            // mute this second call
-            return null;
-          }
           // aggregate the comments to enable clearer historical tracking
           if (retrieved.comment) {
             retrieved.comment += ', instead of ' + partial.comment;
@@ -2242,10 +2232,6 @@ window.sfun = (function($, undefined) {
             console.log('* handler caught fired event context[' + this.render(retrieved) + '], q'+this.getSize());
           }
         }
-        // nullify this key from the 'unhandled' list; don't delete because need to preserve sync between lists
-        var ref = this.find(retrieved.key);
-        this.unhandled[ref] = null;
-        // return context
         return retrieved;
       },
 
@@ -2292,66 +2278,56 @@ window.sfun = (function($, undefined) {
        */
       'actOnContext': function(eventContext, func) {
         var that = this;
-        // only act if we've been given a real eventContext
-        if (eventContext != null) {
-          // should we be nullifying this event
-          if (eventContext.replaceEvent != null) {
-            // process by calling null function then wrap up, instead of processing this event directly
-            eventContext.action = function(){};
-            // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
-            eventContext.replaceEvent = null;
-            // optional debugging message
-            if (debug && true) {
-              console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.critical_section)+')');
-            }
-            // call func with outer class context, then wrap up
-            this.contextExecute(eventContext);
-          }
-          // test to see if any other event is in its critical section
-          else if (this.critical_section == null) {
-            // if not, flag event as in its critical section
-            this.setCriticalSection(eventContext);
-            // optional debugging message
-            if (debug && true) {
-              console.log('> entering critical section for '+this.render(eventContext));
-            }
-            // call func with outer class context, then wrap up
-            eventContext.action = func;
-            this.contextExecute(eventContext);
-          }
-          // test to see if we're actually still in the same context (eventContext == critical_section)
-          else if (eventContext.key == this.critical_section.key) {
-            // we're reusing the same context, so just call and leave critical_section alone
-            eventContext.action = func;
-            this.contextExecute(eventContext);
-          }
-          // test to see if we're in the parent's context (parent eventContext == critical_section)
-          else if (this.isParentOf(this.critical_section, eventContext)) {
-            // call and leave critical_section alone
-            eventContext.action = func;
-            this.contextExecute(eventContext);
-          }
-          else {
-            // delay func by queuing (parent on earliestAncestor), but clean chain
-            eventContext.action = func
-            this.contextDelayExecution(eventContext);
-          }
-          return eventContext.deferred;
+        // only act if we've been given a real eventContext that hasn't been handled or already begun processing
+        if (eventContext == null || eventContext.handled == true || eventContext.action == null) {
+          // otherwise just return a nice resolved deferred
+          return getDeferred().resolve();
         }
-        // otherwise just return a nice resolved deferred
-        return getDeferred().resolve();
-      },
-
-      /**
-       * @param {object} jQuery deferred to attach to
-       * @param {object} eventContext context to wrap up
-       * @return {function} a function to resolve this context
-       */
-      'contextAttachResolver': function(deferred, eventContext) {
-        var that = this;
-        deferred.always(function() {
-          that.resolve(eventContext);
-        });
+        // flag that this context has now been through a handler
+        eventContext.handled = true;
+        // should we be nullifying this event
+        if (eventContext.replaceEvent != null) {
+          // process by calling null function then wrap up, instead of processing this event directly
+          eventContext.action = function(){};
+          // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
+          eventContext.replaceEvent = null;
+          // optional debugging message
+          if (debug && true) {
+            console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.critical_section)+')');
+          }
+          // call func with outer class context, then wrap up
+          this.contextExecute(eventContext);
+        }
+        // test to see if any other event is in its critical section
+        else if (this.critical_section == null) {
+          // if not, flag event as in its critical section
+          this.setCriticalSection(eventContext);
+          // optional debugging message
+          if (debug && true) {
+            console.log('> entering critical section for '+this.render(eventContext));
+          }
+          // call func with outer class context, then wrap up
+          eventContext.action = func;
+          this.contextExecute(eventContext);
+        }
+        // test to see if we're actually still in the same context (eventContext == critical_section)
+        else if (eventContext.key == this.critical_section.key) {
+          // we're reusing the same context, so just call and leave critical_section alone
+          eventContext.action = func;
+          this.contextExecute(eventContext);
+        }
+        // test to see if we're in the parent's context (parent eventContext == critical_section)
+        else if (this.isParentOf(this.critical_section, eventContext)) {
+          // call and leave critical_section alone
+          eventContext.action = func;
+          this.contextExecute(eventContext);
+        }
+        else {
+          // delay func by queuing (parent on earliestAncestor), but clean chain
+          eventContext.action = func
+          this.contextDelayExecution(eventContext);
+        }
+        return eventContext.deferred;
       },
 
       /**
@@ -2359,10 +2335,18 @@ window.sfun = (function($, undefined) {
        * @param {object} eventContext context to wrap up
        */
       'contextExecute': function(eventContext) {
-        // use jQuery when() as it copes with deferreds and non-deferreds
-        var safeDeferred = $.when(eventContext.action.call(sfun));
-        // when func completes, resolve this context
-        this.contextAttachResolver(safeDeferred, eventContext);
+        var that = this;
+        var func = eventContext.action;
+        var wrapUp = function() {
+          that.resolve(eventContext);
+        };
+        if (typeof func == 'function') {
+          // nullify eventContext.action so it cannot be re-called
+          eventContext.action = null;
+          $.when(func.call(sfun)).always(wrapUp);
+        } else {
+          wrapUp();
+        }
       },
 
       /**
@@ -2382,22 +2366,6 @@ window.sfun = (function($, undefined) {
         }
         // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
         this.delay(lastDep, eventContext);
-        // lastDep.deferred.done(function() {
-        //   // if lastDep gets resolved, execute func
-        //   if (debug && true) {
-        //     console.log('> last dependent ('+that.render(lastDep)+') resolved, now entering critical section for '+that.render(eventContext));
-        //   }
-        //   // flag next context as in its critical section
-        //   that.setCriticalSection(eventContext);
-        //   // call func with outer class context
-        //   that.contextCallAndWrapUp(func, eventContext);
-        // }).fail(function() {
-        //   if (debug && true) {
-        //     console.log('< last dependent ('+that.render(lastDep)+') rejected, now skipping critical section for '+that.render(eventContext));
-        //   }
-        //   // if lastDep gets rejected, just wrap up
-        //   that.reject(eventContext);
-        // });
       },
 
       /**
@@ -2446,10 +2414,6 @@ window.sfun = (function($, undefined) {
             this.parent(children[i], parent);
           }
         }
-        // nullify current using unhandled
-        // @todo check this because logic suggests its necessary, but the data not
-        // reject the deferred to stop lastDep.deferred.done executing func
-        this.reject(current);
         // optional debugging
         if (debug && true) {
           var logstr = 'D dumped event['+current.key+']';
@@ -2514,10 +2478,6 @@ window.sfun = (function($, undefined) {
         if (obj != null) {
           // remove this object from the eventQueue
           var ref = this.removeObj(obj);
-          // also delete from local lists
-          if (ref != -1) {
-            this.unhandled.splice(ref, 1);
-          }
           if (debug && true) {
             console.log('Q resolve event context[' + this.render(obj) + '], qlen now '+this.getSize());
           }
@@ -2568,10 +2528,6 @@ window.sfun = (function($, undefined) {
         if (obj != null) {
           // remove this object from the eventQueue
           var ref = this.removeObj(obj);
-          // also delete from local lists
-          if (ref != -1) {
-            this.unhandled.splice(ref, 1);
-          }
           if (debug && true) {
             console.log('Q rejected event context[' + this.render(obj) + '], qlen now '+this.getSize());
           }
