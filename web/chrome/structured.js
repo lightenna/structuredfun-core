@@ -1969,6 +1969,8 @@ window.sfun = (function($, undefined) {
         'autoresolve': false,
         // has no dependencies
         'deps': null,
+        // has no action
+        'action': function(){},
         // never expires
         'expires': null,
         // comment is an empty string (for rendering)
@@ -2137,6 +2139,26 @@ window.sfun = (function($, undefined) {
       },
 
       /**
+       * delay s2 (parent) to follow s1 (child)
+       * equivalent to setup parenting from s1 (child) to s2 (parent)
+       * @param {object} obj child event context to attach to parent
+       * @param {object} parentContext parent event context
+       */
+      'delay': function(obj, parentContext) {
+        var that = this;
+        if (typeof(parentContext) != 'undefined' && parentContext) {
+          // store parent relationship (bidirectionally)
+          obj.parent = parentContext;
+          parentContext.deps[parentContext.deps.length] = obj;
+          // optional debugging
+          if (debug && true) {
+            console.log('  - delayed event context[' + this.render(obj.parent) + '] to follow resolution of context['+this.render(obj)+'], q len now '+this.getSize());
+          }
+        }
+        return obj;
+      },
+
+      /**
        * setup parenting from s1 (child) to s2 (parent)
        * @param {object} obj child event context to attach to parent
        * @param {object} parentContext parent event context
@@ -2144,45 +2166,14 @@ window.sfun = (function($, undefined) {
       'parent': function(obj, parentContext) {
         var that = this;
         if (typeof(parentContext) != 'undefined' && parentContext) {
-          // store parent relationship (bidirectional)
+          // store parent relationship (bidirectionally)
           obj.parent = parentContext;
           parentContext.deps[parentContext.deps.length] = obj;
           // child inherits certain parental attributes
           obj.replaceEvent = parentContext.replaceEvent;
-          // setup promise on resolution of child to resolve parent
-          obj.deferred.done(function() {
-            // remove this from parent's outstanding deps
-            var ref = parentContext.deps.indexOf(obj);
-            if (ref != -1) {
-              // delete this dep from parent
-              parentContext.deps.splice(ref, 1);
-            }
-            // we don't resolve parent contexts by default
-            if (parentContext.autoresolve == true || parentContext.replaceEvent == true) {
-              // if we've resolved all the parent's deps, resolve parent
-              if (parentContext.deps.length == 0) {
-                if (debug && true) {
-                  console.log('resolved context[' + that.render(obj) + '], resolving parent context[' + that.render(obj.parent) + ']');
-                }
-                // wait until all other pending functions (like this .done) have been processed
-                obj.deferred.done(function() {
-                  // then resolve the parent context
-                  that.resolve(parentContext);
-                  // this is important, because otherwise the parentContext's pending functions could be processed
-                  // before the childContext's pending functions
-                });
-              } else {
-                if (debug && true) {
-                  console.log('resolved context[' + that.render(obj) + '], waiting parent context[' + that.render(obj.parent) + ']');
-                }              
-              }
-            }
-            // flag as no longer parented
-            obj.parent = null;
-          });
           // optional debugging
           if (debug && true) {
-            console.log('  - parented event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.getSize());
+            console.log('  - placed child event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.getSize());
           }
         }
         return obj;
@@ -2308,7 +2299,7 @@ window.sfun = (function($, undefined) {
           // should we be nullifying this event
           if (eventContext.replaceEvent != null) {
             // process by calling null function then wrap up, instead of processing this event directly
-            func = function(){};
+            eventContext.action = function(){};
             // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
             eventContext.replaceEvent = null;
             // optional debugging message
@@ -2316,7 +2307,7 @@ window.sfun = (function($, undefined) {
               console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.critical_section)+')');
             }
             // call func with outer class context, then wrap up
-            this.contextCallAndWrapUp(func, eventContext);
+            this.contextExecute(eventContext);
           }
           // test to see if any other event is in its critical section
           else if (this.critical_section == null) {
@@ -2327,21 +2318,25 @@ window.sfun = (function($, undefined) {
               console.log('> entering critical section for '+this.render(eventContext));
             }
             // call func with outer class context, then wrap up
-            this.contextCallAndWrapUp(func, eventContext);
+            eventContext.action = func;
+            this.contextExecute(eventContext);
           }
           // test to see if we're actually still in the same context (eventContext == critical_section)
           else if (eventContext.key == this.critical_section.key) {
             // we're reusing the same context, so just call and leave critical_section alone
-            this.contextCallAndWrapUp(func, eventContext);
+            eventContext.action = func;
+            this.contextExecute(eventContext);
           }
           // test to see if we're in the parent's context (parent eventContext == critical_section)
           else if (this.isParentOf(this.critical_section, eventContext)) {
             // call and leave critical_section alone
-            this.contextCallAndWrapUp(func, eventContext);
+            eventContext.action = func;
+            this.contextExecute(eventContext);
           }
           else {
             // delay func by queuing (parent on earliestAncestor), but clean chain
-            this.contextCleanChainAndParent(func, eventContext);
+            eventContext.action = func
+            this.contextDelayExecution(eventContext);
           }
           return eventContext.deferred;
         }
@@ -2350,36 +2345,45 @@ window.sfun = (function($, undefined) {
       },
 
       /**
-       * call function, then wrap up its context
-       * @param {function} func function to call
+       * @param {object} jQuery deferred to attach to
        * @param {object} eventContext context to wrap up
+       * @return {function} a function to resolve this context
        */
-      'contextCallAndWrapUp': function(func, eventContext) {
+      'contextAttachResolver': function(deferred, eventContext) {
         var that = this;
-        // use jQuery when() as it copes with deferreds and non-deferreds
-        $.when(func.call(sfun)).always(function(){
+        deferred.always(function() {
           that.resolve(eventContext);
         });
       },
 
       /**
+       * call function, then wrap up its context
+       * @param {object} eventContext context to wrap up
+       */
+      'contextExecute': function(eventContext) {
+        // use jQuery when() as it copes with deferreds and non-deferreds
+        var safeDeferred = $.when(eventContext.action.call(sfun));
+        // when func completes, resolve this context
+        this.contextAttachResolver(safeDeferred, eventContext);
+      },
+
+      /**
        * work through ancestor chain, dump similar peers, attach this context
-       * @param {function} func function to call
        * @param {object} eventContext context to attach
        */
-      'contextCleanChainAndParent': function(func, eventContext) {
+      'contextDelayExecution': function(eventContext) {
         var that = this;
         // remove any peers to this event from the queue first
         this.dumpAncestors(this.getKeyFamily(eventContext.key), this.critical_section);
         // @todo could optimise this slightly inefficient repeat find
         // this event depends on the end of the current critical one's chain
         var lastDep = this.earliestAncestor(this.critical_section);
-        // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
-        this.parent(lastDep, eventContext);
         // optional debugging message
         if (debug && true) {
           console.log('_ delaying critical section for '+this.render(eventContext));
         }
+        // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
+        this.delay(lastDep, eventContext);
         // lastDep.deferred.done(function() {
         //   // if lastDep gets resolved, execute func
         //   if (debug && true) {
@@ -2521,11 +2525,40 @@ window.sfun = (function($, undefined) {
           }
           // resolve its deferred if set
           if (obj.deferred != null) {
-            return obj.deferred.resolve(returnValue);
+            obj.deferred.resolve(returnValue);
+          }
+          // if object has a parent, update it
+          if (obj.parent != null) {
+            this.parentResolve(obj, obj.parent);
           }
         }
         // always return a resolved deferred
         return getDeferred().resolve(returnValue);
+      },
+
+      /**
+       * tell parent that one of its child objects has been resolved
+       * @param {object} obj child that's been resolved
+       * @param {object} parentContext context to update
+       */
+      'parentResolve': function(obj, parentContext) {
+        // remove this from parent's outstanding deps
+        var ref = parentContext.deps.indexOf(obj);
+        if (ref != -1) {
+          // delete this dep from parent
+          parentContext.deps.splice(ref, 1);
+        }
+        // if we've resolved all the parent's deps
+        if (parentContext.deps.length == 0) {
+          if (debug && true) {
+            console.log('U processing next/parent context[' + this.render(obj.parent) + '], following resolution of context[' + this.render(obj) + ']');
+          }
+          // process parent
+          this.setCriticalSection(parentContext);
+          this.contextExecute(parentContext);
+        }
+        // flag as no longer parented
+        obj.parent = null;
       },
 
       /**
