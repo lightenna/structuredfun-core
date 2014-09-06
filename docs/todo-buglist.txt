@@ -1,39 +1,14 @@
 
-* load correct-res shortcut not working
-  + it is working
-    + it's just that the nearvis image loads
-      + are somehow still using the thumb res
-      + it was nearvis
-    + insert into test suite
-* write test to check that correct-res shorcut is working
+* fun optimise
+  + visTable.updateAll
+    + called a lot
+  + get offsetWidth (jquery) called from refreshMetric and setBound
 
-* it's all got too complicated
-  + I'm trying to track down a scroll event bug
-    + let's document it here
-  + start by thinking about where selected should get resolved
-    + it's a context
-      + so should get resolved with all the contexts
-  + change out contextGetResolver to use .always()
-    = done
-  + move context resolver parent thing
-  + basic load stack
-      hash:seq=250
-        scroll:x=23000
-          scroll completes
-        scroll resolved in contextCallAndWrapUp
-      hash resolved in contextCallAndWrapUp
-  + basic scroll
-      scroll:x=23000
-        scroll completes
-      scroll resolved in contextCallAndWrapUp
-  + basic scroll and select next
-      scroll:x=23000
-        selected:seq=96
-          hash:seq=96
-            hash completes
-          hash resolved in contextCallAndWrapUp
-        selected resolved somewhere?
-      scroll resolved in contextCallAndWrapUp
+* fix failing test
+  + 'reres of last page of images'
+    + failing only sometimes in on folders with nested folders (at the end)
+      + fails in both Firefox and Chrome, so not a browser thing
+  + failed with flow on
 
 * rapid scroll is a great test
   + nicely illustrates delaying
@@ -122,21 +97,24 @@
               + safe to make parents of current critical_section
                 + can hunt for similar peers
 
-* unhandled starts out with too many nulls
-  + I would expect it to look almost exactly like keyarr
-    + bear in mind that null just means its gone through actOnContext
+* use rapid scroll test to show that
+  + some events are getting dumped
+  + the last scroll event is fired and handled
 
 * mousewheel getting delayed while images loading
   + must never delay the mousewheel
     + delay shows up even better with flow on
 
-* fix failing test
-  + 'reres of last page of images'
-    + failing only sometimes in Firefox
-  + failed with flow on
-
 * directory thumbnails need to load bounded
   + partial flash looks weird
+
+* load correct-res shortcut not working
+  + it is working
+    + it's just that the nearvis image loads
+      + are somehow still using the thumb res
+      + it was nearvis
+    + insert into test suite
+* write test to check that correct-res shorcut is working
 
 * play with image overlays
   + couple of possible routes
@@ -2360,4 +2338,58 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
     + these are hard problems
     + for now
       + press on with dumping to lower load
+
+* it's all got too complicated
+  + I'm trying to track down a scroll event bug
+    + let's document it here
+  + start by thinking about where selected should get resolved
+    + it's a context
+      + so should get resolved with all the contexts
+  + change out contextGetResolver to use .always()
+    = done
+  + move context resolver parent thing
+    = everything resolved in contextAttachResolver -> resolve
+  + basic load stack
+      hash:seq=250
+        scroll:x=23000
+          scroll completes
+        scroll resolved 
+      hash resolved
+  + basic scroll
+      scroll:x=23000
+        scroll completes
+      scroll resolved
+  + basic scroll and select next
+      scroll:x=23000
+        selected:seq=96
+          hash:seq=96
+            hash completes
+          hash resolved
+        selected resolved
+      scroll resolved
+
+* unhandled starts out with too many nulls
+  + I would expect it to look almost exactly like keyarr
+    + bear in mind that null just means its gone through actOnContext
+
+* arrow keys not working
+
+* end key test leads to infinite loop
+  + need to nullify action
+    + otherwise
+    + A enters critical section
+      + A fires B
+        + B processes
+        + B completes
+        + B resolve sees A as parent
+          + B's resolution calls A again
+    = action = null works well
+
+* replace unhandled with action reference instead
+  + can't use action because action means it's been processed (action function called)
+  + handled means that it's been through a handler_ function
+    + moved handled to eventContext
+    + got rid of unhandled array
+
+* request for seq=last leads to infinite loop that breaks chrome
 

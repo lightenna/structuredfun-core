@@ -174,8 +174,6 @@
       var parentContext = evq.push({
         'key': 'test:parent multi',
         'comment': 'parent context for check eventQueue parent multi-child test',
-        // flag that parent should resolve once child is resolved
-        'autoresolve': true
       });
       // push first child context
       var child1 = evq.push({
@@ -219,8 +217,6 @@
       // push a parent context
       var parentContext = evq.push({
         'key': 'test:parent',
-        // flag that parent should resolve once child is resolved
-        'autoresolve': true,
         'comment': 'parent context for check eventQueue parent test'
       });
       // push a child context
@@ -310,7 +306,7 @@
       equal( localContext.deferred.state(), 'resolved', 'local context is now resolved [sync]');
       equal( mergedContext.deferred.state(), 'resolved', 'merged context is now resolved [sync]');
     });
-/*
+
     test( 'reres of first page of images', function() {
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
@@ -493,7 +489,7 @@
         });
       });
     });
-*/
+
     QUnit.start();
   }
 
