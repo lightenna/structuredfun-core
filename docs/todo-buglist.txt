@@ -10,6 +10,12 @@
 * it's all got too complicated
   + I'm trying to track down a scroll event bug
     + let's document it here
+  + start by thinking about where selected should get resolved
+    + it's a context
+      + so should get resolved with all the contexts
+  + change out contextGetResolver to use .always()
+    = done
+  + move context resolver parent thing
   + basic load stack
       hash:seq=250
         scroll:x=23000
@@ -28,7 +34,6 @@
           hash resolved in contextCallAndWrapUp
         selected resolved somewhere?
       scroll resolved in contextCallAndWrapUp
-  = start by thinking about where selected should get resolved
 
 * rapid scroll is a great test
   + nicely illustrates delaying
@@ -2163,6 +2168,29 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
       + because everything else does
     + going to take it out for now
       + might reprise it later
+    + I think the only reason not to auto-resolve
+      + is that the parent might need to do something first
+        + if the child resolves the parent
+          + that means the parent's resolved before it's completed its stuff
+      + each context could have a function (func) queued
+        + so that when it's ready to work
+          + it can execute that function
+          + then resolve itself
+            + it's logical
+            + up to now we've been limited to managing 'func' inside actOnContext
+              + because we could be delaying it
+              + that's means we've had to have the func promises in that function
+                + which was messy when we tried to unify all the context resolvers
+            + by putting it in a context.variable
+              + we can call it anywhere
+                + which allows us to move all the resolution to a single function
+                  + which makes debugging and tracking easier
+      + not sure about that
+        + all the contexts tend to get resolved in their handlers at the moment
+          + actOnContext sets a good direction of travel
+        + all the wrapUp is now done in the eventQueue
+          + the handler functions don't wrapUp any more
+  + this is all becoming clearer
   + parenting is good
 
 * need to bind to scroll earlier than completion of handler_hash
