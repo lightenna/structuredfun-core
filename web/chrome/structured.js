@@ -386,7 +386,7 @@ window.sfun = (function($, undefined) {
       if ($ent.length) {
         // create and resolve a local context to allow us to numb listener
         var localContext = eventQueue.push({
-          'key': 'selected='+$ent.data('seq'),
+          'key': 'selected:seq='+$ent.data('seq'),
           'comment': 'localContext for refreshSelected (image-'+$ent.data('seq')+')',
           'replaceEvent': true
         });
@@ -2336,7 +2336,6 @@ window.sfun = (function($, undefined) {
           }
           // test to see if we're in the parent's context (parent eventContext == critical_section)
           else if (this.isParentOf(this.critical_section, eventContext)) {
-            // @todo review because I'm not sure about this
             // call and leave critical_section alone
             this.contextCallAndWrapUp(func, eventContext);
           }
@@ -2358,7 +2357,9 @@ window.sfun = (function($, undefined) {
       'contextCallAndWrapUp': function(func, eventContext) {
         var that = this;
         // use jQuery when() as it copes with deferreds and non-deferreds
-        $.when(func.call(sfun)).always(function(){ that.resolve(eventContext) });
+        $.when(func.call(sfun)).always(function(){
+          that.resolve(eventContext);
+        });
       },
 
       /**
@@ -2379,16 +2380,22 @@ window.sfun = (function($, undefined) {
         if (debug && true) {
           console.log('_ delaying critical section for '+this.render(eventContext));
         }
-        // when lastDep gets resolved, execute func
-        lastDep.deferred.done(function() {
-          if (debug && true) {
-            console.log('> last dependent ('+that.render(lastDep)+') resolved, now entering critical section for '+that.render(eventContext));
-          }
-          // flag next context as in its critical section
-          that.setCriticalSection(eventContext);
-          // call func with outer class context
-          that.contextCallAndWrapUp(func, eventContext);
-        });
+        // lastDep.deferred.done(function() {
+        //   // if lastDep gets resolved, execute func
+        //   if (debug && true) {
+        //     console.log('> last dependent ('+that.render(lastDep)+') resolved, now entering critical section for '+that.render(eventContext));
+        //   }
+        //   // flag next context as in its critical section
+        //   that.setCriticalSection(eventContext);
+        //   // call func with outer class context
+        //   that.contextCallAndWrapUp(func, eventContext);
+        // }).fail(function() {
+        //   if (debug && true) {
+        //     console.log('< last dependent ('+that.render(lastDep)+') rejected, now skipping critical section for '+that.render(eventContext));
+        //   }
+        //   // if lastDep gets rejected, just wrap up
+        //   that.reject(eventContext);
+        // });
       },
 
       /**
@@ -2403,7 +2410,6 @@ window.sfun = (function($, undefined) {
         while ((current != null) && (current.parent != null)) {
           // test to see if current key matches regkey
           if (current.key.match(re) != null) {
-console.log('*** FOUND candidate to dump['+current.key+'] for regkey['+regkey+']');
             // remove ancestor from parent chain; point at next in chain/null
             current = this.deleteAncestor(current);
           } else {
@@ -2427,14 +2433,37 @@ console.log('*** FOUND candidate to dump['+current.key+'] for regkey['+regkey+']
         }
         // if there is a parent, setup each child
         if (parent != null) {
+          // remove current as child of parent
+          var ref = parent.deps.indexOf(current);
+          if (ref != -1) {
+            // delete this dep from parent
+            parent.deps.splice(ref, 1);
+          }
           // add children to parent
           for (var i=0 ; i<children.length ; ++i) {
             this.parent(children[i], parent);
           }
         }
+        // nullify current using unhandled
+        // @todo check this because logic suggests its necessary, but the data not
+        // reject the deferred to stop lastDep.deferred.done executing func
+        this.reject(current);
+        // optional debugging
+        if (debug && true) {
+          var logstr = 'D dumped event['+current.key+']';
+          if (children.length > 0) {
+            logstr += ', reparented '+children.length+' child:0['+children[0].key+']';
+          }
+          if (parent != null) {
+            logstr += ' to parent['+parent.key+']'; 
+          } else {
+            logstr += ', no parent';
+          }
+          console.log(logstr);
+        }
         // return parent, or null if there's none
         return parent;
-      }
+      },
 
       /**
        * work up through the parents to find the oldest ancestor
@@ -2497,6 +2526,31 @@ console.log('*** FOUND candidate to dump['+current.key+'] for regkey['+regkey+']
         }
         // always return a resolved deferred
         return getDeferred().resolve(returnValue);
+      },
+
+      /**
+       * @param {object} object to reject and remove if found
+       * @param {mixed} returnValue optional value to return via reject
+       * @return {object} jQuery deferred
+       */
+      'reject': function(obj, returnValue) {
+        if (obj != null) {
+          // remove this object from the eventQueue
+          var ref = this.removeObj(obj);
+          // also delete from local lists
+          if (ref != -1) {
+            this.unhandled.splice(ref, 1);
+          }
+          if (debug && true) {
+            console.log('Q rejected event context[' + this.render(obj) + '], qlen now '+this.getSize());
+          }
+          // reject its deferred if set
+          if (obj.deferred != null) {
+            return obj.deferred.reject(returnValue);
+          }
+        }
+        // always return a rejected deferred
+        return getDeferred().reject(returnValue);
       },
 
       lastEntry: null
@@ -2854,7 +2908,7 @@ console.log('*** FOUND candidate to dump['+current.key+'] for regkey['+regkey+']
       // if not currently aligned to cells, get extra gap to next cell boundary
       var scrolldir = 0 - event.deltaY;
       // optional debugging
-      if (debug && false) {
+      if (debug && true) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
       // calculate increment based on cell snap

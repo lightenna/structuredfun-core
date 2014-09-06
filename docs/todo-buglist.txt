@@ -7,6 +7,29 @@
     + insert into test suite
 * write test to check that correct-res shorcut is working
 
+* it's all got too complicated
+  + I'm trying to track down a scroll event bug
+    + let's document it here
+  + basic load stack
+      hash:seq=250
+        scroll:x=23000
+          scroll completes
+        scroll resolved in contextCallAndWrapUp
+      hash resolved in contextCallAndWrapUp
+  + basic scroll
+      scroll:x=23000
+        scroll completes
+      scroll resolved in contextCallAndWrapUp
+  + basic scroll and select next
+      scroll:x=23000
+        selected:seq=96
+          hash:seq=96
+            hash completes
+          hash resolved in contextCallAndWrapUp
+        selected resolved somewhere?
+      scroll resolved in contextCallAndWrapUp
+  = start by thinking about where selected should get resolved
+
 * rapid scroll is a great test
   + nicely illustrates delaying
     + worth coaxing that test to be as hard as possible
@@ -93,15 +116,19 @@
             + actOnContext, some processing done but no downstream events
               + safe to make parents of current critical_section
                 + can hunt for similar peers
-      + I think this progressive dumping will work
-        = holding
+
+* unhandled starts out with too many nulls
+  + I would expect it to look almost exactly like keyarr
+    + bear in mind that null just means its gone through actOnContext
 
 * mousewheel getting delayed while images loading
   + must never delay the mousewheel
+    + delay shows up even better with flow on
 
 * fix failing test
   + 'reres of last page of images'
     + failing only sometimes in Firefox
+  + failed with flow on
 
 * directory thumbnails need to load bounded
   + partial flash looks weird
@@ -2282,4 +2309,24 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
   + when reres is true
     + we don't seem to load the image at all
     = seems to be solved by bracketing
+
+* scroll lock-up
+  + especially when scrolling back from high seq
+    + I think we get queued up
+      + then we resolve all the elements in that queue
+        - simultaneously
+        + which means that the processor gets slammed
+          + and that stops us queuing up new events
+    + can we try dumping all the events
+      + instead of executing them
+    + I think it's the slew of done()s
+  + also got scroll events getting lost
+    + and tidied up by checkExpiries
+    + could be related
+      + might as well tidy those up anyway
+        + they all seem to be coming from fireScrollUpdate
+        + directly from mouseWheeled
+    + these are hard problems
+    + for now
+      + press on with dumping to lower load
 
