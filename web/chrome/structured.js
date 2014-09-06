@@ -1965,8 +1965,6 @@ window.sfun = (function($, undefined) {
         'deferred': null,
         // has no parent
         'parent': null,
-        // doesn't automatically resolve when its children get resolved
-        'autoresolve': false,
         // has no dependencies
         'deps': null,
         // has no action
