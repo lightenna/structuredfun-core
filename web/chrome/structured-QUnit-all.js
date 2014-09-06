@@ -310,7 +310,7 @@
       equal( localContext.deferred.state(), 'resolved', 'local context is now resolved [sync]');
       equal( mergedContext.deferred.state(), 'resolved', 'merged context is now resolved [sync]');
     });
-
+/*
     test( 'reres of first page of images', function() {
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
@@ -493,7 +493,7 @@
         });
       });
     });
-    
+*/
     QUnit.start();
   }
 

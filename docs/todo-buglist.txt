@@ -2172,6 +2172,9 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
       + is that the parent might need to do something first
         + if the child resolves the parent
           + that means the parent's resolved before it's completed its stuff
+          = finally, everything auto-resolves
+            + removed autoresolve flag
+            + no necessary as also introduced eventContext.action
       + each context could have a function (func) queued
         + so that when it's ready to work
           + it can execute that function
