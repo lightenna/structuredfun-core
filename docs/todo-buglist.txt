@@ -1,106 +1,21 @@
 
+* checkExpiries crucial for resolution of rapid scroll (in all)
+  + suspect something's not getting resolved that should be
+  + also rapid scroll takes a really long time (15s)
+    + it seems to hang at the end for a long time
+      + with no events firing
+
 * fun optimise
-  + visTable.updateAll
-    + called a lot
-    + change updateAll to updateRange
-      + need to index by ref
-        + could create a special dedicated index
-        + or just use the ref
-          + ref fits better
   + get offsetWidth (jquery) called from refreshMetric and setBound
+    + use standard test
+
+* extend vistable tests to cover updateRange
 
 * fix failing test
   + 'reres of last page of images'
     + failing only sometimes in on folders with nested folders (at the end)
       + fails in both Firefox and Chrome, so not a browser thing
   + failed with flow on/off
-
-* rapid scroll is a great test
-  + nicely illustrates delaying
-    + worth coaxing that test to be as hard as possible
-  + shows a couple of things
-    1 selected events never get resolved
-      + they only get cleaned up by checkExpiries
-        + they are async
-          + so they're not holding anything up
-          + but they can be resolved earlier
-        + should resolve on replaceEvent
-        + looks like replaceEvent functions aren't resolving their parents
-          = now they do
-    2 scroll is currently sticky
-      + it's not currently jumping out of order
-        + at least not on this computer
-      + but it's not smooth
-      + looking at the logs
-        + there are heaps of queued scroll events
-          + that all get resolved at the end
-          + I think they could all get dumped
-            + my only worry is that dumping might hide other problems
-        = ok, tested on larger, slower image set
-      + but let's work on selectively dropping events
-        + 3rd queue seems to be the way to do it
-          + that means deciding what to drop in getOrInvent
-      + say there are many rapid [scroll] events
-        + A B C D E F G H
-      + dump by removing from unhandled array
-      + 2-deep dumping algorithm
-        + we catch A
-          + start processing it
-        + B gets queued
-        + C gets queued
-          + dump B
-        ...
-        + H gets queued
-          + dump G
-      + dumping is a little more complicated
-        + when dumping B
-          + C needs to get parented to A
-      + getOrInvent is tricky
-        + by the time we get the call from getOrInvent
-          + the event has already been fired by the browser
-        + we've got a very short space of time to decide if we're going to decide
-          + to process, queue (by parenting) or nullify (by returning null)
-        + there's got to be a sort of 3rd way here
-          + when we're processing C (in getOrInvent)
-            + we're going into the A-B parenting relationship
-              + already setup in actOnContext
-            + and unpicking it
-        + getOrInvent pulls matching element from eventQueue
-          + or creates it
-            + so think 'C'
-          + at the time we see 'C' we don't know if we're going to queue it (parent it)
-            + because we're just inventing it or pulling it from the eventQueue
-          + alternative time to do dumping is when we queue
-            + which makes it part of actOnContext
-            + we're getting towards the idea of two kinds of 'parent'
-              + real parents
-                + where the parent spawned the child event
-              + execution order parents
-                + where the parent needs to be executed when the child completes
-            + we generally use it in the second context
-          + the only time this comes up is when we process a torrent of events
-            + we end up with a very unrealistic chain of unrelated events
-              + the only interesting thing is we do it in the opposite direction
-              1 handlerHash -> fireScroll
-                + sets up scroll event as child of handlerHash
-              2 actOnEvent B, while executing A
-                + sets up B as a _parent_ of A
-                  + so that when A completes, B gets kicked
-              + these two things shouldn't be in the same queue
-                + 1 should be chains of events
-                  + using the existing mechanism
-                + 2 should be some kind of macro level thing
-                  + like a straight-forward list at the eventQueue object level
-              + how much do we re-write now
-                + I think first thing is to test the effectiveness of dumping events
-                + I'm also not sure that we really want to split these into two queues
-                  + the intersection between those queues requires management
-          + events go through a few key stages
-            + getOrInvent, simple single events, no deps
-              + they don't get handled until after actOnContext
-            + actOnContext, some processing done but no downstream events
-              + safe to make parents of current critical_section
-                + can hunt for similar peers
 
 * use rapid scroll test to show that
   + some events are getting dumped
@@ -2397,4 +2312,102 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
     + got rid of unhandled array
 
 * request for seq=last leads to infinite loop that breaks chrome
+
+* rapid scroll is a great test
+  + nicely illustrates delaying
+    + worth coaxing that test to be as hard as possible
+  + shows a couple of things
+    1 selected events never get resolved
+      + they only get cleaned up by checkExpiries
+        + they are async
+          + so they're not holding anything up
+          + but they can be resolved earlier
+        + should resolve on replaceEvent
+        + looks like replaceEvent functions aren't resolving their parents
+          = now they do
+    2 scroll is currently sticky
+      + it's not currently jumping out of order
+        + at least not on this computer
+      + but it's not smooth
+      + looking at the logs
+        + there are heaps of queued scroll events
+          + that all get resolved at the end
+          + I think they could all get dumped
+            + my only worry is that dumping might hide other problems
+        = ok, tested on larger, slower image set
+      + but let's work on selectively dropping events
+        + 3rd queue seems to be the way to do it
+          + that means deciding what to drop in getOrInvent
+      + say there are many rapid [scroll] events
+        + A B C D E F G H
+      + dump by removing from unhandled array
+      + 2-deep dumping algorithm
+        + we catch A
+          + start processing it
+        + B gets queued
+        + C gets queued
+          + dump B
+        ...
+        + H gets queued
+          + dump G
+      + dumping is a little more complicated
+        + when dumping B
+          + C needs to get parented to A
+      + getOrInvent is tricky
+        + by the time we get the call from getOrInvent
+          + the event has already been fired by the browser
+        + we've got a very short space of time to decide if we're going to decide
+          + to process, queue (by parenting) or nullify (by returning null)
+        + there's got to be a sort of 3rd way here
+          + when we're processing C (in getOrInvent)
+            + we're going into the A-B parenting relationship
+              + already setup in actOnContext
+            + and unpicking it
+        + getOrInvent pulls matching element from eventQueue
+          + or creates it
+            + so think 'C'
+          + at the time we see 'C' we don't know if we're going to queue it (parent it)
+            + because we're just inventing it or pulling it from the eventQueue
+          + alternative time to do dumping is when we queue
+            + which makes it part of actOnContext
+            + we're getting towards the idea of two kinds of 'parent'
+              + real parents
+                + where the parent spawned the child event
+              + execution order parents
+                + where the parent needs to be executed when the child completes
+            + we generally use it in the second context
+          + the only time this comes up is when we process a torrent of events
+            + we end up with a very unrealistic chain of unrelated events
+              + the only interesting thing is we do it in the opposite direction
+              1 handlerHash -> fireScroll
+                + sets up scroll event as child of handlerHash
+              2 actOnEvent B, while executing A
+                + sets up B as a _parent_ of A
+                  + so that when A completes, B gets kicked
+              + these two things shouldn't be in the same queue
+                + 1 should be chains of events
+                  + using the existing mechanism
+                + 2 should be some kind of macro level thing
+                  + like a straight-forward list at the eventQueue object level
+              + how much do we re-write now
+                + I think first thing is to test the effectiveness of dumping events
+                + I'm also not sure that we really want to split these into two queues
+                  + the intersection between those queues requires management
+          + events go through a few key stages
+            + getOrInvent, simple single events, no deps
+              + they don't get handled until after actOnContext
+            + actOnContext, some processing done but no downstream events
+              + safe to make parents of current critical_section
+                + can hunt for similar peers
+
+* transfer rapid scroll test to all
+
+* fun optimise
+  + visTable.updateAll
+    + called a lot
+    + change updateAll to updateRange
+      + need to index by ref
+        + could create a special dedicated index
+        + or just use the ref
+          + ref fits better
 
