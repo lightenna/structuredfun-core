@@ -30,7 +30,25 @@ window.sfun = (function($, undefined) {
 
   // jQuery selector refresh
   $.fn.refresh = function() {
-      return $(this.selector);
+    return $(this.selector);
+  };
+
+  // jQuery caching find function
+  $.fn.cachedFind = function(subselector) {
+    this.litter = this.litter || {};
+    this.litter.cache = this.litter.cache || {};
+    if (this.litter.cache[subselector] == undefined) {
+      if (debug && false) {
+        console.log('cache HIT ('+this.selector+') id['+this.attr('id')+']:'+subselector);
+      }
+      this.litter.cache[subselector] = this.find(subselector);
+    }
+    else {
+      if (debug && false) {
+        console.log('cache MISS ('+this.selector+') id['+this.attr('id')+']:'+subselector);
+      }
+    }
+    return this.litter.cache[subselector];
   };
 
   // ---------
@@ -175,7 +193,7 @@ window.sfun = (function($, undefined) {
     }
     for (var i = range.first_1 ; i<= range.last_n ; ++i) {
       var $ent = $img(i);
-      var $loadable = $ent.find('.loadable');
+      var $loadable = $ent.cachedFind('.loadable');
       if ($loadable.data('ratio') == undefined) {
         // wait for image to be loaded in order to get ratio
         defs[defs.length] = waitLoadedGetResolution($ent, true).done(function() {
@@ -248,7 +266,7 @@ window.sfun = (function($, undefined) {
   var loadThumb = function($ent, recurse) {
     var that = this;
     // find principal images within this cell
-    var $loadable = $ent.find('> .container > .loadable');
+    var $loadable = $ent.cachedFind('> .container > .loadable');
     if ($loadable.length) {
       // load thumbnail by swapping in src, if src not already set [async]
       var attr = $loadable.attr('src');
@@ -265,7 +283,7 @@ window.sfun = (function($, undefined) {
     }
     // optionally recurse on sub-cells
     if (recurse) {
-      $ent.find('.subcell').each(function() {
+      $ent.cachedFind('.subcell').each(function() {
         // only do 1 level of recursion
         loadThumb($(this), false);
       });
@@ -279,7 +297,7 @@ window.sfun = (function($, undefined) {
    */
   var loadThumbRefreshBounds = function($ent) {
     // find boundable entity
-    var $boundable = $ent.find('.loadable');
+    var $boundable = $ent.cachedFind('.loadable');
     if ($boundable.length) {
       // 1. update loaded resolution if necessary first
       if ($boundable.data('loaded-width') == undefined || $boundable.data('loaded-height') == undefined) {
@@ -307,8 +325,8 @@ window.sfun = (function($, undefined) {
    */
   var refreshMetric = function($ent) {
     // find the imgmetric if it's set
-    var $reresable = $ent.find('.reresable');
-    var $metric = $ent.find('.imgmetric');
+    var $reresable = $ent.cachedFind('.reresable');
+    var $metric = $ent.cachedFind('.imgmetric');
     var perc;
     if ($metric.length && $reresable.length) {
       var width_current = $reresable.width(), height_current = $reresable.height();
@@ -318,16 +336,16 @@ window.sfun = (function($, undefined) {
       perc = Math.round(width_current * 100 / width_native);
       if (debug && false) {
         // show the size of the image that's been loaded into this img container
-        $metric.find('span.width').html(Math.round($reresable.data('loaded-width')));
-        $metric.find('span.height').html(Math.round($reresable.data('loaded-height')));
-        $metric.find('span.size').show();
+        $metric.cachedFind('span.width').html(Math.round($reresable.data('loaded-width')));
+        $metric.cachedFind('span.height').html(Math.round($reresable.data('loaded-height')));
+        $metric.cachedFind('span.size').show();
       } else {
         // update with current image width and height
-        $metric.find('span.width').html(Math.round(width_current));
-        $metric.find('span.height').html(Math.round(height_current));
+        $metric.cachedFind('span.width').html(Math.round(width_current));
+        $metric.cachedFind('span.height').html(Math.round(height_current));
       }
       if (!isNaN(perc)) {
-        $metric.find('span.perc').html(perc+'%').show();
+        $metric.cachedFind('span.perc').html(perc+'%').show();
       }
       // analyse to see if we're over/under the native res
       if (width_current > width_native || height_current > height_native) {
@@ -342,9 +360,9 @@ window.sfun = (function($, undefined) {
    * check that the image metric is in the right place
    */
   var refreshMetricPosition = function($ent) {
-    var $metric = $ent.find('.imgmetric');
+    var $metric = $ent.cachedFind('.imgmetric');
     if ($metric.length) {
-      var $image = $ent.find('.reresable');
+      var $image = $ent.cachedFind('.reresable');
       if ($image.length) {
         var position = $image.offset();
         // move the metric to the corner of the image using absolute coords
@@ -400,7 +418,7 @@ window.sfun = (function($, undefined) {
    */
   var refreshResolution = function($ent) {
     var that = this;
-    var $reresable = $ent.find('.reresable');
+    var $reresable = $ent.cachedFind('.reresable');
     if (!$reresable.length) {
       return getDeferred().resolve();
     }
@@ -494,7 +512,7 @@ window.sfun = (function($, undefined) {
    */
   var refreshMetadata = function($ent) {
     var that = this;
-    var $reresable = $ent.find('.reresable');
+    var $reresable = $ent.cachedFind('.reresable');
     if ($reresable.length && $reresable.data('meta-src')) {
       // test to see if we have the metadata
       if (typeof($reresable.data('native-width')) == 'undefined' || typeof($reresable.data('native-height')) == 'undefined') {
@@ -745,7 +763,7 @@ window.sfun = (function($, undefined) {
       deferred.resolve();
     }
     // process principal image if cell has one
-    var $loadable = $ent.find('> .container > .loadable');
+    var $loadable = $ent.cachedFind('> .container > .loadable');
     if ($loadable.length) {
       var principalDeferred = getDeferred();
       defs.push(principalDeferred);
@@ -781,7 +799,7 @@ window.sfun = (function($, undefined) {
     }
     // if set, recurse on subcells
     if (recurse) {
-      $ent.find('.subcell').each(function() {
+      $ent.cachedFind('.subcell').each(function() {
         defs.push(waitLoadedGetResolution($(this), false));
       });
     }
@@ -1010,7 +1028,7 @@ window.sfun = (function($, undefined) {
    */
   var setBound = function($ent, recurse) {
     var that = this;
-    var $boundable = $ent.find('> .container > .boundable');
+    var $boundable = $ent.cachedFind('> .container > .boundable');
     if ($boundable.length) {
       // detect if the image is bound by width/height in this container
       var ix = $boundable.data('loaded-width'), iy = $boundable.data('loaded-height');
@@ -1032,7 +1050,7 @@ window.sfun = (function($, undefined) {
     }
     // optionally recurse on sub-cells
     if (recurse) {
-      $ent.find('.subcell').each(function() {
+      $ent.cachedFind('.subcell').each(function() {
         // only do 1 level of recursion
         setBound($(this), false);
       });
@@ -1341,7 +1359,7 @@ window.sfun = (function($, undefined) {
    */
   var imageReres = function($ent, path) {
     var that = this;
-    var $reresable = $ent.find('.reresable');
+    var $reresable = $ent.cachedFind('.reresable');
     if ($reresable.length) {
       var deferred = getDeferred();
       // create temporary image container
@@ -1430,7 +1448,7 @@ window.sfun = (function($, undefined) {
         }
         break;
       case 'directory':
-        var $clickable = $ent.find('.clickable');
+        var $clickable = $ent.cachedFind('.clickable');
         if ($clickable.length) {
           window.location = $clickable.attr('href');
         }
