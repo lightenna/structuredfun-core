@@ -112,8 +112,6 @@ window.sfun = (function($, undefined) {
         bindToImageLinks();
         // if we're sideways scrolling, bind to scroll event
         setDirection(getDirection());
-        // update vistable
-        visTableMajor.updateAll(getDirection(), $sfun_selectablecell);
         // execute queue of API calls
         exp.flush();
         // process state if set in URL (hash) first
@@ -198,8 +196,7 @@ window.sfun = (function($, undefined) {
     var vis = getVisibleBoundaries();
     var wrapUp = function() {
       // when layoutManager completes a resize, capture cell boundaries
-      // @todo restrict update to range.first_1 to range.last_n
-      visTableMajor.updateAll(getDirection(), $sfun_selectablecell);
+      visTableMajor.updateRange(getDirection(), vis.first_1, vis.last_n);
       // see if resize means that different images are visible
       var aftervis = getVisibleBoundaries();
       if (vis.first == aftervis.first && vis.last == aftervis.last) {
@@ -1645,6 +1642,10 @@ window.sfun = (function($, undefined) {
       '_push': function(obj) {
         // get next free position, but don't store in obj because it can change
         var ref = this.getSize();
+        // if object has ref set, use instead
+        if (obj.ref != undefined) {
+          ref = obj.ref;
+        }
         // store ID and ready for next ID request
         obj.idx = 1000 + this.counter++;
         // store in object array
@@ -1764,6 +1765,21 @@ window.sfun = (function($, undefined) {
           currentElement = this.keyarr[maxRef];
           // work backwards looking for identical value to last <= key
           return this.find(currentElement, true);
+        }
+      },
+
+      /**
+       * update key for a given object
+       * @param {int} ref position in object array
+       * @param {objext} obj object to update
+       * @param {mixed} new_key
+       */
+      'replaceKey': function(ref, obj, new_key) {
+        if (this.objarr[ref] == obj) {
+          // upate object itself
+          obj.key = new_key;
+          // update key array
+          this.keyarr[ref] = new_key;
         }
       },
 
@@ -1898,16 +1914,34 @@ window.sfun = (function($, undefined) {
       // FUNCTIONS
 
       /**
+       * update coordinates stored for a range of cells
+       * @param {string} direction x or y
+       * @param {int} range_start seq of first cell to refresh
+       * @param {int} range_end seq of last cell to refresh (inclusive)
+       */
+      'updateRange': function(direction, range_start, range_finish) {
+        var vt = this;
+        for (var i=range_start ; i<=range_finish ; ++i) {
+          var $ent = $img(i);
+          var position = $ent.offset();
+          var ref = $ent.data('seq');
+          var obj = vt.select(ref);
+          // replace this key in object and key index
+          vt.replaceKey(ref, obj, (direction == 'x' ? position.left : position.top));
+        }
+      },
+
+      /**
        * update coordinates stored for each cell
        * @param {string} direction x or y
-       * @param {object} $sfun_selectablecell jQuery list of cells
+       * @param {object} $cells jQuery list of cells
        */
-      'updateAll': function(direction, $sfun_selectablecell) {
+      'updateAll': function(direction, $cells) {
         var vt = this;
         // wipe previous table
         vt.wipe();
         // read in new values
-        $sfun_selectablecell.each(function() {
+        $cells.each(function() {
           var $ent = $(this);
           var position = $ent.offset();
           // create object
@@ -2271,8 +2305,9 @@ window.sfun = (function($, undefined) {
 
       /**
        * process act-on-event decision
-       * event contexts only get resolved when they've done their work
-       * actOnContext takes a context, so consider unhandled[] (which is upstream in getOrInvent)
+       * event contexts:
+       *   get resolved when they've done their work (action function)
+       *   get marked as handled whether they get queued or not
        * @param {object} eventContext
        * @param {function} func to call or store; this function contains its own wrapUp calls
        */

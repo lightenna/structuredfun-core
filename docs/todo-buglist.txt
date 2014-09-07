@@ -2,13 +2,18 @@
 * fun optimise
   + visTable.updateAll
     + called a lot
+    + change updateAll to updateRange
+      + need to index by ref
+        + could create a special dedicated index
+        + or just use the ref
+          + ref fits better
   + get offsetWidth (jquery) called from refreshMetric and setBound
 
 * fix failing test
   + 'reres of last page of images'
     + failing only sometimes in on folders with nested folders (at the end)
       + fails in both Firefox and Chrome, so not a browser thing
-  + failed with flow on
+  + failed with flow on/off
 
 * rapid scroll is a great test
   + nicely illustrates delaying
