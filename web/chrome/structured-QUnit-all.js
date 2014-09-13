@@ -446,6 +446,10 @@
       // clear hash because this test uses bindToContext
       window.location.hash = '';
       var direction = sfun.api_getDirection();
+      // get initial dump count
+      var evq = sfun.api_getEventQueue();
+      var initial_dump_count = evq.dump_count;
+      // start test
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
         var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
@@ -505,6 +509,8 @@
                   // test scroll position
                   var endPos = (direction == 'x' ? $(document).scrollLeft() : $(document).scrollTop());
                   equal(endPos, startPos + iterCount*iterMux, 'finished in correct scroll position');
+                  // check that we dumped events
+                  notEqual(initial_dump_count, evq.dump_count, (evq.dump_count - initial_dump_count) + ' events dumped');
                 }
               }, 1);
             }
