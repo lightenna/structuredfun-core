@@ -1,13 +1,60 @@
 
-* checkExpiries crucial for resolution of rapid scroll (in all)
-  + suspect something's not getting resolved that should be
-  + also rapid scroll takes a really long time (15s)
-    + it seems to hang at the end for a long time
-      + with no events firing
+* can get into a mode where nothing's happening
+  + because something got left on the queue
+    - isn't yet resolved
+  + and is delaying everything after it
+    + resolve by watching checkExpiries
+  + something completes
+    + and doesn't kick its parent
+    + the critical section is null
+      + might be good to track last critical section
 
-* fun optimise
-  + get offsetWidth (jquery) called from refreshMetric and setBound
-    + use standard test
+* mouseWheel needs to keep track of where the last event should have got to
+  + because if we buffer the scroll
+    + and don't actually scroll
+    + then use the current (non-scrolled) position for offsetting future scroll events
+      + the mouseWheel doesn't move far enough
+  + but how to store position between calls?
+    + pulling from event queue is messy
+      + because we've got to findRegex, then pull out coord
+    + static's looking pretty good
+  + this could be a good time to scroll one row at a time
+    + that way we're just incrementing a seq counter
+      + and pushing a hash: seq instead of a scroll
+    + seems like a good change to make
+      = done
+    + still same issue about caching position
+      + could maybe use getSeq
+        + some kind of setSeq command
+          + or straight to its static
+        + I'm not sure of the ramifications of that
+          + because the event could get dumped
+        + probably fine, so long as when the event gets processed it sets the same variable
+          + so we're only potentially out of whack for a fraction of a second
+  + this might get solved by shortcutting
+    - it didn't
+  + back to static approach
+    + this is a sequence number
+      + so we want the last hash seq that was requested
+        + not necessarily yet set/resolved (e.g. called setSeq)
+      + can we manually poke a value into the static in getSeq?
+
+* go slow through this bit
+  + accuracy and reliability is crucial for further dev
+--o--
+* shortcutting event firing
+  + rather than changing hash, then waiting for the handler to fire
+    + we could (in certain cases)
+    + create the eventContext
+      + then manually fire the handler
+    + probably should only do if there's nothing on the queue
+      + could make that part of the fire_
+    = code written
+  + needs a proper timed test
+
+* nicer alignment
+  + if image is entirely visible in the viewport, adjust offseq
+  + if image isn't visible, scroll as little as possible to make it visible
 
 * extend vistable tests to cover updateRange
 
@@ -16,10 +63,6 @@
     + failing only sometimes in on folders with nested folders (at the end)
       + fails in both Firefox and Chrome, so not a browser thing
   + failed with flow on/off
-
-* use rapid scroll test to show that
-  + some events are getting dumped
-  + the last scroll event is fired and handled
 
 * mousewheel getting delayed while images loading
   + must never delay the mousewheel
@@ -36,83 +79,13 @@
     + insert into test suite
 * write test to check that correct-res shorcut is working
 
-* play with image overlays
-  + couple of possible routes
-    + python to opencv to imagemeta
-  + image augmentation database
-    + at the point of serving up an image
-      + look for more metadata in central DB
-        + annotate the image that's returned to the browser
-        + look at options for pulling metadata directly from image using JS
-
-* could pursue buffer() for speed
-  + we're processing too much during a scroll
-    + stick a delayUntil on a context
-  + everytime we put an event into its critical section
-    + we want to check for and resolve redundant events
-      + do that first, then do delay
-
-* check that we only start doing stuff on nearvis AFTER we've done everything on visible/vispart
-  + there's a short delay then it seems like nothing is happening
-    + I suspect it's because we're doing nearvis
-
-* look at .find calls
-
 * apple scroll is too fast
   + log the scroll events
     + research way of detecting apple trackpad
     + worst case we read the OS from the browser string and assume
 
-* loading seq=high shows a tiny slice of the previous cell
-  + happens for direction-x/y
-  + even at offseq=0 (default)
-  = almost sorted
-    + just need to tweak the rounding so that we don't include vispart
-      + where the near edge of the cell is actually offscreen (0 to -5)
-
-* cold load seq=high jumps in Chrome only
-  + something to do with the final stage
-    + from container offset to scroll
-  + there's a difference in the cell widths between hash->setScroll and scrollHandler
-    + I suspect
-      + we're collapsing it somehow
-      + or chrome is collapsing it
-    + verify by
-      + checking fiddle
-        + doesn't seem to happen
-      + jquery checking the cell widths
-        + seem fine
-      + F10ing through things it does in between
-  + start by disabling flow
-    + see if this occurs with just the basic layout
-  + gaining some insight into this
-    + it looks like (without flow) cmd+r reloads the page
-      + and triggers a scroll event to return to the same place in the document
-
-* loading near far edge with lots of directories
-  - introduces shuffle
-    + and events go mad
-
-* remember dimensions of last resize
-  + and somehow tag onto cell
-    + so that we don't have to resize cells that we've already resized
---o--
-* remember dimensions of last reres
-  + and somehow tag onto cell
-    + so that we're not constantly asking images to reres unnecessarily
-
 * imagecreatefromstring is stumbling over gif
   + look at AE
-
-* start with pc, but set cell sizes using px after that
-  + otherwise we get very strange effects during resize (at high seq)
-
-* eventually capture -8px margin on #sfun
-  + before changing it to realign major
-    + so that when we apply new value (to realign the major axis)
-    + it includes the -8px
-      + otherwise we show a little edge
-  + not sure if this is necessary or not
 
 * need to wait until there are no scroll events before realigning
   + otherwise scrollbar goes all over the place
@@ -123,94 +96,9 @@
       + not sure
       + worth investigating first
 
-* scrolling backwards beyond visnear
-  + jumps forward to show selected
-    = try just buffering
-
-* rewrite test logic, just document here
-    + cold load 0
-    + cold load low seq
-    + cold load high seq
-    + load 0 skip low
-    + load low skip high
-    + load high skip low
-
-* jumping to seq creates different results to reloading to seq
-  + like before, seq gets kicked right by preseq images loading
-
-* re-enable scroll buffering
-
-* staged scroll should go row-by-row or column-by-column
-  + also centre using offseq=centre
-    + a number should preserve the number of scroll
-      + but centre is more meaningful
-
 * page up/down needs to work on viewport pages
   + can't rely on jumping a certain number of images forward/back
     + because they could be really narrow
-
-* use offseq to maintain the relative position of the current seq image
-  + fun to watch it grow and shrink
-
-* sfun button needs to go into the corner
-  + been pushed out by some padding/margin
-
-* end event is resolving slowly
-  + only after 10s expiry
-  + it's getting lost during a scroll update
-    + we know because it's a scroll:x=1799 event that expires
-      + which triggers the original keyPress to resolve
-  + the disconnect seems to be happening
-    + because we try and scroll to 1799
-    + but the scrollEvent that comes back is only to 720
-      + could solve by estimating position of window near END
-      + better to solve with wildcards
-    + need to create an eventContext really early
-      + at the point where we fire_keyPress(key_END)
-      + that eventContext needs to be passed all the way through
-      + and contain a wildcard
-        + to connect with ambiguous scroll-to-end
-        + now that's actually quite hard
-          + the event changes nature with each pass of the batton
-          + we're basically saying
-            + when you fire a scrollUpdate for this,
-              + call it something else
-            + that's not an easy narrative
-    + alternative is to soften the link between all fired scroll events
-      + and the handlers that immediately follow them
-    + or some combination of the two
-      + something in the master eventContext
-        + that says soften the following
-          + temp issue: not timing out old events
-    + alternative might be to try and more accurately guess
-      + where scroll event will actually go to
-        + i.e. document end - screen width
-      + could do that as a simple max on the fire_scrollUpdate
-        + that's pretty close
-          + still having to expiry it though
-            + let's look at context id to see which contexts are missing
-      + it's clear that one of the images isn't resolving
-        + when I force the deferred to resolve, everything is fine
---o--
-* wire in deferreds through everything else
-  + make it work for handler_hash first
---o--
-* extend test suite
-  + test reres
-    + end
-  + need to connect the deferred in the hash handler to some kind of external/api
-    + pushing a value in the URL might be an option
-      + but that only extends to hash values
-      + nice to come up with something global
-        + need to find a way to push identifiers through the event chain
-          + e.g. x in scrollUpdate(x) -> handler_scrolled(x)
---o--
-* end test has errors
-  + some images have been reloaded
-    + it's because we're resolving the scroll event after the metadata has been returned
-      - not after the reres has completed
-    + I can see cases where we might want both of those
-      + but for now, concentrate on the images loading
 
 * forward scroll newbies
   + newly visible images are coming into view too far apart
@@ -218,32 +106,10 @@
     + take an average major
       + maintain everytime we shrink a cell
 
-* directories as full cell multi-image panes
-  + basically like little microcosms of the whole screen
-    + play with a border to make them look different
-
-* selector doesn't show on two sides
-  + need to show all the way around the selected image
-
-* extend test suite once all current tests are working
-  + test reres
-    + mouse wheel two images right
-  + test imgmetric vis
-
-* visTable bugs
-  + fairly minor stuff I think
-    + use test suite to debug
-
 * .s in directory names, like mq
 
 * mousewheel after scroll needs to re-align
   + otherwise can be scrolling in half-images
-
-* sfun icon
-  + think about the glassbar concept
-    + pushing out from the icon
-
-* shiny menu bar
 
 * need to get an alpha online
   + doesn't need to be a big release, but it does have to be a first release
@@ -2410,4 +2276,210 @@ _ delaying critical section for 3:scroll:x=1484&y=0, pending, localContext for f
         + could create a special dedicated index
         + or just use the ref
           + ref fits better
+
+* fun optimise
+  + get offsetWidth (jquery) called from refreshMetric and setBound
+    + use standard test
+    = not important now
+
+* could pursue buffer() for speed
+  + we're processing too much during a scroll
+    + stick a delayUntil on a context
+  + everytime we put an event into its critical section
+    + we want to check for and resolve redundant events
+      + do that first, then do delay
+  = deprecated by event dumping
+
+* look at .find calls
+
+* check that we only start doing stuff on nearvis AFTER we've done everything on visible/vispart
+  + there's a short delay then it seems like nothing is happening
+    + I suspect it's because we're doing nearvis
+
+* loading seq=high shows a tiny slice of the previous cell
+  + happens for direction-x/y
+  + even at offseq=0 (default)
+  = almost sorted
+    + just need to tweak the rounding so that we don't include vispart
+      + where the near edge of the cell is actually offscreen (0 to -5)
+
+* cold load seq=high jumps in Chrome only
+  + something to do with the final stage
+    + from container offset to scroll
+  + there's a difference in the cell widths between hash->setScroll and scrollHandler
+    + I suspect
+      + we're collapsing it somehow
+      + or chrome is collapsing it
+    + verify by
+      + checking fiddle
+        + doesn't seem to happen
+      + jquery checking the cell widths
+        + seem fine
+      + F10ing through things it does in between
+  + start by disabling flow
+    + see if this occurs with just the basic layout
+  + gaining some insight into this
+    + it looks like (without flow) cmd+r reloads the page
+      + and triggers a scroll event to return to the same place in the document
+
+* loading near far edge with lots of directories
+  - introduces shuffle
+    + and events go mad
+
+* start with pc, but set cell sizes using px after that
+  + otherwise we get very strange effects during resize (at high seq)
+
+* eventually capture -8px margin on #sfun
+  + before changing it to realign major
+    + so that when we apply new value (to realign the major axis)
+    + it includes the -8px
+      + otherwise we show a little edge
+  + not sure if this is necessary or not
+
+* scrolling backwards beyond visnear
+  + jumps forward to show selected
+    = try just buffering
+
+* rewrite test logic, just document here
+    + cold load 0
+    + cold load low seq
+    + cold load high seq
+    + load 0 skip low
+    + load low skip high
+    + load high skip low
+
+* jumping to seq creates different results to reloading to seq
+  + like before, seq gets kicked right by preseq images loading
+
+* re-enable scroll buffering
+
+* staged scroll should go row-by-row or column-by-column
+  + also centre using offseq=centre
+    + a number should preserve the number of scroll
+      + but centre is more meaningful
+
+* use offseq to maintain the relative position of the current seq image
+  + fun to watch it grow and shrink
+
+* sfun button needs to go into the corner
+  + been pushed out by some padding/margin
+
+* end event is resolving slowly
+  + only after 10s expiry
+  + it's getting lost during a scroll update
+    + we know because it's a scroll:x=1799 event that expires
+      + which triggers the original keyPress to resolve
+  + the disconnect seems to be happening
+    + because we try and scroll to 1799
+    + but the scrollEvent that comes back is only to 720
+      + could solve by estimating position of window near END
+      + better to solve with wildcards
+    + need to create an eventContext really early
+      + at the point where we fire_keyPress(key_END)
+      + that eventContext needs to be passed all the way through
+      + and contain a wildcard
+        + to connect with ambiguous scroll-to-end
+        + now that's actually quite hard
+          + the event changes nature with each pass of the batton
+          + we're basically saying
+            + when you fire a scrollUpdate for this,
+              + call it something else
+            + that's not an easy narrative
+    + alternative is to soften the link between all fired scroll events
+      + and the handlers that immediately follow them
+    + or some combination of the two
+      + something in the master eventContext
+        + that says soften the following
+          + temp issue: not timing out old events
+    + alternative might be to try and more accurately guess
+      + where scroll event will actually go to
+        + i.e. document end - screen width
+      + could do that as a simple max on the fire_scrollUpdate
+        + that's pretty close
+          + still having to expiry it though
+            + let's look at context id to see which contexts are missing
+      + it's clear that one of the images isn't resolving
+        + when I force the deferred to resolve, everything is fine
+--o--
+* wire in deferreds through everything else
+  + make it work for handler_hash first
+--o--
+* extend test suite
+  + test reres
+    + end
+  + need to connect the deferred in the hash handler to some kind of external/api
+    + pushing a value in the URL might be an option
+      + but that only extends to hash values
+      + nice to come up with something global
+        + need to find a way to push identifiers through the event chain
+          + e.g. x in scrollUpdate(x) -> handler_scrolled(x)
+--o--
+* end test has errors
+  + some images have been reloaded
+    + it's because we're resolving the scroll event after the metadata has been returned
+      - not after the reres has completed
+    + I can see cases where we might want both of those
+      + but for now, concentrate on the images loading
+
+* directories as full cell multi-image panes
+  + basically like little microcosms of the whole screen
+    + play with a border to make them look different
+
+* selector doesn't show on two sides
+  + need to show all the way around the selected image
+
+* extend test suite once all current tests are working
+  + test reres
+    + mouse wheel two images right
+  + test imgmetric vis
+
+* visTable bugs
+  + fairly minor stuff I think
+    + use test suite to debug
+
+* sfun icon
+  + think about the glassbar concept
+    + pushing out from the icon
+
+* shiny menu bar
+
+* play with image overlays
+  + couple of possible routes
+    + python to opencv to imagemeta
+  + image augmentation database
+    + at the point of serving up an image
+      + look for more metadata in central DB
+        + annotate the image that's returned to the browser
+        + look at options for pulling metadata directly from image using JS
+
+* remember dimensions of last resize
+  + and somehow tag onto cell
+    + so that we don't have to resize cells that we've already resized
+--o--
+* remember dimensions of last reres
+  + and somehow tag onto cell
+    + so that we're not constantly asking images to reres unnecessarily
+
+* checkExpiries crucial for resolution of rapid scroll (in all)
+  + suspect something's not getting resolved that should be
+  + also rapid scroll takes a really long time (15s)
+    + it seems to hang at the end for a long time
+      + with no events firing
+--o--
+* lots of events getting stacked up in queue and not resolving
+  + when scrolling, it's lots of scroll events
+    + these are dumped events
+  + we need to set expiry when we dump them
+
+* research video coding
+ffmpeg.exe -i <src> -b:v 1500k -vcodec libx264 -g 30 -movflags +faststart <output>.mp4
+
+* use rapid scroll test to show that
+  + the last scroll event is fired and handled
+    = done
+  + some events are getting dumped
+    + tricky test
+    + probably need to expose something new in the API to find out
+      + maintain dump count
+        + sample before and after
 

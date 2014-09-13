@@ -152,18 +152,6 @@ window.sfun = (function($, undefined) {
           function(){},
           50); // 50ms
         });
-
-        // DELETE ME
-        // dirty test to shortcut suite
-        var k = that;
-        $('.header').append('<p><a id="endkey" class="endkey" href="">Endkey</a></p>');
-        $('.endkey').click(function(event) {
-          event.preventDefault();
-          exp.api_triggerKeypress(exp.KEY_END).done(function() {
-            alert('key press returned');
-          });
-        });
-
       });
     }
   };
@@ -331,7 +319,7 @@ window.sfun = (function($, undefined) {
     if ($metric.length && $reresable.length) {
       var width_current = $reresable.width(), height_current = $reresable.height();
       var width_native = $reresable.data('native-width'), height_native = $reresable.data('native-height');
-      // calculate percentage based on image area, or width
+      // calculate percentage based on image area, or width [used currently]
       // perc = Math.round((width_current * height_current) * 100 / (width_native * height_native));
       perc = Math.round(width_current * 100 / width_native);
       if (debug && false) {
@@ -646,7 +634,8 @@ window.sfun = (function($, undefined) {
     var that = this;
     if (this.bindToScroll_static == undefined) {
       $window.scroll(function(event) {
-        handlerScrolled(event);
+        var sx = $document.scrollLeft(), sy = $document.scrollTop();
+        handlerScrolled(event, sx, sy);
         event.preventDefault();
       });
       $window.mousewheel(function(event) {
@@ -958,6 +947,38 @@ window.sfun = (function($, undefined) {
    */
   var getDeferred = function() {
     return new $.Deferred();
+  };
+
+  /**
+   * @return {real} height of viewport in pixels
+   */
+  var getViewportHeight = function(force) {
+    if (this.getViewportHeight_static == undefined || force) {
+      var $yard = $('#sfun-yardstick-y');
+      if ($yard.length) {
+        this.getViewportHeight_static = $yard.height();
+      } else {
+        // fall back to window
+        this.getViewportHeight_static = $window.height();
+      }
+    }
+    return this.getViewportHeight_static;
+  };
+
+  /**
+   * @return {real} width of viewport in pixels
+   */
+  var getViewportWidth = function(force) {
+    if (this.getViewportWidth_static == undefined || force) {
+      var $yard = $('#sfun-yardstick-x');
+      if ($yard.length) {
+        this.getViewportWidth_static = $yard.width();
+      } else {
+        // fall back to window
+        this.getViewportWidth_static = $window.width();
+      }
+    }
+    return this.getViewportWidth_static;
   };
 
   // ------------------
@@ -1426,6 +1447,7 @@ window.sfun = (function($, undefined) {
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    */
   var imageAdvanceTo = function(seq, eventContext) {
+    // @todo nicer alignment
     // update using hash change
     return fireHashUpdate( { 'seq': seq }, false, eventContext);
   };
@@ -2002,9 +2024,6 @@ window.sfun = (function($, undefined) {
 
       // CONSTANTS
 
-      // reference to outer class
-      sfun: outer_class,
-
       // time after which scroll events expire
       TIMEOUT_expireEVENT: 10000,
 
@@ -2038,6 +2057,12 @@ window.sfun = (function($, undefined) {
 
       // currently executing event
       'critical_section': null,
+
+      // and the one that just executed
+      'last_critical_section': null,
+
+      // count of dumped events
+      'dump_count': 0,
 
       // FUNCTIONS
 
@@ -2313,10 +2338,14 @@ window.sfun = (function($, undefined) {
         var scheduleCriticalReset = function() {
           // if nothing else has swiped it already
           if (that.critical_section == eventContext) {
+            that.last_critical_section = that.critical_section;
             // flag that nothing is in its critical section
             that.critical_section = null;
           }
         };
+        // remember last critical section
+        that.last_critical_section = that.critical_section;
+        // store eventContext as current critical section
         this.critical_section = eventContext;
         this.critical_section.deferred.done(scheduleCriticalReset);
       },
@@ -2396,7 +2425,7 @@ window.sfun = (function($, undefined) {
         if (typeof func == 'function') {
           // nullify eventContext.action so it cannot be re-called
           eventContext.action = null;
-          $.when(func.call(sfun)).always(wrapUp);
+          $.when(func.call(outer_class)).always(wrapUp);
         } else {
           wrapUp();
         }
@@ -2467,6 +2496,18 @@ window.sfun = (function($, undefined) {
             this.parent(children[i], parent);
           }
         }
+        // test to see if we've seen the handler for this already
+        if (current.handled) {
+          // remove ancestor from eventQueue all together; 
+          eventQueue.resolve(current);
+        } else {
+          // leave dumped event in queue to catch handler, but force expiry
+          if (current.expires == null) {
+            current.expires = eventQueue.getTime() + eventQueue.TIMEOUT_expireEVENT;
+          }
+        }
+        // update count
+        this.dump_count++;
         // optional debugging
         if (debug && true) {
           var logstr = 'D dumped event['+current.key+']';
@@ -2650,41 +2691,14 @@ window.sfun = (function($, undefined) {
           window.location.hash = exp.stringHASHBANG + hash;
         }
       }
+      // @todo test; instant firing doesn't seem to save much time
+      if (false) {
+        // manually fire the handler instantly, even before the event trickles through
+        handlerHashChanged(exp.stringHASHBANG + hash);
+      }
       // localContext is resolved by handlerHashChanged
       return localContext.deferred;
     }
-  };
-
-  /**
-   * @return {real} height of viewport in pixels
-   */
-  var getViewportHeight = function(force) {
-    if (this.getViewportHeight_static == undefined || force) {
-      var $yard = $('#sfun-yardstick-y');
-      if ($yard.length) {
-        this.getViewportHeight_static = $yard.height();
-      } else {
-        // fall back to window
-        this.getViewportHeight_static = $window.height();
-      }
-    }
-    return this.getViewportHeight_static;
-  };
-
-  /**
-   * @return {real} width of viewport in pixels
-   */
-  var getViewportWidth = function(force) {
-    if (this.getViewportWidth_static == undefined || force) {
-      var $yard = $('#sfun-yardstick-x');
-      if ($yard.length) {
-        this.getViewportWidth_static = $yard.width();
-      } else {
-        // fall back to window
-        this.getViewportWidth_static = $window.width();
-      }
-    }
-    return this.getViewportWidth_static;
   };
 
   /**
@@ -2711,7 +2725,13 @@ window.sfun = (function($, undefined) {
     // if we've yet to setup an event handler
     if (this.bindToScroll_static == undefined) {
       // manually call handler
-      handlerScrolled({});
+      handlerScrolled({}, target.left, target.top);
+    } else {
+      // @todo test; instant firing doesn't seem to save much time
+      if (false) {
+        // manually fire the handler instantly, even before the event trickles through
+        handlerScrolled({}, target.left, target.top);
+      }
     }
     // localContext is resolved by handlerScrolled
     return localContext.deferred;
@@ -2808,9 +2828,8 @@ window.sfun = (function($, undefined) {
    * @return {object} jQuery deferred
    * downstream of: EVENT scroll
    */
-  var handlerScrolled = function(event) {
+  var handlerScrolled = function(event, sx, sy) {
     var that = this;
-    var sx = $document.scrollLeft(), sy = $document.scrollTop();
     // get context if we created the event, invent if it was user generated
     var eventContext = eventQueue.getOrInvent({
       'key': 'scroll:'+'x='+sx+'&y='+sy,
@@ -2942,26 +2961,16 @@ window.sfun = (function($, undefined) {
     // active mousewheel reaction is dependent on which direction we're flowing in
     if (direction == 'x') {
       event.preventDefault();
-      var xpos = $document.scrollLeft();
-      // get current cell size
-      var cellsize = getCellSize();
-      // if not currently aligned to cells, get extra gap to next cell boundary
+      // get currently selected img
+      var current_seq = getSeq();
+      // work out direction of wheel
       var scrolldir = 0 - event.deltaY;
       // optional debugging
       if (debug && true) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
-      // calculate increment based on cell snap
-      var cellsnap = true;
-      var increment;
-      if (cellsnap) {
-        // if scrolling right/fwd (+ve), align to right edge; if scrolling left/back (-ve), align to left
-        increment = xpos + (scrolldir * cellsize);
-      } else {
-        increment = xpos + (scrolldir * event.deltaFactor * exp.scrollMULTIPLIER);
-      }
-      // get current x position, increment and write back, firing scroll event
-      envisionPos( { 'left': increment, 'top':0 } );
+      // advance by a major axis cell, e.g. column
+      imageAdvanceBy((scrolldir > 0 ? 1 : -1) * getBreadth());
     }
   }
 
