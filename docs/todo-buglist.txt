@@ -8,6 +8,52 @@
     + and doesn't kick its parent
     + the critical section is null
       + might be good to track last critical section
+  + event parenting order
+  1126:keypress:k13
+    1127:hash:b4
+      1128:scroll:x0y0
+  + could be a result of dumping the wrong things
+    + we dump 1119:hash:
+      + which is the last_critical_section at checkExpiries
+  + I think we have to say which events are dumpable
+    + can dump repeated scrolls
+    + can dump repeated hash seqs
+    + but can't dump some hash seqs because they're clicks
+      + and change the state
+    = introduced selecting dumping
+  + test suite errors persist, hard to debug concurrency
+  + looks like a blockage introduced by having
+    + two scroll:x=0&y=0 events on the queue at the same time
+      + they both have the effect of sending the browser back to 0
+      + but only one can get found by handlerScrolled
+        + so only one gets resolved
+        + leaving the other one orphaned
+      + verify that's what's happening
+  + couple of solutions
+    1 in handlerScrolled
+      + look for _all_ matching events
+        + process
+        + then resolve them all
+    2 in fireScrollUpdate
+      + check to see if we've got a pending update to this scroll position
+        + staple our colours to the existing one
+    + leaning towards 2 because 1 has the risk of cascading
+  = working nicely now
+    + 3 successful test suite runs
+      + leaving it at this point
+    + seems to run consistently in Chrome
+  = test in firefox
+--o--
+* final two images cropped as visnear
+  + should be at least vispart
+    + not consistent for test all
+      + final two images seem fine as vispart before and after test
+    + pretty consistent for test
+      + arranged with just enough tests to make it hit bottom
+        + firefox on its own is fine
+        + firefox + firebug
+          + hits bottom and throws error
+        + chrome is just the same with a small-height window
 
 * mouseWheel needs to keep track of where the last event should have got to
   + because if we buffer the scroll
@@ -77,6 +123,7 @@
       + are somehow still using the thumb res
       + it was nearvis
     + insert into test suite
+  = working
 * write test to check that correct-res shorcut is working
 
 * apple scroll is too fast
