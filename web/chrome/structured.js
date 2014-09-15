@@ -2040,6 +2040,8 @@ window.sfun = (function($, undefined) {
         'deps': null,
         // has not been handled yet
         'handled': false,
+        // can not be dumped if peered
+        'dumpable': false,
         // has no action
         'action': function(){},
         // never expires
@@ -2121,37 +2123,58 @@ window.sfun = (function($, undefined) {
        */
       'push': function(partial) {
         var that = this;
-        // compose new object ($.extend gives right to left precedence)
-        var obj = $.extend({},
-          // 1: statuc defaults
-          this.default_event_object, {
-            // 2: dynamic defaults
-            'key': this.default_event_object.key + this.getCounter() + '>',
-            // create new deferred, but ignore if already set in partial
-            'deferred': getDeferred(),
-            // set expiry
-            'expires': eventQueue.getTime() + eventQueue.TIMEOUT_expireEVENT,
-            'deps': []
-          },
-          // 3: overrides from call
-          partial);
+        // start by trying to match this key to an existing event in the queue
+        var obj = null;
+        if (typeof(partial.key) != 'undefined') {
+          obj = this.get(partial.key);
+        }
+        // if we've created the object, prep and push it
+        if (obj == null) {
+          // compose new object ($.extend gives right to left precedence)
+          var obj = $.extend({},
+            // 1: statuc defaults
+            this.default_event_object, {
+              // 2: dynamic defaults
+              'key': this.default_event_object.key + this.getCounter() + '>',
+              // create new deferred, but ignore if already set in partial
+              'deferred': getDeferred(),
+              // set expiry
+              'expires': eventQueue.getTime() + eventQueue.TIMEOUT_expireEVENT,
+              'deps': []
+            },
+            // 3: overrides from call
+            partial
+          );
+          // push
+          var ref = this._push(obj);
+          // optional debugging message
+          if (debug && true) {
+            console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.getSize()));
+          }
+        }
+        // but if we've found an existing object matching the key
+        else {
+          // merge in any partial fields that we want to keep
+          if (obj.comment) {
+            obj.comment += ', now peered with sister [' + partial.comment + ']';
+          }
+          // optional debugging message
+          if (debug && true) {
+            console.log('+ not-pushed, found sister event context[' + this.render(obj) + '], qlen now '+(this.getSize()));
+          }          
+        }
         // if the object expires, schedule its removal
         if (obj.expires) {
-          // clear old timeout
+          // clear old [eventQueue-wide] timeout
           if (that.expiry_handler != null) {
             clearTimeout(that.expiry_handler);
           }
-          // schedule a check after the timeout
+          // schedule a [single shared eventQueue-wide] check after the timeout
           this.expiry_handler = setTimeout(function() {
             that.checkExpiries();
           }, this.TIMEOUT_expireEVENT);
         }
-        // push
-        var ref = this._push(obj);
-        // optional debugging message
-        if (debug && true) {
-          console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.getSize()));
-        }
+        // return the object (retreived or pushed)
         return obj;
       },
 
@@ -2207,7 +2230,8 @@ window.sfun = (function($, undefined) {
         // push partial in normal way
         var obj = this.push(partial);
         // attach this obj as child to parent
-        return this.parent(obj, parent);
+        this.parent(obj, parent);
+        return obj;
       },
 
       /**
@@ -2219,9 +2243,8 @@ window.sfun = (function($, undefined) {
       'delay': function(obj, parentContext) {
         var that = this;
         if (typeof(parentContext) != 'undefined' && parentContext) {
-          // store parent relationship (bidirectionally)
-          obj.parent = parentContext;
-          parentContext.deps[parentContext.deps.length] = obj;
+          // attach to parent
+          this.attachParent(obj, parentContext);
           // optional debugging
           if (debug && true) {
             console.log('  - delayed event context[' + this.render(obj.parent) + '] to follow resolution of context['+this.render(obj)+'], q len now '+this.getSize());
@@ -2238,17 +2261,37 @@ window.sfun = (function($, undefined) {
       'parent': function(obj, parentContext) {
         var that = this;
         if (typeof(parentContext) != 'undefined' && parentContext) {
-          // store parent relationship (bidirectionally)
-          obj.parent = parentContext;
-          parentContext.deps[parentContext.deps.length] = obj;
           // child inherits certain parental attributes
+          obj.dumpable = parentContext.dumpable;
           obj.replaceEvent = parentContext.replaceEvent;
+          // attach to parent
+          this.attachParent(obj, parentContext);
           // optional debugging
           if (debug && true) {
             console.log('  - placed child event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.getSize());
           }
         }
+        // return original object, not what actually got attached to parent
         return obj;
+      },
+
+      /**
+       * setup parenting from s1's earliest ancestor (child) to s2 (parent)
+       * @param {object} attach_point [great][grand]child event context
+       * @param {object} parentContext parent event context
+       * @return {object} s1's ancestor that got attached to parent
+       */
+      'attachParent': function(attach_point, parentContext) {
+        // if this object already had a parent
+        if (attach_point.parent != null) {
+          // find its earliest ancestor
+          attach_point = this.earliestAncestor(attach_point);
+        }
+        // store parent relationship
+        attach_point.parent = parentContext;
+        // store child relationship
+        parentContext.deps[parentContext.deps.length] = attach_point;
+        return attach_point;
       },
 
       /**
@@ -2347,6 +2390,10 @@ window.sfun = (function($, undefined) {
         that.last_critical_section = that.critical_section;
         // store eventContext as current critical section
         this.critical_section = eventContext;
+        // optional debugging
+        if (debug && true) {
+          console.log('> entering critical section for '+this.render(this.critical_section));
+        }
         this.critical_section.deferred.done(scheduleCriticalReset);
       },
 
@@ -2386,7 +2433,7 @@ window.sfun = (function($, undefined) {
           this.setCriticalSection(eventContext);
           // optional debugging message
           if (debug && true) {
-            console.log('> entering critical section for '+this.render(eventContext));
+            console.log('> entering fresh critical section (from null) for '+this.render(eventContext));
           }
           // call func with outer class context, then wrap up
           eventContext.action = func;
@@ -2439,7 +2486,6 @@ window.sfun = (function($, undefined) {
         var that = this;
         // remove any peers to this event from the queue first
         this.dumpAncestors(this.getKeyFamily(eventContext.key), this.critical_section);
-        // @todo could optimise this slightly inefficient repeat find
         // this event depends on the end of the current critical one's chain
         var lastDep = this.earliestAncestor(this.critical_section);
         // optional debugging message
@@ -2460,8 +2506,8 @@ window.sfun = (function($, undefined) {
         // start with root's parent because we don't want to dump current critial_section
         current = current.parent;
         while ((current != null) && (current.parent != null)) {
-          // test to see if current key matches regkey
-          if (current.key.match(re) != null) {
+          // check to see if current is dumpable and if key matches regkey
+          if (current.dumpable && (current.key.match(re) != null)) {
             // remove ancestor from parent chain; point at next in chain/null
             current = this.deleteAncestor(current);
           } else {
@@ -2833,6 +2879,10 @@ window.sfun = (function($, undefined) {
     // get context if we created the event, invent if it was user generated
     var eventContext = eventQueue.getOrInvent({
       'key': 'scroll:'+'x='+sx+'&y='+sy,
+      // [browser-generated] scroll events can be dumped (superceded)
+      // but if they come from fireScrollUpdate (with their own context)
+      // that context may not be dumpable
+      'dumpable': true,
       'comment': 'invented context for handlerScrolled'
     });
     // process this event if we're meant to
@@ -2960,17 +3010,26 @@ window.sfun = (function($, undefined) {
     var direction = getDirection();
     // active mousewheel reaction is dependent on which direction we're flowing in
     if (direction == 'x') {
+      // don't allow the browser to scroll in the y direction
       event.preventDefault();
       // get currently selected img
       var current_seq = getSeq();
       // work out direction of wheel
       var scrolldir = 0 - event.deltaY;
+      // calculate how many images to jump forward
+      var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
+      // create a dumpable context
+      var localContext = eventQueue.push({
+        'key': 'wheel:'+'direction='+direction+'&seq='+current_seq+'&advance_by='+advance_by,
+        'dumpable': true,
+        'comment': 'localContext for handlerMouseWheeled'
+      });
       // optional debugging
       if (debug && true) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
       // advance by a major axis cell, e.g. column
-      imageAdvanceBy((scrolldir > 0 ? 1 : -1) * getBreadth());
+      imageAdvanceBy(advance_by, localContext);
     }
   }
 
