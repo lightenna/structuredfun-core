@@ -1,4 +1,15 @@
 
+* might need a rethink on scrolling
+  + out-of-order mouse wheels
+    + could queue relative seq changes
+      + e.g. +1/-1
+  + slow also extends to scroll events
+    + whenever we start seriously process scroll events
+      + the browser gets all jerky
+  + I think they should use vistable
+    + and just advance the scroll by a certain amount
+      + then we just focus on the scroll problem
+
 * can get into a mode where nothing's happening
   + because something got left on the queue
     - isn't yet resolved
