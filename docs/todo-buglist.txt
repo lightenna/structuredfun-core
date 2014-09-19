@@ -1,15 +1,4 @@
 
-* might need a rethink on scrolling
-  + out-of-order mouse wheels
-    + could queue relative seq changes
-      + e.g. +1/-1
-  + slow also extends to scroll events
-    + whenever we start seriously process scroll events
-      + the browser gets all jerky
-  + I think they should use vistable
-    + and just advance the scroll by a certain amount
-      + then we just focus on the scroll problem
-
 * can get into a mode where nothing's happening
   + because something got left on the queue
     - isn't yet resolved
@@ -55,6 +44,12 @@
     + seems to run consistently in Chrome
   = test in firefox
 --o--
+* fix failing test
+  + 'reres of last page of images'
+    + failing only sometimes in on folders with nested folders (at the end)
+      + fails in both Firefox and Chrome, so not a browser thing
+  + failed with flow on/off
+--o--
 * final two images cropped as visnear
   + should be at least vispart
     + not consistent for test all
@@ -65,65 +60,13 @@
         + firefox + firebug
           + hits bottom and throws error
         + chrome is just the same with a small-height window
-
-* mouseWheel needs to keep track of where the last event should have got to
-  + because if we buffer the scroll
-    + and don't actually scroll
-    + then use the current (non-scrolled) position for offsetting future scroll events
-      + the mouseWheel doesn't move far enough
-  + but how to store position between calls?
-    + pulling from event queue is messy
-      + because we've got to findRegex, then pull out coord
-    + static's looking pretty good
-  + this could be a good time to scroll one row at a time
-    + that way we're just incrementing a seq counter
-      + and pushing a hash: seq instead of a scroll
-    + seems like a good change to make
-      = done
-    + still same issue about caching position
-      + could maybe use getSeq
-        + some kind of setSeq command
-          + or straight to its static
-        + I'm not sure of the ramifications of that
-          + because the event could get dumped
-        + probably fine, so long as when the event gets processed it sets the same variable
-          + so we're only potentially out of whack for a fraction of a second
-  + this might get solved by shortcutting
-    - it didn't
-  + back to static approach
-    + this is a sequence number
-      + so we want the last hash seq that was requested
-        + not necessarily yet set/resolved (e.g. called setSeq)
-      + can we manually poke a value into the static in getSeq?
-
-* go slow through this bit
-  + accuracy and reliability is crucial for further dev
---o--
-* shortcutting event firing
-  + rather than changing hash, then waiting for the handler to fire
-    + we could (in certain cases)
-    + create the eventContext
-      + then manually fire the handler
-    + probably should only do if there's nothing on the queue
-      + could make that part of the fire_
-    = code written
-  + needs a proper timed test
-
-* nicer alignment
-  + if image is entirely visible in the viewport, adjust offseq
-  + if image isn't visible, scroll as little as possible to make it visible
+  + mock up single test
+    + with large 0-div to force right-hand-edge scrollbar
+    = mocked up
+  + pretty sure that final image is partially off-screen
+    + which is bouncing the selected seq back from 253 to 246
 
 * extend vistable tests to cover updateRange
-
-* fix failing test
-  + 'reres of last page of images'
-    + failing only sometimes in on folders with nested folders (at the end)
-      + fails in both Firefox and Chrome, so not a browser thing
-  + failed with flow on/off
-
-* mousewheel getting delayed while images loading
-  + must never delay the mousewheel
-    + delay shows up even better with flow on
 
 * directory thumbnails need to load bounded
   + partial flash looks weird
@@ -141,9 +84,18 @@
   + log the scroll events
     + research way of detecting apple trackpad
     + worst case we read the OS from the browser string and assume
+  + look at scroll event frequency
+    + might be able to reduce speed by limiting the reach of each scroll
+
+* check apple sideways scroll
+  + magic mouse has nice feature for 2D scrolling
+    + need to make it work simply and easily
 
 * imagecreatefromstring is stumbling over gif
   + look at AE
+* a broken image in the chain
+  + breaks everything downstream of it
+  + need to be robust to failure
 
 * need to wait until there are no scroll events before realigning
   + otherwise scrollbar goes all over the place
@@ -154,9 +106,13 @@
       + not sure
       + worth investigating first
 
-* page up/down needs to work on viewport pages
+* page up/down needs to be based on viewport pages
   + can't rely on jumping a certain number of images forward/back
     + because they could be really narrow
+
+* re-enable flow
+  + debug and optimise
+    + it's close
 
 * forward scroll newbies
   + newly visible images are coming into view too far apart
@@ -165,9 +121,6 @@
       + maintain everytime we shrink a cell
 
 * .s in directory names, like mq
-
-* mousewheel after scroll needs to re-align
-  + otherwise can be scrolling in half-images
 
 * need to get an alpha online
   + doesn't need to be a big release, but it does have to be a first release
@@ -2540,4 +2493,105 @@ ffmpeg.exe -i <src> -b:v 1500k -vcodec libx264 -g 30 -movflags +faststart <outpu
     + probably need to expose something new in the API to find out
       + maintain dump count
         + sample before and after
+
+* images not invisible until loaded
+  + showing image file name
+    + sorted out by flow
+
+* might need a rethink on scrolling
+  + out-of-order mouse wheels
+    + could queue relative seq changes
+      + e.g. +1/-1
+  + slow also extends to scroll events
+    + whenever we start seriously process scroll events
+      + the browser gets all jerky
+  + I think they should use vistable
+    + and just advance the scroll by a certain amount
+      + then we just focus on the scroll problem
+      = works well
+  + now combine that with some buffering on scroll events
+    + works really fast
+  + buffering & dumping together
+    + creates issues for test suite
+      + I imagine we're dropping some events that we shouldn't be
+        + so some contexts never get resolved
+    + it's complex
+      + I don't like the idea of doing both
+  + let's see how quickly we can look up the eventContext
+    + if that's viable to do on every event
+      + then at least we can be clearer about what we're chucking out when buffering
+    = that worked
+  + test suite resolves
+    + 0 events get dumped
+      + because of the buffering
+        + event dumping doesn't seem important for now
+          + but it does work so might be important in the future
+        + might just leave it in the code
+          + but uncalled
+        = have marked call as deprecated
+    = test suite green
+
+* mouseWheel needs to keep track of where the last event should have got to
+  + because if we buffer the scroll
+    + and don't actually scroll
+    + then use the current (non-scrolled) position for offsetting future scroll events
+      + the mouseWheel doesn't move far enough
+  + but how to store position between calls?
+    + pulling from event queue is messy
+      + because we've got to findRegex, then pull out coord
+    + static's looking pretty good
+  + this could be a good time to scroll one row at a time
+    + that way we're just incrementing a seq counter
+      + and pushing a hash: seq instead of a scroll
+    + seems like a good change to make
+      = done
+    + still same issue about caching position
+      + could maybe use getSeq
+        + some kind of setSeq command
+          + or straight to its static
+        + I'm not sure of the ramifications of that
+          + because the event could get dumped
+        + probably fine, so long as when the event gets processed it sets the same variable
+          + so we're only potentially out of whack for a fraction of a second
+  + this might get solved by shortcutting
+    - it didn't
+  + back to static approach
+    + this is a sequence number
+      + so we want the last hash seq that was requested
+        + not necessarily yet set/resolved (e.g. called setSeq)
+      + can we manually poke a value into the static in getSeq?
+    = found a better way
+  + it's faster for mouseWheel to use visTable to find the next image position
+    + and just scroll to that place (instantly)
+      + the scroll handler will catch up
+
+* go slow through this bit
+  + accuracy and reliability is crucial for further dev
+--o--
+* shortcutting event firing
+  + rather than changing hash, then waiting for the handler to fire
+    + we could (in certain cases)
+    + create the eventContext
+      + then manually fire the handler
+    + probably should only do if there's nothing on the queue
+      + could make that part of the fire_
+    = code written
+  + needs a proper timed test
+  + this is less pressing now
+    + because scrolling is buffered
+      + and mouseWheel is direct
+
+* mousewheel getting delayed while images loading
+  + must never delay the mousewheel
+    + delay shows up even better with flow on
+
+* nicer alignment
+  + if image is entirely visible in the viewport, adjust offseq
+  + if image isn't visible, scroll as little as possible to make it visible
+    = postponed
+      + this isn't as relevant now
+        + because the selection just finds its place after a scroll/wheel
+
+* mousewheel after scroll needs to re-align
+  + otherwise can be scrolling in half-images
 
