@@ -1941,6 +1941,18 @@ window.sfun = (function($, undefined) {
         return this.objarr[ref];
       },
 
+      /**
+       * get the key on an object at a certain position in the table
+       * @param {int} ref position in table
+       * @return {mixed} key at this position in the table
+       */
+      'key': function(ref) {
+        if ((ref == -1) || (ref >= this.objarr.length)) {
+          return null;
+        }
+        return this.keyarr[ref];
+      },
+
       lastEntry: null
     };
   }
@@ -2484,8 +2496,8 @@ window.sfun = (function($, undefined) {
        */
       'contextDelayExecution': function(eventContext) {
         var that = this;
-        // remove any peers to this event from the queue first
-        this.dumpAncestors(this.getKeyFamily(eventContext.key), this.critical_section);
+        // @deprecated remove any peers to this event from the queue first
+        // this.dumpAncestors(this.getKeyFamily(eventContext.key), this.critical_section);
         // this event depends on the end of the current critical one's chain
         var lastDep = this.earliestAncestor(this.critical_section);
         // optional debugging message
@@ -2876,26 +2888,36 @@ window.sfun = (function($, undefined) {
    */
   var handlerScrolled = function(event, sx, sy) {
     var that = this;
-    // get context if we created the event, invent if it was user generated
-    var eventContext = eventQueue.getOrInvent({
-      'key': 'scroll:'+'x='+sx+'&y='+sy,
-      // [browser-generated] scroll events can be dumped (superceded)
-      // but if they come from fireScrollUpdate (with their own context)
-      // that context may not be dumpable
-      'dumpable': true,
-      'comment': 'invented context for handlerScrolled'
-    });
-    // process this event if we're meant to
-    return eventQueue.actOnContext(eventContext, function() {
-      // // don't process scroll event every time, buffer (dump duplicates)
-      // buffer('handlerScrolled_event',
-      // // function to execute if/when we are processing this event
-      // function() {
+    var key = 'scroll:'+'x='+sx+'&y='+sy;
+    var eventContext = eventQueue.get(key);
+    // if this is a fresh event that we didn't fire
+    if (eventContext == null) {
+      // don't process scroll event every time, buffer unless there's a context
+      buffer('handlerScrolled_event',
+      // function to execute if/when we are processing this event
+      function() {
+        // get context if we created the event, invent if it was user generated
+        eventContext = eventQueue.getOrInvent({
+          'key': key,
+          // [browser-generated] scroll events can be dumped (superceded)
+          // but if they come from fireScrollUpdate (with their own context)
+          // that context may not be dumpable
+          'dumpable': true,
+          'comment': 'invented context for handlerScrolled'
+        });
+        // process this event if we're meant to
+        return eventQueue.actOnContext(eventContext, function() {
+          return handlerScrolled_eventProcess(event, sx, sy);
+        });
+      },
+      // function to execute if we're dumping this event
+      function(){}, 50);
+    } else {
+      // process this event if we're meant to as we originated it
+      return eventQueue.actOnContext(eventContext, function() {
         return handlerScrolled_eventProcess(event, sx, sy);
-      // },
-      // // function to execute if we're dumping this event
-      // wrapUp, 250);      
-    });
+      });
+    }
   }
 
   /**
@@ -3012,24 +3034,21 @@ window.sfun = (function($, undefined) {
     if (direction == 'x') {
       // don't allow the browser to scroll in the y direction
       event.preventDefault();
-      // get currently selected img
-      var current_seq = getSeq();
       // work out direction of wheel
       var scrolldir = 0 - event.deltaY;
-      // calculate how many images to jump forward
+      // calculate how many major axis cells
       var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
-      // create a dumpable context
-      var localContext = eventQueue.push({
-        'key': 'wheel:'+'direction='+direction+'&seq='+current_seq+'&advance_by='+advance_by,
-        'dumpable': true,
-        'comment': 'localContext for handlerMouseWheeled'
-      });
+      // get current scroll position
+      var current_pos = $document.scrollLeft();
+      // find first spanning min boundary
+      var current_ref = visTableMajor.findCompare(current_pos, exp.compareLTE, false);
+      var next_ref = (current_ref + advance_by) % visTableMajor.getSize();
+      var next_pos = visTableMajor.key(next_ref);
       // optional debugging
       if (debug && true) {
         console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
       }
-      // advance by a major axis cell, e.g. column
-      imageAdvanceBy(advance_by, localContext);
+      $document.scrollLeft(next_pos);
     }
   }
 

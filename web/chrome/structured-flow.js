@@ -23,7 +23,7 @@
       'layoutResize' : flow_cellsResize,
     };
     // not sure of init order, so push async
-    //sfun.push('registerLayout', obj);
+    // sfun.push('registerLayout', obj);
   };
 
   // Layout API
