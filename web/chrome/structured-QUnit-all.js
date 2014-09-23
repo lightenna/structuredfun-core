@@ -87,6 +87,31 @@
       equal( vt.findCompare(9999, sfun.compareGTE), -1, 'vistable found nothing >= 9999');
     });
 
+    test( 'check vistable refresh', function() {
+      var direction = sfun.api_getDirection();
+      var breadth = sfun.api_getBreadth();
+      var vt = sfun.api_createVisTable();
+      var vt_partial = sfun.api_createVisTable();
+      var $cells = $('ul.flow .selectablecell');
+      if ($cells.length < (4 * breadth)) {
+        ok(false, "Not enough cells " + $cells.length + "to conduct test");
+      } else {
+        var ref3 = 2 * breadth, ref4 = 3 * breadth;
+        var off3 = $cells.eq(ref3).offset(), off4 = $cells.eq(ref4).offset();
+        var major3 = (direction == 'x' ? off3.left : off3.top), major4 = (direction == 'x' ? off3.left : off3.top);
+        // update all vis table entries
+        vt.updateAll(direction, $cells);
+        // update only some entries in vt_partial
+        // this creates a sparse array, which isn't typical
+        vt_partial.updateRange(direction, ref3, ref4);
+        // think up some tests
+        var k = 12;
+      }
+    });
+
+QUnit.start();
+return;
+
     test( 'check eventQueue act-on critical delay', function() {
       expect(5);
       var result = true;
