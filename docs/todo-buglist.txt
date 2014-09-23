@@ -67,6 +67,10 @@
     + which is bouncing the selected seq back from 253 to 246
 
 * extend vistable tests to cover updateRange
+  + nearly there
+  + creating vistable and partial
+    = needs tests
+      + search using viewport positions
 
 * directory thumbnails need to load bounded
   + partial flash looks weird

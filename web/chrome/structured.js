@@ -1978,8 +1978,18 @@ window.sfun = (function($, undefined) {
           var position = $ent.offset();
           var ref = $ent.data('seq');
           var obj = vt.select(ref);
-          // replace this key in object and key index
-          vt.replaceKey(ref, obj, (direction == 'x' ? position.left : position.top));
+          if (obj == null) {
+            // add object
+            var obj = {
+              '$ent': $ent,
+              'ref': ref,
+              'key': (direction == 'x' ? position.left : position.top)
+            };
+            vt.push(obj);
+          } else {
+            // replace this key in object and key index
+            vt.replaceKey(ref, obj, (direction == 'x' ? position.left : position.top));
+          }
         }
       },
 
