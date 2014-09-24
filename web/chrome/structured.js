@@ -67,7 +67,7 @@ window.sfun = (function($, undefined) {
   // default selector used to select top-level container
   var container_selector = '#sfun';
   // last image maxlongest, to shortcut reres using thumb size
-  var last_max_longest = null;
+  var last_longest = null;
 
   // jQuery cache
   var $document = $(document);
@@ -260,8 +260,8 @@ window.sfun = (function($, undefined) {
       var attr = $loadable.attr('src');
       if (typeof attr === 'undefined' || attr === false) {
         // if we have already reres'd another image, use its size instead of the default thumbnail size
-        if ((last_max_longest != null) && $loadable.hasClass('reresable')) {
-          var highres = substitute($loadable.data('template-src'), { 'maxwidth': last_max_longest, 'maxheight': last_max_longest } );
+        if ((last_longest != null) && $loadable.hasClass('reresable')) {
+          var highres = substitute($loadable.data('template-src'), { 'maxwidth': last_longest, 'maxheight': last_longest } );
           $loadable.attr('src', highres);
         } else {
           // otherwise just use desrc
@@ -456,7 +456,7 @@ window.sfun = (function($, undefined) {
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
             // store max longest to shortcut next thumb load
-            last_max_longest = brackWidth;
+            last_longest = brackWidth;
             // swap out image and wait for swap to complete
             imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': brackWidth } )).always(wrapUp);
           } else {
@@ -467,7 +467,7 @@ window.sfun = (function($, undefined) {
           brackHeight = Math.min(Math.ceil(imageContainerHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
             // store max longest to shortcut next thumb load
-            last_max_longest = brackHeight;
+            last_longest = brackHeight;
             // swap out image and wait for swap to complete
             imageReres($ent, substitute($reresable.data('template-src'), { 'maxheight': brackHeight } )).always(wrapUp);
           } else {
@@ -580,7 +580,7 @@ window.sfun = (function($, undefined) {
    */
   var refreshVisnearImageSet = function() {
     // reres only if the shortcut is null
-    return refreshAnImageSet($(container_selector+' .selectablecell.visnear'), (last_max_longest == null));
+    return refreshAnImageSet($(container_selector+' .selectablecell.visnear'), (last_longest == null));
   };
 
   /**
@@ -1767,9 +1767,18 @@ window.sfun = (function($, undefined) {
         if (typeof(findLast) == 'undefined') {
           findLast = false;
         }
-        // binary search
+        // find boundaries of array
         var minRef = 0;
+        // detect sparse array
+        if (this.keyarr[minRef] == undefined) {
+          for (var i in this.keyarr) {
+            // array keys returned as strings, so convert
+            minRef = parseInt(i);
+            break;
+          }
+        }
         var maxRef = this.getSize() - 1;
+        // setup binary search
         var currentRef;
         var currentElement;
         while (minRef <= maxRef) {
@@ -3372,10 +3381,33 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @return {int} last thumb's longest edge
+     */
+    'api_getLastLongest': function() {
+      return last_longest;
+    },
+
+    /**
      * @param {object} $ent cell to check (and re-set) bounds for
      */
     'api_setBound': function($ent) {
       return setBound($ent, true);
+    },
+
+    /**
+     * @param {int} value to set for thumb's longest edge
+     */
+    'api_setLastLongest': function(llong) {
+      last_longest = llong;
+    },
+
+    /**
+     * @param {object} jQuery cell to load contained images
+     * @return {object} jQuery deferred
+     */
+    'api_waitLoadCell': function($cell) {
+      var recurse = false;
+      return waitLoadedGetResolution($cell, recurse);
     },
 
     /**
