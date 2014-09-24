@@ -65,32 +65,23 @@
     = mocked up
   + pretty sure that final image is partially off-screen
     + which is bouncing the selected seq back from 253 to 246
-
-* extend vistable tests to cover updateRange
-  + nearly there
-  + creating vistable and partial
-    = needs tests
-      + search using viewport positions
+    = can't replicate on mac
 
 * directory thumbnails need to load bounded
   + partial flash looks weird
+    = easiest to debug on a PC with larger image sets
 
-* load correct-res shortcut not working
-  + it is working
-    + it's just that the nearvis image loads
-      + are somehow still using the thumb res
-      + it was nearvis
-    + insert into test suite
-  = working
-* write test to check that correct-res shorcut is working
-
+* scroll doesn't work on a mac
+  + gets as far as +2 (seq=2 -> seq=4)
+    + then doesn't seem to fire any events
+--
 * apple scroll is too fast
   + log the scroll events
     + research way of detecting apple trackpad
     + worst case we read the OS from the browser string and assume
   + look at scroll event frequency
     + might be able to reduce speed by limiting the reach of each scroll
-
+--
 * check apple sideways scroll
   + magic mouse has nice feature for 2D scrolling
     + need to make it work simply and easily
@@ -2598,4 +2589,16 @@ ffmpeg.exe -i <src> -b:v 1500k -vcodec libx264 -g 30 -movflags +faststart <outpu
 
 * mousewheel after scroll needs to re-align
   + otherwise can be scrolling in half-images
+
+* extend vistable tests to cover updateRange
+  + creating vistable and partial
+
+* load correct-res shortcut not working
+  + it is working
+    + it's just that the nearvis image loads
+      + are somehow still using the thumb res
+      + it was nearvis
+    + insert into test suite
+  = working
+* write test to check that correct-res shorcut is working
 

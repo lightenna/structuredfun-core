@@ -62,8 +62,9 @@
     }
 
     test( 'reres of last page of images', function() {
-      // expand qunit div (page-left) to force a vertical scrollbar (page-right)
-      $('#qunit').height(2000);
+      // expand div (page-left) to force a vertical scrollbar (page-right)
+      $('body').prepend('<div id="rereslastforce" style="position: absolute;"></div>');
+      $('#rereslastforce').height(2000);
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
         equal( $('ul.flow .selectablecell.selected').data('seq'), (sfun.api_getTotalEntries()-1), 'End selected last image' );

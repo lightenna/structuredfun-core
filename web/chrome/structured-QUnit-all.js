@@ -98,19 +98,47 @@
       } else {
         var ref3 = 2 * breadth, ref4 = 3 * breadth;
         var off3 = $cells.eq(ref3).offset(), off4 = $cells.eq(ref4).offset();
-        var major3 = (direction == 'x' ? off3.left : off3.top), major4 = (direction == 'x' ? off3.left : off3.top);
+        var major3 = (direction == 'x' ? off3.left : off3.top), major4 = (direction == 'x' ? off4.left : off4.top);
         // update all vis table entries
         vt.updateAll(direction, $cells);
+        // look for major3 and major4 to check mid-array load
+        equal( vt.findCompare(major3, sfun.compareGTE), ref3, 'vistable found major 3 at ref 3');
+        equal( vt.findCompare(major4, sfun.compareGTE), ref4, 'vistable found major 4 at ref 4');
         // update only some entries in vt_partial
         // this creates a sparse array, which isn't typical
         vt_partial.updateRange(direction, ref3, ref4);
-        // think up some tests
-        var k = 12;
+        // look for first and last to check partials
+        equal( vt_partial.findCompare(0, sfun.compareGTE), ref3, 'vistable found ref 3 >= 0');
+        equal( vt_partial.findCompare(9999, sfun.compareLTE), ref4, 'vistable found ref 4 <= 9999');
       }
     });
 
-QUnit.start();
-return;
+    test( 'check longest loading', function() {
+      // record initial value to reset after test
+      var initial_longest = sfun.api_getLastLongest();
+      // set to arbitrary value
+      var arbitrary = 328;
+      sfun.api_setLastLongest(arbitrary);
+      // copy a test cell
+      var $cell = $('ul.flow .selectablecell:first').clone();
+      var $loadable = $cell.cachedFind('> .container > .loadable');
+      // whack existing thumb (src)
+      $loadable.attr('src', null);
+      // attach to test fixture
+      $("#qunit-fixture").append($cell);
+      QUnit.stop();
+      // reload the cell
+      sfun.api_waitLoadCell($cell).done(function() {
+        // longest edge should equal arb
+        equal(Math.max($loadable.data('loaded-width'), $loadable.data('loaded-height')), arbitrary, 'longest edge matches arbitrary value ('+arbitrary+')');
+        QUnit.start();
+      });
+      // reset last longest and check
+      sfun.api_setLastLongest(initial_longest);
+      notEqual(initial_longest, arbitrary, 'arbitrary value was valid (different from initial'+initial_longest+')');
+      // drop test cell
+      $cell.remove();
+    });
 
     test( 'check eventQueue act-on critical delay', function() {
       expect(5);
