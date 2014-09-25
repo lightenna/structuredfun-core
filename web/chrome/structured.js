@@ -3047,27 +3047,51 @@ window.sfun = (function($, undefined) {
    */
   var handlerMouseWheeled = function(event) {
     var that = this;
+    var imagesnap = false;
+    var manageScroll = false;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = getDirection();
+    // get current scroll position
+    var next_pos, current_pos = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
     // active mousewheel reaction is dependent on which direction we're flowing in
-    if (direction == 'x') {
-      // don't allow the browser to scroll in the y direction
-      event.preventDefault();
-      // work out direction of wheel
-      var scrolldir = 0 - event.deltaY;
+    if (imagesnap) {
+      var scrolldir;
+      if (direction == 'x') {
+        // apply direction of wheel to x-axis
+        scrolldir = 0 - event.deltaY;
+      } else {
+        // work out direction of wheel
+        scrolldir = event.deltaY;
+      }
       // calculate how many major axis cells
       var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
-      // get current scroll position
-      var current_pos = $document.scrollLeft();
       // find first spanning min boundary
       var current_ref = visTableMajor.findCompare(current_pos, exp.compareLTE, false);
       var next_ref = (current_ref + advance_by) % visTableMajor.getSize();
-      var next_pos = visTableMajor.key(next_ref);
-      // optional debugging
-      if (debug && true) {
-        console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
+      next_pos = visTableMajor.key(next_ref);
+      manageScroll = true;
+    } else {
+      // if not snapping to images
+      if (direction == 'x') {
+        // use both axes to scroll along X
+        next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
+        manageScroll = true;
       }
-      $document.scrollLeft(next_pos);
+    }
+    // if we're going to manually handle this scroll
+    if (manageScroll) {
+      // don't allow the browser to scroll itself
+      event.preventDefault();
+      // apply to correct axis
+      if (direction == 'x') {
+        $document.scrollLeft(next_pos);
+      } else {
+        $document.scrollTop(next_pos);
+      }
+    }
+    // optional debugging
+    if (debug && true) {
+      console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
   }
 
