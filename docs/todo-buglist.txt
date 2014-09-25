@@ -74,17 +74,20 @@
 * scroll doesn't work on a mac
   + gets as far as +2 (seq=2 -> seq=4)
     + then doesn't seem to fire any events
---
+--o--
 * apple scroll is too fast
   + log the scroll events
     + research way of detecting apple trackpad
     + worst case we read the OS from the browser string and assume
   + look at scroll event frequency
     + might be able to reduce speed by limiting the reach of each scroll
---
+--o--
 * check apple sideways scroll
   + magic mouse has nice feature for 2D scrolling
     + need to make it work simply and easily
+  + complicated by grabbing y-scroll events
+--o--
+* detect trackpad, but allow override
 
 * imagecreatefromstring is stumbling over gif
   + look at AE
@@ -100,6 +103,19 @@
     + means that repeat calls get ignored
       + not sure
       + worth investigating first
+
+* optimisation: currently re-bounding/re-resing images unnecessarily
+  + really want to maintain some state on each image
+    + only wany to re-anything it if the context has changed
+    + there are some events that affect cells
+      1 resize: cells need rebounding/reresing
+      2 breadth change:
+      3 direction change:
+    + many events don't change cells (once first loaded)
+      3 seq change
+  + currently we're doing a bunch of things everytime
+    + everytime an image makes the transition
+      + from visnear/visno -> visible/vispart
 
 * page up/down needs to be based on viewport pages
   + can't rely on jumping a certain number of images forward/back
