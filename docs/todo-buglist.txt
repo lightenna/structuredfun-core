@@ -95,7 +95,7 @@
   + breaks everything downstream of it
   + need to be robust to failure
 
-* need to wait until there are no scroll events before realigning
+* need to wait until there are no scroll events before realigning flow
   + otherwise scrollbar goes all over the place
   + could search the eventQueue for any other scroll: events
     + could flag each event as started
@@ -119,7 +119,8 @@
 
 * page up/down needs to be based on viewport pages
   + can't rely on jumping a certain number of images forward/back
-    + because they could be really narrow
+    + because they could be really narrow/fat
+    + flow makes images different widths
 
 * re-enable flow
   + debug and optimise
