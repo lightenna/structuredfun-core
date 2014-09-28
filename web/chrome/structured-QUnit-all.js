@@ -520,7 +520,7 @@
             equal($selected.data('seq'), initialSeq, 'Selected first image (#'+initialSeq+') again' );
             // use position as startPos
             var position = $selected.offset();
-            var startPos = (direction == 'x' ? position.left : position.top);
+            var startPos = Math.floor(direction == 'x' ? position.left : position.top);
             // check that we have 1000 pixels to scroll within
             if (limitPos - startPos < 1000) {
               ok(true, 'image set not large enough to conduct scroll test');

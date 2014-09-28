@@ -1,4 +1,16 @@
 
+* chrome wheel event problem
+  + everything else is fine (scroll, reload)
+    + firefox is fine
+  + replicable in firefox in some circumstances
+    + I suspect it's related to position rounding
+  = rounding error
+
+* resize event when viewing at b1
+  + http://10.12.1.120:8097/file/family/0000uk_stuff_photos/#!breadth=1&seq=70
+
+* IE alignment
+
 * can get into a mode where nothing's happening
   + because something got left on the queue
     - isn't yet resolved
