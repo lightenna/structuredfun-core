@@ -1992,12 +1992,12 @@ window.sfun = (function($, undefined) {
             var obj = {
               '$ent': $ent,
               'ref': ref,
-              'key': (direction == 'x' ? position.left : position.top)
+              'key': Math.floor(direction == 'x' ? position.left : position.top)
             };
             vt.push(obj);
           } else {
             // replace this key in object and key index
-            vt.replaceKey(ref, obj, (direction == 'x' ? position.left : position.top));
+            vt.replaceKey(ref, obj, Math.floor(direction == 'x' ? position.left : position.top));
           }
         }
       },
@@ -2018,7 +2018,7 @@ window.sfun = (function($, undefined) {
           // create object
           var obj = {
             '$ent': $ent,
-            'key': (direction == 'x' ? position.left : position.top)
+            'key': Math.floor(direction == 'x' ? position.left : position.top)
           };
           // push object into hashTable
           vt.push(obj);
@@ -3047,7 +3047,7 @@ window.sfun = (function($, undefined) {
    */
   var handlerMouseWheeled = function(event) {
     var that = this;
-    var imagesnap = false;
+    var imagesnap = true;
     var manageScroll = false;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = getDirection();
