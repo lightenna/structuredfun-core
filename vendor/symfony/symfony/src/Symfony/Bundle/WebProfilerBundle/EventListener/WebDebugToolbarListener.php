@@ -41,8 +41,8 @@ class WebDebugToolbarListener implements EventSubscriberInterface
     public function __construct(\Twig_Environment $twig, $interceptRedirects = false, $mode = self::ENABLED, $position = 'bottom')
     {
         $this->twig = $twig;
-        $this->interceptRedirects = (Boolean) $interceptRedirects;
-        $this->mode = (integer) $mode;
+        $this->interceptRedirects = (bool) $interceptRedirects;
+        $this->mode = (int) $mode;
         $this->position = $position;
     }
 
@@ -67,7 +67,7 @@ class WebDebugToolbarListener implements EventSubscriberInterface
 
         if ($response->headers->has('X-Debug-Token') && $response->isRedirect() && $this->interceptRedirects) {
             $session = $request->getSession();
-            if ($session && $session->getFlashBag() instanceof AutoExpireFlashBag) {
+            if (null !== $session && $session->isStarted() && $session->getFlashBag() instanceof AutoExpireFlashBag) {
                 // keep current flashes for one more request if using AutoExpireFlashBag
                 $session->getFlashBag()->setAll($session->getFlashBag()->peekAll());
             }
@@ -96,16 +96,8 @@ class WebDebugToolbarListener implements EventSubscriberInterface
      */
     protected function injectToolbar(Response $response)
     {
-        if (function_exists('mb_stripos')) {
-            $posrFunction   = 'mb_strripos';
-            $substrFunction = 'mb_substr';
-        } else {
-            $posrFunction   = 'strripos';
-            $substrFunction = 'substr';
-        }
-
         $content = $response->getContent();
-        $pos = $posrFunction($content, '</body>');
+        $pos = strripos($content, '</body>');
 
         if (false !== $pos) {
             $toolbar = "\n".str_replace("\n", '', $this->twig->render(
@@ -115,7 +107,7 @@ class WebDebugToolbarListener implements EventSubscriberInterface
                     'token' => $response->headers->get('X-Debug-Token'),
                 )
             ))."\n";
-            $content = $substrFunction($content, 0, $pos).$toolbar.$substrFunction($content, $pos);
+            $content = substr($content, 0, $pos).$toolbar.substr($content, $pos);
             $response->setContent($content);
         }
     }

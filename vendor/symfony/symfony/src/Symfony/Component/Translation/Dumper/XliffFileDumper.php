@@ -21,7 +21,7 @@ use Symfony\Component\Translation\MessageCatalogue;
 class XliffFileDumper extends FileDumper
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function format(MessageCatalogue $messages, $domain)
     {
@@ -47,8 +47,11 @@ class XliffFileDumper extends FileDumper
             $s = $translation->appendChild($dom->createElement('source'));
             $s->appendChild($dom->createTextNode($source));
 
+            // Does the target contain characters requiring a CDATA section?
+            $text = 1 === preg_match('/[&<>]/', $target) ? $dom->createCDATASection($target) : $dom->createTextNode($target);
+
             $t = $translation->appendChild($dom->createElement('target'));
-            $t->appendChild($dom->createTextNode($target));
+            $t->appendChild($text);
 
             $xliffBody->appendChild($translation);
         }
@@ -57,7 +60,7 @@ class XliffFileDumper extends FileDumper
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function getExtension()
     {

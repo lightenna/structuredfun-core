@@ -26,8 +26,10 @@ class SQLParserUtilsTest extends \Doctrine\Tests\DbalTestCase
             array('SELECT ? FROM ?', true, array(7, 14)),
             array('SELECT "?" FROM foo', true, array()),
             array("SELECT '?' FROM foo", true, array()),
+            array("SELECT `?` FROM foo", true, array()), // Ticket DBAL-552
             array('SELECT "?" FROM foo WHERE bar = ?', true, array(32)),
             array("SELECT '?' FROM foo WHERE bar = ?", true, array(32)),
+            array("SELECT `?` FROM foo WHERE bar = ?", true, array(32)), // Ticket DBAL-552
             array(
 <<<'SQLDATA'
 SELECT * FROM foo WHERE bar = 'it\'s a trap? \\' OR bar = ?
@@ -45,7 +47,8 @@ SQLDATA
             array('SELECT @rank := 1', false, array()), // Ticket DBAL-398
             array('SELECT @rank := 1 AS rank, :foo AS foo FROM :bar', false, array(27 => 'foo', 44 => 'bar')), // Ticket DBAL-398
             array('SELECT * FROM Foo WHERE bar > :start_date AND baz > :start_date', false, array(30 => 'start_date', 52 =>  'start_date')), // Ticket GH-113
-            array('SELECT foo::date as date FROM Foo WHERE bar > :start_date AND baz > :start_date', false, array(46 => 'start_date', 68 =>  'start_date')) // Ticket GH-259
+            array('SELECT foo::date as date FROM Foo WHERE bar > :start_date AND baz > :start_date', false, array(46 => 'start_date', 68 =>  'start_date')), // Ticket GH-259
+            array('SELECT `d.ns:col_name` FROM my_table d WHERE `d.date` >= :param1', false, array(57 => 'param1')), // Ticket DBAL-552
         );
     }
 
@@ -286,6 +289,23 @@ SQLDATA
                 'SELECT * FROM Foo WHERE foo IN (?, ?) OR bar = ?',
                 array(1, 2, 'bar'),
                 array(\PDO::PARAM_INT, \PDO::PARAM_INT, \PDO::PARAM_STR)
+            ),
+            // DBAL-522 - null valued parameters are not considered
+            array(
+                'INSERT INTO Foo (foo, bar) values (:foo, :bar)',
+                array('foo' => 1, 'bar' => null),
+                array(':foo' => \PDO::PARAM_INT, ':bar' => \PDO::PARAM_NULL),
+                'INSERT INTO Foo (foo, bar) values (?, ?)',
+                array(1, null),
+                array(\PDO::PARAM_INT, \PDO::PARAM_NULL)
+            ),
+            array(
+                'INSERT INTO Foo (foo, bar) values (?, ?)',
+                array(1, null),
+                array(\PDO::PARAM_INT, \PDO::PARAM_NULL),
+                'INSERT INTO Foo (foo, bar) values (?, ?)',
+                array(1, null),
+                array(\PDO::PARAM_INT, \PDO::PARAM_NULL)
             ),
         );
     }

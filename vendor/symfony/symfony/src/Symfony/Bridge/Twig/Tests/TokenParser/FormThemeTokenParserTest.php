@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bridge\Twig\Tests\Node;
+namespace Symfony\Bridge\Twig\Tests\TokenParser;
 
 use Symfony\Bridge\Twig\Tests\TestCase;
 use Symfony\Bridge\Twig\TokenParser\FormThemeTokenParser;
@@ -17,15 +17,6 @@ use Symfony\Bridge\Twig\Node\FormThemeNode;
 
 class FormThemeTokenParserTest extends TestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-
-        if (version_compare(\Twig_Environment::VERSION, '1.5.0', '<')) {
-            $this->markTestSkipped('Requires Twig version to be at least 1.5.0.');
-        }
-    }
-
     /**
      * @dataProvider getTestsForFormTheme
      */
@@ -52,7 +43,7 @@ class FormThemeTokenParserTest extends TestCase
                     ), 1),
                     1,
                     'form_theme'
-                )
+                ),
             ),
             array(
                 '{% form_theme form "tpl1" "tpl2" %}',
@@ -62,11 +53,11 @@ class FormThemeTokenParserTest extends TestCase
                         new \Twig_Node_Expression_Constant(0, 1),
                         new \Twig_Node_Expression_Constant('tpl1', 1),
                         new \Twig_Node_Expression_Constant(1, 1),
-                        new \Twig_Node_Expression_Constant('tpl2', 1)
+                        new \Twig_Node_Expression_Constant('tpl2', 1),
                     ), 1),
                     1,
                     'form_theme'
-                )
+                ),
             ),
             array(
                 '{% form_theme form with "tpl1" %}',
@@ -75,7 +66,7 @@ class FormThemeTokenParserTest extends TestCase
                     new \Twig_Node_Expression_Constant('tpl1', 1),
                     1,
                     'form_theme'
-                )
+                ),
             ),
             array(
                 '{% form_theme form with ["tpl1"] %}',
@@ -87,7 +78,7 @@ class FormThemeTokenParserTest extends TestCase
                     ), 1),
                     1,
                     'form_theme'
-                )
+                ),
             ),
             array(
                 '{% form_theme form with ["tpl1", "tpl2"] %}',
@@ -97,11 +88,11 @@ class FormThemeTokenParserTest extends TestCase
                         new \Twig_Node_Expression_Constant(0, 1),
                         new \Twig_Node_Expression_Constant('tpl1', 1),
                         new \Twig_Node_Expression_Constant(1, 1),
-                        new \Twig_Node_Expression_Constant('tpl2', 1)
+                        new \Twig_Node_Expression_Constant('tpl2', 1),
                     ), 1),
                     1,
                     'form_theme'
-                )
+                ),
             ),
         );
     }

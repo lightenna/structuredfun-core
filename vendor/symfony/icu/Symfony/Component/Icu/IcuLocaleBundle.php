@@ -15,10 +15,7 @@ use Symfony\Component\Intl\ResourceBundle\LocaleBundle;
 use Symfony\Component\Intl\ResourceBundle\Reader\StructuredBundleReaderInterface;
 
 /**
- * An ICU-specific implementation of {@link \Symfony\Component\Intl\ResourceBundle\LocaleBundleInterface}.
- *
- * This class normalizes the data of the ICU .res files to satisfy the contract
- * defined in {@link \Symfony\Component\Intl\ResourceBundle\LocaleBundleInterface}.
+ * A stub implementation of {@link \Symfony\Component\Intl\ResourceBundle\LocaleBundleInterface}.
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
@@ -32,17 +29,8 @@ class IcuLocaleBundle extends LocaleBundle
     /**
      * {@inheritdoc}
      */
-    public function getLocaleNames($locale = null)
+    public function getLocales()
     {
-        if (null === $locale) {
-            $locale = \Locale::getDefault();
-        }
-
-        $locales = parent::getLocaleNames($locale);
-
-        $collator = new \Collator($locale);
-        $collator->asort($locales);
-
-        return $locales;
+        return array('en');
     }
 }

@@ -72,7 +72,7 @@ class MaskBuilder
     /**
      * Constructor
      *
-     * @param integer $mask optional; defaults to 0
+     * @param int     $mask optional; defaults to 0
      *
      * @throws \InvalidArgumentException
      */
@@ -110,7 +110,7 @@ class MaskBuilder
     /**
      * Returns the mask of this permission
      *
-     * @return integer
+     * @return int
      */
     public function get()
     {
@@ -128,7 +128,7 @@ class MaskBuilder
         $length = strlen($pattern);
         $bitmask = str_pad(decbin($this->mask), $length, '0', STR_PAD_LEFT);
 
-        for ($i=$length-1; $i>=0; $i--) {
+        for ($i = $length-1; $i >= 0; $i--) {
             if ('1' === $bitmask[$i]) {
                 try {
                     $pattern[$i] = self::getCode(1 << ($length - $i - 1));
@@ -178,7 +178,7 @@ class MaskBuilder
     /**
      * Returns the code for the passed mask
      *
-     * @param integer $mask
+     * @param int     $mask
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      * @return string

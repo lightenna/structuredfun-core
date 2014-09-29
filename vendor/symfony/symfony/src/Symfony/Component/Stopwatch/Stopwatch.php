@@ -138,7 +138,6 @@ class Stopwatch
     }
 }
 
-
 /**
  * @internal This class is for internal usage only
  *
@@ -190,8 +189,6 @@ class Section
                 return $child;
             }
         }
-
-        return null;
     }
 
     /**

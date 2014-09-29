@@ -22,7 +22,7 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 class IntegerToLocalizedStringTransformer extends NumberToLocalizedStringTransformer
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function reverseTransform($value)
     {
@@ -31,7 +31,7 @@ class IntegerToLocalizedStringTransformer extends NumberToLocalizedStringTransfo
         }
 
         if ('' === $value) {
-            return null;
+            return;
         }
 
         if ('NaN' === $value) {

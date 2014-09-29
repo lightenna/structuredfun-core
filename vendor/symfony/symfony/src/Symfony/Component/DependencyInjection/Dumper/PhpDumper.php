@@ -58,7 +58,7 @@ class PhpDumper extends Dumper
     private $proxyDumper;
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @api
      */
@@ -66,7 +66,7 @@ class PhpDumper extends Dumper
     {
         parent::__construct($container);
 
-        $this->inlinedDefinitions = new \SplObjectStorage;
+        $this->inlinedDefinitions = new \SplObjectStorage();
     }
 
     /**
@@ -188,7 +188,7 @@ class PhpDumper extends Dumper
      */
     private function addProxyClasses()
     {
-        /* @var $proxyDefinitions Definition[] */
+        /* @var $definitions Definition[] */
         $definitions = array_filter(
             $this->container->getDefinitions(),
             array($this->getProxyDumper(), 'isProxyCandidate')
@@ -196,7 +196,7 @@ class PhpDumper extends Dumper
         $code = '';
 
         foreach ($definitions as $definition) {
-            $code .= "\n" . $this->getProxyDumper()->getProxyCode($definition);
+            $code .= "\n".$this->getProxyDumper()->getProxyCode($definition);
         }
 
         return $code;
@@ -367,7 +367,7 @@ class PhpDumper extends Dumper
      * @param string     $id
      * @param Definition $definition
      *
-     * @return Boolean
+     * @return bool
      */
     private function isSimpleInstance($id, $definition)
     {
@@ -423,7 +423,10 @@ class PhpDumper extends Dumper
      *
      * @param string     $id
      * @param Definition $definition
+     *
      * @return string
+     *
+     * @throws ServiceCircularReferenceException when the container contains a circular reference
      */
     private function addServiceInlinedDefinitionsSetup($id, $definition)
     {
@@ -505,7 +508,7 @@ class PhpDumper extends Dumper
         if ($definition->isSynthetic()) {
             $return[] = '@throws RuntimeException always since this service is expected to be injected dynamically';
         } elseif ($class = $definition->getClass()) {
-            $return[] = sprintf("@return %s A %s instance.", 0 === strpos($class, '%') ? 'object' : $class, $class);
+            $return[] = sprintf("@return %s A %s instance.", 0 === strpos($class, '%') ? 'object' : "\\".$class, $class);
         } elseif ($definition->getFactoryClass()) {
             $return[] = sprintf('@return object An instance returned by %s::%s().', $definition->getFactoryClass(), $definition->getFactoryMethod());
         } elseif ($definition->getFactoryService()) {
@@ -544,7 +547,7 @@ EOF;
 
         if ($definition->isLazy()) {
             $lazyInitialization    = '$lazyLoad = true';
-            $lazyInitializationDoc = "\n     * @param boolean \$lazyLoad whether to try lazy-loading the service with a proxy\n     *";
+            $lazyInitializationDoc = "\n     * @param bool    \$lazyLoad whether to try lazy-loading the service with a proxy\n     *";
         } else {
             $lazyInitialization    = '';
             $lazyInitializationDoc = '';
@@ -627,6 +630,8 @@ EOF;
      *
      * @param string     $id         A service identifier
      * @param Definition $definition A Definition instance
+     *
+     * @return string|null
      */
     private function addServiceSynchronizer($id, Definition $definition)
     {
@@ -722,8 +727,6 @@ use Symfony\Component\DependencyInjection\Exception\InactiveScopeException;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
-use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\Parameter;
 $bagClass
 
 /**
@@ -841,7 +844,7 @@ EOF;
             $code .= '            '.var_export($id, true).' => '.var_export('get'.$this->camelize($id).'Service', true).",\n";
         }
 
-        return $code . "        );\n";
+        return $code."        );\n";
     }
 
     /**
@@ -869,7 +872,7 @@ EOF;
             $code .= '            '.var_export($alias, true).' => '.var_export($id, true).",\n";
         }
 
-        return $code . "        );\n";
+        return $code."        );\n";
     }
 
     /**
@@ -922,7 +925,7 @@ EOF;
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getParameterBag()
     {
@@ -957,7 +960,7 @@ EOF;
      *
      * @param array   $parameters
      * @param string  $path
-     * @param integer $indent
+     * @param int     $indent
      *
      * @return string
      *
@@ -1106,10 +1109,10 @@ EOF;
      *
      * @param string  $id
      * @param array   $arguments
-     * @param Boolean $deep
+     * @param bool    $deep
      * @param array   $visited
      *
-     * @return Boolean
+     * @return bool
      */
     private function hasReference($id, array $arguments, $deep = false, $visited = array())
     {
@@ -1143,7 +1146,7 @@ EOF;
      * Dumps values.
      *
      * @param array   $value
-     * @param Boolean $interpolate
+     * @param bool    $interpolate
      *
      * @return string
      *

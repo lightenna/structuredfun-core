@@ -14,7 +14,6 @@ namespace Symfony\Component\Validator\Constraints;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use Symfony\Component\Validator\Constraints\Optional;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
@@ -24,7 +23,7 @@ use Symfony\Component\Validator\Constraints\Optional;
 class CollectionValidator extends ConstraintValidator
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function validate($value, Constraint $constraint)
     {
@@ -44,12 +43,10 @@ class CollectionValidator extends ConstraintValidator
                 (is_array($value) && array_key_exists($field, $value)) ||
                 ($value instanceof \ArrayAccess && $value->offsetExists($field))
             ) {
-                foreach ($fieldConstraint->constraints as $constr) {
-                    $this->context->validateValue($value[$field], $constr, '['.$field.']', $group);
-                }
+                $this->context->validateValue($value[$field], $fieldConstraint->constraints, '['.$field.']', $group);
             } elseif (!$fieldConstraint instanceof Optional && !$constraint->allowMissingFields) {
                 $this->context->addViolationAt('['.$field.']', $constraint->missingFieldsMessage, array(
-                    '{{ field }}' => $field
+                    '{{ field }}' => $this->formatValue($field),
                 ), null);
             }
         }
@@ -58,7 +55,7 @@ class CollectionValidator extends ConstraintValidator
             foreach ($value as $field => $fieldValue) {
                 if (!isset($constraint->fields[$field])) {
                     $this->context->addViolationAt('['.$field.']', $constraint->extraFieldsMessage, array(
-                        '{{ field }}' => $field
+                        '{{ field }}' => $this->formatValue($field),
                     ), $fieldValue);
                 }
             }

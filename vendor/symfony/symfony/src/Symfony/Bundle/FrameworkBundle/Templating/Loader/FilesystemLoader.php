@@ -40,7 +40,7 @@ class FilesystemLoader implements LoaderInterface
      *
      * @param TemplateReferenceInterface $template A template
      *
-     * @return FileStorage|Boolean false if the template cannot be loaded, a Storage instance otherwise
+     * @return FileStorage|bool    false if the template cannot be loaded, a Storage instance otherwise
      */
     public function load(TemplateReferenceInterface $template)
     {
@@ -57,9 +57,9 @@ class FilesystemLoader implements LoaderInterface
      * Returns true if the template is still fresh.
      *
      * @param TemplateReferenceInterface $template The template name as an array
-     * @param integer                    $time     The last modification time of the cached template (timestamp)
+     * @param int                        $time     The last modification time of the cached template (timestamp)
      *
-     * @return Boolean
+     * @return bool
      */
     public function isFresh(TemplateReferenceInterface $template, $time)
     {

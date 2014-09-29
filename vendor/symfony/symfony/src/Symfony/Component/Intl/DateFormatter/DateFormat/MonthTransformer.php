@@ -33,7 +33,7 @@ class MonthTransformer extends Transformer
         'September',
         'October',
         'November',
-        'December'
+        'December',
     );
 
     /**
@@ -60,7 +60,7 @@ class MonthTransformer extends Transformer
     public function __construct()
     {
         if (0 === count(self::$shortMonths)) {
-            self::$shortMonths = array_map(function($month) {
+            self::$shortMonths = array_map(function ($month) {
                 return substr($month, 0, 3);
             }, self::$months);
 
@@ -70,7 +70,7 @@ class MonthTransformer extends Transformer
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function format(\DateTime $dateTime, $length)
     {
@@ -93,7 +93,7 @@ class MonthTransformer extends Transformer
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getReverseMatchingRegExp($length)
     {
@@ -119,7 +119,7 @@ class MonthTransformer extends Transformer
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function extractDateOptions($matched, $length)
     {

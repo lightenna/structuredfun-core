@@ -46,7 +46,7 @@ class ContainerDebugCommand extends ContainerAwareCommand
                 new InputOption('tag', null, InputOption::VALUE_REQUIRED, 'Show all services with a specific tag'),
                 new InputOption('tags', null, InputOption::VALUE_NONE, 'Displays tagged services for an application'),
                 new InputOption('parameter', null, InputOption::VALUE_REQUIRED, 'Displays a specific parameter for an application'),
-                new InputOption('parameters', null, InputOption::VALUE_NONE, 'Displays parameters for an application')
+                new InputOption('parameters', null, InputOption::VALUE_NONE, 'Displays parameters for an application'),
             ))
             ->setDescription('Displays current services for an application')
             ->setHelp(<<<EOF
@@ -207,12 +207,12 @@ EOF
             }
         }
         $format = '%-'.$maxName.'s ';
-        $format .= implode("", array_map(function($length) { return "%-{$length}s "; }, $maxTags));
+        $format .= implode("", array_map(function ($length) { return "%-{$length}s "; }, $maxTags));
         $format .= '%-'.$maxScope.'s %s';
 
         // the title field needs extra space to make up for comment tags
         $format1 = '%-'.($maxName + 19).'s ';
-        $format1 .= implode("", array_map(function($length) { return '%-'.($length + 19).'s '; }, $maxTags));
+        $format1 .= implode("", array_map(function ($length) { return '%-'.($length + 19).'s '; }, $maxTags));
         $format1 .= '%-'.($maxScope + 19).'s %s';
 
         $tags = array();
@@ -288,7 +288,7 @@ EOF
                 $output->writeln('<comment>Tags</comment>');
                 foreach ($tags as $tagName => $tagData) {
                     foreach ($tagData as $singleTagData) {
-                        $output->writeln(sprintf('    - %-30s (%s)', $tagName, implode(', ', array_map(function($key, $value) {
+                        $output->writeln(sprintf('    - %-30s (%s)', $tagName, implode(', ', array_map(function ($key, $value) {
                             return sprintf('<info>%s</info>: %s', $key, $value);
                         }, array_keys($singleTagData), array_values($singleTagData)))));
                     }
@@ -412,7 +412,7 @@ EOF
      * Renders list of tagged services grouped by tag
      *
      * @param OutputInterface $output
-     * @param Boolean         $showPrivate
+     * @param bool            $showPrivate
      */
     protected function outputTags(OutputInterface $output, $showPrivate = false)
     {

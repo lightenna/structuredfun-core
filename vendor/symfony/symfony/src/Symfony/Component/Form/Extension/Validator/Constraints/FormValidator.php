@@ -11,9 +11,7 @@
 
 namespace Symfony\Component\Form\Extension\Validator\Constraints;
 
-use Symfony\Component\Form\ClickableInterface;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\Extension\Validator\Util\ServerParams;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
@@ -23,43 +21,12 @@ use Symfony\Component\Validator\ConstraintValidator;
 class FormValidator extends ConstraintValidator
 {
     /**
-     * @var \SplObjectStorage
-     */
-    private static $clickedButtons;
-
-    /**
-     * @var ServerParams
-     */
-    private $serverParams;
-
-    /**
-     * Creates a validator with the given server parameters.
-     *
-     * @param ServerParams $params The server parameters. Default
-     *                             parameters are created if null.
-     */
-    public function __construct(ServerParams $params = null)
-    {
-        $this->serverParams = $params ?: new ServerParams();
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function validate($form, Constraint $constraint)
     {
         if (!$form instanceof FormInterface) {
             return;
-        }
-
-        if (null === static::$clickedButtons) {
-            static::$clickedButtons = new \SplObjectStorage();
-        }
-
-        // If the form was previously validated, remove it from the cache in
-        // case the clicked button has changed
-        if (static::$clickedButtons->contains($form)) {
-            static::$clickedButtons->detach($form);
         }
 
         /* @var FormInterface $form */
@@ -129,21 +96,6 @@ class FormValidator extends ConstraintValidator
                 $form->getExtraData()
             );
         }
-
-        // Mark the form with an error if the uploaded size was too large
-        $length = $this->serverParams->getContentLength();
-
-        if ($form->isRoot() && null !== $length) {
-            $max = $this->serverParams->getPostMaxSize();
-
-            if (!empty($max) && $length > $max) {
-                $this->context->addViolation(
-                    $config->getOption('post_max_size_message'),
-                    array('{{ max }}' => $this->serverParams->getNormalizedIniPostMaxSize()),
-                    $length
-                );
-            }
-        }
     }
 
     /**
@@ -151,7 +103,7 @@ class FormValidator extends ConstraintValidator
      *
      * @param  FormInterface $form The form to test.
      *
-     * @return Boolean Whether the graph walker may walk the data.
+     * @return bool    Whether the graph walker may walk the data.
      */
     private static function allowDataWalking(FormInterface $form)
     {
@@ -187,20 +139,15 @@ class FormValidator extends ConstraintValidator
      */
     private static function getValidationGroups(FormInterface $form)
     {
-        $root = $form->getRoot();
-
         // Determine the clicked button of the complete form tree
-        if (!static::$clickedButtons->contains($root)) {
-            // Only call findClickedButton() once to prevent an exponential
-            // runtime
-            // https://github.com/symfony/symfony/issues/8317
-            static::$clickedButtons->attach($root, self::findClickedButton($root));
+        $clickedButton = null;
+
+        if (method_exists($form, 'getClickedButton')) {
+            $clickedButton = $form->getClickedButton();
         }
 
-        $button = static::$clickedButtons->offsetGet($root);
-
-        if (null !== $button) {
-            $groups = $button->getConfig()->getOption('validation_groups');
+        if (null !== $clickedButton) {
+            $groups = $clickedButton->getConfig()->getOption('validation_groups');
 
             if (null !== $groups) {
                 return self::resolveValidationGroups($groups, $form);
@@ -218,28 +165,6 @@ class FormValidator extends ConstraintValidator
         } while (null !== $form);
 
         return array(Constraint::DEFAULT_GROUP);
-    }
-
-    /**
-     * Extracts a clicked button from a form tree, if one exists.
-     *
-     * @param FormInterface $form The root form.
-     *
-     * @return ClickableInterface|null The clicked button or null.
-     */
-    private static function findClickedButton(FormInterface $form)
-    {
-        if ($form instanceof ClickableInterface && $form->isClicked()) {
-            return $form;
-        }
-
-        foreach ($form as $child) {
-            if (null !== ($button = self::findClickedButton($child))) {
-                return $button;
-            }
-        }
-
-        return null;
     }
 
     /**

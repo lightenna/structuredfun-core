@@ -141,7 +141,6 @@ abstract class Bundle extends ContainerAware implements BundleInterface
      */
     public function getParent()
     {
-        return null;
     }
 
     /**
@@ -160,7 +159,7 @@ abstract class Bundle extends ContainerAware implements BundleInterface
         $name = get_class($this);
         $pos = strrpos($name, '\\');
 
-        return $this->name = false === $pos ? $name :  substr($name, $pos + 1);
+        return $this->name = false === $pos ? $name : substr($name, $pos + 1);
     }
 
     /**

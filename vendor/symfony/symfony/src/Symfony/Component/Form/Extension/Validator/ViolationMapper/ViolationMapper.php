@@ -16,7 +16,6 @@ use Symfony\Component\Form\Util\InheritDataAwareIterator;
 use Symfony\Component\PropertyAccess\PropertyPathIterator;
 use Symfony\Component\PropertyAccess\PropertyPathBuilder;
 use Symfony\Component\PropertyAccess\PropertyPathIteratorInterface;
-use Symfony\Component\Form\Extension\Validator\ViolationMapper\ViolationPathIterator;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Validator\ConstraintViolation;
 
@@ -26,7 +25,7 @@ use Symfony\Component\Validator\ConstraintViolation;
 class ViolationMapper implements ViolationMapperInterface
 {
     /**
-     * @var Boolean
+     * @var bool
      */
     private $allowNonSynchronized;
 
@@ -173,7 +172,7 @@ class ViolationMapper implements ViolationMapperInterface
         // Make the path longer until we find a matching child
         while (true) {
             if (!$it->valid()) {
-                return null;
+                return;
             }
 
             if ($it->isIndex()) {
@@ -224,8 +223,6 @@ class ViolationMapper implements ViolationMapperInterface
                 return $foundChild;
             }
         }
-
-        return null;
     }
 
     /**
@@ -290,7 +287,7 @@ class ViolationMapper implements ViolationMapperInterface
     /**
      * @param FormInterface $form
      *
-     * @return Boolean
+     * @return bool
      */
     private function acceptsErrors(FormInterface $form)
     {

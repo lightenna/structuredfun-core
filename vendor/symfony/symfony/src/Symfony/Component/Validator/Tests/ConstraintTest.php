@@ -53,7 +53,7 @@ class ConstraintTest extends \PHPUnit_Framework_TestCase
 
         new ConstraintC(array(
             'option1' => 'default',
-            'foo' => 'bar'
+            'foo' => 'bar',
         ));
     }
 
@@ -117,14 +117,14 @@ class ConstraintTest extends \PHPUnit_Framework_TestCase
 
     public function testGetTargetsCanBeString()
     {
-        $constraint = new ClassConstraint;
+        $constraint = new ClassConstraint();
 
         $this->assertEquals('class', $constraint->getTargets());
     }
 
     public function testGetTargetsCanBeArray()
     {
-        $constraint = new ConstraintA;
+        $constraint = new ConstraintA();
 
         $this->assertEquals(array('property', 'class'), $constraint->getTargets());
     }

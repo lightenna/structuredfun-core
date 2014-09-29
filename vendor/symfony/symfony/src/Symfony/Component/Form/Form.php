@@ -86,9 +86,15 @@ class Form implements \IteratorAggregate, FormInterface
 
     /**
      * Whether this form was submitted
-     * @var Boolean
+     * @var bool
      */
     private $submitted = false;
+
+    /**
+     * The button that was used to submit the form
+     * @var Button
+     */
+    private $clickedButton;
 
     /**
      * The form data in model format
@@ -118,7 +124,7 @@ class Form implements \IteratorAggregate, FormInterface
      * Whether the data in model, normalized and view format is
      * synchronized. Data may not be synchronized if transformation errors
      * occur.
-     * @var Boolean
+     * @var bool
      */
     private $synchronized = true;
 
@@ -132,13 +138,13 @@ class Form implements \IteratorAggregate, FormInterface
      * manually, making the initialization with the configured default value
      * superfluous.
      *
-     * @var Boolean
+     * @var bool
      */
     private $defaultDataSet = false;
 
     /**
      * Whether setData() is currently being called.
-     * @var Boolean
+     * @var bool
      */
     private $lockSetData = false;
 
@@ -170,6 +176,8 @@ class Form implements \IteratorAggregate, FormInterface
 
     public function __clone()
     {
+        $this->children = clone $this->children;
+
         foreach ($this->children as $key => $child) {
             $this->children[$key] = clone $child;
         }
@@ -201,7 +209,7 @@ class Form implements \IteratorAggregate, FormInterface
         }
 
         if (null === $this->getName() || '' === $this->getName()) {
-            return null;
+            return;
         }
 
         $parent = $this->parent;
@@ -230,7 +238,7 @@ class Form implements \IteratorAggregate, FormInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function isDisabled()
     {
@@ -343,20 +351,20 @@ class Form implements \IteratorAggregate, FormInterface
                 $expectedType = 'scalar, array or an instance of \ArrayAccess';
 
                 throw new LogicException(
-                    'The form\'s view data is expected to be of type '.$expectedType.', ' .
-                    'but is '.$actualType.'. You ' .
-                    'can avoid this error by setting the "data_class" option to ' .
-                    '"'.get_class($viewData).'" or by adding a view transformer ' .
+                    'The form\'s view data is expected to be of type '.$expectedType.', '.
+                    'but is '.$actualType.'. You '.
+                    'can avoid this error by setting the "data_class" option to '.
+                    '"'.get_class($viewData).'" or by adding a view transformer '.
                     'that transforms '.$actualType.' to '.$expectedType.'.'
                 );
             }
 
             if (null !== $dataClass && !$viewData instanceof $dataClass) {
                 throw new LogicException(
-                    'The form\'s view data is expected to be an instance of class ' .
-                    $dataClass.', but is '. $actualType.'. You can avoid this error ' .
-                    'by setting the "data_class" option to null or by adding a view ' .
-                    'transformer that transforms '.$actualType.' to an instance of ' .
+                    'The form\'s view data is expected to be an instance of class '.
+                    $dataClass.', but is '.$actualType.'. You can avoid this error '.
+                    'by setting the "data_class" option to null or by adding a view '.
+                    'transformer that transforms '.$actualType.' to an instance of '.
                     $dataClass.'.'
                 );
             }
@@ -548,9 +556,23 @@ class Form implements \IteratorAggregate, FormInterface
                 }
 
                 foreach ($this->children as $name => $child) {
-                    if (isset($submittedData[$name]) || $clearMissing) {
+                    if (array_key_exists($name, $submittedData) || $clearMissing) {
                         $child->submit(isset($submittedData[$name]) ? $submittedData[$name] : null, $clearMissing);
                         unset($submittedData[$name]);
+
+                        if (null !== $this->clickedButton) {
+                            continue;
+                        }
+
+                        if ($child instanceof ClickableInterface && $child->isClicked()) {
+                            $this->clickedButton = $child;
+
+                            continue;
+                        }
+
+                        if (method_exists($child, 'getClickedButton') && null !== $child->getClickedButton()) {
+                            $this->clickedButton = $child->getClickedButton();
+                        }
                     }
                 }
 
@@ -731,6 +753,23 @@ class Form implements \IteratorAggregate, FormInterface
     }
 
     /**
+     * Returns the button that was used to submit the form.
+     *
+     * @return Button|null The clicked button or NULL if the form was not
+     *                     submitted
+     */
+    public function getClickedButton()
+    {
+        if ($this->clickedButton) {
+            return $this->clickedButton;
+        }
+
+        if ($this->parent && method_exists($this->parent, 'getClickedButton')) {
+            return $this->parent->getClickedButton();
+        }
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getErrors()
@@ -743,7 +782,7 @@ class Form implements \IteratorAggregate, FormInterface
      *
      * This method should only be used to help debug a form.
      *
-     * @param integer $level The indentation level (used internally)
+     * @param int     $level The indentation level (used internally)
      *
      * @return string A string representation of all errors
      */
@@ -891,7 +930,7 @@ class Form implements \IteratorAggregate, FormInterface
      *
      * @param string $name The name of the child
      *
-     * @return Boolean
+     * @return bool
      */
     public function offsetExists($name)
     {
@@ -953,7 +992,7 @@ class Form implements \IteratorAggregate, FormInterface
     /**
      * Returns the number of form children (implements the \Countable interface).
      *
-     * @return integer The number of embedded form children
+     * @return int     The number of embedded form children
      */
     public function count()
     {

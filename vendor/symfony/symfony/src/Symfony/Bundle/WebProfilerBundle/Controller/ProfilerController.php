@@ -37,7 +37,7 @@ class ProfilerController
     /**
      * Constructor.
      *
-     * @param UrlGeneratorInterface $generator       The Url Generator
+     * @param UrlGeneratorInterface $generator       The URL Generator
      * @param Profiler              $profiler        The profiler
      * @param \Twig_Environment     $twig            The twig environment
      * @param array                 $templates       The templates
@@ -56,6 +56,8 @@ class ProfilerController
      * Redirects to the last profiles.
      *
      * @return RedirectResponse A RedirectResponse instance
+     *
+     * @throws NotFoundHttpException
      */
     public function homeAction()
     {
@@ -110,36 +112,11 @@ class ProfilerController
     }
 
     /**
-     * Exports data for a given token.
-     *
-     * @param string $token The profiler token
+     * Purges all tokens.
      *
      * @return Response A Response instance
      *
      * @throws NotFoundHttpException
-     */
-    public function exportAction($token)
-    {
-        if (null === $this->profiler) {
-            throw new NotFoundHttpException('The profiler must be enabled.');
-        }
-
-        $this->profiler->disable();
-
-        if (!$profile = $this->profiler->loadProfile($token)) {
-            throw new NotFoundHttpException(sprintf('Token "%s" does not exist.', $token));
-        }
-
-        return new Response($this->profiler->export($profile), 200, array(
-            'Content-Type'        => 'text/plain',
-            'Content-Disposition' => 'attachment; filename= '.$token.'.txt',
-        ));
-    }
-
-    /**
-     * Purges all tokens.
-     *
-     * @return Response A Response instance
      */
     public function purgeAction()
     {
@@ -154,39 +131,13 @@ class ProfilerController
     }
 
     /**
-     * Imports token data.
-     *
-     * @param Request $request The current HTTP Request
-     *
-     * @return Response A Response instance
-     */
-    public function importAction(Request $request)
-    {
-        if (null === $this->profiler) {
-            throw new NotFoundHttpException('The profiler must be enabled.');
-        }
-
-        $this->profiler->disable();
-
-        $file = $request->files->get('file');
-
-        if (empty($file) || !$file->isValid()) {
-            return new RedirectResponse($this->generator->generate('_profiler_info', array('about' => 'upload_error')), 302, array('Content-Type' => 'text/html'));
-        }
-
-        if (!$profile = $this->profiler->import(file_get_contents($file->getPathname()))) {
-            return new RedirectResponse($this->generator->generate('_profiler_info', array('about' => 'already_exists')), 302, array('Content-Type' => 'text/html'));
-        }
-
-        return new RedirectResponse($this->generator->generate('_profiler', array('token' => $profile->getToken())), 302, array('Content-Type' => 'text/html'));
-    }
-
-    /**
      * Displays information page.
      *
      * @param string $about The about message
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function infoAction($about)
     {
@@ -197,7 +148,7 @@ class ProfilerController
         $this->profiler->disable();
 
         return new Response($this->twig->render('@WebProfiler/Profiler/info.html.twig', array(
-            'about' => $about
+            'about' => $about,
         )), 200, array('Content-Type' => 'text/html'));
     }
 
@@ -208,6 +159,8 @@ class ProfilerController
      * @param string  $token    The profiler token
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function toolbarAction(Request $request, $token)
     {
@@ -217,19 +170,19 @@ class ProfilerController
 
         $session = $request->getSession();
 
-        if (null !== $session && $session->getFlashBag() instanceof AutoExpireFlashBag) {
+        if (null !== $session && $session->isStarted() && $session->getFlashBag() instanceof AutoExpireFlashBag) {
             // keep current flashes for one more request if using AutoExpireFlashBag
             $session->getFlashBag()->setAll($session->getFlashBag()->peekAll());
         }
 
-        if (null === $token) {
+        if ('empty' === $token || null === $token) {
             return new Response('', 200, array('Content-Type' => 'text/html'));
         }
 
         $this->profiler->disable();
 
         if (!$profile = $this->profiler->loadProfile($token)) {
-            return new Response('', 200, array('Content-Type' => 'text/html'));
+            return new Response('', 404, array('Content-Type' => 'text/html'));
         }
 
         // the toolbar position (top, bottom, normal, or null -- use the configuration)
@@ -259,6 +212,8 @@ class ProfilerController
      * @param Request $request The current HTTP Request
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function searchBarAction(Request $request)
     {
@@ -298,12 +253,14 @@ class ProfilerController
     }
 
     /**
-     * Search results.
+     * Renders the search results.
      *
      * @param Request $request The current HTTP Request
      * @param string  $token   The token
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function searchResultsAction(Request $request, $token)
     {
@@ -337,11 +294,13 @@ class ProfilerController
     }
 
     /**
-     * Narrow the search bar.
+     * Narrows the search bar.
      *
      * @param Request $request The current HTTP Request
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function searchAction(Request $request)
     {
@@ -390,6 +349,8 @@ class ProfilerController
      * Displays the PHP info.
      *
      * @return Response A Response instance
+     *
+     * @throws NotFoundHttpException
      */
     public function phpinfoAction()
     {

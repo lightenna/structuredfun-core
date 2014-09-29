@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 class EmailValidator extends ConstraintValidator
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function validate($value, Constraint $constraint)
     {
@@ -41,11 +41,6 @@ class EmailValidator extends ConstraintValidator
         if ($valid) {
             $host = substr($value, strpos($value, '@') + 1);
 
-            if (version_compare(PHP_VERSION, '5.3.3', '<') && strpos($host, '.') === false) {
-                // Likely not a FQDN, bug in PHP FILTER_VALIDATE_EMAIL prior to PHP 5.3.3
-                $valid = false;
-            }
-
             // Check for host DNS resource records
             if ($valid && $constraint->checkMX) {
                 $valid = $this->checkMX($host);
@@ -55,7 +50,9 @@ class EmailValidator extends ConstraintValidator
         }
 
         if (!$valid) {
-            $this->context->addViolation($constraint->message, array('{{ value }}' => $value));
+            $this->context->addViolation($constraint->message, array(
+                '{{ value }}' => $this->formatValue($value),
+            ));
         }
     }
 
@@ -64,7 +61,7 @@ class EmailValidator extends ConstraintValidator
      *
      * @param string $host Host
      *
-     * @return Boolean
+     * @return bool
      */
     private function checkMX($host)
     {
@@ -76,7 +73,7 @@ class EmailValidator extends ConstraintValidator
      *
      * @param string $host Host
      *
-     * @return Boolean
+     * @return bool
      */
     private function checkHost($host)
     {

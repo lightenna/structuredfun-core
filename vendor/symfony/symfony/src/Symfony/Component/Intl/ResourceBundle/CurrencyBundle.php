@@ -15,6 +15,8 @@ namespace Symfony\Component\Intl\ResourceBundle;
  * Default implementation of {@link CurrencyBundleInterface}.
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @internal
  */
 class CurrencyBundle extends AbstractBundle implements CurrencyBundleInterface
 {
@@ -35,7 +37,7 @@ class CurrencyBundle extends AbstractBundle implements CurrencyBundleInterface
             $locale = \Locale::getDefault();
         }
 
-        return $this->readEntry($locale, array('Currencies', $currency, static::INDEX_SYMBOL));
+        return $this->readEntry($locale, array('Currencies', $currency, static::INDEX_SYMBOL), true);
     }
 
     /**
@@ -47,7 +49,7 @@ class CurrencyBundle extends AbstractBundle implements CurrencyBundleInterface
             $locale = \Locale::getDefault();
         }
 
-        return $this->readEntry($locale, array('Currencies', $currency, static::INDEX_NAME));
+        return $this->readEntry($locale, array('Currencies', $currency, static::INDEX_NAME), true);
     }
 
     /**
@@ -59,7 +61,7 @@ class CurrencyBundle extends AbstractBundle implements CurrencyBundleInterface
             $locale = \Locale::getDefault();
         }
 
-        if (null === ($currencies = $this->readEntry($locale, array('Currencies')))) {
+        if (null === ($currencies = $this->readEntry($locale, array('Currencies'), true))) {
             return array();
         }
 
@@ -81,7 +83,7 @@ class CurrencyBundle extends AbstractBundle implements CurrencyBundleInterface
      */
     public function getFractionDigits($currency)
     {
-        return $this->readEntry('en', array('Currencies', $currency, static::INDEX_FRACTION_DIGITS));
+        return $this->readEntry('en', array('Currencies', $currency, static::INDEX_FRACTION_DIGITS), true);
     }
 
     /**
@@ -89,6 +91,6 @@ class CurrencyBundle extends AbstractBundle implements CurrencyBundleInterface
      */
     public function getRoundingIncrement($currency)
     {
-        return $this->readEntry('en', array('Currencies', $currency, static::INDEX_ROUNDING_INCREMENT));
+        return $this->readEntry('en', array('Currencies', $currency, static::INDEX_ROUNDING_INCREMENT), true);
     }
 }

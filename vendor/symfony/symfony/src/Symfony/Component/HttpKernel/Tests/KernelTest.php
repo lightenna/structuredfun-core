@@ -274,6 +274,10 @@ class KernelTest extends \PHPUnit_Framework_TestCase
 
 $string = 'string should not be   modified';
 
+$string = 'string should not be
+
+modified';
+
 
 $heredoc = <<<HD
 
@@ -308,16 +312,17 @@ EOF;
         $expected = <<<'EOF'
 <?php
 $string = 'string should not be   modified';
-$heredoc =
-<<<HD
+$string = 'string should not be
+
+modified';
+$heredoc = <<<HD
 
 
 Heredoc should not be   modified
 
 
 HD;
-$nowdoc =
-<<<'ND'
+$nowdoc = <<<'ND'
 
 
 Nowdoc should not be   modified
@@ -328,14 +333,14 @@ class TestClass
 {
     public function doStuff()
     {
-            }
+        }
 }
 EOF;
 
         $output = Kernel::stripComments($source);
 
-        // Heredocs are preserved, making the output mixing unix and windows line
-        // endings, switching to "\n" everywhere on windows to avoid failure.
+        // Heredocs are preserved, making the output mixing Unix and Windows line
+        // endings, switching to "\n" everywhere on Windows to avoid failure.
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
             $expected = str_replace("\r\n", "\n", $expected);
             $output = str_replace("\r\n", "\n", $output);
@@ -492,7 +497,7 @@ EOF;
 
         $this->assertEquals(array(
             __DIR__.'/Fixtures/Bundle2Bundle/foo.txt',
-            __DIR__.'/Fixtures/Bundle1Bundle/foo.txt'),
+            __DIR__.'/Fixtures/Bundle1Bundle/foo.txt',),
             $kernel->locateResource('@Bundle1Bundle/foo.txt', null, false));
     }
 
@@ -504,7 +509,7 @@ EOF;
             ->method('getBundle')
             ->will($this->returnValue(array(
                 $this->getBundle(__DIR__.'/Fixtures/Bundle1Bundle'),
-                $this->getBundle(__DIR__.'/Foobar')
+                $this->getBundle(__DIR__.'/Foobar'),
             )))
         ;
 
@@ -555,7 +560,7 @@ EOF;
 
         $this->assertEquals(array(
             __DIR__.'/Fixtures/Resources/Bundle1Bundle/foo.txt',
-            __DIR__.'/Fixtures/Bundle1Bundle/Resources/foo.txt'),
+            __DIR__.'/Fixtures/Bundle1Bundle/Resources/foo.txt',),
             $kernel->locateResource('@Bundle1Bundle/Resources/foo.txt', __DIR__.'/Fixtures/Resources', false)
         );
     }

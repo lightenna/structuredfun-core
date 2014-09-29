@@ -88,7 +88,7 @@ class BasicEntityPersister
      */
     static private $comparisonMap = array(
         Comparison::EQ  => '= %s',
-        Comparison::IS  => 'IS %s',
+        Comparison::IS  => '= %s',
         Comparison::NEQ => '!= %s',
         Comparison::GT  => '> %s',
         Comparison::GTE => '>= %s',
@@ -518,13 +518,34 @@ class BasicEntityPersister
      */
     public function delete($entity)
     {
+        $class      = $this->_class;
+        $em         = $this->_em;
+
         $identifier = $this->_em->getUnitOfWork()->getEntityIdentifier($entity);
+        $tableName  = $this->quoteStrategy->getTableName($class, $this->_platform);
+        $idColumns  = $this->quoteStrategy->getIdentifierColumnNames($class, $this->_platform);
+        $id         = array_combine($idColumns, $identifier);
+        $types      = array_map(function ($identifier) use ($class, $em) {
+
+            if (isset($class->fieldMappings[$identifier])) {
+                return $class->fieldMappings[$identifier]['type'];
+            }
+
+            $targetMapping = $em->getClassMetadata($class->associationMappings[$identifier]['targetEntity']);
+
+            if (isset($targetMapping->fieldMappings[$targetMapping->identifier[0]])) {
+                return $targetMapping->fieldMappings[$targetMapping->identifier[0]]['type'];
+            }
+
+            if (isset($targetMapping->associationMappings[$targetMapping->identifier[0]])) {
+                return $targetMapping->associationMappings[$targetMapping->identifier[0]]['type'];
+            }
+
+            throw ORMException::unrecognizedField($targetMapping->identifier[0]);
+        }, $class->identifier);
 
         $this->deleteJoinTableRecords($identifier);
-
-        $id = array_combine($this->quoteStrategy->getIdentifierColumnNames($this->_class, $this->_platform), $identifier);
-
-        $this->_conn->delete($this->quoteStrategy->getTableName($this->_class, $this->_platform), $id);
+        $this->_conn->delete($tableName, $id, $types);
     }
 
     /**
@@ -1455,6 +1476,18 @@ class BasicEntityPersister
         if (isset($this->_class->fieldMappings[$field]['requireSQLConversion'])) {
             $type = Type::getType($this->_class->getTypeOfField($field));
             $placeholder = $type->convertToDatabaseValueSQL($placeholder, $this->_platform);
+        }
+
+        if ($comparison !== null) {
+
+            // special case null value handling
+            if (($comparison === Comparison::EQ || $comparison === Comparison::IS) && $value === null) {
+                return $conditionSql . ' IS NULL';
+            } else if ($comparison === Comparison::NEQ && $value === null) {
+                return $conditionSql . ' IS NOT NULL';
+            }
+
+            return $conditionSql . ' ' . sprintf(self::$comparisonMap[$comparison], $placeholder);
         }
 
         $conditionSql .= ($comparison === null)

@@ -13,7 +13,6 @@ namespace Symfony\Component\HttpKernel\Profiler;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Profiler\ProfilerStorageInterface;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Psr\Log\LoggerInterface;
 
@@ -40,7 +39,7 @@ class Profiler
     private $logger;
 
     /**
-     * @var Boolean
+     * @var bool
      */
     private $enabled = true;
 
@@ -105,7 +104,7 @@ class Profiler
      *
      * @param Profile $profile A Profile instance
      *
-     * @return Boolean
+     * @return bool
      */
     public function saveProfile(Profile $profile)
     {
@@ -168,25 +167,11 @@ class Profiler
      *
      * @return array An array of tokens
      *
-     * @see http://fr2.php.net/manual/en/datetime.formats.php for the supported date/time formats
+     * @see http://php.net/manual/en/datetime.formats.php for the supported date/time formats
      */
     public function find($ip, $url, $limit, $method, $start, $end)
     {
-        if ('' != $start && null !== $start) {
-            $start = new \DateTime($start);
-            $start = $start->getTimestamp();
-        } else {
-            $start = null;
-        }
-
-        if ('' != $end && null !== $end) {
-            $end = new \DateTime($end);
-            $end = $end->getTimestamp();
-        } else {
-            $end = null;
-        }
-
-        return $this->storage->find($ip, $url, $limit, $method, $start, $end);
+        return $this->storage->find($ip, $url, $limit, $method, $this->getTimestamp($start), $this->getTimestamp($end));
     }
 
     /**
@@ -260,7 +245,7 @@ class Profiler
      *
      * @param string $name A collector name
      *
-     * @return Boolean
+     * @return bool
      */
     public function has($name)
     {
@@ -283,5 +268,20 @@ class Profiler
         }
 
         return $this->collectors[$name];
+    }
+
+    private function getTimestamp($value)
+    {
+        if (null === $value || '' == $value) {
+            return;
+        }
+
+        try {
+            $value = new \DateTime(is_numeric($value) ? '@'.$value : $value);
+        } catch (\Exception $e) {
+            return;
+        }
+
+        return $value->getTimestamp();
     }
 }

@@ -74,7 +74,7 @@ class GlobalVariables
     /**
      * Returns the current request.
      *
-     * @return Request|null The http request object
+     * @return Request|null The HTTP request object
      */
     public function getRequest()
     {
@@ -108,10 +108,10 @@ class GlobalVariables
     /**
      * Returns the current app debug mode.
      *
-     * @return Boolean The current debug mode
+     * @return bool    The current debug mode
      */
     public function getDebug()
     {
-        return (Boolean) $this->container->getParameter('kernel.debug');
+        return (bool) $this->container->getParameter('kernel.debug');
     }
 }

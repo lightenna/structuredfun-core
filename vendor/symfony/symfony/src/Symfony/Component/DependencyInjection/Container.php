@@ -93,8 +93,6 @@ class Container implements IntrospectableContainerInterface
         $this->scopeChildren  = array();
         $this->scopedServices = array();
         $this->scopeStacks    = array();
-
-        $this->set('service_container', $this);
     }
 
     /**
@@ -117,7 +115,7 @@ class Container implements IntrospectableContainerInterface
     /**
      * Returns true if the container parameter bag are frozen.
      *
-     * @return Boolean true if the container parameter bag are frozen, false otherwise
+     * @return bool    true if the container parameter bag are frozen, false otherwise
      *
      * @api
      */
@@ -159,7 +157,7 @@ class Container implements IntrospectableContainerInterface
      *
      * @param string $name The parameter name
      *
-     * @return Boolean The presence of parameter in container
+     * @return bool    The presence of parameter in container
      *
      * @api
      */
@@ -204,6 +202,12 @@ class Container implements IntrospectableContainerInterface
 
         $id = strtolower($id);
 
+        if ('service_container' === $id) {
+            // BC: 'service_container' is no longer a self-reference but always
+            // $this, so ignore this call.
+            // @todo Throw InvalidArgumentException in next major release.
+            return;
+        }
         if (self::SCOPE_CONTAINER !== $scope) {
             if (!isset($this->scopedServices[$scope])) {
                 throw new RuntimeException(sprintf('You cannot set service "%s" of inactive scope.', $id));
@@ -214,7 +218,7 @@ class Container implements IntrospectableContainerInterface
 
         $this->services[$id] = $service;
 
-        if (method_exists($this, $method = 'synchronize'.strtr($id, array('_' => '', '.' => '_')).'Service')) {
+        if (method_exists($this, $method = 'synchronize'.strtr($id, array('_' => '', '.' => '_', '\\' => '_')).'Service')) {
             $this->$method();
         }
 
@@ -232,7 +236,7 @@ class Container implements IntrospectableContainerInterface
      *
      * @param string $id The service identifier
      *
-     * @return Boolean true if the service is defined, false otherwise
+     * @return bool    true if the service is defined, false otherwise
      *
      * @api
      */
@@ -240,10 +244,14 @@ class Container implements IntrospectableContainerInterface
     {
         $id = strtolower($id);
 
+        if ('service_container' === $id) {
+            return true;
+        }
+
         return isset($this->services[$id])
             || array_key_exists($id, $this->services)
             || isset($this->aliases[$id])
-            || method_exists($this, 'get'.strtr($id, array('_' => '', '.' => '_')).'Service')
+            || method_exists($this, 'get'.strtr($id, array('_' => '', '.' => '_', '\\' => '_')).'Service')
         ;
     }
 
@@ -254,13 +262,14 @@ class Container implements IntrospectableContainerInterface
      * with a get{$id}Service() method, the former has always precedence.
      *
      * @param string  $id              The service identifier
-     * @param integer $invalidBehavior The behavior when the service does not exist
+     * @param int     $invalidBehavior The behavior when the service does not exist
      *
      * @return object The associated service
      *
-     * @throws InvalidArgumentException if the service is not defined
+     * @throws InvalidArgumentException          if the service is not defined
      * @throws ServiceCircularReferenceException When a circular reference is detected
-     * @throws ServiceNotFoundException When the service is not defined
+     * @throws ServiceNotFoundException          When the service is not defined
+     * @throws \Exception                        if an exception has been thrown when the service has been resolved
      *
      * @see Reference
      *
@@ -271,10 +280,13 @@ class Container implements IntrospectableContainerInterface
         // Attempt to retrieve the service by checking first aliases then
         // available services. Service IDs are case insensitive, however since
         // this method can be called thousands of times during a request, avoid
-        // calling strotolower() unless necessary.
+        // calling strtolower() unless necessary.
         foreach (array(false, true) as $strtolower) {
             if ($strtolower) {
                 $id = strtolower($id);
+            }
+            if ('service_container' === $id) {
+                return $this;
             }
             if (isset($this->aliases[$id])) {
                 $id = $this->aliases[$id];
@@ -291,7 +303,7 @@ class Container implements IntrospectableContainerInterface
 
         if (isset($this->methodMap[$id])) {
             $method = $this->methodMap[$id];
-        } elseif (method_exists($this, $method = 'get'.strtr($id, array('_' => '', '.' => '_')).'Service')) {
+        } elseif (method_exists($this, $method = 'get'.strtr($id, array('_' => '', '.' => '_', '\\' => '_')).'Service')) {
             // $method is set to the right value, proceed
         } else {
             if (self::EXCEPTION_ON_INVALID_REFERENCE === $invalidBehavior) {
@@ -310,7 +322,7 @@ class Container implements IntrospectableContainerInterface
                 throw new ServiceNotFoundException($id, null, null, $alternatives);
             }
 
-            return null;
+            return;
         }
 
         $this->loading[$id] = true;
@@ -325,7 +337,7 @@ class Container implements IntrospectableContainerInterface
             }
 
             if ($e instanceof InactiveScopeException && self::EXCEPTION_ON_INVALID_REFERENCE !== $invalidBehavior) {
-                return null;
+                return;
             }
 
             throw $e;
@@ -341,11 +353,18 @@ class Container implements IntrospectableContainerInterface
      *
      * @param string $id The service identifier
      *
-     * @return Boolean true if service has already been initialized, false otherwise
+     * @return bool    true if service has already been initialized, false otherwise
      */
     public function initialized($id)
     {
         $id = strtolower($id);
+
+        if ('service_container' === $id) {
+            // BC: 'service_container' was a synthetic service previously.
+            // @todo Change to false in next major release.
+            return true;
+        }
+
         return isset($this->services[$id]) || array_key_exists($id, $this->services);
     }
 
@@ -363,6 +382,7 @@ class Container implements IntrospectableContainerInterface
                 $ids[] = self::underscore($match[1]);
             }
         }
+        $ids[] = 'service_container';
 
         return array_unique(array_merge($ids, array_keys($this->services)));
     }
@@ -497,7 +517,7 @@ class Container implements IntrospectableContainerInterface
      *
      * @param string $name The name of the scope
      *
-     * @return Boolean
+     * @return bool
      *
      * @api
      */
@@ -513,7 +533,7 @@ class Container implements IntrospectableContainerInterface
      *
      * @param string $name
      *
-     * @return Boolean
+     * @return bool
      *
      * @api
      */
@@ -531,7 +551,7 @@ class Container implements IntrospectableContainerInterface
      */
     public static function camelize($id)
     {
-        return strtr(ucwords(strtr($id, array('_' => ' ', '.' => '_ '))), array(' ' => ''));
+        return strtr(ucwords(strtr($id, array('_' => ' ', '.' => '_ ', '\\' => '_ '))), array(' ' => ''));
     }
 
     /**

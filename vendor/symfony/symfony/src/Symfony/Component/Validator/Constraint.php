@@ -78,7 +78,7 @@ abstract class Constraint
      *                                       returned by getRequiredOptions()
      * @throws ConstraintDefinitionException When you don't pass an associative
      *                                       array, but getDefaultOption() returns
-     *                                       NULL
+     *                                       null
      *
      * @api
      */
@@ -168,7 +168,6 @@ abstract class Constraint
      */
     public function getDefaultOption()
     {
-        return null;
     }
 
     /**

@@ -114,6 +114,18 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
      */
     public function denormalize($data, $class, $format = null, array $context = array())
     {
+        if (is_array($data) || is_object($data) && $data instanceof \ArrayAccess) {
+            $normalizedData = $data;
+        } elseif (is_object($data)) {
+            $normalizedData = array();
+
+            foreach ($data as $attribute => $value) {
+                $normalizedData[$attribute] = $value;
+            }
+        } else {
+            $normalizedData = array();
+        }
+
         $reflectionClass = new \ReflectionClass($class);
         $constructor = $reflectionClass->getConstructor();
 
@@ -124,11 +136,13 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
             foreach ($constructorParameters as $constructorParameter) {
                 $paramName = lcfirst($this->formatAttribute($constructorParameter->name));
 
-                if (isset($data[$paramName])) {
-                    $params[] = $data[$paramName];
+                if (isset($normalizedData[$paramName])) {
+                    $params[] = $normalizedData[$paramName];
                     // don't run set for a parameter passed to the constructor
-                    unset($data[$paramName]);
-                } elseif (!$constructorParameter->isOptional()) {
+                    unset($normalizedData[$paramName]);
+                } elseif ($constructorParameter->isOptional()) {
+                    $params[] = $constructorParameter->getDefaultValue();
+                } else {
                     throw new RuntimeException(
                         'Cannot create an instance of '.$class.
                         ' from serialized data because its constructor requires '.
@@ -139,10 +153,10 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
 
             $object = $reflectionClass->newInstanceArgs($params);
         } else {
-            $object = new $class;
+            $object = new $class();
         }
 
-        foreach ($data as $attribute => $value) {
+        foreach ($normalizedData as $attribute => $value) {
             $setter = 'set'.$this->formatAttribute($attribute);
 
             if (method_exists($object, $setter)) {
@@ -175,7 +189,7 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function supportsNormalization($data, $format = null)
     {
@@ -183,7 +197,7 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
@@ -195,7 +209,7 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
      *
      * @param string $class
      *
-     * @return Boolean
+     * @return bool
      */
     private function supports($class)
     {
@@ -215,7 +229,7 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
      *
      * @param \ReflectionMethod $method the method to check
      *
-     * @return Boolean whether the method is a getter.
+     * @return bool    whether the method is a getter.
      */
     private function isGetMethod(\ReflectionMethod $method)
     {

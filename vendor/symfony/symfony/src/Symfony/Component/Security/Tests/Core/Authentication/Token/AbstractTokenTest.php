@@ -11,7 +11,9 @@
 
 namespace Symfony\Component\Security\Tests\Core\Authentication\Token;
 
+use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 use Symfony\Component\Security\Core\Role\Role;
+use Symfony\Component\Security\Core\Role\SwitchUserRole;
 
 class TestUser
 {
@@ -25,6 +27,33 @@ class TestUser
     public function __toString()
     {
         return $this->name;
+    }
+}
+
+class ConcreteToken extends AbstractToken
+{
+    private $credentials = 'credentials_value';
+
+    public function __construct($user, array $roles = array())
+    {
+        parent::__construct($roles);
+
+        $this->setUser($user);
+    }
+
+    public function serialize()
+    {
+        return serialize(array($this->credentials, parent::serialize()));
+    }
+
+    public function unserialize($serialized)
+    {
+        list($this->credentials, $parentStr) = unserialize($serialized);
+        parent::unserialize($parentStr);
+    }
+
+    public function getCredentials()
+    {
     }
 }
 
@@ -69,6 +98,20 @@ class AbstractTokenTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($token->getRoles(), $uToken->getRoles());
         $this->assertEquals($token->getAttributes(), $uToken->getAttributes());
+    }
+
+    public function testSerializeParent()
+    {
+        $user = new TestUser('fabien');
+        $token = new ConcreteToken($user, array('ROLE_FOO'));
+
+        $parentToken = new ConcreteToken($user, array(new SwitchUserRole('ROLE_PREVIOUS', $token)));
+        $uToken = unserialize(serialize($parentToken));
+
+        $this->assertEquals(
+            current($parentToken->getRoles())->getSource()->getUser(),
+            current($uToken->getRoles())->getSource()->getUser()
+        );
     }
 
     /**
@@ -186,13 +229,13 @@ class AbstractTokenTest extends \PHPUnit_Framework_TestCase
                 'foo', $user,
             ),
             array(
-                'foo', $advancedUser
+                'foo', $advancedUser,
             ),
             array(
-                $user, 'foo'
+                $user, 'foo',
             ),
             array(
-                $advancedUser, 'foo'
+                $advancedUser, 'foo',
             ),
             array(
                 $user, new TestUser('foo'),
@@ -213,10 +256,10 @@ class AbstractTokenTest extends \PHPUnit_Framework_TestCase
                 new TestUser('foo'), $advancedUser,
             ),
             array(
-                $user, $advancedUser
+                $user, $advancedUser,
             ),
             array(
-                $advancedUser, $user
+                $advancedUser, $user,
             ),
         );
     }

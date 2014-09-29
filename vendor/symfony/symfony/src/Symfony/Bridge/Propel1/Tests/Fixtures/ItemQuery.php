@@ -20,11 +20,19 @@ class ItemQuery
         'is_active'     => \PropelColumnTypes::BOOLEAN,
         'enabled'       => \PropelColumnTypes::BOOLEAN_EMU,
         'updated_at'    => \PropelColumnTypes::TIMESTAMP,
-
-        'updated_at'    => \PropelColumnTypes::TIMESTAMP,
-        'updated_at'    => \PropelColumnTypes::TIMESTAMP,
-        'updated_at'    => \PropelColumnTypes::TIMESTAMP,
     );
+
+    public static $result = array();
+
+    public function find()
+    {
+        return self::$result;
+    }
+
+    public function filterById($id)
+    {
+        return $this;
+    }
 
     public function getTableMap()
     {
@@ -37,6 +45,7 @@ class ItemQuery
     {
         $cm = new \ColumnMap('id', new \TableMap());
         $cm->setType('INTEGER');
+        $cm->setPhpName('Id');
 
         return array('id' => $cm);
     }
@@ -57,8 +66,6 @@ class ItemQuery
         if ($this->hasColumn($column)) {
             return new Column($column, $this->map[$column]);
         }
-
-        return null;
     }
 
     /**
@@ -89,7 +96,7 @@ class ItemQuery
         return array(
             $mainAuthorRelation,
             $authorRelation,
-            $resellerRelation
+            $resellerRelation,
         );
     }
 }

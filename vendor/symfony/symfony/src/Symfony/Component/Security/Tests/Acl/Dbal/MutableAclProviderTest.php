@@ -88,7 +88,8 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         try {
             $provider->findAcl($oid);
             $this->fail('ACL has not been properly deleted.');
-        } catch (AclNotFoundException $notFound) { }
+        } catch (AclNotFoundException $notFound) {
+        }
     }
 
     public function testDeleteAclDeletesChildren()
@@ -103,7 +104,8 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         try {
             $provider->findAcl(new ObjectIdentity(1, 'Foo'));
             $this->fail('Child-ACLs have not been deleted.');
-        } catch (AclNotFoundException $notFound) { }
+        } catch (AclNotFoundException $notFound) {
+        }
     }
 
     public function testFindAclsAddsPropertyListener()
@@ -148,7 +150,7 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
             'parent' => array(
                 'object_identifier' => '1',
                 'class_type' => 'anotherFoo',
-            )
+            ),
         ));
 
         $propertyChanges = $this->getField($provider, 'propertyChanges');
@@ -288,7 +290,8 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         try {
             $provider->updateAcl($acl1);
             $this->fail('Provider failed to detect a concurrent modification.');
-        } catch (ConcurrentModificationException $ex) { }
+        } catch (ConcurrentModificationException $ex) {
+        }
     }
 
     public function testUpdateAcl()
@@ -357,6 +360,54 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
         $reloadProvider = $this->getProvider();
         $reloadedAcl = $reloadProvider->findAcl(new ObjectIdentity(1, 'Foo'));
         $this->assertEquals($newParentParentAcl->getId(), $reloadedAcl->getParentAcl()->getParentAcl()->getId());
+    }
+
+    public function testUpdateAclInsertingMultipleObjectFieldAcesThrowsDBConstraintViolations()
+    {
+        $provider = $this->getProvider();
+        $oid = new ObjectIdentity(1, 'Foo');
+        $sid1 = new UserSecurityIdentity('johannes', 'FooClass');
+        $sid2 = new UserSecurityIdentity('guilro', 'FooClass');
+        $sid3 = new UserSecurityIdentity('bmaz', 'FooClass');
+        $fieldName = 'fieldName';
+
+        $acl = $provider->createAcl($oid);
+        $acl->insertObjectFieldAce($fieldName, $sid1, 4);
+        $provider->updateAcl($acl);
+
+        $acl = $provider->findAcl($oid);
+        $acl->insertObjectFieldAce($fieldName, $sid2, 4);
+        $provider->updateAcl($acl);
+
+        $acl = $provider->findAcl($oid);
+        $acl->insertObjectFieldAce($fieldName, $sid3, 4);
+        $provider->updateAcl($acl);
+    }
+
+    public function testUpdateAclDeletingObjectFieldAcesThrowsDBConstraintViolations()
+    {
+        $provider = $this->getProvider();
+        $oid = new ObjectIdentity(1, 'Foo');
+        $sid1 = new UserSecurityIdentity('johannes', 'FooClass');
+        $sid2 = new UserSecurityIdentity('guilro', 'FooClass');
+        $sid3 = new UserSecurityIdentity('bmaz', 'FooClass');
+        $fieldName = 'fieldName';
+
+        $acl = $provider->createAcl($oid);
+        $acl->insertObjectFieldAce($fieldName, $sid1, 4);
+        $provider->updateAcl($acl);
+
+        $acl = $provider->findAcl($oid);
+        $acl->insertObjectFieldAce($fieldName, $sid2, 4);
+        $provider->updateAcl($acl);
+
+        $index = 0;
+        $acl->deleteObjectFieldAce($index, $fieldName);
+        $provider->updateAcl($acl);
+
+        $acl = $provider->findAcl($oid);
+        $acl->insertObjectFieldAce($fieldName, $sid3, 4);
+        $provider->updateAcl($acl);
     }
 
     /**

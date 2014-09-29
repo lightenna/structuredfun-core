@@ -56,7 +56,7 @@ class InMemoryUserProvider implements UserProviderInterface
     public function createUser(UserInterface $user)
     {
         if (isset($this->users[strtolower($user->getUsername())])) {
-            throw new \LogicException('Another user with the same username already exist.');
+            throw new \LogicException('Another user with the same username already exists.');
         }
 
         $this->users[strtolower($user->getUsername())] = $user;
@@ -81,7 +81,7 @@ class InMemoryUserProvider implements UserProviderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function refreshUser(UserInterface $user)
     {
@@ -93,7 +93,7 @@ class InMemoryUserProvider implements UserProviderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function supportsClass($class)
     {

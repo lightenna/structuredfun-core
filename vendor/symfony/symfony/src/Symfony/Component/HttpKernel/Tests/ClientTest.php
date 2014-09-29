@@ -75,7 +75,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
 
         $expected = array(
             'foo=bar; expires=Sun, 15 Feb 2009 20:00:00 GMT; domain=http://example.com; path=/foo; secure; httponly',
-            'foo1=bar1; expires=Sun, 15 Feb 2009 20:00:00 GMT; domain=http://example.com; path=/foo; secure; httponly'
+            'foo1=bar1; expires=Sun, 15 Feb 2009 20:00:00 GMT; domain=http://example.com; path=/foo; secure; httponly',
         );
 
         $response = new Response();
@@ -121,6 +121,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
             new UploadedFile($source, 'original', 'mime/original', 123, UPLOAD_ERR_OK, true),
         );
 
+        $file = null;
         foreach ($files as $file) {
             $client->request('POST', '/', array(), array('foo' => $file));
 
@@ -140,6 +141,21 @@ class ClientTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFileExists($target);
         unlink($target);
+    }
+
+    public function testUploadedFileWhenNoFileSelected()
+    {
+        $kernel = new TestHttpKernel();
+        $client = new Client($kernel);
+
+        $file = array('tmp_name' => '', 'name' => '', 'type' => '', 'size' => 0, 'error' => UPLOAD_ERR_NO_FILE);
+
+        $client->request('POST', '/', array(), array('foo' => $file));
+
+        $files = $client->getRequest()->files->all();
+
+        $this->assertCount(1, $files);
+        $this->assertNull($files['foo']);
     }
 
     public function testUploadedFileWhenSizeExceedsUploadMaxFileSize()
