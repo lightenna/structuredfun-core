@@ -1,10 +1,19 @@
 
-* chrome wheel event problem
-  + everything else is fine (scroll, reload)
-    + firefox is fine
-  + replicable in firefox in some circumstances
-    + I suspect it's related to position rounding
-  = rounding error
+* flow
+  + when we resize a range of cells
+    + when affect all the cells above it too
+      + need to increment their vistable (key) position
+  + don't really want to duplicate key in both keyarr and obj
+    + because it makes updating it messy
+      + can't think of a consistent way of avoiding that
+--o--
+* we're calling cellsResize way too much
+  + at least twice per scroll
+
+* Safari mobile loading all images on refresh
+  + all images flagged as vispart
+    + which I think is why they're getting loaded
+    - not consistent
 
 * resize event when viewing at b1
   + http://10.12.1.120:8097/file/family/0000uk_stuff_photos/#!breadth=1&seq=70
@@ -2630,4 +2639,11 @@ ffmpeg.exe -i <src> -b:v 1500k -vcodec libx264 -g 30 -movflags +faststart <outpu
     + insert into test suite
   = working
 * write test to check that correct-res shorcut is working
+
+* chrome wheel event problem
+  + everything else is fine (scroll, reload)
+    + firefox is fine
+  + replicable in firefox in some circumstances
+    + I suspect it's related to position rounding
+  = rounding error
 

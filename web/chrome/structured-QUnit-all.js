@@ -110,6 +110,13 @@
         // look for first and last to check partials
         equal( vt_partial.findCompare(0, sfun.compareGTE), ref3, 'vistable found ref 3 >= 0');
         equal( vt_partial.findCompare(9999, sfun.compareLTE), ref4, 'vistable found ref 4 <= 9999');
+        // imagine we expand the size of column 3 and calculate delta_b
+        var delta_b = 50;
+        // apply delta to affected cells
+        vt_partial.keyShift(ref4, vt_partial.getSize()-1, delta_b);
+        // check update
+        var major4b = vt_partial.select(ref4).key;
+        equal( major4b, major4 + delta_b, 'delta correctly applied to post range cells');
       }
     });
 

@@ -1,6 +1,12 @@
 /**
  * StructuredFun javascript
  * flow: layout engine
+ *
+ * Flow only updates the widths and heights of the cells, so if a range of
+ * cells (a < x < b) is being updated
+ * 1. the coordinates of cells < a aren't affected
+ * 2. the coordinates of cells > b are incremented by delta-b
+ * delta-b is the change in major axis coordinate of b
  */
 (function($, sfun, undefined) {
 
