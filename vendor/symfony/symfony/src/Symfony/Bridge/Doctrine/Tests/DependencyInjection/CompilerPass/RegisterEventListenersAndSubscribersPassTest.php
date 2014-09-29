@@ -9,10 +9,11 @@
 * file that was distributed with this source code.
 */
 
-namespace Symfony\Bridge\Doctrine\Tests\DependencyInjection\Compiler;
+namespace Symfony\Bridge\Doctrine\Tests\DependencyInjection\CompilerPass;
 
 use Symfony\Bridge\Doctrine\DependencyInjection\CompilerPass\RegisterEventListenersAndSubscribersPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 
 class RegisterEventListenersAndSubscribersPassTest extends \PHPUnit_Framework_TestCase
 {
@@ -21,6 +22,38 @@ class RegisterEventListenersAndSubscribersPassTest extends \PHPUnit_Framework_Te
         if (!class_exists('Symfony\Component\DependencyInjection\Container')) {
             $this->markTestSkipped('The "DependencyInjection" component is not available');
         }
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testExceptionOnAbstractTaggedSubscriber()
+    {
+        $container = $this->createBuilder();
+
+        $abstractDefinition = new Definition('stdClass');
+        $abstractDefinition->setAbstract(true);
+        $abstractDefinition->addTag('doctrine.event_subscriber');
+
+        $container->setDefinition('a', $abstractDefinition);
+
+        $this->process($container);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testExceptionOnAbstractTaggedListener()
+    {
+        $container = $this->createBuilder();
+
+        $abstractDefinition = new Definition('stdClass');
+        $abstractDefinition->setAbstract(true);
+        $abstractDefinition->addTag('doctrine.event_listener', array('event' => 'test'));
+
+        $container->setDefinition('a', $abstractDefinition);
+
+        $this->process($container);
     }
 
     public function testProcessEventListenersWithPriorities()
@@ -106,7 +139,11 @@ class RegisterEventListenersAndSubscribersPassTest extends \PHPUnit_Framework_Te
         ;
 
         $this->process($container);
-        $this->assertEquals(array('c', 'd', 'e', 'b', 'a'), $this->getServiceOrder($container, 'addEventSubscriber'));
+        $serviceOrder = $this->getServiceOrder($container, 'addEventSubscriber');
+        $unordered = array_splice($serviceOrder, 0, 3);
+        sort($unordered);
+        $this->assertEquals(array('c', 'd', 'e'), $unordered);
+        $this->assertEquals(array('b', 'a'), $serviceOrder);
     }
 
     private function process(ContainerBuilder $container)

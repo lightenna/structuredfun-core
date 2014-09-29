@@ -140,6 +140,14 @@ class TimeType extends AbstractType
 
         if ('single_text' === $options['widget']) {
             $view->vars['type'] = 'time';
+
+            // we need to force the browser to display the seconds by
+            // adding the HTML attribute step if not already defined.
+            // Otherwise the browser will not display and so not send the seconds
+            // therefore the value will always be considered as invalid.
+            if ($options['with_seconds'] && !isset($view->vars['attr']['step'])) {
+                $view->vars['attr']['step'] = 1;
+            }
         }
     }
 
@@ -169,7 +177,7 @@ class TimeType extends AbstractType
             return array(
                 'hour' => $emptyValue,
                 'minute' => $emptyValue,
-                'second' => $emptyValue
+                'second' => $emptyValue,
             );
         };
 

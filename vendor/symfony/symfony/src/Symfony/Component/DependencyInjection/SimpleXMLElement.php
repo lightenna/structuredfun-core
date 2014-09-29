@@ -21,7 +21,7 @@ use Symfony\Component\Config\Util\XmlUtils;
 class SimpleXMLElement extends \SimpleXMLElement
 {
     /**
-     * Converts an attribute as a php type.
+     * Converts an attribute as a PHP type.
      *
      * @param string $name
      *
@@ -33,10 +33,10 @@ class SimpleXMLElement extends \SimpleXMLElement
     }
 
     /**
-     * Returns arguments as valid php types.
+     * Returns arguments as valid PHP types.
      *
      * @param string  $name
-     * @param Boolean $lowercase
+     * @param bool    $lowercase
      *
      * @return mixed
      */
@@ -95,7 +95,7 @@ class SimpleXMLElement extends \SimpleXMLElement
     }
 
     /**
-     * Converts an xml value to a php type.
+     * Converts an xml value to a PHP type.
      *
      * @param mixed $value
      *

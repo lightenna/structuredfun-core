@@ -66,7 +66,7 @@ class XmlFileLoader extends FileLoader
      * @param mixed  $resource A resource
      * @param string $type     The resource type
      *
-     * @return Boolean true if this class supports the given resource, false otherwise
+     * @return bool    true if this class supports the given resource, false otherwise
      */
     public function supports($resource, $type = null)
     {
@@ -102,7 +102,7 @@ class XmlFileLoader extends FileLoader
 
         foreach ($imports as $import) {
             $this->setCurrentDir(dirname($file));
-            $this->import((string) $import['resource'], null, (Boolean) $import->getAttributeAsPhp('ignore-errors'), $file);
+            $this->import((string) $import['resource'], null, (bool) $import->getAttributeAsPhp('ignore-errors'), $file);
         }
     }
 
@@ -187,6 +187,10 @@ class XmlFileLoader extends FileLoader
                     continue;
                 }
 
+                if (false !== strpos($name, '-') && false === strpos($name, '_') && !array_key_exists($normalizedName = str_replace('-', '_', $name), $parameters)) {
+                    $parameters[$normalizedName] = SimpleXMLElement::phpize($value);
+                }
+                // keep not normalized key for BC too
                 $parameters[$name] = SimpleXMLElement::phpize($value);
             }
 
@@ -275,7 +279,7 @@ class XmlFileLoader extends FileLoader
      *
      * @param \DOMDocument $dom
      *
-     * @return Boolean
+     * @return bool
      *
      * @throws RuntimeException When extension references a non-existent XSD file
      */

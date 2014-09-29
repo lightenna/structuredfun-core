@@ -74,6 +74,10 @@ class YamlDumper extends Dumper
             $code .= sprintf("        class: %s\n", $definition->getClass());
         }
 
+        if (!$definition->isPublic()) {
+            $code .= "        public: false\n";
+        }
+
         $tagsCode = '';
         foreach ($definition->getTags() as $name => $tags) {
             foreach ($tags as $attributes) {
@@ -271,7 +275,7 @@ class YamlDumper extends Dumper
      * Prepares parameters.
      *
      * @param array   $parameters
-     * @param Boolean $escape
+     * @param bool    $escape
      *
      * @return array
      */

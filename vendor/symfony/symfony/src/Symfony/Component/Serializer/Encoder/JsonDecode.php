@@ -21,14 +21,14 @@ class JsonDecode implements DecoderInterface
     /**
      * Specifies if the returned result should be an associative array or a nested stdClass object hierarchy.
      *
-     * @var Boolean
+     * @var bool
      */
     private $associative;
 
     /**
      * Specifies the recursion depth.
      *
-     * @var integer
+     * @var int
      */
     private $recursionDepth;
 
@@ -38,8 +38,8 @@ class JsonDecode implements DecoderInterface
     /**
      * Constructs a new JsonDecode instance.
      *
-     * @param Boolean  $associative True to return the result associative array, false for a nested stdClass hierarchy
-     * @param integer  $depth       Specifies the recursion depth
+     * @param bool     $associative True to return the result associative array, false for a nested stdClass hierarchy
+     * @param int      $depth       Specifies the recursion depth
      */
     public function __construct($associative = false, $depth = 512)
     {
@@ -50,7 +50,7 @@ class JsonDecode implements DecoderInterface
     /**
      * Returns the last decoding error (if any).
      *
-     * @return integer
+     * @return int
      *
      * @see http://php.net/manual/en/function.json-last-error.php json_last_error
      */
@@ -70,7 +70,7 @@ class JsonDecode implements DecoderInterface
      *
      * json_decode_associative: boolean
      *      If true, returns the object as associative array.
-     *      If false, returns the object as nested StdClass
+     *      If false, returns the object as nested stdClass
      *      If not specified, this method will use the default set in JsonDecode::__construct
      *
      * json_decode_recursion_depth: integer
@@ -123,7 +123,7 @@ class JsonDecode implements DecoderInterface
         $defaultOptions = array(
             'json_decode_associative' => $this->associative,
             'json_decode_recursion_depth' => $this->recursionDepth,
-            'json_decode_options' => 0
+            'json_decode_options' => 0,
         );
 
         return array_merge($defaultOptions, $context);

@@ -40,7 +40,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
     protected $context;
 
     /**
-     * @var Boolean|null
+     * @var bool|null
      */
     protected $strictRequirements = true;
 
@@ -114,7 +114,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
      */
     public function setStrictRequirements($enabled)
     {
-        $this->strictRequirements = null === $enabled ? null : (Boolean) $enabled;
+        $this->strictRequirements = null === $enabled ? null : (bool) $enabled;
     }
 
     /**
@@ -126,7 +126,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
     {
@@ -171,7 +171,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
                             $this->logger->error($message);
                         }
 
-                        return null;
+                        return;
                     }
 
                     $url = $token[1].$mergedParams[$token[3]].$url;
@@ -188,7 +188,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
             $url = '/';
         }
 
-        // the contexts base url is already encoded (see Symfony\Component\HttpFoundation\Request)
+        // the contexts base URL is already encoded (see Symfony\Component\HttpFoundation\Request)
         $url = strtr(rawurlencode($url), $this->decodedChars);
 
         // the path segments "." and ".." are interpreted as relative reference when resolving a URI; see http://tools.ietf.org/html/rfc3986#section-3.3
@@ -224,7 +224,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
                                 $this->logger->error($message);
                             }
 
-                            return null;
+                            return;
                         }
 
                         $routeHost = $token[1].$mergedParams[$token[3]].$routeHost;

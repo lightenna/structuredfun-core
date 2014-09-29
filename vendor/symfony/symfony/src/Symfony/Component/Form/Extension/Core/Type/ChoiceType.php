@@ -159,14 +159,14 @@ class ChoiceType extends AbstractType
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $choiceListCache =& $this->choiceListCache;
+        $choiceListCache = & $this->choiceListCache;
 
         $choiceList = function (Options $options) use (&$choiceListCache) {
             // Harden against NULL values (like in EntityType and ModelType)
             $choices = null !== $options['choices'] ? $options['choices'] : array();
 
             // Reuse existing choice lists in order to increase performance
-            $hash = md5(json_encode(array($choices, $options['preferred_choices'])));
+            $hash = hash('sha256', serialize(array($choices, $options['preferred_choices'])));
 
             if (!isset($choiceListCache[$hash])) {
                 $choiceListCache[$hash] = new SimpleChoiceList($choices, $options['preferred_choices']);
@@ -190,10 +190,10 @@ class ChoiceType extends AbstractType
         $emptyValueNormalizer = function (Options $options, $emptyValue) {
             if ($options['multiple']) {
                 // never use an empty value for this case
-                return null;
+                return;
             } elseif (false === $emptyValue) {
                 // an empty value should be added but the user decided otherwise
-                return null;
+                return;
             } elseif ($options['expanded'] && '' === $emptyValue) {
                 // never use an empty label for radio buttons
                 return 'None';

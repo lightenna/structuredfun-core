@@ -36,10 +36,10 @@ class Version
      * @param string       $version1  A version string.
      * @param string       $version2  A version string to compare.
      * @param string       $operator  The comparison operator.
-     * @param integer|null $precision The number of components to compare. Pass
+     * @param int|null     $precision The number of components to compare. Pass
      *                                NULL to compare the versions unchanged.
      *
-     * @return Boolean Whether the comparison succeeded.
+     * @return bool    Whether the comparison succeeded.
      *
      * @see normalize()
      */
@@ -64,7 +64,7 @@ class Version
      *     // => '1.2'
      *
      * @param string       $version   A version string.
-     * @param integer|null $precision The number of components to include. Pass
+     * @param int|null     $precision The number of components to include. Pass
      *                                NULL to return the version unchanged.
      *
      * @return string|null The normalized version or NULL if it couldn't be
@@ -73,7 +73,7 @@ class Version
     public static function normalize($version, $precision)
     {
         if (null === $precision) {
-           return $version;
+            return $version;
         }
 
         $pattern = '[^\.]+';
@@ -82,8 +82,8 @@ class Version
             $pattern = sprintf('[^\.]+(\.%s)?', $pattern);
         }
 
-        if (!preg_match('/^' . $pattern . '/', $version, $matches)) {
-            return null;
+        if (!preg_match('/^'.$pattern.'/', $version, $matches)) {
+            return;
         }
 
         return $matches[0];
@@ -92,5 +92,7 @@ class Version
     /**
      * Must not be instantiated.
      */
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 }

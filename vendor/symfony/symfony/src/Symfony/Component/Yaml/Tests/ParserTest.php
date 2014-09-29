@@ -33,12 +33,6 @@ class ParserTest extends \PHPUnit_Framework_TestCase
      */
     public function testSpecifications($file, $expected, $yaml, $comment)
     {
-        if ('escapedCharacters' == $file) {
-            if (!function_exists('iconv') && !function_exists('mb_convert_encoding')) {
-                $this->markTestSkipped('The iconv and mbstring extensions are not available.');
-            }
-        }
-
         $this->assertEquals($expected, var_export($this->parser->parse($yaml), true), $comment);
     }
 
@@ -62,9 +56,9 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                 if (isset($test['todo']) && $test['todo']) {
                     // TODO
                 } else {
-                    $expected = var_export(eval('return '.trim($test['php']).';'), true);
+                    eval('$expected = '.trim($test['php']).';');
 
-                    $tests[] = array($file, $expected, $test['yaml'], $test['test']);
+                    $tests[] = array($file, var_export($expected, true), $test['yaml'], $test['test']);
                 }
             }
         }
@@ -411,7 +405,7 @@ foo: |-
 
 EOF;
         $expected = array(
-            'foo' => "\n\nbar"
+            'foo' => "\n\nbar",
         );
 
         $this->assertSame($expected, $this->parser->parse($yaml));
@@ -446,8 +440,8 @@ EOF;
 
     public function testNonUtf8Exception()
     {
-        if (!function_exists('mb_detect_encoding') || !function_exists('iconv')) {
-            $this->markTestSkipped('Exceptions for non-utf8 charsets require the mb_detect_encoding() and iconv() functions.');
+        if (!function_exists('iconv')) {
+            $this->markTestSkipped('Exceptions for non-utf8 charsets require the iconv() function.');
 
             return;
         }
@@ -455,7 +449,7 @@ EOF;
         $yamls = array(
             iconv("UTF-8", "ISO-8859-1", "foo: 'äöüß'"),
             iconv("UTF-8", "ISO-8859-15", "euro: '€'"),
-            iconv("UTF-8", "CP1252", "cp1252: '©ÉÇáñ'")
+            iconv("UTF-8", "CP1252", "cp1252: '©ÉÇáñ'"),
         );
 
         foreach ($yamls as $yaml) {
@@ -464,7 +458,7 @@ EOF;
 
                 $this->fail('charsets other than UTF-8 are rejected.');
             } catch (\Exception $e) {
-                 $this->assertInstanceOf('Symfony\Component\Yaml\Exception\ParseException', $e, 'charsets other than UTF-8 are rejected.');
+                $this->assertInstanceOf('Symfony\Component\Yaml\Exception\ParseException', $e, 'charsets other than UTF-8 are rejected.');
             }
         }
     }
@@ -608,6 +602,32 @@ EOT
             </body>
 
         footer # comment3
+EOF
+        ));
+    }
+
+    public function testReferenceResolvingInInlineStrings()
+    {
+        $this->assertEquals(array(
+            'var' => 'var-value',
+            'scalar' => 'var-value',
+            'list' => array('var-value'),
+            'list_in_list' => array(array('var-value')),
+            'map_in_list' => array(array('key' => 'var-value')),
+            'embedded_mapping' => array(array('key' => 'var-value')),
+            'map' => array('key' => 'var-value'),
+            'list_in_map' => array('key' => array('var-value')),
+            'map_in_map' => array('foo' => array('bar' => 'var-value')),
+        ), Yaml::parse(<<<EOF
+var:  &var var-value
+scalar: *var
+list: [ *var ]
+list_in_list: [[ *var ]]
+map_in_list: [ { key: *var } ]
+embedded_mapping: [ key: *var ]
+map: { key: *var }
+list_in_map: { key: [*var] }
+map_in_map: { foo: { bar: *var } }
 EOF
         ));
     }

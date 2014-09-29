@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Tests\Http;
+namespace Symfony\Component\Security\Tests\Http\Authentication;
 
 use Symfony\Component\Security\Http\Authentication\DefaultAuthenticationSuccessHandler;
 
@@ -47,7 +47,7 @@ class DefaultAuthenticationSuccessHandlerTest extends \PHPUnit_Framework_TestCas
     {
         $options = array(
             'always_use_default_target_path' => true,
-            'default_target_path' => '/dashboard'
+            'default_target_path' => '/dashboard',
         );
 
         $response = $this->expectRedirectResponse('/dashboard');

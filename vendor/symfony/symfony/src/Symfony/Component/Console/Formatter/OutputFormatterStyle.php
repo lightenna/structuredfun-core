@@ -28,7 +28,7 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
         'blue'      => 34,
         'magenta'   => 35,
         'cyan'      => 36,
-        'white'     => 37
+        'white'     => 37,
     );
     private static $availableBackgroundColors = array(
         'black'     => 40,
@@ -38,14 +38,14 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
         'blue'      => 44,
         'magenta'   => 45,
         'cyan'      => 46,
-        'white'     => 47
+        'white'     => 47,
     );
     private static $availableOptions = array(
         'bold'          => 1,
         'underscore'    => 4,
         'blink'         => 5,
         'reverse'       => 7,
-        'conceal'       => 8
+        'conceal'       => 8,
     );
 
     private $foreground;
@@ -55,9 +55,9 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
     /**
      * Initializes output formatter style.
      *
-     * @param string $foreground The style foreground color name
-     * @param string $background The style background color name
-     * @param array  $options    The style options
+     * @param string|null $foreground The style foreground color name
+     * @param string|null $background The style background color name
+     * @param array       $options    The style options
      *
      * @api
      */
@@ -77,7 +77,7 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
     /**
      * Sets style foreground color.
      *
-     * @param string $color The color name
+     * @param string|null $color The color name
      *
      * @throws \InvalidArgumentException When the color name isn't defined
      *
@@ -105,7 +105,7 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
     /**
      * Sets style background color.
      *
-     * @param string $color The color name
+     * @param string|null $color The color name
      *
      * @throws \InvalidArgumentException When the color name isn't defined
      *

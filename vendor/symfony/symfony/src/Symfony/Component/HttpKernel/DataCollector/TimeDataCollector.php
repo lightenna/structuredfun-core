@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\HttpKernel\DataCollector;
 
-use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -106,7 +105,7 @@ class TimeDataCollector extends DataCollector
     /**
      * Gets the request time.
      *
-     * @return integer The time
+     * @return int     The time
      */
     public function getStartTime()
     {

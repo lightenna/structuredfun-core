@@ -51,7 +51,7 @@ class SwiftmailerExtensionTest extends TestCase
         $this->assertEquals('swiftmailer.mailer.default.transport', (string) $container->getAlias('swiftmailer.transport'));
         $this->assertEquals('swiftmailer.mailer.default.transport.sendmail', (string) $container->getAlias('swiftmailer.mailer.default.transport'));
     }
-    
+
     /**
      * @dataProvider getConfigTypes
      */
@@ -62,7 +62,7 @@ class SwiftmailerExtensionTest extends TestCase
         $this->assertEquals('swiftmailer.mailer.default.transport', (string) $container->getAlias('swiftmailer.transport'));
         $this->assertEquals('swiftmailer.mailer.default.transport.mail', (string) $container->getAlias('swiftmailer.mailer.default.transport'));
     }
-    
+
     /**
      * @dataProvider getConfigTypes
      */
@@ -262,8 +262,20 @@ class SwiftmailerExtensionTest extends TestCase
     }
 
     /**
-     * @param string $file
-     * @param string $type
+     * @dataProvider getConfigTypes
+     */
+    public function testSenderAddress($type)
+    {
+        $container = $this->loadContainerFromFile('sender_address', $type);
+
+        $this->assertEquals('noreply@test.com', $container->getParameter('swiftmailer.mailer.default.sender_address'));
+        $this->assertEquals('noreply@test.com', $container->getParameter('swiftmailer.sender_address'));
+        $this->assertTrue($container->hasParameter('swiftmailer.mailer.default.sender_address'), 'The sender address is configured');
+    }
+
+    /**
+     * @param  string           $file
+     * @param  string           $type
      * @return ContainerBuilder
      */
     private function loadContainerFromFile($file, $type)

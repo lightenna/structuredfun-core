@@ -26,25 +26,25 @@ abstract class Guess
 {
     /**
      * Marks an instance with a value that is extremely likely to be correct
-     * @var integer
+     * @var int
      */
     const VERY_HIGH_CONFIDENCE = 3;
 
     /**
      * Marks an instance with a value that is very likely to be correct
-     * @var integer
+     * @var int
      */
     const HIGH_CONFIDENCE = 2;
 
     /**
      * Marks an instance with a value that is likely to be correct
-     * @var integer
+     * @var int
      */
     const MEDIUM_CONFIDENCE = 1;
 
     /**
      * Marks an instance with a value that may be correct
-     * @var integer
+     * @var int
      */
     const LOW_CONFIDENCE = 0;
 
@@ -54,19 +54,19 @@ abstract class Guess
      * One of VERY_HIGH_CONFIDENCE, HIGH_CONFIDENCE, MEDIUM_CONFIDENCE
      * and LOW_CONFIDENCE.
      *
-     * @var integer
+     * @var int
      */
     private $confidence;
 
     /**
-     * Returns the guess most likely to be correct from a list of guesses
+     * Returns the guess most likely to be correct from a list of guesses.
      *
      * If there are multiple guesses with the same, highest confidence, the
      * returned guess is any of them.
      *
-     * @param array $guesses A list of guesses
+     * @param Guess[] $guesses An array of guesses
      *
-     * @return Guess The guess with the highest confidence
+     * @return Guess|null The guess with the highest confidence
      */
     public static function getBestGuess(array $guesses)
     {
@@ -84,9 +84,9 @@ abstract class Guess
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param integer $confidence The confidence
+     * @param int $confidence The confidence
      *
      * @throws InvalidArgumentException if the given value of confidence is unknown
      */
@@ -101,10 +101,10 @@ abstract class Guess
     }
 
     /**
-     * Returns the confidence that the guessed value is correct
+     * Returns the confidence that the guessed value is correct.
      *
-     * @return integer One of the constants VERY_HIGH_CONFIDENCE,
-     *                 HIGH_CONFIDENCE, MEDIUM_CONFIDENCE and LOW_CONFIDENCE
+     * @return int One of the constants VERY_HIGH_CONFIDENCE, HIGH_CONFIDENCE,
+     *             MEDIUM_CONFIDENCE and LOW_CONFIDENCE
      */
     public function getConfidence()
     {

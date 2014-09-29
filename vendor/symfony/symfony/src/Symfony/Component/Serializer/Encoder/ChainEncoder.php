@@ -11,8 +11,6 @@
 
 namespace Symfony\Component\Serializer\Encoder;
 
-use Symfony\Component\Serializer\Encoder\EncoderInterface;
-use Symfony\Component\Serializer\Encoder\NormalizationAwareInterface;
 use Symfony\Component\Serializer\Exception\RuntimeException;
 
 /**
@@ -59,7 +57,7 @@ class ChainEncoder implements EncoderInterface
      *
      * @param string $format
      *
-     * @return Boolean
+     * @return bool
      */
     public function needsNormalization($format)
     {

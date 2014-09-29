@@ -26,7 +26,7 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 class LanguageValidator extends ConstraintValidator
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function validate($value, Constraint $constraint)
     {
@@ -42,7 +42,9 @@ class LanguageValidator extends ConstraintValidator
         $languages = Intl::getLanguageBundle()->getLanguageNames();
 
         if (!isset($languages[$value])) {
-            $this->context->addViolation($constraint->message, array('{{ value }}' => $value));
+            $this->context->addViolation($constraint->message, array(
+                '{{ value }}' => $this->formatValue($value),
+            ));
         }
     }
 }

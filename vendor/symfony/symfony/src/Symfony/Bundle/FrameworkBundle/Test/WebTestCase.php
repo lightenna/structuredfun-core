@@ -69,14 +69,14 @@ abstract class WebTestCase extends \PHPUnit_Framework_TestCase
         }
 
         $dir = static::getPhpUnitCliConfigArgument();
-        if ($dir === null &&
+        if (null === $dir &&
             (is_file(getcwd().DIRECTORY_SEPARATOR.'phpunit.xml') ||
             is_file(getcwd().DIRECTORY_SEPARATOR.'phpunit.xml.dist'))) {
             $dir = getcwd();
         }
 
         // Can't continue
-        if ($dir === null) {
+        if (null === $dir) {
             throw new \RuntimeException('Unable to guess the Kernel directory.');
         }
 
@@ -93,7 +93,7 @@ abstract class WebTestCase extends \PHPUnit_Framework_TestCase
      * PHPUnit will use the last configuration argument on the command line, so this only returns
      * the last configuration argument.
      *
-     * @return string The value of the PHPUnit cli configuration option
+     * @return string The value of the PHPUnit CLI configuration option
      */
     private static function getPhpUnitCliConfigArgument()
     {

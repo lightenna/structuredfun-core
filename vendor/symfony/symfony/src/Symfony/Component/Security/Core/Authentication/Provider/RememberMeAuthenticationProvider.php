@@ -22,6 +22,13 @@ class RememberMeAuthenticationProvider implements AuthenticationProviderInterfac
     private $key;
     private $providerKey;
 
+    /**
+     * Constructor.
+     *
+     * @param UserCheckerInterface $userChecker An UserCheckerInterface interface
+     * @param string               $key         A key
+     * @param string               $providerKey A provider key
+     */
     public function __construct(UserCheckerInterface $userChecker, $key, $providerKey)
     {
         $this->userChecker = $userChecker;
@@ -29,6 +36,9 @@ class RememberMeAuthenticationProvider implements AuthenticationProviderInterfac
         $this->providerKey = $providerKey;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function authenticate(TokenInterface $token)
     {
         if (!$this->supports($token)) {
@@ -40,7 +50,7 @@ class RememberMeAuthenticationProvider implements AuthenticationProviderInterfac
         }
 
         $user = $token->getUser();
-        $this->userChecker->checkPostAuth($user);
+        $this->userChecker->checkPreAuth($user);
 
         $authenticatedToken = new RememberMeToken($user, $this->providerKey, $this->key);
         $authenticatedToken->setAttributes($token->getAttributes());
@@ -48,6 +58,9 @@ class RememberMeAuthenticationProvider implements AuthenticationProviderInterfac
         return $authenticatedToken;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function supports(TokenInterface $token)
     {
         return $token instanceof RememberMeToken && $token->getProviderKey() === $this->providerKey;

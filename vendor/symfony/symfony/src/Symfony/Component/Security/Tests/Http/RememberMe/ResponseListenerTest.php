@@ -31,7 +31,7 @@ class ResponseListenerTest extends \PHPUnit_Framework_TestCase
         $cookie = new Cookie('rememberme');
 
         $request = $this->getRequest(array(
-            RememberMeServicesInterface::COOKIE_ATTR_NAME => $cookie
+            RememberMeServicesInterface::COOKIE_ATTR_NAME => $cookie,
         ));
 
         $response = $this->getResponse();
@@ -56,7 +56,7 @@ class ResponseListenerTest extends \PHPUnit_Framework_TestCase
     {
         $listener = new ResponseListener();
 
-        $this->assertSame(array(KernelEvents::RESPONSE => 'onKernelResponse'), $listener->getSubscribedEvents());
+        $this->assertSame(array(KernelEvents::RESPONSE => 'onKernelResponse'), ResponseListener::getSubscribedEvents());
     }
 
     private function getRequest(array $attributes = array())

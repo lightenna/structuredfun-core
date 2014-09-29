@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Security\Core\Encoder;
 
-use Symfony\Component\Security\Core\Encoder\BasePasswordEncoder;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 
 /**
@@ -28,8 +27,9 @@ class BCryptPasswordEncoder extends BasePasswordEncoder
     /**
      * Constructor.
      *
-     * @param integer $cost The algorithmic cost that should be used
+     * @param int     $cost The algorithmic cost that should be used
      *
+     * @throws \RuntimeException When no BCrypt encoder is available
      * @throws \InvalidArgumentException if cost is out of range
      */
     public function __construct($cost)
@@ -60,6 +60,8 @@ class BCryptPasswordEncoder extends BasePasswordEncoder
      * @param string $salt The salt
      *
      * @return string The encoded password
+     *
+     * @throws BadCredentialsException when the given password is too long
      *
      * @link http://lxr.php.net/xref/PHP_5_5/ext/standard/password.c#111
      */

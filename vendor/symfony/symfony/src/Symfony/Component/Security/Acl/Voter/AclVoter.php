@@ -48,19 +48,23 @@ class AclVoter implements VoterInterface
 
     public function supportsAttribute($attribute)
     {
-        return $this->permissionMap->contains($attribute);
+        return is_string($attribute) && $this->permissionMap->contains($attribute);
     }
 
     public function vote(TokenInterface $token, $object, array $attributes)
     {
         foreach ($attributes as $attribute) {
+            if (!$this->supportsAttribute($attribute)) {
+                continue;
+            }
+
             if (null === $masks = $this->permissionMap->getMasks($attribute, $object)) {
                 continue;
             }
 
             if (null === $object) {
                 if (null !== $this->logger) {
-                    $this->logger->debug(sprintf('Object identity unavailable. Voting to %s', $this->allowIfObjectIdentityUnavailable? 'grant access' : 'abstain'));
+                    $this->logger->debug(sprintf('Object identity unavailable. Voting to %s', $this->allowIfObjectIdentityUnavailable ? 'grant access' : 'abstain'));
                 }
 
                 return $this->allowIfObjectIdentityUnavailable ? self::ACCESS_GRANTED : self::ACCESS_ABSTAIN;
@@ -75,7 +79,7 @@ class AclVoter implements VoterInterface
                 $oid = $object;
             } elseif (null === $oid = $this->objectIdentityRetrievalStrategy->getObjectIdentity($object)) {
                 if (null !== $this->logger) {
-                    $this->logger->debug(sprintf('Object identity unavailable. Voting to %s', $this->allowIfObjectIdentityUnavailable? 'grant access' : 'abstain'));
+                    $this->logger->debug(sprintf('Object identity unavailable. Voting to %s', $this->allowIfObjectIdentityUnavailable ? 'grant access' : 'abstain'));
                 }
 
                 return $this->allowIfObjectIdentityUnavailable ? self::ACCESS_GRANTED : self::ACCESS_ABSTAIN;
@@ -134,7 +138,7 @@ class AclVoter implements VoterInterface
      *
      * @param string $class The class name
      *
-     * @return Boolean
+     * @return bool
      */
     public function supportsClass($class)
     {

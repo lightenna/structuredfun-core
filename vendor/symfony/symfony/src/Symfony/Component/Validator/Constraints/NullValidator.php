@@ -22,12 +22,14 @@ use Symfony\Component\Validator\ConstraintValidator;
 class NullValidator extends ConstraintValidator
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function validate($value, Constraint $constraint)
     {
         if (null !== $value) {
-            $this->context->addViolation($constraint->message, array('{{ value }}' => $value));
+            $this->context->addViolation($constraint->message, array(
+                '{{ value }}' => $this->formatValue($value),
+            ));
         }
     }
 }

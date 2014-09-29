@@ -53,17 +53,17 @@ class DefaultAuthenticationFailureHandler implements AuthenticationFailureHandle
             'failure_path'           => null,
             'failure_forward'        => false,
             'login_path'             => '/login',
-            'failure_path_parameter' => '_failure_path'
+            'failure_path_parameter' => '_failure_path',
         ), $options);
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
         if ($failureUrl = $request->get($this->options['failure_path_parameter'], null, true)) {
-             $this->options['failure_path'] = $failureUrl;
+            $this->options['failure_path'] = $failureUrl;
         }
 
         if (null === $this->options['failure_path']) {

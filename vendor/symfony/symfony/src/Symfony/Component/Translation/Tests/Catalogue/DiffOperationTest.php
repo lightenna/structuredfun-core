@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Translation\Test\Catalogue;
+namespace Symfony\Component\Translation\Tests\Catalogue;
 
 use Symfony\Component\Translation\Catalogue\DiffOperation;
 use Symfony\Component\Translation\MessageCatalogue;
@@ -44,7 +44,7 @@ class DiffOperationTest extends AbstractOperationTest
     {
         $this->assertEquals(
             new MessageCatalogue('en', array(
-                'messages' => array('a' => 'old_a', 'c' => 'new_c')
+                'messages' => array('a' => 'old_a', 'c' => 'new_c'),
             )),
             $this->createOperation(
                 new MessageCatalogue('en', array('messages' => array('a' => 'old_a', 'b' => 'old_b'))),

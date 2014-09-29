@@ -22,7 +22,7 @@ use Symfony\Component\Validator\ConstraintValidator;
 class FalseValidator extends ConstraintValidator
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function validate($value, Constraint $constraint)
     {
@@ -30,6 +30,8 @@ class FalseValidator extends ConstraintValidator
             return;
         }
 
-        $this->context->addViolation($constraint->message);
+        $this->context->addViolation($constraint->message, array(
+            '{{ value }}' => $this->formatValue($value),
+        ));
     }
 }

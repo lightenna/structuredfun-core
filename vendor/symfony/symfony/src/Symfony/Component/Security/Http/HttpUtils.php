@@ -35,7 +35,7 @@ class HttpUtils
      * Constructor.
      *
      * @param UrlGeneratorInterface                       $urlGenerator A UrlGeneratorInterface instance
-     * @param UrlMatcherInterface|RequestMatcherInterface $urlMatcher   The Url or Request matcher
+     * @param UrlMatcherInterface|RequestMatcherInterface $urlMatcher   The URL or Request matcher
      *
      * @throws \InvalidArgumentException
      */
@@ -53,7 +53,7 @@ class HttpUtils
      *
      * @param Request $request A Request instance
      * @param string  $path    A path (an absolute path (/foo), an absolute URL (http://...), or a route name (foo))
-     * @param integer $status  The status code
+     * @param int     $status  The status code
      *
      * @return RedirectResponse A RedirectResponse instance
      */
@@ -96,7 +96,7 @@ class HttpUtils
      * @param Request $request A Request instance
      * @param string  $path    A path (an absolute path (/foo), an absolute URL (http://...), or a route name (foo))
      *
-     * @return Boolean true if the path is the same as the one from the Request, false otherwise
+     * @return bool    true if the path is the same as the one from the Request, false otherwise
      */
     public function checkRequestPath(Request $request, $path)
     {
@@ -146,7 +146,7 @@ class HttpUtils
 
         $url = $this->urlGenerator->generate($path, $request->attributes->all(), UrlGeneratorInterface::ABSOLUTE_URL);
 
-        // unnecessary query string parameters must be removed from url
+        // unnecessary query string parameters must be removed from URL
         // (ie. query parameters that are presents in $attributes)
         // fortunately, they all are, so we have to remove entire query string
         $position = strpos($url, '?');

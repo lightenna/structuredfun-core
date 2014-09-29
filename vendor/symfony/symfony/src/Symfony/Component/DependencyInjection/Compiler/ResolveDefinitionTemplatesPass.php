@@ -112,7 +112,7 @@ class ResolveDefinitionTemplatesPass implements CompilerPassInterface
         if (isset($changes['public'])) {
             $def->setPublic($definition->isPublic());
         }
-        if (isset($changes['lazy'])){
+        if (isset($changes['lazy'])) {
             $def->setLazy($definition->isLazy());
         }
 
@@ -127,7 +127,7 @@ class ResolveDefinitionTemplatesPass implements CompilerPassInterface
                 throw new RuntimeException(sprintf('Invalid argument key "%s" found.', $k));
             }
 
-            $index = (integer) substr($k, strlen('index_'));
+            $index = (int) substr($k, strlen('index_'));
             $def->replaceArgument($index, $v);
         }
 

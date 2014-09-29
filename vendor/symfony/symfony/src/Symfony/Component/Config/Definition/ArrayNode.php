@@ -53,7 +53,7 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
 
     public function setNormalizeKeys($normalizeKeys)
     {
-        $this->normalizeKeys = (Boolean) $normalizeKeys;
+        $this->normalizeKeys = (bool) $normalizeKeys;
     }
 
     /**
@@ -109,51 +109,51 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
      * Sets whether to add default values for this array if it has not been
      * defined in any of the configuration files.
      *
-     * @param Boolean $boolean
+     * @param bool    $boolean
      */
     public function setAddIfNotSet($boolean)
     {
-        $this->addIfNotSet = (Boolean) $boolean;
+        $this->addIfNotSet = (bool) $boolean;
     }
 
     /**
      * Sets whether false is allowed as value indicating that the array should be unset.
      *
-     * @param Boolean $allow
+     * @param bool    $allow
      */
     public function setAllowFalse($allow)
     {
-        $this->allowFalse = (Boolean) $allow;
+        $this->allowFalse = (bool) $allow;
     }
 
     /**
      * Sets whether new keys can be defined in subsequent configurations.
      *
-     * @param Boolean $allow
+     * @param bool    $allow
      */
     public function setAllowNewKeys($allow)
     {
-        $this->allowNewKeys = (Boolean) $allow;
+        $this->allowNewKeys = (bool) $allow;
     }
 
     /**
      * Sets if deep merging should occur.
      *
-     * @param Boolean $boolean
+     * @param bool    $boolean
      */
     public function setPerformDeepMerging($boolean)
     {
-        $this->performDeepMerging = (Boolean) $boolean;
+        $this->performDeepMerging = (bool) $boolean;
     }
 
     /**
      * Whether extra keys should just be ignore without an exception.
      *
-     * @param Boolean $boolean To allow extra keys
+     * @param bool    $boolean To allow extra keys
      */
     public function setIgnoreExtraKeys($boolean)
     {
-        $this->ignoreExtraKeys = (Boolean) $boolean;
+        $this->ignoreExtraKeys = (bool) $boolean;
     }
 
     /**
@@ -169,7 +169,7 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
     /**
      * Checks if the node has a default value.
      *
-     * @return Boolean
+     * @return bool
      */
     public function hasDefaultValue()
     {
@@ -210,7 +210,7 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
     public function addChild(NodeInterface $node)
     {
         $name = $node->getName();
-        if (empty($name)) {
+        if (!strlen($name)) {
             throw new \InvalidArgumentException('Child nodes must be named.');
         }
         if (isset($this->children[$name])) {
@@ -303,9 +303,9 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
         $value = $this->remapXml($value);
 
         $normalized = array();
-        foreach ($this->children as $name => $child) {
-            if (array_key_exists($name, $value)) {
-                $normalized[$name] = $child->normalize($value[$name]);
+        foreach ($value as $name => $val) {
+            if (isset($this->children[$name])) {
+                $normalized[$name] = $this->children[$name]->normalize($val);
                 unset($value[$name]);
             }
         }

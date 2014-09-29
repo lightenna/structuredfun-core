@@ -35,12 +35,12 @@
                 <target>Jedna ili više danih vrijednosti nije ispravna.</target>
             </trans-unit>
             <trans-unit id="9">
-                <source>The fields {{ fields }} were not expected.</source>
-                <target>Polja {{ fields }} nisu bila očekivana.</target>
+                <source>This field was not expected.</source>
+                <target>Ovo polje nije očekivalo.</target>
             </trans-unit>
             <trans-unit id="10">
-                <source>The fields {{ fields }} are missing.</source>
-                <target>Polja {{ fields }} nedostaju.</target>
+                <source>This field is missing.</source>
+                <target>Ovo polje nedostaje.</target>
             </trans-unit>
             <trans-unit id="11">
                 <source>This value is not a valid date.</source>
@@ -241,6 +241,42 @@
             <trans-unit id="63">
                 <source>This value is not a valid ISSN.</source>
                 <target>Ova vrijednost nije ispravan ISSN.</target>
+            </trans-unit>
+            <trans-unit id="64">
+                <source>This value is not a valid currency.</source>
+                <target>Ova vrijednost nije ispravna valuta.</target>
+            </trans-unit>
+            <trans-unit id="65">
+                <source>This value should be equal to {{ compared_value }}.</source>
+                <target>Ova vrijednost bi trebala biti jednaka {{ compared_value }}.</target>
+            </trans-unit>
+            <trans-unit id="66">
+                <source>This value should be greater than {{ compared_value }}.</source>
+                <target>Ova vrijednost bi trebala biti veća od {{ compared_value }}.</target>
+            </trans-unit>
+            <trans-unit id="67">
+                <source>This value should be greater than or equal to {{ compared_value }}.</source>
+                <target>Ova vrijednost bi trebala biti veća ili jednaka od {{ compared_value }}.</target>
+            </trans-unit>
+            <trans-unit id="68">
+                <source>This value should be identical to {{ compared_value_type }} {{ compared_value }}.</source>
+                <target>Ova vrijednost bi trebala biti {{ compared_value_type }} {{ compared_value }}.</target>
+            </trans-unit>
+            <trans-unit id="69">
+                <source>This value should be less than {{ compared_value }}.</source>
+                <target>Ova vrijednost bi trebala biti manja od {{ compared_value }}.</target>
+            </trans-unit>
+            <trans-unit id="70">
+                <source>This value should be less than or equal to {{ compared_value }}.</source>
+                <target>Ova vrijednost bi trebala biti manja ili jednaka {{ compared_value }}.</target>
+            </trans-unit>
+            <trans-unit id="71">
+                <source>This value should not be equal to {{ compared_value }}.</source>
+                <target>Ova vrijednost ne bi trebala biti {{ compared_value }}.</target>
+            </trans-unit>
+            <trans-unit id="72">
+                <source>This value should not be identical to {{ compared_value_type }} {{ compared_value }}.</source>
+                <target>Ova vrijednost ne bi trebala biti {{ compared_value_type }} {{ compared_value }}.</target>
             </trans-unit>
         </body>
     </file>

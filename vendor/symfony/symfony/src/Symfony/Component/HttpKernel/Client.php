@@ -17,7 +17,6 @@ use Symfony\Component\BrowserKit\Response as DomResponse;
 use Symfony\Component\BrowserKit\Cookie as DomCookie;
 use Symfony\Component\BrowserKit\History;
 use Symfony\Component\BrowserKit\CookieJar;
-use Symfony\Component\HttpKernel\TerminableInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -144,7 +143,9 @@ EOF;
     {
         $httpRequest = Request::create($request->getUri(), $request->getMethod(), $request->getParameters(), $request->getCookies(), $request->getFiles(), $request->getServer(), $request->getContent());
 
-        $httpRequest->files->replace($this->filterFiles($httpRequest->files->all()));
+        foreach ($this->filterFiles($httpRequest->files->all()) as $key => $value) {
+            $httpRequest->files->set($key, $value);
+        }
 
         return $httpRequest;
     }
@@ -190,8 +191,6 @@ EOF;
                         true
                     );
                 }
-            } else {
-                $filtered[$key] = $value;
             }
         }
 

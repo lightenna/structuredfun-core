@@ -7,6 +7,41 @@ in 2.2 minor versions.
 To get the diff for a specific change, go to https://github.com/symfony/symfony/commit/XXX where XXX is the change hash
 To get the diff between two versions, go to https://github.com/symfony/symfony/compare/v2.2.0...v2.2.1
 
+* 2.2.11 (2013-12-02)
+
+ * bug #9656 [DoctrineBridge] normalized class names in the ORM type guesser (fabpot)
+ * bug #9647 use the correct class name to retrieve mapped class' metadata and reposi... (xabbuh)
+ * bug #9643 [WebProfilerBundle] Fixed js escaping in time.html.twig (hason)
+ * bug #9639 Modified guessDefaultEscapingStrategy to not escape txt templates (fabpot)
+ * bug #9314 [Form] Fix DateType for 32bits computers. (WedgeSama)
+ * bug #9443 [FrameworkBundle] Fixed the registration of validation.xml file when the form is disabled (hason)
+ * bug #9625 [HttpFoundation] Do not return an empty session id if the session was closed (Taluu)
+ * bug #9447 [BrowserKit] fixed protocol-relative url redirection (jong99)
+ * bug #9535 No Entity Manager defined exception (armetiz)
+ * bug #9485 [Acl] Fix for issue #9433 (guilro)
+ * bug #9516 [AclProvider] Fix incorrect behavior when partial results returned from cache (superdav42)
+ * bug #9537 [FrameworkBundle] Fix mistake in translation's service definition. (phpmike)
+ * bug #9367 [Process] Check if the pipe array is empty before calling stream_select() (jfposton)
+ * bug #9469 [Propel1] re-factor Propel1 ModelChoiceList (havvg)
+
+* 2.2.10 (2013-11-13)
+
+ * bug #9499 Request::overrideGlobals() may call invalid ini value (denkiryokuhatsuden)
+ * bug #9212 [Validator] Force Luhn Validator to only work with strings (Richtermeister)
+ * bug #9431 [DependencyInjection] fixed YamlDumper did not make services private. (realityking)
+ * bug #9412 [HttpFoundation] added content length header to BinaryFileResponse (kbond)
+ * bug #9388 [Form] Fixed: The "data" option is taken into account even if it is NULL (bschussek)
+ * bug #9391 [Serializer] Fixed the error handling when decoding invalid XML to avoid a Warning (stof)
+ * bug #9378 [DomCrawler] [HttpFoundation] Make `Content-Type` attributes identification case-insensitive (matthieuprat)
+ * bug #9354 [Process] Fix #9343 : revert file handle usage on Windows platform (romainneutron)
+ * bug #9333 [Form] Improved FormTypeCsrfExtension to use the type class as default intention if the form name is empty (bschussek)
+ * bug #9338 [DoctrineBridge] Added type check to prevent calling clear() on arrays (bschussek)
+ * bug #9327 [Form] Changed FormTypeCsrfExtension to use the form's name as default intention (bschussek)
+ * bug #9308 [DoctrineBridge] Loosened CollectionToArrayTransformer::transform() to accept arrays (bschussek)
+ * bug #9274 [Yaml] Fixed the escaping of strings starting with a dash when dumping (stof)
+ * bug #9270 [Templating] Fix in ChainLoader.php (janschoenherr)
+ * bug #9246 [Session] fixed wrong started state (tecbot)
+
 * 2.2.9 (2013-10-10)
 
  * [Security] limited the password length passed to encoders

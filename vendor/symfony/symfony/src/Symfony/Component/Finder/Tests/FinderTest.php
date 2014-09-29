@@ -13,11 +13,9 @@ namespace Symfony\Component\Finder\Tests;
 
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\Adapter;
-use Symfony\Component\Finder\Tests\FakeAdapter;
 
 class FinderTest extends Iterator\RealIteratorTestCase
 {
-
     public function testCreate()
     {
         $this->assertInstanceOf('Symfony\Component\Finder\Finder', Finder::create());
@@ -555,7 +553,7 @@ class FinderTest extends Iterator\RealIteratorTestCase
         $finder = $this->buildFinder($adapter);
         $finder->in($locations)->depth('< 1')->name('test.php');
 
-        $this->assertEquals(1, count($finder));
+        $this->assertCount(1, $finder);
     }
 
     /**
@@ -571,6 +569,20 @@ class FinderTest extends Iterator\RealIteratorTestCase
         }
     }
 
+    /**
+     * @dataProvider getAdaptersTestData
+     */
+    public function testRegexSpecialCharsLocationWithPathRestrictionContainingStartFlag(Adapter\AdapterInterface $adapter)
+    {
+        $finder = $this->buildFinder($adapter);
+        $finder->in(__DIR__.DIRECTORY_SEPARATOR.'Fixtures'.DIRECTORY_SEPARATOR.'r+e.gex[c]a(r)s')
+            ->path('/^dir/');
+
+        $expected = array('r+e.gex[c]a(r)s'.DIRECTORY_SEPARATOR.'dir',
+                          'r+e.gex[c]a(r)s'.DIRECTORY_SEPARATOR.'dir'.DIRECTORY_SEPARATOR.'bar.dat',);
+        $this->assertIterator($this->toAbsoluteFixtures($expected), $finder);
+    }
+
     public function testAdaptersOrdering()
     {
         $finder = Finder::create()
@@ -583,7 +595,7 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
         $this->assertEquals(
             array('c', 'e', 'a', 'd', 'b'),
-            array_map(function(Adapter\AdapterInterface $adapter) {
+            array_map(function (Adapter\AdapterInterface $adapter) {
                 return $adapter->getName();
             }, $finder->getAdapters())
         );
@@ -609,7 +621,7 @@ class FinderTest extends Iterator\RealIteratorTestCase
     public function getAdaptersTestData()
     {
         return array_map(
-            function ($adapter)  { return array($adapter); },
+            function ($adapter) { return array($adapter); },
             $this->getValidAdapters()
         );
     }
@@ -675,7 +687,7 @@ class FinderTest extends Iterator\RealIteratorTestCase
         $tests = array(
             array('', '', array()),
             array('/^A\/B\/C/', '/C$/',
-                array('A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C'.DIRECTORY_SEPARATOR.'abc.dat')
+                array('A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C'.DIRECTORY_SEPARATOR.'abc.dat'),
             ),
             array('/^A\/B/', 'foobar',
                 array(
@@ -683,7 +695,7 @@ class FinderTest extends Iterator\RealIteratorTestCase
                     'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C',
                     'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'ab.dat',
                     'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C'.DIRECTORY_SEPARATOR.'abc.dat',
-                )
+                ),
             ),
             array('A/B/C', 'foobar',
                 array(
@@ -691,7 +703,7 @@ class FinderTest extends Iterator\RealIteratorTestCase
                     'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C'.DIRECTORY_SEPARATOR.'abc.dat',
                     'copy'.DIRECTORY_SEPARATOR.'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C',
                     'copy'.DIRECTORY_SEPARATOR.'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C'.DIRECTORY_SEPARATOR.'abc.dat.copy',
-                )
+                ),
             ),
             array('A/B', 'foobar',
                 array(
@@ -705,12 +717,12 @@ class FinderTest extends Iterator\RealIteratorTestCase
                     'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C'.DIRECTORY_SEPARATOR.'abc.dat',
                     'copy'.DIRECTORY_SEPARATOR.'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'ab.dat.copy',
                     'copy'.DIRECTORY_SEPARATOR.'A'.DIRECTORY_SEPARATOR.'B'.DIRECTORY_SEPARATOR.'C'.DIRECTORY_SEPARATOR.'abc.dat.copy',
-                )
+                ),
             ),
             array('/^with space\//', 'foobar',
                 array(
                     'with space'.DIRECTORY_SEPARATOR.'foo.txt',
-                )
+                ),
             ),
         );
 
@@ -723,24 +735,37 @@ class FinderTest extends Iterator\RealIteratorTestCase
     public function testAccessDeniedException(Adapter\AdapterInterface $adapter)
     {
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
-            $this->markTestSkipped('chmod is not supported on windows');
+            $this->markTestSkipped('chmod is not supported on Windows');
         }
 
         $finder = $this->buildFinder($adapter);
         $finder->files()->in(self::$tmpDir);
 
         // make 'foo' directory non-readable
-        chmod(self::$tmpDir.DIRECTORY_SEPARATOR.'foo', 0333);
+        $testDir = self::$tmpDir.DIRECTORY_SEPARATOR.'foo';
+        chmod($testDir, 0333);
 
-        try {
-            $this->assertIterator($this->toAbsolute(array('foo bar', 'test.php', 'test.py')), $finder->getIterator());
-            $this->fail('Finder should throw an exception when opening a non-readable directory.');
-        } catch (\Exception $e) {
-            $this->assertEquals('Symfony\\Component\\Finder\\Exception\\AccessDeniedException', get_class($e));
+        if (false === $couldRead = is_readable($testDir)) {
+            try {
+                $this->assertIterator($this->toAbsolute(array('foo bar', 'test.php', 'test.py')), $finder->getIterator());
+                $this->fail('Finder should throw an exception when opening a non-readable directory.');
+            } catch (\Exception $e) {
+                $expectedExceptionClass = 'Symfony\\Component\\Finder\\Exception\\AccessDeniedException';
+                if ($e instanceof \PHPUnit_Framework_ExpectationFailedException) {
+                    $this->fail(sprintf("Expected exception:\n%s\nGot:\n%s\nWith comparison failure:\n%s", $expectedExceptionClass, 'PHPUnit_Framework_ExpectationFailedException', $e->getComparisonFailure()->getExpectedAsString()));
+                }
+
+                $this->assertInstanceOf($expectedExceptionClass, $e);
+            }
         }
 
         // restore original permissions
-        chmod(self::$tmpDir.DIRECTORY_SEPARATOR.'foo', 0777);
+        chmod($testDir, 0777);
+        clearstatcache($testDir);
+
+        if ($couldRead) {
+            $this->markTestSkipped('could read test files while test requires unreadable');
+        }
     }
 
     /**
@@ -749,19 +774,27 @@ class FinderTest extends Iterator\RealIteratorTestCase
     public function testIgnoredAccessDeniedException(Adapter\AdapterInterface $adapter)
     {
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
-            $this->markTestSkipped('chmod is not supported on windows');
+            $this->markTestSkipped('chmod is not supported on Windows');
         }
 
         $finder = $this->buildFinder($adapter);
         $finder->files()->ignoreUnreadableDirs()->in(self::$tmpDir);
 
         // make 'foo' directory non-readable
-        chmod(self::$tmpDir.DIRECTORY_SEPARATOR.'foo', 0333);
+        $testDir = self::$tmpDir.DIRECTORY_SEPARATOR.'foo';
+        chmod($testDir, 0333);
 
-        $this->assertIterator($this->toAbsolute(array('foo bar', 'test.php', 'test.py')), $finder->getIterator());
+        if (false === ($couldRead = is_readable($testDir))) {
+            $this->assertIterator($this->toAbsolute(array('foo bar', 'test.php', 'test.py')), $finder->getIterator());
+        }
 
         // restore original permissions
-        chmod(self::$tmpDir.DIRECTORY_SEPARATOR.'foo', 0777);
+        chmod($testDir, 0777);
+        clearstatcache($testDir);
+
+        if ($couldRead) {
+            $this->markTestSkipped('could read test files while test requires unreadable');
+        }
     }
 
     private function buildTestData(array $tests)
@@ -789,18 +822,18 @@ class FinderTest extends Iterator\RealIteratorTestCase
             array(
                 new Adapter\BsdFindAdapter(),
                 new Adapter\GnuFindAdapter(),
-                new Adapter\PhpAdapter()
+                new Adapter\PhpAdapter(),
             ),
-            function (Adapter\AdapterInterface $adapter)  {
+            function (Adapter\AdapterInterface $adapter) {
                 return $adapter->isSupported();
             }
         );
     }
 
-   /**
+    /**
      * Searching in multiple locations with sub directories involves
      * AppendIterator which does an unnecessary rewind which leaves
-     * FilterIterator with inner FilesystemIterator in an ivalid state.
+     * FilterIterator with inner FilesystemIterator in an invalid state.
      *
      * @see https://bugs.php.net/bug.php?id=49104
      */
@@ -821,22 +854,5 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
         $this->assertIterator($expected, $finder);
         $this->assertIteratorInForeach($expected, $finder);
-    }
-
-    public function testNonSeekableStream()
-    {
-        try {
-            $i = Finder::create()->in('ftp://ftp.mozilla.org/')->depth(0)->getIterator();
-        } catch (\UnexpectedValueException $e) {
-            $this->markTestSkipped(sprintf('Unsupported stream "%s".', 'ftp'));
-        }
-
-        $contains = array(
-            'ftp://ftp.mozilla.org'.DIRECTORY_SEPARATOR.'README',
-            'ftp://ftp.mozilla.org'.DIRECTORY_SEPARATOR.'index.html',
-            'ftp://ftp.mozilla.org'.DIRECTORY_SEPARATOR.'pub',
-        );
-
-        $this->assertIteratorInForeach($contains, $i);
     }
 }

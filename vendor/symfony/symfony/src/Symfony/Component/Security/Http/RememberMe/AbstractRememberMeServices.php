@@ -142,8 +142,6 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
         }
 
         $this->cancelCookie($request);
-
-        return null;
     }
 
     /**
@@ -291,11 +289,11 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
     }
 
     /**
-     * Checks whether remember-me capabilities where requested
+     * Checks whether remember-me capabilities were requested
      *
      * @param Request $request
      *
-     * @return Boolean
+     * @return bool
      */
     protected function isRememberMeRequested(Request $request)
     {
@@ -305,7 +303,7 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
 
         $parameter = $request->get($this->options['remember_me_parameter'], null, true);
 
-        if ($parameter === null && null !== $this->logger) {
+        if (null === $parameter && null !== $this->logger) {
             $this->logger->debug(sprintf('Did not send remember-me cookie (remember-me parameter "%s" was not sent).', $this->options['remember_me_parameter']));
         }
 

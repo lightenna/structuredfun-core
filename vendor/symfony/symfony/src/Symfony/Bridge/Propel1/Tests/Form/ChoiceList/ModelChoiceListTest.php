@@ -12,24 +12,32 @@
 namespace Symfony\Bridge\Propel1\Tests\Form\ChoiceList;
 
 use Symfony\Bridge\Propel1\Form\ChoiceList\ModelChoiceList;
-use Symfony\Component\Form\Extension\Core\View\ChoiceView;
-use Symfony\Bridge\Propel1\Tests\Fixtures\Item;
-use Symfony\Bridge\Propel1\Tests\Fixtures\ReadOnlyItem;
 use Symfony\Bridge\Propel1\Tests\Propel1TestCase;
+use Symfony\Bridge\Propel1\Tests\Fixtures\Item;
+use Symfony\Bridge\Propel1\Tests\Fixtures\ItemQuery;
+use Symfony\Bridge\Propel1\Tests\Fixtures\ReadOnlyItem;
+use Symfony\Component\Form\Extension\Core\View\ChoiceView;
 
 class ModelChoiceListTest extends Propel1TestCase
 {
     const ITEM_CLASS = '\Symfony\Bridge\Propel1\Tests\Fixtures\Item';
 
-    protected function setUp()
+    public static function setUpBeforeClass()
     {
+        parent::setUpBeforeClass();
+
         if (!class_exists('Symfony\Component\Form\Form')) {
-            $this->markTestSkipped('The "Form" component is not available');
+            self::markTestSkipped('The "Form" component is not available');
         }
 
         if (!class_exists('Symfony\Component\PropertyAccess\PropertyAccessor')) {
-            $this->markTestSkipped('The "PropertyAccessor" component is not available');
+            self::markTestSkipped('The "PropertyAccessor" component is not available');
         }
+    }
+
+    protected function setUp()
+    {
+        ItemQuery::$result = array();
     }
 
     public function testEmptyChoicesReturnsEmpty()
@@ -89,7 +97,7 @@ class ModelChoiceListTest extends Propel1TestCase
             null,
             null,
             array(
-                $item1
+                $item1,
             )
         );
 
@@ -114,7 +122,7 @@ class ModelChoiceListTest extends Propel1TestCase
         $this->assertSame(array(1 => $item1, 2 => $item2), $choiceList->getChoices());
         $this->assertEquals(array(
             'group1' => array(1 => new ChoiceView($item1, '1', 'Foo')),
-            'group2' => array(2 => new ChoiceView($item2, '2', 'Bar'))
+            'group2' => array(2 => new ChoiceView($item2, '2', 'Bar')),
         ), $choiceList->getRemainingViews());
     }
 
@@ -142,7 +150,7 @@ class ModelChoiceListTest extends Propel1TestCase
         $this->assertEquals(array(
             'Group1' => array(1 => new ChoiceView($item1, '1', 'Foo'), 2 => new ChoiceView($item2, '2', 'Bar')),
             'Group2' => array(3 => new ChoiceView($item3, '3', 'Baz')),
-            4 => new ChoiceView($item4, '4', 'Boo!')
+            4 => new ChoiceView($item4, '4', 'Boo!'),
         ), $choiceList->getRemainingViews());
     }
 
@@ -164,7 +172,7 @@ class ModelChoiceListTest extends Propel1TestCase
 
         $this->assertEquals(array(
             1 => $item1,
-            2 => $item2
+            2 => $item2,
         ), $choiceList->getChoices());
     }
 
@@ -172,6 +180,11 @@ class ModelChoiceListTest extends Propel1TestCase
     {
         $item1 = new Item(1, 'Foo');
         $item2 = new Item(2, 'Bar');
+
+        ItemQuery::$result = array(
+            $item1,
+            $item2,
+        );
 
         $choiceList = new ModelChoiceList(
             self::ITEM_CLASS,
@@ -189,6 +202,11 @@ class ModelChoiceListTest extends Propel1TestCase
     public function testDifferentEqualObjectsAreChoosen()
     {
         $item = new Item(1, 'Foo');
+
+        ItemQuery::$result = array(
+            $item,
+        );
+
         $choiceList = new ModelChoiceList(
             self::ITEM_CLASS,
             'value',
@@ -198,6 +216,7 @@ class ModelChoiceListTest extends Propel1TestCase
         $choosenItem = new Item(1, 'Foo');
 
         $this->assertEquals(array(1), $choiceList->getIndicesForChoices(array($choosenItem)));
+        $this->assertEquals(array('1'), $choiceList->getValuesForChoices(array($choosenItem)));
     }
 
     public function testGetIndicesForNullChoices()
@@ -210,5 +229,34 @@ class ModelChoiceListTest extends Propel1TestCase
         );
 
         $this->assertEquals(array(), $choiceList->getIndicesForChoices(array(null)));
+    }
+
+    public function testDontAllowInvalidChoiceValues()
+    {
+        $item = new Item(1, 'Foo');
+        $choiceList = new ModelChoiceList(
+            self::ITEM_CLASS,
+            'value',
+            array($item)
+        );
+
+        $this->assertEquals(array(), $choiceList->getValuesForChoices(array(new Item(2, 'Bar'))));
+        $this->assertEquals(array(), $choiceList->getChoicesForValues(array(2)));
+    }
+
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\MissingOptionsException
+     */
+    public function testEmptyClass()
+    {
+        $choiceList = new ModelChoiceList('');
+    }
+
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     */
+    public function testInvalidClass()
+    {
+        $choiceList = new ModelChoiceList('Foo\Bar\DoesNotExistClass');
     }
 }

@@ -29,10 +29,10 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
     /**
      * Constructor.
      *
-     * @param string  $inputTimezone  The input timezone
-     * @param string  $outputTimezone The output timezone
-     * @param array   $fields         The date fields
-     * @param Boolean $pad            Whether to use padding
+     * @param string $inputTimezone  The input timezone
+     * @param string $outputTimezone The output timezone
+     * @param array  $fields         The date fields
+     * @param bool   $pad            Whether to use padding
      *
      * @throws UnexpectedTypeException if a timezone is not a string
      */
@@ -45,7 +45,7 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
         }
 
         $this->fields = $fields;
-        $this->pad = (Boolean) $pad;
+        $this->pad = (bool) $pad;
     }
 
     /**
@@ -119,7 +119,7 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
     public function reverseTransform($value)
     {
         if (null === $value) {
-            return null;
+            return;
         }
 
         if (!is_array($value)) {
@@ -127,7 +127,7 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
         }
 
         if ('' === implode('', $value)) {
-            return null;
+            return;
         }
 
         $emptyFields = array();
@@ -144,20 +144,32 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
             ));
         }
 
-        if (isset($value['month']) && !ctype_digit($value['month']) && !is_int($value['month'])) {
+        if (isset($value['month']) && !ctype_digit((string) $value['month'])) {
             throw new TransformationFailedException('This month is invalid');
         }
 
-        if (isset($value['day']) && !ctype_digit($value['day']) && !is_int($value['day'])) {
+        if (isset($value['day']) && !ctype_digit((string) $value['day'])) {
             throw new TransformationFailedException('This day is invalid');
         }
 
-        if (isset($value['year']) && !ctype_digit($value['year']) && !is_int($value['year'])) {
+        if (isset($value['year']) && !ctype_digit((string) $value['year'])) {
             throw new TransformationFailedException('This year is invalid');
         }
 
         if (!empty($value['month']) && !empty($value['day']) && !empty($value['year']) && false === checkdate($value['month'], $value['day'], $value['year'])) {
             throw new TransformationFailedException('This is an invalid date');
+        }
+
+        if (isset($value['hour']) && !ctype_digit((string) $value['hour'])) {
+            throw new TransformationFailedException('This hour is invalid');
+        }
+
+        if (isset($value['minute']) && !ctype_digit((string) $value['minute'])) {
+            throw new TransformationFailedException('This minute is invalid');
+        }
+
+        if (isset($value['second']) && !ctype_digit((string) $value['second'])) {
+            throw new TransformationFailedException('This second is invalid');
         }
 
         try {

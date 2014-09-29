@@ -205,23 +205,22 @@ class ParameterBagTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('example@example.com', $bag->filter('email', '', false, FILTER_VALIDATE_EMAIL), '->filter() gets a value of parameter as email');
 
-        $this->assertEquals('http://example.com/foo', $bag->filter('url', '', false, FILTER_VALIDATE_URL, array('flags' => FILTER_FLAG_PATH_REQUIRED)), '->filter() gets a value of parameter as url with a path');
+        $this->assertEquals('http://example.com/foo', $bag->filter('url', '', false, FILTER_VALIDATE_URL, array('flags' => FILTER_FLAG_PATH_REQUIRED)), '->filter() gets a value of parameter as URL with a path');
 
         // This test is repeated for code-coverage
-        $this->assertEquals('http://example.com/foo', $bag->filter('url', '', false, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED), '->filter() gets a value of parameter as url with a path');
+        $this->assertEquals('http://example.com/foo', $bag->filter('url', '', false, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED), '->filter() gets a value of parameter as URL with a path');
 
         $this->assertFalse($bag->filter('dec', '', false, FILTER_VALIDATE_INT, array(
             'flags'   => FILTER_FLAG_ALLOW_HEX,
-            'options' => array('min_range' => 1, 'max_range' => 0xff))
+            'options' => array('min_range' => 1, 'max_range' => 0xff),)
                 ), '->filter() gets a value of parameter as integer between boundaries');
 
         $this->assertFalse($bag->filter('hex', '', false, FILTER_VALIDATE_INT, array(
             'flags'   => FILTER_FLAG_ALLOW_HEX,
-            'options' => array('min_range' => 1, 'max_range' => 0xff))
+            'options' => array('min_range' => 1, 'max_range' => 0xff),)
                 ), '->filter() gets a value of parameter as integer between boundaries');
 
         $this->assertEquals(array('bang'), $bag->filter('array', '', false), '->filter() gets a value of parameter as an array');
-
     }
 
     /**

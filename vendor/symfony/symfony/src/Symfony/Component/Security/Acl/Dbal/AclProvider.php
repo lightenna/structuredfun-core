@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Security\Acl\Dbal;
 
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Statement;
 use Symfony\Component\Security\Acl\Model\AclInterface;
 use Symfony\Component\Security\Acl\Domain\Acl;
@@ -38,11 +38,22 @@ class AclProvider implements AclProviderInterface
 {
     const MAX_BATCH_SIZE = 30;
 
+    /**
+     * @var AclCacheInterface|null
+     */
     protected $cache;
+
+    /**
+     * @var Connection
+     */
     protected $connection;
-    protected $loadedAces;
-    protected $loadedAcls;
+    protected $loadedAces = array();
+    protected $loadedAcls = array();
     protected $options;
+
+    /**
+     * @var PermissionGrantingStrategyInterface
+     */
     private $permissionGrantingStrategy;
 
     /**
@@ -57,14 +68,12 @@ class AclProvider implements AclProviderInterface
     {
         $this->cache = $cache;
         $this->connection = $connection;
-        $this->loadedAces = array();
-        $this->loadedAcls = array();
         $this->options = $options;
         $this->permissionGrantingStrategy = $permissionGrantingStrategy;
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function findChildren(ObjectIdentityInterface $parentOid, $directChildrenOnly = false)
     {
@@ -79,7 +88,7 @@ class AclProvider implements AclProviderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function findAcl(ObjectIdentityInterface $oid, array $sids = array())
     {
@@ -87,7 +96,7 @@ class AclProvider implements AclProviderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function findAcls(array $oids, array $sids = array())
     {
@@ -95,7 +104,7 @@ class AclProvider implements AclProviderInterface
         $currentBatch = array();
         $oidLookup = array();
 
-        for ($i=0,$c=count($oids); $i<$c; $i++) {
+        for ($i = 0,$c = count($oids); $i<$c; $i++) {
             $oid = $oids[$i];
             $oidLookupKey = $oid->getIdentifier().$oid->getType();
             $oidLookup[$oidLookupKey] = $oid;
@@ -165,8 +174,17 @@ class AclProvider implements AclProviderInterface
 
             // Is it time to load the current batch?
             if ((self::MAX_BATCH_SIZE === count($currentBatch) || ($i + 1) === $c) && count($currentBatch) > 0) {
-                $loadedBatch = $this->lookupObjectIdentities($currentBatch, $sids, $oidLookup);
-
+                try {
+                    $loadedBatch = $this->lookupObjectIdentities($currentBatch, $sids, $oidLookup);
+                } catch (AclNotFoundException $aclNotFoundexception) {
+                    if ($result->count()) {
+                        $partialResultException = new NotAllAclsFoundException('The provider could not find ACLs for all object identities.');
+                        $partialResultException->setPartialResult($result);
+                        throw $partialResultException;
+                    } else {
+                        throw $aclNotFoundexception;
+                    }
+                }
                 foreach ($loadedBatch as $loadedOid) {
                     $loadedAcl = $loadedBatch->offsetGet($loadedOid);
 
@@ -309,7 +327,7 @@ SELECTCLAUSE;
      * object identities.
      *
      * @param ObjectIdentityInterface $oid
-     * @param Boolean                 $directChildrenOnly
+     * @param bool                    $directChildrenOnly
      * @return string
      */
     protected function getFindChildrenSql(ObjectIdentityInterface $oid, $directChildrenOnly)
@@ -365,7 +383,7 @@ QUERY;
      * Returns the primary key of the passed object identity.
      *
      * @param ObjectIdentityInterface $oid
-     * @return integer
+     * @return int
      */
     final protected function retrieveObjectIdentityPrimaryKey(ObjectIdentityInterface $oid)
     {
@@ -482,8 +500,8 @@ QUERY;
         $acls = $aces = $emptyArray = array();
         $oidCache = $oidLookup;
         $result = new \SplObjectStorage();
-        $loadedAces =& $this->loadedAces;
-        $loadedAcls =& $this->loadedAcls;
+        $loadedAces = & $this->loadedAces;
+        $loadedAcls = & $this->loadedAcls;
         $permissionGrantingStrategy = $this->permissionGrantingStrategy;
 
         // we need these to set protected properties on hydrated objects
@@ -545,7 +563,7 @@ QUERY;
                     $oidCache[$oidLookupKey] = new ObjectIdentity($objectIdentifier, $classType);
                 }
 
-                $acl = new Acl((integer) $aclId, $oidCache[$oidLookupKey], $permissionGrantingStrategy, $emptyArray, !!$entriesInheriting);
+                $acl = new Acl((int) $aclId, $oidCache[$oidLookupKey], $permissionGrantingStrategy, $emptyArray, !!$entriesInheriting);
 
                 // keep a local, and global reference to this ACL
                 $loadedAcls[$classType][$objectIdentifier] = $acl;
@@ -575,7 +593,7 @@ QUERY;
                 // It is important to only ever have one ACE instance per actual row since
                 // some ACEs are shared between ACL instances
                 if (!isset($loadedAces[$aceId])) {
-                    if (!isset($sids[$key = ($username?'1':'0').$securityIdentifier])) {
+                    if (!isset($sids[$key = ($username ? '1' : '0').$securityIdentifier])) {
                         if ($username) {
                             $sids[$key] = new UserSecurityIdentity(
                                 substr($securityIdentifier, 1 + $pos = strpos($securityIdentifier, '-')),
@@ -587,9 +605,9 @@ QUERY;
                     }
 
                     if (null === $fieldName) {
-                        $loadedAces[$aceId] = new Entry((integer) $aceId, $acl, $sids[$key], $grantingStrategy, (integer) $mask, !!$granting, !!$auditFailure, !!$auditSuccess);
+                        $loadedAces[$aceId] = new Entry((int) $aceId, $acl, $sids[$key], $grantingStrategy, (int) $mask, !!$granting, !!$auditFailure, !!$auditSuccess);
                     } else {
-                        $loadedAces[$aceId] = new FieldEntry((integer) $aceId, $acl, $fieldName, $sids[$key], $grantingStrategy, (integer) $mask, !!$granting, !!$auditFailure, !!$auditSuccess);
+                        $loadedAces[$aceId] = new FieldEntry((int) $aceId, $acl, $fieldName, $sids[$key], $grantingStrategy, (int) $mask, !!$granting, !!$auditFailure, !!$auditSuccess);
                     }
                 }
                 $ace = $loadedAces[$aceId];

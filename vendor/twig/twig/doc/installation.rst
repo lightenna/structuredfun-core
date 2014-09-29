@@ -9,7 +9,7 @@ Installing the Twig PHP package
 Installing via Composer (recommended)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Install composer in your project:
+1. Install Composer in your project:
 
 .. code-block:: bash
 
@@ -25,7 +25,7 @@ Installing via Composer (recommended)
         }
     }
 
-3. Install via composer
+3. Install via Composer
 
 .. code-block:: bash
 
@@ -51,9 +51,14 @@ Installing the development version
 Installing the PEAR package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+
+    Using PEAR for installing Twig is deprecated and Twig 1.15.1 was the last
+    version published on the PEAR channel; use Composer instead.
+
 1. Install PEAR
 2. ``pear channel-discover pear.twig-project.org``
-3. ``pear install twig/Twig`` (or ``pear install twig/Twig-beta``)
+3. ``pear install twig/Twig``
 
 Installing the C extension
 --------------------------
@@ -61,16 +66,12 @@ Installing the C extension
 .. versionadded:: 1.4
     The C extension was added in Twig 1.4.
 
+.. note::
+    The C extension is **optional** but as it brings some nice performance
+    improvements, you might want to install it in your production environment.
+
 Twig comes with a C extension that enhances the performance of the Twig
-runtime engine.
-
-You can install it via PEAR:
-
-1. Install PEAR
-2. ``pear channel-discover pear.twig-project.org``
-3. ``pear install twig/CTwig`` (or ``pear install twig/CTwig-beta``)
-
-Or manually like any other PHP extension:
+runtime engine; install it like any other PHP extensions:
 
 .. code-block:: bash
 
@@ -80,25 +81,35 @@ Or manually like any other PHP extension:
     $ make
     $ make install
 
+.. note::
+
+    You can also install the C extension via PEAR (note that this method is
+    deprecated and newer versions of Twig are not available on the PEAR
+    channel):
+
+    1. Install PEAR
+    2. ``pear channel-discover pear.twig-project.org``
+    3. ``pear install twig/CTwig``
+
 For Windows:
 
 1. Setup the build environment following the `PHP documentation`_
-2. Put twig C extension source code into ``C:\php-sdk\phpdev\vcXX\x86\php-source-directory\ext\twig``
+2. Put Twig's C extension source code into ``C:\php-sdk\phpdev\vcXX\x86\php-source-directory\ext\twig``
 3. Use the ``configure --disable-all --enable-cli --enable-twig=shared`` command instead of step 14
 4. ``nmake``
 5. Copy the ``C:\php-sdk\phpdev\vcXX\x86\php-source-directory\Release_TS\php_twig.dll`` file to your PHP setup.
 
 .. tip::
 
-    For Windows ZendServer, TS is not enabled as mentionned in `Zend Server
+    For Windows ZendServer, ZTS is not enabled as mentioned in `Zend Server
     FAQ`_.
 
-    You have to use `configure --disable-all --disable-zts --enable-cli
-    --enable-twig=shared` to be able to build the twig C extension for
+    You have to use ``configure --disable-all --disable-zts --enable-cli
+    --enable-twig=shared`` to be able to build the twig C extension for
     ZendServer.
 
     The built DLL will be available in
-    C:\php-sdk\phpdev\vcXX\x86\php-source-directory\Release
+    ``C:\\php-sdk\\phpdev\\vcXX\\x86\\php-source-directory\\Release``
 
 Finally, enable the extension in your ``php.ini`` configuration file:
 

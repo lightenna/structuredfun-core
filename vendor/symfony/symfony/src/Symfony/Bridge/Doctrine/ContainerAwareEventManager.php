@@ -44,12 +44,12 @@ class ContainerAwareEventManager extends EventManager
      *                          the name of the method that is invoked on listeners.
      * @param EventArgs $eventArgs The event arguments to pass to the event handlers/listeners.
      *                             If not supplied, the single empty EventArgs instance is used.
-     * @return boolean
+     * @return bool
      */
     public function dispatchEvent($eventName, EventArgs $eventArgs = null)
     {
         if (isset($this->listeners[$eventName])) {
-            $eventArgs = $eventArgs === null ? EventArgs::getEmptyInstance() : $eventArgs;
+            $eventArgs = null === $eventArgs ? EventArgs::getEmptyInstance() : $eventArgs;
 
             $initialized = isset($this->initialized[$eventName]);
 
@@ -81,7 +81,7 @@ class ContainerAwareEventManager extends EventManager
      *
      * @param string $event
      *
-     * @return boolean TRUE if the specified event has any listeners, FALSE otherwise.
+     * @return bool    TRUE if the specified event has any listeners, FALSE otherwise.
      */
     public function hasListeners($event)
     {

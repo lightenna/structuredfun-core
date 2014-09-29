@@ -167,6 +167,19 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('SOURCE FILE', file_get_contents($targetFilePath));
     }
 
+    public function testCopyForOriginUrlsAndExistingLocalFileDefaultsToNotCopy()
+    {
+        $sourceFilePath = 'http://symfony.com/images/common/logo/logo_symfony_header.png';
+        $targetFilePath = $this->workspace.DIRECTORY_SEPARATOR.'copy_target_file';
+
+        file_put_contents($targetFilePath, 'TARGET FILE');
+
+        $this->filesystem->copy($sourceFilePath, $targetFilePath, false);
+
+        $this->assertFileExists($targetFilePath);
+        $this->assertEquals(file_get_contents($sourceFilePath), file_get_contents($targetFilePath));
+    }
+
     public function testMkdirCreatesDirectoriesRecursively()
     {
         $directory = $this->workspace
@@ -182,7 +195,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
     {
         $basePath = $this->workspace.DIRECTORY_SEPARATOR;
         $directories = array(
-            $basePath.'1', $basePath.'2', $basePath.'3'
+            $basePath.'1', $basePath.'2', $basePath.'3',
         );
 
         $this->filesystem->mkdir($directories);
@@ -196,7 +209,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
     {
         $basePath = $this->workspace.DIRECTORY_SEPARATOR;
         $directories = new \ArrayObject(array(
-            $basePath.'1', $basePath.'2', $basePath.'3'
+            $basePath.'1', $basePath.'2', $basePath.'3',
         ));
 
         $this->filesystem->mkdir($directories);
@@ -242,7 +255,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
     {
         $basePath = $this->workspace.DIRECTORY_SEPARATOR;
         $files = array(
-            $basePath.'1', $basePath.'2', $basePath.'3'
+            $basePath.'1', $basePath.'2', $basePath.'3',
         );
 
         $this->filesystem->touch($files);
@@ -256,7 +269,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
     {
         $basePath = $this->workspace.DIRECTORY_SEPARATOR;
         $files = new \ArrayObject(array(
-            $basePath.'1', $basePath.'2', $basePath.'3'
+            $basePath.'1', $basePath.'2', $basePath.'3',
         ));
 
         $this->filesystem->touch($files);
@@ -287,7 +300,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         touch($basePath.'file');
 
         $files = array(
-            $basePath.'dir', $basePath.'file'
+            $basePath.'dir', $basePath.'file',
         );
 
         $this->filesystem->remove($files);
@@ -304,7 +317,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         touch($basePath.'file');
 
         $files = new \ArrayObject(array(
-            $basePath.'dir', $basePath.'file'
+            $basePath.'dir', $basePath.'file',
         ));
 
         $this->filesystem->remove($files);
@@ -320,7 +333,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         mkdir($basePath.'dir');
 
         $files = array(
-            $basePath.'dir', $basePath.'file'
+            $basePath.'dir', $basePath.'file',
         );
 
         $this->filesystem->remove($files);
@@ -336,7 +349,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
 
         mkdir($basePath);
         mkdir($basePath.'dir');
-        // create symlink to unexisting file
+        // create symlink to nonexistent file
         @symlink($basePath.'file', $basePath.'link');
 
         $this->filesystem->remove($basePath);
@@ -364,7 +377,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         touch($basePath.'file');
 
         $files = new \ArrayObject(array(
-            $basePath.'dir', $basePath.'file'
+            $basePath.'dir', $basePath.'file',
         ));
 
         $this->assertTrue($this->filesystem->exists($files));
@@ -379,7 +392,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         touch($basePath.'file2');
 
         $files = new \ArrayObject(array(
-            $basePath.'dir', $basePath.'file', $basePath.'file2'
+            $basePath.'dir', $basePath.'file', $basePath.'file2',
         ));
 
         unlink($basePath.'file');
@@ -893,7 +906,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
             array('var/lib', false),
             array('../var/lib', false),
             array('', false),
-            array(null, false)
+            array(null, false),
         );
     }
 
@@ -906,9 +919,24 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         $this->assertFileExists($filename);
         $this->assertSame('bar', file_get_contents($filename));
 
-        // skip mode check on windows
+        // skip mode check on Windows
         if (!defined('PHP_WINDOWS_VERSION_MAJOR')) {
             $this->assertEquals(753, $this->getFilePermissions($filename));
+        }
+    }
+
+    public function testDumpFileWithNullMode()
+    {
+        $filename = $this->workspace.DIRECTORY_SEPARATOR.'foo'.DIRECTORY_SEPARATOR.'baz.txt';
+
+        $this->filesystem->dumpFile($filename, 'bar', null);
+
+        $this->assertFileExists($filename);
+        $this->assertSame('bar', file_get_contents($filename));
+
+        // skip mode check on Windows
+        if (!defined('PHP_WINDOWS_VERSION_MAJOR')) {
+            $this->assertEquals(600, $this->getFilePermissions($filename));
         }
     }
 
@@ -928,7 +956,7 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
      *
      * @param string $filePath
      *
-     * @return integer
+     * @return int
      */
     private function getFilePermissions($filePath)
     {
@@ -953,6 +981,8 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         if ($datas = posix_getgrgid($infos['gid'])) {
             return $datas['name'];
         }
+
+        $this->markTestSkipped('Unable to retrieve file group name');
     }
 
     private function markAsSkippedIfSymlinkIsMissing()
@@ -962,21 +992,21 @@ class FilesystemTest extends \PHPUnit_Framework_TestCase
         }
 
         if (defined('PHP_WINDOWS_VERSION_MAJOR') && false === self::$symlinkOnWindows) {
-            $this->markTestSkipped('symlink requires "Create symbolic links" privilege on windows');
+            $this->markTestSkipped('symlink requires "Create symbolic links" privilege on Windows');
         }
     }
 
     private function markAsSkippedIfChmodIsMissing()
     {
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
-            $this->markTestSkipped('chmod is not supported on windows');
+            $this->markTestSkipped('chmod is not supported on Windows');
         }
     }
 
     private function markAsSkippedIfPosixIsMissing()
     {
         if (defined('PHP_WINDOWS_VERSION_MAJOR') || !function_exists('posix_isatty')) {
-            $this->markTestSkipped('Posix is not supported');
+            $this->markTestSkipped('POSIX is not supported');
         }
     }
 }

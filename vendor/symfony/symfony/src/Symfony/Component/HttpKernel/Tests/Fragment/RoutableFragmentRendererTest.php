@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\HttpKernel\Fragment\Tests\FragmentRenderer;
+namespace Symfony\Component\HttpKernel\Tests\Fragment;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ControllerReference;
@@ -62,8 +62,12 @@ class RoutableFragmentRendererTest extends \PHPUnit_Framework_TestCase
 
 class Renderer extends RoutableFragmentRenderer
 {
-    public function render($uri, Request $request, array $options = array()) {}
-    public function getName() {}
+    public function render($uri, Request $request, array $options = array())
+    {
+    }
+    public function getName()
+    {
+    }
 
     public function doGenerateFragmentUri(ControllerReference $reference, Request $request, $absolute = false)
     {

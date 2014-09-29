@@ -18,7 +18,7 @@ namespace Symfony\Component\Serializer\Encoder;
  */
 class JsonEncode implements EncoderInterface
 {
-    private $options ;
+    private $options;
     private $lastError = JSON_ERROR_NONE;
 
     public function __construct($bitmask = 0)
@@ -29,7 +29,7 @@ class JsonEncode implements EncoderInterface
     /**
      * Returns the last encoding error (if any)
      *
-     * @return integer
+     * @return int
      *
      * @see http://php.net/manual/en/function.json-last-error.php json_last_error
      */

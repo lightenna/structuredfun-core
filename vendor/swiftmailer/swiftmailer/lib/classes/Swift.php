@@ -11,7 +11,6 @@
 /**
  * General utility class in Swift Mailer, not to be instantiated.
  *
- * @package Swift
  *
  * @author Chris Corbyn
  */
@@ -43,7 +42,7 @@ abstract class Swift
      */
     public static function autoload($class)
     {
-        //Don't interfere with other autoloaders
+        // Don't interfere with other autoloaders
         if (0 !== strpos($class, 'Swift_')) {
             return;
         }

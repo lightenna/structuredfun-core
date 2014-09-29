@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Config\Definition;
 
-use Symfony\Component\Config\Definition\VariableNode;
 use Symfony\Component\Config\Definition\Exception\InvalidTypeException;
 
 /**
@@ -29,7 +28,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidTypeException;
 class ScalarNode extends VariableNode
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function validateType($value)
     {

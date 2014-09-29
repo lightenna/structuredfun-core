@@ -35,12 +35,12 @@
                 <target>Um ou mais dos valores introduzidos não são válidos.</target>
             </trans-unit>
             <trans-unit id="9">
-                <source>The fields {{ fields }} were not expected.</source>
-                <target>Os campos {{ fields }} não eram esperados.</target>
+                <source>This field was not expected.</source>
+                <target>Este campo não era esperado.</target>
             </trans-unit>
             <trans-unit id="10">
-                <source>The fields {{ fields }} are missing.</source>
-                <target>Os campos {{ fields }} estão ausentes.</target>
+                <source>This field is missing.</source>
+                <target>Este campo está faltando.</target>
             </trans-unit>
             <trans-unit id="11">
                 <source>This value is not a valid date.</source>
@@ -132,7 +132,7 @@
             </trans-unit>
             <trans-unit id="36">
                 <source>This file is not a valid image.</source>
-                <target>Este ficheito não é uma imagem.</target>
+                <target>Este ficheiro não é uma imagem.</target>
             </trans-unit>
             <trans-unit id="37">
                 <source>This is not a valid IP address.</source>

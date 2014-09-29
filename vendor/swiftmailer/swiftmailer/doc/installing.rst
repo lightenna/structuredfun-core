@@ -4,17 +4,15 @@ Installing the Library
 Installing Swift Mailer is trivial. Usually it's just a case of uploading the
 extracted source files to your web server.
 
-Installing from PEAR
---------------------
+Installing with Composer
+------------------------
 
-If you want to install Swift Mailer globally on your machine, the easiest
-installation method is using the PEAR channel.
+If you use Composer to manage your project dependencies, you can install
+Swiftmailer like this:
 
-To install the Swift Mailer PEAR package:
+.. code-block:: bash
 
-* Run the command ``pear channel-discover pear.swiftmailer.org``.
-
-* Then, run the command ``pear install swift/swift``.
+    $ php composer.phar require swiftmailer/swiftmailer @stable
 
 Installing from a Package
 -------------------------
@@ -50,7 +48,7 @@ the ``tar`` command.
 
     $ ls
     Swift-4.0.0-dev.tar.gz
-    $ tar xvzf Swift-4.0.0-dev.tar.gz 
+    $ tar xvzf Swift-4.0.0-dev.tar.gz
     Swift-4.0.0-dev/
     Swift-4.0.0-dev/lib/
     Swift-4.0.0-dev/lib/classes/
@@ -82,8 +80,8 @@ can get the source directly from the repository.
 
 .. note::
 
-    You do not need to have git installed to use Swift Mailer from github. If
-    you don't have git installed, go to `github`_ and click the "Download"
+    You do not need to have git installed to use Swift Mailer from GitHub. If
+    you don't have git installed, go to `GitHub`_ and click the "Download"
     button.
 
 Cloning the Repository
@@ -125,6 +123,23 @@ OS X.
     CHANGES LICENSE ...
     $
 
+Installing from PEAR
+--------------------
+
+.. note::
+
+    Using PEAR for installing Swiftmailer is deprecated and Swiftmailer 5.1.0
+    was the last version published on the PEAR channel; use Composer instead.
+
+If you want to install Swift Mailer globally on your machine, the easiest
+installation method is using the PEAR channel.
+
+To install the Swift Mailer PEAR package:
+
+* Run the command ``pear channel-discover pear.swiftmailer.org``.
+
+* Then, run the command ``pear install swift/swift``.
+
 Uploading to your Host
 ----------------------
 
@@ -132,7 +147,7 @@ You only need to upload the "lib/" directory to your web host for production
 use. All other files and directories are support files not needed in
 production.
 
-You will need FTP, ``rsync`` or similar software installed in order to upload 
+You will need FTP, ``rsync`` or similar software installed in order to upload
 the "lib/" directory to your web host.
 
 To upload Swift Mailer:
@@ -149,7 +164,7 @@ The following example shows show you can upload the files using
 
 .. note::
 
-    You do not need to place the files inside your web root. They only need to 
+    You do not need to place the files inside your web root. They only need to
     be in a place where your PHP scripts can "include" them.
 
     .. code-block:: bash
@@ -175,7 +190,7 @@ The following example shows show you can upload the files using
         total size is 401405  speedup is 2.60
         $
 
-.. _`github`: http://github.com/swiftmailer/swiftmailer
+.. _`GitHub`: http://github.com/swiftmailer/swiftmailer
 
 Troubleshooting
 ---------------
