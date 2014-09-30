@@ -29,7 +29,7 @@
       'layoutResize' : flow_cellsResize,
     };
     // not sure of init order, so push async
-    sfun.push('registerLayout', obj);
+    // sfun.push('registerLayout', obj);
   };
 
   // Layout API
@@ -81,11 +81,12 @@
     for (var coordabs in subcellGroup) {
       // use first cell to get parent
       var $parent = subcellGroup[coordabs][0].litter.$parent;
-      // define parent for defining percentages of
+      // define parent for calculating percentages of
       var parentBounds = {
         'minor': (direction == 'x' ? $parent.height() : $parent.width()),
         'major': (direction == 'x' ? $parent.width() : $parent.height())
       };
+      // process bucket
       _processBucket(subcellGroup[coordabs], parentBounds);
       // store parent in list if not there already
       if (parentList.indexOf($parent) == -1) {
@@ -101,7 +102,12 @@
     }
     // viewport is parent for defining percentages of
     var viewportBounds = {
-      'minor': (direction == 'x' ? sfun.api_getViewportHeight() : sfun.api_getViewportWidth()),
+      'minor': (
+        direction == 'x' ? 
+        // trim minor axis because we lose some fillable space to margins
+        sfun.api_getViewportHeight() - (2 * sfun.api_getGutter() * sfun.api_getBreadth()) :
+        sfun.api_getViewportWidth()
+      ),
       'major': (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight())
     };
     // work through all visible, top-level buckets
@@ -206,8 +212,11 @@
       var $ent = bucket[i];
       var $boundable = $ent.find('> .container > .boundable');
       var ratio = $boundable.data('ratio');
-      // calculate the normal minor based on ratio
+      // calculate the normalised minor-axis size based on image ratio and size of cell
+      // don't have to worry about margins here, because we're only ultimately interested in the ratio
+      // of the images to one another
       normalMinor = (direction == 'x' ? $ent.width() / ratio : $ent.height() * ratio);
+      // increment a tally of all the normalised minor-axis sizes (normalMinor)
       minorTotal += normalMinor;
       if (debug && false) {
         console.log('cellsResizeTotalMinor-'+$ent.data('seq')+' ratio['+ratio+'] normalMinor['+normalMinor+']');

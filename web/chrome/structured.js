@@ -824,6 +824,25 @@ window.sfun = (function($, undefined) {
   };
 
   /**
+   * Get the flow breadth
+   * @return next flow breadth in sequence
+   */
+  var getBreadthNext = function(from, inc) {
+    var b = [1, 2, 4, 8];
+    var bref = b.indexOf(from);
+    if (bref == -1) {
+      return 2;
+    } else {
+      bref += inc;
+      // don't allow b to be less than minimum breadth
+      if (bref < 0) bref = 0;
+      // don't allow b to exceed max breadth
+      if (bref >= b.length) bref = b.length-1;
+    }
+    return(b[bref]);
+  };
+
+  /**
    * page scroll offset to sequence number is stored in the html tag [default to 0]
    * @return {int} scroll offset to seq
    */
@@ -3013,17 +3032,21 @@ window.sfun = (function($, undefined) {
     return eventQueue.actOnContext(eventContext, function() {
       // process key press
       switch (event.which) {
+
+        // directory navigation
+        case exp.KEY_ARROW_UP:
+          if (event.altKey) {
+            event.preventDefault();
+            urlChangeUp();
+          }
+          break;
+
+        // single image changes
         case exp.KEY_ARROW_LEFT:
           if (!event.altKey) {
             event.preventDefault();
             // advance to previous image
             return imageAdvanceBy(-1, eventContext);
-          }
-          break;
-        case exp.KEY_ARROW_UP:
-          if (event.altKey) {
-            event.preventDefault();
-            urlChangeUp();
           }
           break;
         case exp.KEY_ARROW_RIGHT:
@@ -3032,6 +3055,8 @@ window.sfun = (function($, undefined) {
           // advance to next image
           event.preventDefault();
           return imageAdvanceBy(1, eventContext);
+
+        // page-wise navigation
         case exp.KEY_PAGE_UP:
           if (!event.ctrlKey) {
             event.preventDefault();
@@ -3053,18 +3078,40 @@ window.sfun = (function($, undefined) {
         case exp.KEY_RETURN:
           event.preventDefault();
           return imageToggleFullscreen(getSeq(), eventContext);
+
+        // change breadth
         case exp.KEY_NUMBER_1:
           event.preventDefault();
           return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
         case exp.KEY_NUMBER_2:
           event.preventDefault();
-          returnfireHashUpdate( { 'breadth': 2 }, false, eventContext);
+          return fireHashUpdate( { 'breadth': 2 }, false, eventContext);
         case exp.KEY_NUMBER_4:
           event.preventDefault();
           return fireHashUpdate( { 'breadth': 4 }, false, eventContext);
         case exp.KEY_NUMBER_8:
           event.preventDefault();
           return fireHashUpdate( { 'breadth': 8 }, false, eventContext);
+
+        // plus and minus effectively zoom in and out using breadth
+        case exp.KEY_PLUS:
+        case exp.KEY_EQUALS:
+          event.preventDefault();
+          return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), -1) }, false, eventContext);
+        case exp.KEY_MINUS:
+        case exp.KEY_UNDERSCORE:
+          event.preventDefault();
+          return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), +1) }, false, eventContext);
+
+        // change between horizontal and vertical
+        case exp.KEY_H_UPPER:
+        case exp.KEY_H_LOWER:
+          event.preventDefault();
+          return fireHashUpdate( { 'direction': 'x' }, false, eventContext);
+        case exp.KEY_V_UPPER:
+        case exp.KEY_V_LOWER:
+          event.preventDefault();
+          return fireHashUpdate( { 'direction': 'y' }, false, eventContext);
       }
     });
   }
@@ -3080,22 +3127,17 @@ window.sfun = (function($, undefined) {
     var manageScroll = false;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = getDirection();
+    // scroll direction goes against change in Y (for both x and y directions)
+    var scrolldir = 0 - event.deltaY;
     // get current scroll position
+    var rounding = getGutter()+1;
     var next_pos, current_pos = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
     // active mousewheel reaction is dependent on which direction we're flowing in
     if (imagesnap) {
-      var scrolldir;
-      if (direction == 'x') {
-        // apply direction of wheel to x-axis
-        scrolldir = 0 - event.deltaY;
-      } else {
-        // work out direction of wheel
-        scrolldir = event.deltaY;
-      }
       // calculate how many major axis cells
       var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
       // find first spanning min boundary
-      var current_ref = visTableMajor.findCompare(current_pos, exp.compareLTE, false);
+      var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
       var next_ref = (current_ref + advance_by) % visTableMajor.getSize();
       next_pos = visTableMajor.key(next_ref);
       manageScroll = true;
@@ -3296,6 +3338,14 @@ window.sfun = (function($, undefined) {
     'KEY_NUMBER_2': 50,
     'KEY_NUMBER_4': 52,
     'KEY_NUMBER_8': 56,
+    'KEY_H_UPPER': 72,
+    'KEY_H_LOWER': 104,
+    'KEY_V_UPPER': 86,
+    'KEY_V_LOWER': 118,
+    'KEY_PLUS': 187,      // chrome
+    'KEY_EQUALS': 61,     // firefox
+    'KEY_MINUS': 189,     // chrome
+    'KEY_UNDERSCORE': 173,// firefox
 
     stringHASHBANG: '#!',
     pullImgSrcTHRESHOLD: 20,
@@ -3365,6 +3415,13 @@ window.sfun = (function($, undefined) {
      */
     'api_getAlley': function() {
       return getAlley();
+    },
+
+    /**
+     * @return {int} Width of gutter in pixels
+     */
+    'api_getGutter': function() {
+      return getGutter();
     },
 
     /**

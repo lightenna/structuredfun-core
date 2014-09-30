@@ -1,14 +1,17 @@
 
-* flow
-  + when we resize a range of cells
-    + when affect all the cells above it too
-      + need to increment their vistable (key) position
-  + don't really want to duplicate key in both keyarr and obj
-    + because it makes updating it messy
-      + can't think of a consistent way of avoiding that
---o--
-* we're calling cellsResize way too much
-  + at least twice per scroll
+* vistable clear is getting called, but it's not clear how we get out of alignment
+  + when we change from x to y (or v.v.)
+    + the URL stops getting updated
+
+* mouse wheel back trips up
+  + not just under flow
+  + but then gets itself sorted out when going forward again
+    + it's to do with scrolling back to a place before the cell resizes
+      + either because its size changes (flow)
+      + or because it gets an image (no-flow)
+
+* think about pink border
+  + in full-screen mode it's just a big annoying
 
 * Safari mobile loading all images on refresh
   + all images flagged as vispart
@@ -64,13 +67,12 @@
       + leaving it at this point
     + seems to run consistently in Chrome
   = test in firefox
---o--
-* fix failing test
-  + 'reres of last page of images'
-    + failing only sometimes in on folders with nested folders (at the end)
-      + fails in both Firefox and Chrome, so not a browser thing
-  + failed with flow on/off
---o--
+  + still happens occassionally but it's much more complicated than it was
+    + which is actually a good thing
+      + because most cases work fine
+      + there are just a few that trip it up
+    + this is getting more and more rare
+
 * final two images cropped as visnear
   + should be at least vispart
     + not consistent for test all
@@ -125,6 +127,84 @@
       + not sure
       + worth investigating first
 
+* page up/down needs to be based on viewport pages
+  + can't rely on jumping a certain number of images forward/back
+    + because they could be really narrow/fat
+    + flow makes images different widths
+
+* dots (.) in directory names, like mq
+
+* need to get an alpha online
+  + doesn't need to be a big release, but it does have to be a first release
+  + we don't have to promote it much
+    + but having something out is vital
+  + after _something_ is out
+    + I can start managing the 'but I only get 1 shot' misbelief
+
+--- first launch: it's not a big deal ---
+
+* optimisation: take PHP out of the loop for cached images
+  + this potentially reduces thumbnail loads from 100ms to 10ms
+    + it might not work, but it's a game changer if it does
+  + change caching to use mod_rewrite
+  http://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewritemap
+  + probably need to use RewriteMap escape function
+    + don't worry about long filenames
+    + do terminate with .dat
+  + start by checking the PHP logic
+    + it may not be possible to do a pure cache lookup without using any PHP
+    + things like shares/aliases may get in the way
+-- investigate doing this next --
+* feature: re-write image URLs to be IIIF 2.0 compliant
+  + checkout how IIIF feels about an/arbitrary/number/of/chunks in the path
+    + before /width/200/height/.. etc
+
+* re-enable flow
+  + debug and optimise
+    + it's close
+--o--
+* not buffering quite enough
+  + the scroll feels sticky
+    + this is fine on non-flow
+    + consider as part of flow
+--o--
+* worth optimising flow because it needs to feel snappy
+  + not sure if this is viable for a first release
+    + I think flow needs quite a lot more work
+--then--
+* forward scroll newbies
+  + newly visible images are coming into view too far apart
+    + better to assume a narrower cell width then correct it
+    + take an average major
+      + maintain everytime we shrink a cell
+
+* feature: make sfun menu bar slide down
+  + also slide down image set
+  + use CSS3 animated transition for both
+
+* feature: image-is-reresing animation
+  + deblur (50% -> 0% gaussian blur)
+  + saturate (10% -> 0% grayscale)
+  + animation should be css3
+http://www.hongkiat.com/blog/css-filter/
+
+* optimisation: we're calling cellsResize way too much
+  + at least twice per scroll
+
+* optimisation: we spend quite a lot of time waiting for the wrong images to load
+  + browser can only fetch 6/8 at a time from a single domain
+    + that means there's a longer gap than necessary between
+      + 200px thumbnail and
+      + 500px final
+  + options
+    + hashbang arg to stipulate the first resolution to load (think last_longest)
+    + delay processing visnear until we've got all the high-res for visible/vispart
+      + technically harder, but neater
+        + would make it seem snappier
+          + page load is about 2s
+          + currently full-res snap-in is at 2s
+          + reordering would mean full-res snap-in would be at about 1.5s
+
 * optimisation: currently re-bounding/re-resing images unnecessarily
   + really want to maintain some state on each image
     + only wany to re-anything it if the context has changed
@@ -138,32 +218,11 @@
     + everytime an image makes the transition
       + from visnear/visno -> visible/vispart
 
-* page up/down needs to be based on viewport pages
-  + can't rely on jumping a certain number of images forward/back
-    + because they could be really narrow/fat
-    + flow makes images different widths
-
-* re-enable flow
-  + debug and optimise
-    + it's close
-
-* forward scroll newbies
-  + newly visible images are coming into view too far apart
-    + better to assume a narrower cell width then correct it
-    + take an average major
-      + maintain everytime we shrink a cell
-
-* .s in directory names, like mq
-
-* need to get an alpha online
-  + doesn't need to be a big release, but it does have to be a first release
-
---- first launch: it's not a big deal ---
-
-* FEATURE: video
-
 * FEATURE: show semi-opaque numbers in circles over each image on a direction change
     + to reflect order of images
+    + draw lines between 
+
+* FEATURE: video
 
 * instead of requesting metadata
   + could just request an image of the size we want
@@ -171,15 +230,6 @@
     + and display whatever comes back
       + then request metadata asynchronously
         + and probably for everything rather than just the visibles
-
-* thinking about maximising the space
-  + could swap an image +/-1 to get it to the top of a column
-  + landscape
-    + could expand the width of a cell
-    + could decrease the height of a cell
-  + portrait
-    + could expand the height of a cell
-    + could decrease the width of a cell
 
 * imgmetric as mini bar chart
   + show percentage in background too
@@ -2670,4 +2720,97 @@ php ..\bin\composer.phar self-update
         php installer
           + worked
 php ..\bin\composer.phar update
+
+* gzip everything out of apache to make it pop
+
+* scroll going the wrong way for image snap vertical
+
+* keypress to change between horiz and vert
+
+* flow
+  + when we resize a range of cells
+    + when affect all the cells above it too
+      + need to increment their vistable (key) position
+  + don't really want to duplicate key in both keyarr and obj
+    + because it makes updating it messy
+      + can't think of a consistent way of avoiding that
+  + for now leave it duplicated and shift both in keyShift()
+
+* fix failing test
+  + 'reres of last page of images'
+    + failing only sometimes in on folders with nested folders (at the end)
+      + fails in both Firefox and Chrome, so not a browser thing
+  + failed with flow on/off
+
+* when we do infinite scroll
+  + do it properly with pages as part of the URL
+    + i.e. not in the hashbang
+  + #! works really well for visualisation state
+
+* plus and minus to zoom in and out
+
+* shares on elan
+  + some access issues, probably vhost related
+    + don't try to solve
+    + just verify for later
+  = no it's fine
+--o--
+* get family photos on elan
+
+* speed
+  + I think Apache performs much the same for Windows/Linux
+  + it looks like PHP is slower
+    + could be file loading/processing
+    + could be Symfony spin-up
+    + compare times for main HTML load
+      + it's about 4x quicker on Linux
+        + 800ms on Windows (PHP 5.6)
+        + 200ms on Linux (PHP 5.3, Zend Server)
+    + shows up in the image loads too
+  + leave this for now
+    + doesn't seem to be anything obvious
+  = found realpath_cache_size
+    + big performance jump
+      + difference down to 2x
+    + images now less than 100ms each
+
+* performance is fun, features are fun
+  + but the only thing stopping this being released is bugs
+    + keep focussed on first release of MLP
+
+* thinking about maximising the space
+  + could swap an image +/-1 to get it to the top of a column
+  + landscape
+    + could expand the width of a cell
+    + could decrease the height of a cell
+  + portrait
+    + could expand the height of a cell
+    + could decrease the width of a cell
+  = flow
+
+* mouse wheel up is going up in pairs
+  + could be a simple LTE/GTE thing
+    + ha! it's relates
+    + LTE makes it go down in pairs
+    + GTE makes it go up in pairs
+--o--
+* change direction doesn't seem to update the vistable
+  + it needs to do a complete refresh
+    + I think this because mouse wheel up on vertical doesn't align
+  + taken out rounding
+    + it's not necessary
+
+* can't wheel back up when direction y (image snap)
+  + it was a rounding problem
+    + now using the same style of code as getVisibleBoundaries
+    + but not the same function
+      + because we treat the rounding differently
+      + it's direction-dependent for handlerMouseWheeled
+
+* flow, cell x-margin is too great
+  + means that the grid doesn't quite align properly
+    + this is because the cells are slightly too wide
+    + the height includes a margin (4px, gutter)
+      + that needs to be subtracted
+      + before we calculate the width
 
