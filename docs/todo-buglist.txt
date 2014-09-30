@@ -1,18 +1,4 @@
 
-* vistable clear is getting called, but it's not clear how we get out of alignment
-  + when we change from x to y (or v.v.)
-    + the URL stops getting updated
-
-* mouse wheel back trips up
-  + not just under flow
-  + but then gets itself sorted out when going forward again
-    + it's to do with scrolling back to a place before the cell resizes
-      + either because its size changes (flow)
-      + or because it gets an image (no-flow)
-
-* think about pink border
-  + in full-screen mode it's just a big annoying
-
 * Safari mobile loading all images on refresh
   + all images flagged as vispart
     + which I think is why they're getting loaded
@@ -22,56 +8,6 @@
   + http://10.12.1.120:8097/file/family/0000uk_stuff_photos/#!breadth=1&seq=70
 
 * IE alignment
-
-* can get into a mode where nothing's happening
-  + because something got left on the queue
-    - isn't yet resolved
-  + and is delaying everything after it
-    + resolve by watching checkExpiries
-  + something completes
-    + and doesn't kick its parent
-    + the critical section is null
-      + might be good to track last critical section
-  + event parenting order
-  1126:keypress:k13
-    1127:hash:b4
-      1128:scroll:x0y0
-  + could be a result of dumping the wrong things
-    + we dump 1119:hash:
-      + which is the last_critical_section at checkExpiries
-  + I think we have to say which events are dumpable
-    + can dump repeated scrolls
-    + can dump repeated hash seqs
-    + but can't dump some hash seqs because they're clicks
-      + and change the state
-    = introduced selecting dumping
-  + test suite errors persist, hard to debug concurrency
-  + looks like a blockage introduced by having
-    + two scroll:x=0&y=0 events on the queue at the same time
-      + they both have the effect of sending the browser back to 0
-      + but only one can get found by handlerScrolled
-        + so only one gets resolved
-        + leaving the other one orphaned
-      + verify that's what's happening
-  + couple of solutions
-    1 in handlerScrolled
-      + look for _all_ matching events
-        + process
-        + then resolve them all
-    2 in fireScrollUpdate
-      + check to see if we've got a pending update to this scroll position
-        + staple our colours to the existing one
-    + leaning towards 2 because 1 has the risk of cascading
-  = working nicely now
-    + 3 successful test suite runs
-      + leaving it at this point
-    + seems to run consistently in Chrome
-  = test in firefox
-  + still happens occassionally but it's much more complicated than it was
-    + which is actually a good thing
-      + because most cases work fine
-      + there are just a few that trip it up
-    + this is getting more and more rare
 
 * final two images cropped as visnear
   + should be at least vispart
@@ -89,10 +25,6 @@
   + pretty sure that final image is partially off-screen
     + which is bouncing the selected seq back from 253 to 246
     = can't replicate on mac
-
-* directory thumbnails need to load bounded
-  + partial flash looks weird
-    = easiest to debug on a PC with larger image sets
 
 * scroll doesn't work on a mac
   + gets as far as +2 (seq=2 -> seq=4)
@@ -142,6 +74,31 @@
     + I can start managing the 'but I only get 1 shot' misbelief
 
 --- first launch: it's not a big deal ---
+
+* feature: think about pink border
+  + in full-screen mode it's just a big annoying reminder of a slow load
+
+* bug: prevent flash of unbound image
+  + shows up in Firefox/bug because ultra-wide window
+  + when vertical scrolling through single images (b=1,d=y
+    + we could remember a default bound for all first loads
+      + will catch most of them
+      + probably more than using the image
+    + better as a combination
+      + if we have a landscape image
+        + that's y-bound
+          + remember y-bound
+          + because it's likely that future images will also be y-bound
+      + could do a sort of thresholding thing
+        + based on data-ratio
+    + for non-flow all cells are the same size
+      + so working out what a typical cell size is (as a ratio)
+        + then comparing to data-ratio
+        + would give us a good approximation
+--o--
+* bug: directory thumbnails need to load bounded
+  + partial flash looks weird
+    = easiest to debug on a PC with larger image sets
 
 * optimisation: take PHP out of the loop for cached images
   + this potentially reduces thumbnail loads from 100ms to 10ms
@@ -2813,4 +2770,95 @@ php ..\bin\composer.phar update
     + the height includes a margin (4px, gutter)
       + that needs to be subtracted
       + before we calculate the width
+
+* single image (b=1,d=y) given vispart
+  + means there are no visible images
+    + so no selection can be applied
+      + so no hash seq change
+    = sorted using fallback to vispart
+
+* vertical scrolling
+  + can't scroll down
+    + when b=2,4,8
+    + works fine when b=1
+  = works now we have square grids
+--o--
+* all of these could be related to getBreadth
+  + for vertical scrolling
+    + breadth doesn't really equal breadth
+  + might be worth doing an experiment with pure square cells
+    + 1x1, 2x2, 4x4
+    + instead of current
+      + 1x1, 4x2, 8x4
+--o--
+* vistable clear is getting called, but it's not clear how we get out of alignment
+  + when we change from x to y (or v.v.)
+    + the URL stops getting updated
+  + turns out there's a simpler problem to solve first
+    1 reload page
+    2 switch from horizontal to vertical
+      = get two scrollbars, which is wrong
+    3 wiggle mouse over redundant scrollbar
+      = leaps to wrong part of new page
+    + in Firefox
+      + looks like selected isn't being updated
+--o--
+* mouse wheel back trips up
+  + not just under flow
+  + but then gets itself sorted out when going forward again
+    + it's to do with scrolling back to a place before the cell resizes
+      + either because its size changes (flow)
+      + or because it gets an image (no-flow)
+
+* can get into a mode where nothing's happening
+  + because something got left on the queue
+    - isn't yet resolved
+  + and is delaying everything after it
+    + resolve by watching checkExpiries
+  + something completes
+    + and doesn't kick its parent
+    + the critical section is null
+      + might be good to track last critical section
+  + event parenting order
+  1126:keypress:k13
+    1127:hash:b4
+      1128:scroll:x0y0
+  + could be a result of dumping the wrong things
+    + we dump 1119:hash:
+      + which is the last_critical_section at checkExpiries
+  + I think we have to say which events are dumpable
+    + can dump repeated scrolls
+    + can dump repeated hash seqs
+    + but can't dump some hash seqs because they're clicks
+      + and change the state
+    = introduced selecting dumping
+  + test suite errors persist, hard to debug concurrency
+  + looks like a blockage introduced by having
+    + two scroll:x=0&y=0 events on the queue at the same time
+      + they both have the effect of sending the browser back to 0
+      + but only one can get found by handlerScrolled
+        + so only one gets resolved
+        + leaving the other one orphaned
+      + verify that's what's happening
+  + couple of solutions
+    1 in handlerScrolled
+      + look for _all_ matching events
+        + process
+        + then resolve them all
+    2 in fireScrollUpdate
+      + check to see if we've got a pending update to this scroll position
+        + staple our colours to the existing one
+    + leaning towards 2 because 1 has the risk of cascading
+  = working nicely now
+    + 3 successful test suite runs
+      + leaving it at this point
+    + seems to run consistently in Chrome
+  = test in firefox
+  + still happens occassionally but it's much more complicated than it was
+    + which is actually a good thing
+      + because most cases work fine
+      + there are just a few that trip it up
+    + this is getting more and more rare
+      + hardly encountered at all today
+        = put on ice for now
 

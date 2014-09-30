@@ -33,7 +33,9 @@
   }
 
   &.flow-pc {
-    // 1x1 is orientation-agnostic
+    // all orientation-agnostic now
+
+    // 1x1
     &.flow-1 > .cell {
       width: 100%;
       height: 100%;
@@ -42,34 +44,33 @@
       @include calc(height, (100%)+" - "+($alley));
     }
 
-    // portrait (*2)
-    @media screen and (orientation:portrait) {
-      // 2x4, default
-      &.flow-2 > .cell {
-        width: (100% / 2);
-        height: (100% / 4);
-        @include calc(width, (100% / 2)+" - "+($alley));
-        @include calc(height, (100% / 4)+" - "+($alley));
-      }
-      // 4x8
-      &.flow-4 > .cell {
-        width: (100% / 4);
-        height: (100% / 8);
-        @include calc(width, (100% / 4)+" - "+($alley));
-        @include calc(height, (100% / 8)+" - "+($alley));
-      }
-      // 8x16
-      &.flow-8 > .cell {
-        width: (100% / 8);
-        height: (100% / 16);
-        @include calc(width, (100% / 8)+" - "+($alley));
-        @include calc(height, (100% / 16)+" - "+($alley));
-      }
+    // 2x2, default
+    &.flow-2 > .cell {
+      width: (100% / 2);
+      height: (100% / 2);
+      @include calc(width, (100% / 2)+" - "+($alley));
+      @include calc(height, (100% / 2)+" - "+($alley));
+    }
+    // 4x4
+    &.flow-4 > .cell {
+      width: (100% / 4);
+      height: (100% / 4);
+      @include calc(width, (100% / 4)+" - "+($alley));
+      @include calc(height, (100% / 4)+" - "+($alley));
+    }
+    // 8x8
+    &.flow-8 > .cell {
+      width: (100% / 8);
+      height: (100% / 8);
+      @include calc(width, (100% / 8)+" - "+($alley));
+      @include calc(height, (100% / 8)+" - "+($alley));
     }
 
-    // widescreen (*2)
+    /**
+     * This section is not used, but kept for reference only
+     *
     @media screen and (orientation:landscape) and (max-width: $wide1) {
-      // 4x2, default
+      // 4x2
       &.flow-2 > .cell {
         width: (100% / 4);
         height: (100% / 2);
@@ -91,56 +92,8 @@
         @include calc(height, (100% / 8)+" - "+($alley));
       }
     }
-
-    // widescreen (*3)
-    @media screen and (orientation:landscape) and (min-width: ($wide1+1)) and (max-width: ($wide2)) {
-      // 6x2, default
-      &.flow-2 > .cell {
-        width: (100% / 6);
-        height: (100% / 2);
-        @include calc(width, (100% / 6)+" - "+($alley));
-        @include calc(height, (100% / 2)+" - "+($alley));
-      }
-      // 12x4
-      &.flow-4 > .cell {
-        width: (100% / 12);
-        height: (100% / 4);
-        @include calc(width, (100% / 12)+" - "+($alley));
-        @include calc(height, (100% / 4)+" - "+($alley));
-      }
-      // 24x8
-      &.flow-8 > .cell {
-        width: (100% / 24);
-        height: (100% / 8);
-        @include calc(width, (100% / 24)+" - "+($alley));
-        @include calc(height, (100% / 8)+" - "+($alley));
-      }
-    }
-
-    // widescreen (*4)
-    @media screen and (orientation:landscape) and (min-width: ($wide2)) {
-      // 8x2, default
-      &.flow-2 > .cell {
-        width: (100% / 8);
-        height: (100% / 2);
-        @include calc(width, (100% / 8)+" - "+($alley));
-        @include calc(height, (100% / 2)+" - "+($alley));
-      }
-      // 16x4
-      &.flow-4 > .cell {
-        width: (100% / 16);
-        height: (100% / 4);
-        @include calc(width, (100% / 16)+" - "+($alley));
-        @include calc(height, (100% / 4)+" - "+($alley));
-      }
-      // 32x8
-      &.flow-8 > .cell {
-        width: (100% / 32);
-        height: (100% / 8);
-        @include calc(width, (100% / 32)+" - "+($alley));
-        @include calc(height, (100% / 8)+" - "+($alley));
-      }
-    }
+     * 
+     */
 
     > .cell {
       // centre

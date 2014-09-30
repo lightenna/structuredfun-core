@@ -387,6 +387,10 @@ window.sfun = (function($, undefined) {
       }
       // find the next visible one in the scroll direction
       $ent = $(container_selector+' .selectablecell.visible:'+(scrolldir > 0 ? 'first' : 'last'));
+      // if no fully visible images to select, use first partially visible
+      if ($ent.length == 0) {
+        $ent = $(container_selector+' .selectablecell.vispart:'+(scrolldir > 0 ? 'first' : 'last'));
+      }
       if ($ent.length) {
         // create and resolve a local context to allow us to numb listener
         var localContext = eventQueue.push({
@@ -396,6 +400,8 @@ window.sfun = (function($, undefined) {
         });
         // use hash to select new and deselect old, but numb listener and parent deferred
         return imageAdvanceTo($ent.data('seq'), localContext);
+      } else {
+        // if no visible/vispart images, don't try to select anything
       }
     }
     return getDeferred().resolve();
@@ -2227,7 +2233,7 @@ window.sfun = (function($, undefined) {
           // push
           var ref = this._push(obj);
           // optional debugging message
-          if (debug && true) {
+          if (debug && false) {
             console.log('+ pushed event context[' + this.render(obj) + '], qlen now '+(this.getSize()));
           }
         }
@@ -2346,7 +2352,7 @@ window.sfun = (function($, undefined) {
           // attach to parent
           this.attachParent(obj, parentContext);
           // optional debugging
-          if (debug && true) {
+          if (debug && false) {
             console.log('  - placed child event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.getSize());
           }
         }
@@ -2470,7 +2476,7 @@ window.sfun = (function($, undefined) {
         // store eventContext as current critical section
         this.critical_section = eventContext;
         // optional debugging
-        if (debug && true) {
+        if (debug && false) {
           console.log('> entering critical section for '+this.render(this.critical_section));
         }
         this.critical_section.deferred.done(scheduleCriticalReset);
@@ -2511,7 +2517,7 @@ window.sfun = (function($, undefined) {
           // if not, flag event as in its critical section
           this.setCriticalSection(eventContext);
           // optional debugging message
-          if (debug && true) {
+          if (debug && false) {
             console.log('> entering fresh critical section (from null) for '+this.render(eventContext));
           }
           // call func with outer class context, then wrap up
@@ -2568,7 +2574,7 @@ window.sfun = (function($, undefined) {
         // this event depends on the end of the current critical one's chain
         var lastDep = this.earliestAncestor(this.critical_section);
         // optional debugging message
-        if (debug && true) {
+        if (debug && false) {
           console.log('_ delaying critical section for '+this.render(eventContext));
         }
         // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
