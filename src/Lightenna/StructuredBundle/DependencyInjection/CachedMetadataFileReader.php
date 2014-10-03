@@ -91,12 +91,21 @@ class CachedMetadataFileReader extends MetadataFileReader {
           $this->writeMetadata($filename);
         } else {
           // serialize to text file
-          file_put_contents(str_replace('.'.$this->stats->ext, '.meta', $filename), serialize($this->filterStatsForMetadata($this->stats)));
+          file_put_contents($this->getMetaFilename($filename), serialize($this->filterStatsForMetadata($this->stats)));
         }
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * @param  string $filename Filename of image file
+   * @return string filename of metadata file
+   */
+  private function getMetaFilename($filename) {
+    $fileNoExt = substr($filename, 0, strlen($filename) - strlen($this->getExtension($filename)));
+    return $fileNoExt . 'meta';
   }
 
   /**
@@ -210,7 +219,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
         $this->getImageMetadata($imgdata);
       } else {
         // pull from cached .meta file
-        $metaname = str_replace('.'.$this->stats->ext, '.meta', $filename);
+        $metaname = $this->getMetaFilename($filename);
         if (file_exists($metaname)) {
           $this->stats->{'meta'} = unserialize(file_get_contents($metaname));
         }

@@ -26,6 +26,9 @@
   position: relative;
   top: 0;
   left: 0;
+  // IE needs height 100%-chain set
+  // http://stackoverflow.com/questions/16811716/height100-not-working-in-internet-explorer
+  height: 100%;
 
   &.flow-em > .cell {
     width: 20em;

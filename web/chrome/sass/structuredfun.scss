@@ -20,6 +20,11 @@
 
 html {
   background-color: $background_html_light;
+  height: 100%;
+
+  body {
+    height: 100%;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -184,25 +189,30 @@ html.theme-dark {
 
     }
 
-    .content .sfun > .cell {
-      &:not(.selected) .media-container .selectreflector {
+    .content .sfun {
+      > .cell {
+        &:not(.selected) .media-container .selectreflector {
+          border-color: $background_html_dark;
+        }
+
+        a {
+          .meta {
+            background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
+            color: #ffffff;
+          }
+          .title {
+            background-color: $background_html_dark;
+            color: #ffffff;
+          }
+        } // a
+        
+      } // .cell
+
+      &.flow-1 .media-container .selectreflector {
         border-color: $background_html_dark;
       }
 
-      a {
-        .meta {
-          background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
-          color: #ffffff;
-        }
-        .title {
-          background-color: $background_html_dark;
-          color: #ffffff;
-        }
-      }
-      
-      .directory {
-      }
-    }
+    } // .sfun
   }
 }
 
