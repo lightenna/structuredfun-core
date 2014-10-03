@@ -19,6 +19,9 @@ if (typeof Function.prototype.inherits !== 'function') {
   };
 }
 
+// missing console in IE
+var console = window.console || { log: function() {} };
+
 /**
  * StructuredFun javascript
  */
@@ -79,6 +82,8 @@ window.sfun = (function($, undefined) {
   var $sfun_selectablecell_first;
   var $sfun_selectedcell = [];
   var $sfun_selectablecell_img = [];
+  var $sfun_yardx = $('#sfun-yardstick-x');
+  var $sfun_yardy = $('#sfun-yardstick-y');
 
   // jQuery selector caching
   var $img = function(seq) {
@@ -139,18 +144,18 @@ window.sfun = (function($, undefined) {
         bindToScroll();
         // attach listener to window for resize (rare, but should update)
         $window.resize(function() {
-          buffer('init_resized',
-          // process event
-          function() {
+          // buffer('init_resized',
+          // // process event
+          // function() {
             // flush cache
             getViewportWidth(true);
             getViewportHeight(true);
-            // resize may have shown more images, so refresh visibility
-            refreshVisibility(0);          
-          },
-          // do nothing if dumped
-          function(){},
-          50); // 50ms
+            // process resize as forced hash change
+            handlerHashChanged(getHash(), true);
+          // },
+          // // do nothing if dumped
+          // function(){},
+          // 50); // 50ms
         });
       });
     }
@@ -976,35 +981,29 @@ window.sfun = (function($, undefined) {
   };
 
   /**
+   * get the viewport height, but don't cache it because scrollbars appear/disappear
    * @return {real} height of viewport in pixels
    */
   var getViewportHeight = function(force) {
-    if (this.getViewportHeight_static == undefined || force) {
-      var $yard = $('#sfun-yardstick-y');
-      if ($yard.length) {
-        this.getViewportHeight_static = $yard.height();
-      } else {
-        // fall back to window
-        this.getViewportHeight_static = $window.height();
-      }
+    if ($sfun_yardy.length) {
+      return $sfun_yardy.height();
+    } else {
+      // fall back to window
+      return $window.height();
     }
-    return this.getViewportHeight_static;
   };
 
   /**
+   * get the viewport width, but don't cache it because scrollbars appear/disappear
    * @return {real} width of viewport in pixels
    */
   var getViewportWidth = function(force) {
-    if (this.getViewportWidth_static == undefined || force) {
-      var $yard = $('#sfun-yardstick-x');
-      if ($yard.length) {
-        this.getViewportWidth_static = $yard.width();
-      } else {
-        // fall back to window
-        this.getViewportWidth_static = $window.width();
-      }
+    if ($sfun_yardx.length) {
+      return $sfun_yardx.width();
+    } else {
+      // fall back to window
+      return $window.width();
     }
-    return this.getViewportWidth_static;
   };
 
   // ------------------
@@ -1515,6 +1514,7 @@ window.sfun = (function($, undefined) {
   var urlChangeUp = function() {
     var url = window.location.href;
     var lastChar = url.length;
+    // if we use a hash, start backwards from there
     var lastHash = url.lastIndexOf('#');
     if (lastHash != -1) {
       lastChar = lastHash-1;
@@ -1587,7 +1587,7 @@ window.sfun = (function($, undefined) {
     var output = {};
     // look for hash arguments
     if (hash.length > 1) {
-      // strip leading #! if set
+      // strip leading hashbang if set
       var hblen = exp.stringHASHBANG.length;
       if (hash.substr(0, hblen) == exp.stringHASHBANG) {
         hash = hash.substr(hblen);
@@ -3133,6 +3133,7 @@ window.sfun = (function($, undefined) {
     var manageScroll = false;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = getDirection();
+    var breadth = getBreadth();
     // scroll direction goes against change in Y (for both x and y directions)
     var scrolldir = 0 - event.deltaY;
     // get current scroll position
@@ -3159,12 +3160,12 @@ window.sfun = (function($, undefined) {
     if (manageScroll) {
       // don't allow the browser to scroll itself
       event.preventDefault();
+      // setup animation target parameters
+      var animation_target = {};
       // apply to correct axis
-      if (direction == 'x') {
-        $document.scrollLeft(next_pos);
-      } else {
-        $document.scrollTop(next_pos);
-      }
+      animation_target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
+      // do animation, or pop if fullscreen; for some reason can't cache selector
+      $('html, body').finish().animate(animation_target, (breadth == 1 ? 0 : 100));
     }
     // optional debugging
     if (debug && true) {

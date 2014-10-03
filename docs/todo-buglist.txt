@@ -1,31 +1,16 @@
 
+* page up/down needs to be based on viewport pages
+  + can't rely on jumping a certain number of images forward/back
+    + because they could be really narrow/fat
+    + flow makes images different widths
+
+* dots (.) in directory names, like mq
+
 * Safari mobile loading all images on refresh
   + all images flagged as vispart
     + which I think is why they're getting loaded
     - not consistent
-
-* resize event when viewing at b1
-  + http://10.12.1.120:8097/file/family/0000uk_stuff_photos/#!breadth=1&seq=70
-
-* IE alignment
-
-* final two images cropped as visnear
-  + should be at least vispart
-    + not consistent for test all
-      + final two images seem fine as vispart before and after test
-    + pretty consistent for test
-      + arranged with just enough tests to make it hit bottom
-        + firefox on its own is fine
-        + firefox + firebug
-          + hits bottom and throws error
-        + chrome is just the same with a small-height window
-  + mock up single test
-    + with large 0-div to force right-hand-edge scrollbar
-    = mocked up
-  + pretty sure that final image is partially off-screen
-    + which is bouncing the selected seq back from 253 to 246
-    = can't replicate on mac
-
+--o--
 * scroll doesn't work on a mac
   + gets as far as +2 (seq=2 -> seq=4)
     + then doesn't seem to fire any events
@@ -44,39 +29,10 @@
 --o--
 * detect trackpad, but allow override
 
-* imagecreatefromstring is stumbling over gif
-  + look at AE
-* a broken image in the chain
-  + breaks everything downstream of it
-  + need to be robust to failure
-
-* need to wait until there are no scroll events before realigning flow
-  + otherwise scrollbar goes all over the place
-  + could search the eventQueue for any other scroll: events
-    + could flag each event as started
-  + does buffering solve it?
-    + means that repeat calls get ignored
-      + not sure
-      + worth investigating first
-
-* page up/down needs to be based on viewport pages
-  + can't rely on jumping a certain number of images forward/back
-    + because they could be really narrow/fat
-    + flow makes images different widths
-
-* dots (.) in directory names, like mq
-
-* need to get an alpha online
-  + doesn't need to be a big release, but it does have to be a first release
-  + we don't have to promote it much
-    + but having something out is vital
-  + after _something_ is out
-    + I can start managing the 'but I only get 1 shot' misbelief
-
 --- first launch: it's not a big deal ---
 
-* feature: think about pink border
-  + in full-screen mode it's just a big annoying reminder of a slow load
+* feature: separate flow-x name from grid resolution
+  + read cell size using some kind of gutterball (gridball)
 
 * bug: prevent flash of unbound image
   + shows up in Firefox/bug because ultra-wide window
@@ -134,6 +90,15 @@
     + better to assume a narrower cell width then correct it
     + take an average major
       + maintain everytime we shrink a cell
+--then--
+* need to wait until there are no scroll events before realigning flow
+  + otherwise scrollbar goes all over the place
+  + could search the eventQueue for any other scroll: events
+    + could flag each event as started
+  + does buffering solve it?
+    + means that repeat calls get ignored
+      + not sure
+      + worth investigating first
 
 * feature: make sfun menu bar slide down
   + also slide down image set
@@ -2861,4 +2826,87 @@ php ..\bin\composer.phar update
     + this is getting more and more rare
       + hardly encountered at all today
         = put on ice for now
+
+* resize event when viewing at b1
+  + http://10.12.1.120:8097/file/family/0000uk_stuff_photos/#!breadth=1&seq=70
+
+* IE console error
+
+* can we change #! to # or #/
+  + working towards a nice consistent url structure
+    = not simple and not important for now
+
+* need a little bit of jQuery animation on imagesnap scroll
+  + it's very hard to tell what's happened with our images
+
+* animation for envision seq too
+  = not straight forward
+
+* feature: think about pink border
+  + in full-screen mode it's just a big annoying reminder of a slow load
+    + dropping from fullscreen
+
+* IE alignment
+http://stackoverflow.com/questions/16811716/height100-not-working-in-internet-explorer
+  = sorted with height:100% up the chain
+
+* Firefox ignores calc directive on height
+  + it means that cells are always full height
+    + so a 4x4 grid is actually only 4x1
+  + AMAZINGLY this has been fixed by the IE alignment work!
+
+* there are some really nice behaviours that come from not resizing cells
+  + no flow
+  + such as being able to resize the screen
+    + and still see the same set of images
+
+* final two images cropped as visnear
+  + should be at least vispart
+    + not consistent for test all
+      + final two images seem fine as vispart before and after test
+    + pretty consistent for test
+      + arranged with just enough tests to make it hit bottom
+        + firefox on its own is fine
+        + firefox + firebug
+          + hits bottom and throws error
+        + chrome is just the same with a small-height window
+  + mock up single test
+    + with large 0-div to force right-hand-edge scrollbar
+    = mocked up
+  + pretty sure that final image is partially off-screen
+    + which is bouncing the selected seq back from 253 to 246
+    + this is backed up by Chrome analysis
+  + this seems to be a discontinuity
+    + between visTableMajor and the actual cells on the page
+      + visTableMajor thinks the final cell is at 80640
+      + the actual cell is at 79569
+        + why?
+      + it's the vertical scrollbar
+        + when it gets introduced, we lost 16px
+        + and that's 16px off every 1280
+      + let's not cache viewportMajor
+        + but cache the jQuery yardstick instead
+    + at some point after the scroll
+      + the cells all shift
+        + why?
+      + QUnit again
+        + this time because of its fixture
+      = just needed a vistable refresh
+
+* imagecreatefromstring is stumbling over gif
+  + look at AE
+
+* a broken image in the chain
+  + breaks everything downstream of it
+  + need to be robust to failure
+    = haven't fixed this one, come back to it later
+
+* need to get an alpha online
+  + doesn't need to be a big release, but it does have to be a first release
+  + we don't have to promote it much
+    + but having something out is vital
+  + after _something_ is out
+    + I can start managing the 'but I only get 1 shot' misbelief
+
+* gzip'ing image content
 

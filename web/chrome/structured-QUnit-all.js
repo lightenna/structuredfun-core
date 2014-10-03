@@ -98,7 +98,7 @@
       } else {
         var ref3 = 2 * breadth, ref4 = 3 * breadth;
         var off3 = $cells.eq(ref3).offset(), off4 = $cells.eq(ref4).offset();
-        var major3 = (direction == 'x' ? off3.left : off3.top), major4 = (direction == 'x' ? off4.left : off4.top);
+        var major3 = Math.floor(direction == 'x' ? off3.left : off3.top), major4 = Math.floor(direction == 'x' ? off4.left : off4.top);
         // update all vis table entries
         vt.updateAll(direction, $cells);
         // look for major3 and major4 to check mid-array load
@@ -383,6 +383,12 @@
     });
 
     test( 'reres of last page of images', function() {
+      // expand div (page-left) to force a vertical scrollbar (page-right)
+      var original_height = $('#qunit').height();
+      $('#qunit').height(3000);
+      // refresh vistable incase QUnit fixture has upset offsets
+      sfun.api_getVisTableMajor().updateAll(sfun.api_getDirection(), $('ul.flow .selectablecell'));
+      // run test asynchronously
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
         equal( $('ul.flow .selectablecell.selected').data('seq'), (sfun.api_getTotalEntries()-1), 'End selected last image' );
@@ -404,6 +410,8 @@
         });
         QUnit.start();
         endTest();
+        // restore QUnit to original height
+        $('#qunit').height(original_height);
       });
     });
 
