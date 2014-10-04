@@ -71,6 +71,11 @@ window.sfun = (function($, undefined) {
   var container_selector = '#sfun';
   // last image maxlongest, to shortcut reres using thumb size
   var last_longest = null;
+  // device detection
+  var likely_fluidScroll = (navigator.platform.match(/(Mac|iPhone|iPod|iPad)/i)? true : false);
+
+  // move to state
+  var imagesnap = true;
 
   // jQuery cache
   var $document = $(document);
@@ -653,6 +658,11 @@ window.sfun = (function($, undefined) {
       $window.mousewheel(function(event) {
         handlerMouseWheeled(event);
       });
+      // guess at the likely existence of a trackpad/magic mouse
+      if (likely_fluidScroll) {
+        // turn off imagesnap
+        imagesnap = false;
+      }
       // flag that we've attached our listeners
       this.bindToScroll_static = true;
     }
@@ -2874,13 +2884,7 @@ window.sfun = (function($, undefined) {
       console.log('* fired scroll event '+eventQueue.render(localContext));
     }
     // fire event: change the scroll position
-    if (animate > 0) {
-      fireScrollBuffered(target, animate);
-    } else {
-      // comes through as single event
-      $document.scrollLeft(target.scrollLeft);
-      $document.scrollTop(target.scrollTop);      
-    }
+    fireScrollBuffered(target, animate);
     // if we've yet to setup an event handler
     if (this.bindToScroll_static == undefined) {
       // manually call handler
@@ -2902,8 +2906,18 @@ window.sfun = (function($, undefined) {
    * @param  {int} animate duration of animation, or zero to pop
    */
   var fireScrollBuffered = function(target, animate) {
-    // for some reason can't cache this selector
-    $('html, body').finish().animate(target, animate);
+    if (animate > 0) {
+      // for some reason can't cache this selector
+      $('html, body').finish().animate(target, animate);      
+    } else {
+      // comes through as single event
+      if (typeof(target.scrollLeft) != 'undefined') {
+        $document.scrollLeft(target.scrollLeft);
+      }
+      if (typeof(target.scrollTop) != 'undefined') {
+        $document.scrollTop(target.scrollTop);
+      }
+    }
   };
 
   /**
@@ -3168,8 +3182,6 @@ window.sfun = (function($, undefined) {
    */
   var handlerMouseWheeled = function(event) {
     var that = this;
-    var imagesnap = true;
-    var manageScroll = false;
     // work out what direction we're applying this mouse-wheel scroll to
     var direction = getDirection();
     var breadth = getBreadth();
@@ -3194,7 +3206,7 @@ window.sfun = (function($, undefined) {
       if (direction == 'x') {
         // use both axes to scroll along X
         next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
-        fireScrollBuffered( { 'scrollLeft': next_pos }, (breadth == 1 ? 0 : 100));
+        fireScrollBuffered( { 'scrollLeft': next_pos }, (breadth == 1 || likely_fluidScroll ? 0 : 100));
       }
     }
     // optional debugging

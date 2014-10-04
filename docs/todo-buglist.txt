@@ -8,24 +8,6 @@
   + all images flagged as vispart
     + which I think is why they're getting loaded
     - not consistent
---o--
-* scroll doesn't work on a mac
-  + gets as far as +2 (seq=2 -> seq=4)
-    + then doesn't seem to fire any events
---o--
-* apple scroll is too fast
-  + log the scroll events
-    + research way of detecting apple trackpad
-    + worst case we read the OS from the browser string and assume
-  + look at scroll event frequency
-    + might be able to reduce speed by limiting the reach of each scroll
---o--
-* check apple sideways scroll
-  + magic mouse has nice feature for 2D scrolling
-    + need to make it work simply and easily
-  + complicated by grabbing y-scroll events
---o--
-* detect trackpad, but allow override
 
 --- first launch: it's not a big deal ---
 
@@ -2916,4 +2898,25 @@ http://stackoverflow.com/questions/16811716/height100-not-working-in-internet-ex
     + suspect it's the NaN on the minor axis
   + test with flow
   = works
+
+* scroll doesn't work on a mac
+  + gets as far as +2 (seq=2 -> seq=4)
+    + then doesn't seem to fire any events
+--o--
+* apple scroll is too fast
+  + log the scroll events
+    + research way of detecting apple trackpad
+    + worst case we read the OS from the browser string and assume
+  + look at scroll event frequency
+    + might be able to reduce speed by limiting the reach of each scroll
+--o--
+* check apple sideways scroll
+  + magic mouse has nice feature for 2D scrolling
+    + need to make it work simply and easily
+  + complicated by grabbing y-scroll events
+
+* detect trackpad, but allow override
+  + catch ontouchstart
+    + set imagesnap to false
+  + detect mac, guess-work but a reasonable starting point
 
