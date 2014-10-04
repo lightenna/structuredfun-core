@@ -328,11 +328,11 @@
       // stop using container
       csel.css(property, 0);
       // scroll instead
-      var oldpos = { 'left': $document.scrollLeft(), 'top': $document.scrollTop() };
+      var oldpos = { 'scrollLeft': $document.scrollLeft(), 'scrollTop': $document.scrollTop() };
       // don't need to do using hashUpdate because we're keeping offseq where it is (probably 0)
-      var newpos = { 'left': (direction == 'x' ? oldpos.left - scrolldiff : 0), 'top':(direction == 'x' ? 0 : oldpos.top - scrolldiff) };
+      var newpos = { 'scrollLeft': (direction == 'x' ? oldpos.scrollLeft - scrolldiff : 0), 'scrollTop':(direction == 'x' ? 0 : oldpos.scrollTop - scrolldiff) };
       // if we're changing position, fire scroll
-      if ((newpos.left != oldpos.left) || (newpos.top != oldpos.top)) {
+      if ((newpos.scrollLeft != oldpos.scrollLeft) || (newpos.scrollTop != oldpos.scrollTop)) {
         // note: async scroll will not expose new cells, only realign without container offset
         // @todo need to crop this new position against viewport
         sfun.api_triggerScroll(newpos, true);

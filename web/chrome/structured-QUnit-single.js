@@ -61,36 +61,6 @@
       window.location.hash = '#!';
     }
 
-    test( 'reres of last page of images', function() {
-      // expand div (page-left) to force a vertical scrollbar (page-right)
-      $('#qunit').height(3000);
-      // refresh vistable incase QUnit fixture has upset offsets
-      sfun.api_getVisTableMajor().updateAll(sfun.api_getDirection(), $('ul.flow .selectablecell'));
-      // run test asynchronously
-      QUnit.stop();
-      sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
-        equal( $('ul.flow .selectablecell.selected').data('seq'), (sfun.api_getTotalEntries()-1), 'End selected last image' );
-        $('ul.flow .selectablecell.visible .reresable').each(function() {
-          var imw = $(this).width(), imh = $(this).height();
-          var $ent = $(this).parents('li');
-          var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
-          // test that loaded res > image res
-          ok( imw <= lodw && imh <= lodh, 'image #'+$ent.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
-          // test that the cell has the correct bound on it
-          var cratio = $ent.width() / $ent.height();
-          var iratio = imw / imh;
-          var correctBound = ((cratio / iratio) > 1.0 ? 'y' : 'x');
-          if (correctBound == 'x') {
-            ok($(this).hasClass('x-bound'), 'image #'+$ent.data('seq')+' ('+imw+'x'+imh+') in cell ('+$ent.width()+'x'+$ent.height()+') should be x-bound');
-          } else {
-            ok($(this).hasClass('y-bound'), 'image #'+$ent.data('seq')+' ('+imw+'x'+imh+') in cell ('+$ent.width()+'x'+$ent.height()+') should be y-bound');
-          }
-        });
-        QUnit.start();
-        endTest();
-      });
-    });
-
     QUnit.start();
   }
 
