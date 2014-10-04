@@ -1105,14 +1105,14 @@ window.sfun = (function($, undefined) {
 
   /**
    * @param {object} target position
-   *        {int} left distance from left of page in pixels
-   *        {int} top  distance from top of page in pixels
+   *        {int} scrollLeft distance from left of page in pixels
+   *        {int} scrollTop  distance from top of page in pixels
    * @return {object} target position cropped against viewport
    */
   var cropScrollPositionAgainstViewport = function(target) {
     return {
-      'left': exp.api_round(Math.max(0, Math.min(target.left, $document.width() - getViewportWidth())), 0),
-      'top': exp.api_round(Math.max(0, Math.min(target.top, $document.height() - getViewportHeight())), 0)
+      'scrollLeft': exp.api_round(Math.max(0, Math.min(target.scrollLeft, $document.width() - getViewportWidth())), 0),
+      'scrollTop': exp.api_round(Math.max(0, Math.min(target.scrollTop, $document.height() - getViewportHeight())), 0)
     };
   }
 
@@ -1134,7 +1134,7 @@ window.sfun = (function($, undefined) {
       // get the cell's position
       var position = $ent.offset();
       // work out the target position
-      var target = { 'left': (direction == 'x' ? position.left - offseq : 0), 'top': (direction == 'x' ? 0 : position.top - offseq) };
+      var target = { 'scrollLeft': (direction == 'x' ? position.left - offseq : 0), 'scrollTop': (direction == 'x' ? 0 : position.top - offseq) };
       // pass target to shared function
       return envisionPos(target, eventContext);
     }
@@ -1143,33 +1143,52 @@ window.sfun = (function($, undefined) {
 
   /** 
    * ensure that a given target position lies within the current viewport
-   * @param {object} target {left, top} position in pixels
+   * @param {object} target {[scrollLeft], [scrollTop]} position in pixels, absolute or relative to current
    * @param {object} [eventContext] optional event context to attach this to
+   * @param {boolean} [relativeTarget] true to use target as a relative offset from current position
    * @return {object} jQuery deferred
    */
-  var envisionPos = function(target, eventContext) {
-    var direction = getDirection();
+  var envisionPos = function(target, eventContext, relativeTarget) {
+    var fireScroll = false;
+    // setup argument defaults
+    if (relativeTarget == undefined) {
+      relativeTarget = false;
+    }
+    // work out current scroll position
+    var scroll = { 'scrollTop': $document.scrollTop(), 'scrollLeft': $document.scrollLeft() };
+    if (relativeTarget) {
+      // increment relative target by current scroll position
+      if (typeof(target.scrollTop) != 'undefined') {
+        target.scrollTop += scroll.scrollTop;
+      } else {
+        target.scrollTop = scroll.scrollTop;
+      }
+      if (typeof(target.scrollLeft) != 'undefined') {
+        target.scrollLeft += scroll.scrollLeft;
+      } else {
+        target.scrollLeft = scroll.scrollLeft;
+      }
+    }
     // crop the target position against reachable bounds
     target = cropScrollPositionAgainstViewport(target);
-    // work out whether we're currently at the target position
-    var fireScroll = false;
-    var scroll = { 'top': $document.scrollTop(), 'left': $document.scrollLeft() };
     // check to see if our current scroll position reflects the target position
+    var direction = getDirection();
     if (direction == 'x') {
-      if (target.left != scroll.left) {
+      if (target.scrollLeft != scroll.scrollLeft) {
         fireScroll = true;
       }
     } else {
-      if (target.top != scroll.top) {
+      if (target.scrollTop != scroll.scrollTop) {
         fireScroll = true;
       }
     }
     // if we are at the position, just refresh visibilty
     if (!fireScroll) {
       return refreshVisibility(0);
-    }
-    // otherwise scroll to the target position
-    return fireScrollUpdate(target, eventContext);
+    }    
+    // scroll to the target position
+    // animate if we're using a relative offset
+    return fireScrollUpdate(target, eventContext, (relativeTarget ? 100 : 0));
   };
 
   /**
@@ -2835,37 +2854,56 @@ window.sfun = (function($, undefined) {
   /**
    * change the visible portion of the page by moving the scrollbars
    * @param {object} target position
-   *        {int} left distance from left of page in pixels
-   *        {int} top  distance from top of page in pixels
+   *        {int} scrollLeft distance from left of page in pixels
+   *        {int} scrollTop  distance from top of page in pixels
    * @param {object} [eventContext] optional event context for decorating an existing deferred
+   * @param {int} [animate] duration of scroll animation, or 0 to pop
    * @return {object} jQuery deferred
    */
-  var fireScrollUpdate = function(target, eventContext) {
+  var fireScrollUpdate = function(target, eventContext, animate) {
     var that = this;
+    if (animate == undefined) {
+      animate = false;
+    }
     // create a context, but parent it only if eventContext is not undefined
     var localContext = eventQueue.pushOrParent({
-      'key': 'scroll:'+'x='+target.left+'&y='+target.top,
+      'key': 'scroll:'+'x='+target.scrollLeft+'&y='+target.scrollTop,
       'comment': 'localContext for fire_scrollUpdate'
     }, eventContext);
     if (debug && true) {
       console.log('* fired scroll event '+eventQueue.render(localContext));
     }
-    // fire event: change the scroll position (comes through as single event)
-    $document.scrollLeft(target.left);
-    $document.scrollTop(target.top);
+    // fire event: change the scroll position
+    if (animate > 0) {
+      fireScrollBuffered(target, animate);
+    } else {
+      // comes through as single event
+      $document.scrollLeft(target.scrollLeft);
+      $document.scrollTop(target.scrollTop);      
+    }
     // if we've yet to setup an event handler
     if (this.bindToScroll_static == undefined) {
       // manually call handler
-      handlerScrolled({}, target.left, target.top);
+      handlerScrolled({}, target.scrollLeft, target.scrollTop);
     } else {
       // @todo test; instant firing doesn't seem to save much time
       if (false) {
         // manually fire the handler instantly, even before the event trickles through
-        handlerScrolled({}, target.left, target.top);
+        handlerScrolled({}, target.scrollLeft, target.scrollTop);
       }
     }
     // localContext is resolved by handlerScrolled
     return localContext.deferred;
+  };
+
+  /**
+   * animate scroll to new position, or pop if fullscreen
+   * @param  {object} target {...} multiple properties to animate
+   * @param  {int} animate duration of animation, or zero to pop
+   */
+  var fireScrollBuffered = function(target, animate) {
+    // for some reason can't cache this selector
+    $('html, body').finish().animate(target, animate);
   };
 
   /**
@@ -3064,15 +3102,16 @@ window.sfun = (function($, undefined) {
 
         // page-wise navigation
         case exp.KEY_PAGE_UP:
-          if (!event.ctrlKey) {
-            event.preventDefault();
-            return imageAdvanceBy(-1 * getCountMajor() * getBreadth(), eventContext);
-          }
-          break;
         case exp.KEY_PAGE_DOWN:
           if (!event.ctrlKey) {
             event.preventDefault();
-            return imageAdvanceBy(1 * getCountMajor() * getBreadth(), eventContext);
+            var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
+            // apply position change as relative offset
+            if (getDirection() == 'x') {
+              return envisionPos( {'scrollLeft': pagedir * getViewportWidth() }, eventContext, true);
+            } else {
+              return envisionPos( {'scrollTop': pagedir * getViewportHeight() }, eventContext, true);
+            }
           }
           break;
         case exp.KEY_HOME:
@@ -3120,7 +3159,7 @@ window.sfun = (function($, undefined) {
           return fireHashUpdate( { 'direction': 'y' }, false, eventContext);
       }
     });
-  }
+  };
 
   /**
    * process events generated by mouse wheel scrolling
@@ -3147,31 +3186,22 @@ window.sfun = (function($, undefined) {
       var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
       var next_ref = (current_ref + advance_by) % visTableMajor.getSize();
       next_pos = visTableMajor.key(next_ref);
-      manageScroll = true;
+      var target = {};
+      target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
+      fireScrollBuffered(target, (breadth == 1 ? 0 : 100));
     } else {
       // if not snapping to images
       if (direction == 'x') {
         // use both axes to scroll along X
         next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
-        manageScroll = true;
+        fireScrollBuffered( { 'scrollLeft': next_pos }, (breadth == 1 ? 0 : 100));
       }
-    }
-    // if we're going to manually handle this scroll
-    if (manageScroll) {
-      // don't allow the browser to scroll itself
-      event.preventDefault();
-      // setup animation target parameters
-      var animation_target = {};
-      // apply to correct axis
-      animation_target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
-      // do animation, or pop if fullscreen; for some reason can't cache selector
-      $('html, body').finish().animate(animation_target, (breadth == 1 ? 0 : 100));
     }
     // optional debugging
     if (debug && true) {
       console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
-  }
+  };
 
   // ------------------
   // FUNCTIONS: helpers
@@ -3551,7 +3581,7 @@ window.sfun = (function($, undefined) {
 
     /**
      * fire scroll update
-     * @param {object} pos  {left, top} new scroll coordinate
+     * @param {object} pos  {scrollLeft, scrollTop} new scroll coordinate
      * @param {boolean} numb true to numb listener
      * @return {object} jQuery deferred
      */

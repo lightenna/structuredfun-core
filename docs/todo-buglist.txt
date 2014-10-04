@@ -1,8 +1,6 @@
 
-* page up/down needs to be based on viewport pages
-  + can't rely on jumping a certain number of images forward/back
-    + because they could be really narrow/fat
-    + flow makes images different widths
+* make page up/down animate like mouseWheel
+  + stop it animating if fullscreen
 
 * dots (.) in directory names, like mq
 
@@ -2909,4 +2907,13 @@ http://stackoverflow.com/questions/16811716/height100-not-working-in-internet-ex
     + I can start managing the 'but I only get 1 shot' misbelief
 
 * gzip'ing image content
+
+* page up/down needs to be based on viewport pages
+  + can't rely on jumping a certain number of images forward/back
+    + because they could be really narrow/fat
+    + flow makes images different widths
+  + event getting stuck
+    + suspect it's the NaN on the minor axis
+  + test with flow
+  = works
 
