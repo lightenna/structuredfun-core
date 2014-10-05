@@ -108,7 +108,10 @@ class FileReader {
     else {
       // if there's no leaf
       if ($this->file_part_leaf === null) {
-        // check the file part is a directory
+        // check the whole file part is a directory
+        return is_dir($this->file_part);
+      } else {
+        // if there is a leaf, it's still possible that it's a directory
         return is_dir($this->file_part);
       }
       return false;

@@ -1,15 +1,18 @@
 
-* make page up/down animate like mouseWheel
-  + stop it animating if fullscreen
-
-* dots (.) in directory names, like mq
-
 * Safari mobile loading all images on refresh
   + all images flagged as vispart
     + which I think is why they're getting loaded
     - not consistent
 
+* clicking between folders
+  + should preserve some hashbang state
+    + direction/breadth
+    - not seq
+
 --- first launch: it's not a big deal ---
+
+* bug: performSubstitution test [1] selects first image [i1]
+  + instead of first general file
 
 * feature: separate flow-x name from grid resolution
   + read cell size using some kind of gutterball (gridball)
@@ -2919,4 +2922,22 @@ http://stackoverflow.com/questions/16811716/height100-not-working-in-internet-ex
   + catch ontouchstart
     + set imagesnap to false
   + detect mac, guess-work but a reasonable starting point
+
+* preventDefault on downward scroll with imagesnap
+
+* make page up/down animate like mouseWheel
+  + stop page up/down animating if fullscreen
+    + all the other fullscreen ops just pop
+
+* angle brackets [ ] in directory names
+    + because we use them for escaping substitutes
+
+* bad image spoils directory
+  + does need to be robust
+    + just found a second occurence of a bad image
+  + this is because we wait for all the thumbnails to load (collectively)
+    + before triggering load of hires
+
+* dots (.) in directory names, like mq
+  + works fine in pulling out images for folder thumbnail
 
