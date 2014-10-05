@@ -60,7 +60,7 @@ window.sfun = (function($, undefined) {
   // ---------
 
   // debugging state
-  var debug = true;
+  var debug = false;
   // default values for view state
   var state_default = [];
   // the previous values for the view state (1 generation)
@@ -780,6 +780,7 @@ window.sfun = (function($, undefined) {
       defs.push(principalDeferred);
       // update loaded resolution
       var im = new Image();
+      // use load handler to read image size
       im.onload = function() {
         $loadable.data('loaded-width', im.width);
         $loadable.data('loaded-height', im.height);
@@ -796,6 +797,15 @@ window.sfun = (function($, undefined) {
           console.log('image-'+$ent.data('seq')+': loaded resolution updated ['+$loadable.data('loaded-width')+','+$loadable.data('loaded-height')+']');
         }
         // notify promise of resolution
+        principalDeferred.resolve();
+      }
+      // if for any reason the image can't be loaded
+      im.onerror = function() {
+        // strip loadable property
+        $loadable.removeClass('loadable');
+        // swap the source out for the error image
+        $loadable.attr('src', getErrorImagePath());
+        // resolve the deferred; don't block
         principalDeferred.resolve();
       }
       // if the src attribute is undefined, set it
@@ -1016,6 +1026,14 @@ window.sfun = (function($, undefined) {
     }
   };
 
+  /** 
+   * @todo probably need to find a way to make this overwriteable for js lib clients
+   * @return string path to error image
+   */
+  var getErrorImagePath = function() {
+    return '/chrome/images/fullres/missing_image.jpg';
+  }
+
   // ------------------
   // FUNCTIONS: setters
   //   all called downstream of events
@@ -1198,7 +1216,7 @@ window.sfun = (function($, undefined) {
     }    
     // scroll to the target position
     // animate if we're using a relative offset
-    return fireScrollUpdate(target, eventContext, (relativeTarget ? 100 : 0));
+    return fireScrollUpdate(target, eventContext, (typeof(eventContext.animate) != 'undefined' ? eventContext.animate : 0));
   };
 
   /**
@@ -1361,7 +1379,7 @@ window.sfun = (function($, undefined) {
    */
   var calcVisnear = function(first_np1, last_0) {
     var cellcount = getTotalEntries();
-    var reach = getBreadth() * exp.breadthMULTIPLIER;
+    var reach = getBreadth() * exp.visnearBreadthMULTIPLIER;
     var range = {};
     // compute those near the last visible
     range.last_1 = last_0 + 1;
@@ -3119,8 +3137,13 @@ window.sfun = (function($, undefined) {
         case exp.KEY_PAGE_DOWN:
           if (!event.ctrlKey) {
             event.preventDefault();
-            var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
+            // animate if not fullscreen
+            var breadth = getBreadth();
+            if (breadth != 1) {
+              eventContext.animate = exp.implicitScrollDURATION;
+            }
             // apply position change as relative offset
+            var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
             if (getDirection() == 'x') {
               return envisionPos( {'scrollLeft': pagedir * getViewportWidth() }, eventContext, true);
             } else {
@@ -3200,13 +3223,15 @@ window.sfun = (function($, undefined) {
       next_pos = visTableMajor.key(next_ref);
       var target = {};
       target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
-      fireScrollBuffered(target, (breadth == 1 ? 0 : 100));
+      fireScrollBuffered(target, (breadth == 1 ? 0 : exp.implicitScrollDURATION));
+      event.preventDefault();
     } else {
       // if not snapping to images
       if (direction == 'x') {
         // use both axes to scroll along X
         next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
-        fireScrollBuffered( { 'scrollLeft': next_pos }, (breadth == 1 || likely_fluidScroll ? 0 : 100));
+        fireScrollBuffered( { 'scrollLeft': next_pos }, (breadth == 1 || likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
+        event.preventDefault();
       }
     }
     // optional debugging
@@ -3397,9 +3422,8 @@ window.sfun = (function($, undefined) {
     'KEY_UNDERSCORE': 173,// firefox
 
     stringHASHBANG: '#!',
-    pullImgSrcTHRESHOLD: 20,
-    scrollMULTIPLIER: 12,
-    breadthMULTIPLIER: 4,
+    visnearBreadthMULTIPLIER: 4,
+    implicitScrollDURATION: 100,
     compareGTE: 1,
     compareLTE: -1,
 
