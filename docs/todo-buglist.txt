@@ -1,12 +1,8 @@
 
-* Safari mobile loading all images on refresh
-  + all images flagged as vispart
-    + which I think is why they're getting loaded
-    - not consistent
-
 --- first launch: it's not a big deal ---
 
 * package instructions
+  + disable debug in javascript
   + do a clean clone of git repo
   + clean unnecessary files
     + clean zips
@@ -2999,4 +2995,10 @@ let's do it on a filename level
     + that looks exactly like its thumbnail
   + hmm, could make the thumbnail views also 4x4
     + no point, they're small already
+
+* Safari mobile loading all images on refresh
+  + all images flagged as vispart
+    + which I think is why they're getting loaded
+    - not consistent
+  = not frequently occuring enough to block release
 
