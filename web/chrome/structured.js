@@ -138,6 +138,7 @@ window.sfun = (function($, undefined) {
         bindToHeaderLinks();
         bindToHotKeys();
         bindToImageLinks();
+        bindToDirectoryLinks();
         // if we're sideways scrolling, bind to scroll event
         setDirection(getDirection());
         // execute queue of API calls
@@ -755,6 +756,19 @@ window.sfun = (function($, undefined) {
       imageToggleFullscreen(seq);
       event.preventDefault();
     });
+  };
+
+  /**
+   * if a directory is clicked, append current visual state to new URL
+   */
+  var bindToDirectoryLinks = function() {
+    var that = this;
+    $sfun.on('click', '.selectablecell a.directory-container', function(event) {
+      var url = urlDirectoryWithState($(this).attr('href'));
+      event.preventDefault();
+      // manually jump to new URL
+      urlGoto(url);
+    });    
   };
 
   // ------------------
@@ -1591,6 +1605,14 @@ window.sfun = (function($, undefined) {
     window.location.href = newUrl;
   };
 
+  /**
+   * @return {string} URL of this directory with preserved hash state
+   */
+  var urlDirectoryWithState = function(newUrl) {
+    var filteredHash = hashGetPreserved();
+    return newUrl + exp.stringHASHBANG + filteredHash;
+  };
+
   // ---------------
   // FUNCTIONS: hash
   // ---------------
@@ -1684,6 +1706,26 @@ window.sfun = (function($, undefined) {
     // true if we haven't deleted/fixed anything
     return (deleteCount == 0);
   };
+
+  /**
+   * get a hash for the bits of current visual state (with overrides) that we preserve between pages (directories)
+   * @param  {object} [options] optional options to overwrite current state
+   * @return {string} hash as string
+   */
+  var hashGetPreserved = function(options) {
+    var obj = hashParse(getHash());
+    // unset unpreserved state
+    if (typeof('obj.seq') != 'undefined') {
+      delete obj.seq;
+    }
+    if (options != undefined) {
+      // overwrite with options
+      merge(obj, options);
+    }
+    // convert to hash string
+    hash = hashGenerate(obj);
+    return hash;
+  }
 
   // --------------------------
   // LIBRARY: generic hashTable

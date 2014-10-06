@@ -4,13 +4,6 @@
     + which I think is why they're getting loaded
     - not consistent
 
-* clicking between folders
-  + should preserve some hashbang state
-    + direction/breadth
-    - not seq
-  + something really nice about loading a folder
-    + that looks exactly like its thumbnail
-
 --- first launch: it's not a big deal ---
 
 * package instructions
@@ -2997,4 +2990,13 @@ can't mess with url
   - because that's really the same 
   + convenient because everything else is downstream
 let's do it on a filename level
+
+* clicking between folders
+  + should preserve some hashbang state
+    + direction/breadth
+    - not seq
+  + something really nice about loading a folder
+    + that looks exactly like its thumbnail
+  + hmm, could make the thumbnail views also 4x4
+    + no point, they're small already
 
