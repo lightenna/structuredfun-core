@@ -8,8 +8,21 @@
   + should preserve some hashbang state
     + direction/breadth
     - not seq
+  + something really nice about loading a folder
+    + that looks exactly like its thumbnail
 
 --- first launch: it's not a big deal ---
+
+* package instructions
+  + do a clean clone of git repo
+  + clean unnecessary files
+    + clean zips
+    + clean .gitignore, .gitmodules
+    + clean .git
+    + clean LICENSE
+    + clean README.md
+  + package without a top-level dir
+  + expand and run test suites
 
 * bug: performSubstitution test [1] selects first image [i1]
   + instead of first general file
@@ -2940,4 +2953,48 @@ http://stackoverflow.com/questions/16811716/height100-not-working-in-internet-ex
 
 * dots (.) in directory names, like mq
   + works fine in pulling out images for folder thumbnail
+
+* test first package
+  = worked well!
+
+* next time we package
+  + revise instructions below
+  + check there's no extra shares
+  + check we don't need to actually clear down unnecessary files
+    + clear Apache logs
+    + clear Apache manual
+    + clear zips
+    + clear structured/htdocs/tests/data
+    + clear data
+
+* flush bug list
+  - there's useful stuff in there for searching
+
+* delete Apache2 manual from repo
+
+* delete data design
+Design thoughts while coding Structuredfun
+
+Process for pulling a thumbnail
+Get file metadata
+Derive cachekey
+Is file in cache?
+  Yes, return
+Is it video?
+  Is full res in cache
+    Yes, pass back to image_obj to subsample to thumbnail, return
+  Pull full res from video
+  Store in cache
+  Treat as image
+Is it image
+  Subsample
+  Return
+
+url substitution
+  comes up for shares
+  comes up for get nth image
+can't mess with url
+  - because that's really the same 
+  + convenient because everything else is downstream
+let's do it on a filename level
 
