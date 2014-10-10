@@ -189,7 +189,7 @@ class ImageviewController extends ViewController {
     }
     return $outputname;
   }
-  
+
   /**
    * Output an image with correct headers
    * @param string $imgdata Raw image data as a string

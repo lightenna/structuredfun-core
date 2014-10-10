@@ -60,7 +60,7 @@ window.sfun = (function($, undefined) {
   // ---------
 
   // debugging state
-  var debug = false;
+  var debug = true;
   // default values for view state
   var state_default = [];
   // the previous values for the view state (1 generation)
@@ -73,6 +73,9 @@ window.sfun = (function($, undefined) {
   var last_longest = null;
   // device detection
   var likely_fluidScroll = (navigator.platform.match(/(Mac|iPhone|iPod|iPad)/i)? true : false);
+  // maintain a rolling mean of image ratios (#sfun.data-ratio-mean)
+  var ratio_total = 0;
+  var ratio_count = 0;
 
   // move to state
   var imagesnap = true;
@@ -122,11 +125,19 @@ window.sfun = (function($, undefined) {
         $sfun_flow = $(container_selector+'.flow');
         $sfun_selectablecell = $(container_selector+' > .selectablecell');
         $sfun_selectablecell_first = $(container_selector+' > .selectablecell:first');
-        // render Mustache templates
+        // perform minimal operations on each cell
         $sfun_selectablecell.find('img').each(function() {
+          // render Mustache templates
           var template = $(this).data('template-src');
           if (template != undefined) {
             Mustache.parse(template);
+          }
+          // @todo could strip this out and calc in HTML
+          // include ratios if available in mean
+          var ratio = $(this).data('ratio');
+          if (ratio != undefined) {
+            ratio_total += ratio;
+            ratio_count += 1;
           }
         });
         // process state in page HTML next
@@ -354,6 +365,13 @@ window.sfun = (function($, undefined) {
         $metric.removeClass('sub').addClass('super');          
       }
     }
+    // finally refresh the position of the metric
+    refreshMetricPosition($ent);
+    // 2s later, add the fade out class, which is almost instant because of mouseout
+    $ent.delay(1000).queue(function(next) {
+      $(this).addClass('reres-plus-2s');
+      next();
+    });
   };
 
   /**
@@ -364,9 +382,8 @@ window.sfun = (function($, undefined) {
     if ($metric.length) {
       var $image = $ent.cachedFind('.reresable');
       if ($image.length) {
-        var position = $image.offset();
-        // move the metric to the corner of the image using absolute coords
-        $metric.css( { 'top': position.top, 'left': position.left });
+        // move the metric to the corner of the image using coords relative to parent
+        $metric.css( { 'top': $image[0].offsetTop, 'left': $image[0].offsetLeft });
       }
     }
   };
@@ -795,32 +812,20 @@ window.sfun = (function($, undefined) {
       // update loaded resolution
       var im = new Image();
       // use load handler to read image size
-      im.onload = function() {
-        $loadable.data('loaded-width', im.width);
-        $loadable.data('loaded-height', im.height);
-        // never update the ratio, but set if unset
-        if ($loadable.data('ratio') == undefined) {
-          $loadable.data('ratio', im.width / im.height);
-        }
-        // if we've loaded the image for the first time, swap it in (fallback)
-        if ($loadable.attr('src') == undefined) {
-          $loadable.attr('src', im.src);
-        }
-        im = null;
-        if (debug && false) {
-          console.log('image-'+$ent.data('seq')+': loaded resolution updated ['+$loadable.data('loaded-width')+','+$loadable.data('loaded-height')+']');
-        }
-        // notify promise of resolution
-        principalDeferred.resolve();
-      }
+      im.onload = getImageWatcher(im, $loadable, principalDeferred);
       // if for any reason the image can't be loaded
       im.onerror = function() {
         // strip loadable property
         $loadable.removeClass('loadable');
+        // prime loadable to reload
+        $loadable.data('ratio', undefined);
+        $loadable.removeAttr('src');
+        // reset the image
+        eim = new Image();
+        eim.onload = getImageWatcher(eim, $loadable, principalDeferred);
         // swap the source out for the error image
-        $loadable.attr('src', getErrorImagePath());
-        // resolve the deferred; don't block
-        principalDeferred.resolve();
+        eim.src = getErrorImagePath();
+        // now wait for onload event on error image to resolve deferred
       }
       // if the src attribute is undefined, set it
       if ($loadable.attr('src') == undefined) {
@@ -842,6 +847,30 @@ window.sfun = (function($, undefined) {
     $.when.apply($, defs).done(wrapUp);
     return deferred;
   };
+
+  /**
+   * @return {function} an onload function for this image
+   */
+  var getImageWatcher = function(im, $loadable, deferred) {
+    return function() {
+      $loadable.data('loaded-width', im.width);
+      $loadable.data('loaded-height', im.height);
+      // never update the ratio, but set if unset
+      setRatioIfUnset($loadable, im.width / im.height);
+      // if we've loaded the image for the first time, swap it in (fallback)
+      if ($loadable.attr('src') == undefined) {
+        $loadable.attr('src', im.src);
+      }
+      im = null;
+      if (debug && false) {
+        console.log('image-'+$loadable.parent('.cell').data('seq')+': loaded resolution updated ['+$loadable.data('loaded-width')+','+$loadable.data('loaded-height')+']');
+      }
+      if (deferred != undefined) {
+        // notify promise of resolution
+        deferred.resolve();        
+      }
+    }
+  }
 
   /**
    * Get the real flow direction, not just what the class says because the browser might not support all directions
@@ -1079,7 +1108,33 @@ window.sfun = (function($, undefined) {
       $sfun_flow.removeClass('flow-'+i);
     }
     $sfun_flow.addClass('flow-' + breadth);
+    // return whether we actually changed it or not
     return changed;
+  };
+
+  /**
+   * use rolling image mean and viewport dimensions to calculate optimal number of cells on major axis
+   */
+  var refreshDynamicMajors = function(breadth, direction) {
+    var ratio_mean = ratio_total / ratio_count;
+    if (ratio_total == 0) {
+      ratio_mean = 1.5;
+    }
+    // set to DOM
+    $sfun.data('ratio-mean', ratio_mean);
+    // tell DOM that we're going to be setting up dynamic major axis cell widths
+    $sfun.addClass('flow-dynamic-major');
+    // get viewport ratio
+    var viewport_ratio = getViewportWidth() / getViewportHeight();
+    // calculate number of cells to show on the major axis (at least 1)
+    var cell_count = Math.max(1, viewport_ratio * breadth / ratio_mean);
+    var cell_perc = 100 / cell_count;
+    // optional debugging
+    if (debug && true) {
+      console.log('ratio_mean['+ratio_mean+'] viewport_ratio['+viewport_ratio+'] cell_count['+cell_count+']');
+    }
+    // overwrite existing CSS selector
+    createCSSSelector('.sfun.flow-pc.flow-dynamic-major > .cell', (direction == 'x' ? 'width' : 'height') + ': calc(' + cell_perc + '% - 8px);');
   };
 
   /**
@@ -1143,6 +1198,22 @@ window.sfun = (function($, undefined) {
         setBound($(this), false);
       });
     }
+  }
+
+  /**
+   * @param {object} $loadable jQuery image to set ratio for
+   * @param {float} ratio
+   * @return {boolean} true if the ratio was updated
+   */
+  var setRatioIfUnset = function($loadable, ratio) {
+    if ($loadable.data('ratio') == undefined) {
+      $loadable.data('ratio', ratio);
+      // increment the rolling mean
+      ratio_total += ratio;
+      ratio_count += 1;
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -1479,9 +1550,7 @@ window.sfun = (function($, undefined) {
         $reresable.data('loaded-width', this.width);
         $reresable.data('loaded-height', this.height);
         // never update the ratio, but set if unset
-        if ($reresable.data('ratio') == undefined) {
-          $reresable.data('ratio', this.width / this.height);
-        }
+        setRatioIfUnset($reresable, this.width / this.height);
         // notify promise of resolution
         deferred.resolve();
         // process async actions
@@ -2493,7 +2562,7 @@ window.sfun = (function($, undefined) {
             console.log('- pulled event context[' + this.render(obj) + '], q'+this.getSize());
           }
         } else {
-          if (debug && true) {
+          if (debug && false) {
             console.log('o unfilled get request for key[' + key + ']');
           }
         }
@@ -2595,7 +2664,7 @@ window.sfun = (function($, undefined) {
           // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
           eventContext.replaceEvent = null;
           // optional debugging message
-          if (debug && true) {
+          if (debug && false) {
             console.log('replaceEvent used in place for '+this.render(eventContext)+', critical section left unchanged ('+this.render(this.critical_section)+')');
           }
           // call func with outer class context, then wrap up
@@ -2792,7 +2861,7 @@ window.sfun = (function($, undefined) {
         if (obj != null) {
           // remove this object from the eventQueue
           var ref = this.removeObj(obj);
-          if (debug && true) {
+          if (debug && false) {
             console.log('Q resolve event context[' + this.render(obj) + '], qlen now '+this.getSize());
           }
           // resolve its deferred if set
@@ -2822,7 +2891,7 @@ window.sfun = (function($, undefined) {
         }
         // if we've resolved all the parent's deps
         if (parentContext.deps.length == 0) {
-          if (debug && true) {
+          if (debug && false) {
             console.log('U processing next/parent context[' + this.render(obj.parent) + '], following resolution of context[' + this.render(obj) + ']');
           }
           // process parent
@@ -3052,6 +3121,7 @@ window.sfun = (function($, undefined) {
     var offseqChanged = setOffseq(obj.offseq);
     // updates based on certain types of change
     if (breadthChanged || directionChanged || forceChange) {
+      refreshDynamicMajors(getBreadth(), getDirection());
       // clear cell-specific dimensions and read back positions
       cellsClear();
       visTableMajor.updateAll(getDirection(), $sfun_selectablecell);
@@ -3393,6 +3463,82 @@ window.sfun = (function($, undefined) {
    */
   var getFilteredHash = function() {
     return getHash();
+  }
+
+  /**
+   * create a CSS class dynamically
+   * http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-in-javascript-and-apply
+   * @param  {string} selector e.g. '.classname'
+   * @param  {string} style
+   */
+  var createCSSSelector = function(selector, style) {
+    if(!document.styleSheets) {
+      return null;
+    }
+
+    if(document.getElementsByTagName("head").length == 0) {
+      return null;
+    }
+
+    var stylesheet;
+    var mediaType;
+    if (document.styleSheets.length > 0) {
+      for (var i = 0; i < document.styleSheets.length; i++) {
+        if (document.styleSheets[i].disabled) {
+          continue;
+        }
+        var media = document.styleSheets[i].media;
+        mediaType = typeof media;
+
+        if (mediaType == "string") {
+          if (media == "" || (media.indexOf("screen") != -1)) {
+            styleSheet = document.styleSheets[i];
+          }
+        } else
+        if (mediaType == "object") {
+          if (media.mediaText == "" || (media.mediaText.indexOf("screen") != -1)) {
+            styleSheet = document.styleSheets[i];
+          }
+        }
+
+        if (typeof styleSheet != "undefined") {
+          break;
+        }
+      }
+    }
+
+    if (typeof styleSheet == "undefined") {
+      var styleSheetElement = document.createElement("style");
+      styleSheetElement.type = "text/css";
+      document.getElementsByTagName("head")[0].appendChild(styleSheetElement);
+      for (var i = 0; i < document.styleSheets.length; i++) {
+        if (document.styleSheets[i].disabled) {
+          continue;
+        }
+        styleSheet = document.styleSheets[i];
+      }
+      var media = styleSheet.media;
+      mediaType = typeof media;
+    }
+
+    if (mediaType == "string") {
+      for (var i = 0; i < styleSheet.rules.length; i++) {
+        if (styleSheet.rules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+          styleSheet.rules[i].style.cssText = style;
+          return;
+        }
+      }
+      styleSheet.addRule(selector, style);
+    } else
+    if (mediaType == "object") {
+      for (var i = 0; i < styleSheet.cssRules.length; i++) {
+        if (styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase()) {
+          styleSheet.cssRules[i].style.cssText = style;
+          return;
+        }
+      }
+      styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length);
+    }
   }
 
   // ---------------------

@@ -1,23 +1,23 @@
 
---- first launch: it's not a big deal ---
+* feature: separate flow-x name from grid resolution
+  + read cell size using some kind of gutterball (gridball)
 
-* package instructions
-  + disable debug in javascript
-  + do a clean clone of git repo
-  + clean unnecessary files
-    + clean zips
-    + clean .gitignore, .gitmodules
-    + clean .git
-    + clean LICENSE
-    + clean README.md
-  + package without a top-level dir
-  + expand and run test suites
+* work on metadata display
+  + MVP to display wikimedia images online
+
+* basic demo with Wikimedia images
+
+* basic website
+
+* bug: massive image sets
+  + takes too long to prep the HTML
+    + seems to be a zip problem
+      + large image sets in folders are fine
 
 * bug: performSubstitution test [1] selects first image [i1]
   + instead of first general file
 
-* feature: separate flow-x name from grid resolution
-  + read cell size using some kind of gutterball (gridball)
+* feature: directory expansion
 
 * bug: prevent flash of unbound image
   + shows up in Firefox/bug because ultra-wide window
@@ -40,6 +40,9 @@
 * bug: directory thumbnails need to load bounded
   + partial flash looks weird
     = easiest to debug on a PC with larger image sets
+
+* bug: large zip folders are slow to show
+  + I suspect we're re-opening the zip for every image
 
 * optimisation: take PHP out of the loop for cached images
   + this potentially reduces thumbnail loads from 100ms to 10ms
@@ -3001,4 +3004,66 @@ let's do it on a filename level
     + which I think is why they're getting loaded
     - not consistent
   = not frequently occuring enough to block release
+
+* package instructions
+  + disable debug in javascript
+  + check opcache refresh is at 60s, not 2s for debugging
+  + do a clean clone of git repo
+    + or update packaging-only repo
+  + copy folder
+  + clean unnecessary files
+    + clean zips
+    + clean .gitignore, .gitmodules
+    + clean .git
+    + clean LICENSE
+    + clean README.md
+  + package (zip) without a top-level dir
+  + expand and run test suites
+
+--- first launch: it's not a big deal ---
+
+* setup basic demo folder locally
+  + fill with Wikimedia images
+
+* bug: error image in folder thumbnails
+  + falling outside of the bounds of the folder
+    + it's a missing y-bound on the image thumbnail
+      + perhaps because the dimensions of the error image
+      + don't match the error image
+    + when substituting the error image need to reload width and height
+
+* bug: fix missing images in wikimedia folder
+  + seems to be caused by non-standard characters in filenames
+    + if the name contains illegal characters
+    + can refer to it by its place in the directory
+      + because PHP will still open it
+
+* bug: crazy ????-??? image in Russian
+  + start by printing character codes
+  + too difficult to solve
+    + I think just ignore the problem for now
+    + flagged with a @todo
+
+* feature: imgmetric needs to line up with the corner of the image
+  + and fade out
+  + and show on hover
+
+* feature: maintain mean ratio in js as we load images
+
+* create an additional flow-X class using createCSSSelector
+http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-in-javascript-and-apply
+  + use it to tweak the major axis cell size
+  + not sure if we want a different class for each flow?
+    + could just stick it was width in .flow-pc > .cell
+      + and update each time setBreadth called
+  + class should be self contained because createCSSSelector overwrites all its CSS
+    + &.flow-dynamic-major > .cell
+  + probably do want to guess at ratio when rendering html
+    + can simply pull ratio in init() where it's available
+
+* bug: need to make new flow-pc work vertical
+  + changing either
+    + breadth
+    + direction
+  + needs to refresh it
 
