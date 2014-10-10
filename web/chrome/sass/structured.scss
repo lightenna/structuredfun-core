@@ -69,6 +69,10 @@
       @include calc(height, (100% / 8)+" - "+($alley));
     }
 
+    // empty placeholder for js-inserted (dynamic) major axis cell widths
+    &.flow-dynamic-major > .cell {
+    }
+
     /**
      * This section is not used, but kept for reference only
      *
@@ -176,6 +180,7 @@
             background-color: #990000;        
             color: #FFBBBB;
           }
+
         } // imgmetric
 
         // metadata over bottom of image/cell
@@ -222,11 +227,21 @@
           }
         } // meta
 
-        &:hover .meta {
-          // show on hover
-          opacity: 1;
-          // animation for appearance
-          transition: opacity 0.3s ease-in 0s;
+        // when a user hovers over a cell
+        &:hover {
+          .meta {
+            // show on hover
+            opacity: 1;
+            // animation for appearance
+            transition: opacity 0.3s ease-in 0s;
+          }
+
+          .imgmetric {
+            // show on hover
+            opacity: 1;
+            // animation for appearance
+            transition: opacity 0.3s ease-in 0s;
+          }
         }
 
       } // a
@@ -285,6 +300,14 @@
       // but not if it's in the process of reresing
       &.reresing .imgmetric {
         display: none;
+      }
+
+      // 2s after reres completes, add this class to cell
+      &.reres-plus-2s {
+        .imgmetric {
+          opacity: 0;
+          transition: opacity 0.3s ease-out 0s;
+        }
       }
 
     } // .cell

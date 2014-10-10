@@ -164,7 +164,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(12.5% - 8px);
   height: calc(12.5% - 8px);
 }
-/* line 101, ../sass/structured.scss */
+/* line 105, ../sass/structured.scss */
 .sfun.flow-pc > .cell {
   text-align: center;
   overflow: hidden;
@@ -172,22 +172,22 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: -moz-calc(4px);
   margin: calc(4px);
 }
-/* line 114, ../sass/structured.scss */
+/* line 118, ../sass/structured.scss */
 .sfun.flow-pc > .cell .selectreflector {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   border: 1px solid;
 }
-/* line 123, ../sass/structured.scss */
+/* line 127, ../sass/structured.scss */
 .sfun.flow-pc > .cell .media-container .selectreflector {
   border-color: white;
 }
-/* line 127, ../sass/structured.scss */
-.sfun.flow-pc > .cell.selected .selectreflector {
-  border-color: magenta;
-}
 /* line 131, ../sass/structured.scss */
+.sfun.flow-pc > .cell.selected .selectreflector {
+  border-color: gray;
+}
+/* line 135, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container {
   position: relative;
   display: block;
@@ -199,7 +199,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: -moz-calc(0px);
   margin: calc(0px);
 }
-/* line 144, ../sass/structured.scss */
+/* line 148, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container img.x-bound {
   position: relative;
   width: 100%;
@@ -208,11 +208,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 154, ../sass/structured.scss */
+/* line 158, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container img.y-bound {
   height: 100%;
 }
-/* line 158, ../sass/structured.scss */
+/* line 162, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric {
   line-height: 1.0em;
   position: absolute;
@@ -221,21 +221,21 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   white-space: nowrap;
   display: none;
 }
-/* line 166, ../sass/structured.scss */
+/* line 170, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric .size, .sfun.flow-pc > .cell .container .imgmetric .perc {
   display: none;
 }
-/* line 170, ../sass/structured.scss */
+/* line 174, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric.super {
   background-color: #009900;
   color: #BBFFBB;
 }
-/* line 175, ../sass/structured.scss */
+/* line 179, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric.sub {
   background-color: #990000;
   color: #FFBBBB;
 }
-/* line 182, ../sass/structured.scss */
+/* line 187, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta {
   display: block;
   position: absolute;
@@ -251,34 +251,39 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
-/* line 201, ../sass/structured.scss */
+/* line 206, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base {
   position: absolute;
   bottom: 0;
 }
-/* line 206, ../sass/structured.scss */
+/* line 211, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span {
   margin: 1.0em;
   display: block;
 }
-/* line 210, ../sass/structured.scss */
+/* line 215, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.icons {
   height: 2.0em;
 }
-/* line 214, ../sass/structured.scss */
+/* line 219, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.caption {
   font-weight: bold;
 }
-/* line 218, ../sass/structured.scss */
+/* line 223, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.byline {
   margin-top: .5em;
 }
-/* line 225, ../sass/structured.scss */
+/* line 232, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 235, ../sass/structured.scss */
+/* line 239, ../sass/structured.scss */
+.sfun.flow-pc > .cell .container:hover .imgmetric {
+  opacity: 1;
+  transition: opacity 0.3s ease-in 0s;
+}
+/* line 250, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory {
   border: 1px solid #dddddd;
   border-radius: 16px;
@@ -287,7 +292,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: 100%;
   position: relative;
 }
-/* line 243, ../sass/structured.scss */
+/* line 258, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory .overlay {
   width: 100%;
   height: 100%;
@@ -296,7 +301,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   top: 0;
   z-index: 1;
 }
-/* line 256, ../sass/structured.scss */
+/* line 271, ../sass/structured.scss */
 .sfun.flow-pc > .cell .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -311,7 +316,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 271, ../sass/structured.scss */
+/* line 286, ../sass/structured.scss */
 .sfun.flow-pc > .cell .subcell {
   width: 50%;
   height: 50%;
@@ -325,16 +330,21 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(50% - 8px);
   height: calc(50% - 8px);
 }
-/* line 282, ../sass/structured.scss */
+/* line 297, ../sass/structured.scss */
 .sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
   display: block;
 }
-/* line 286, ../sass/structured.scss */
+/* line 301, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reresing .imgmetric {
   display: none;
 }
+/* line 307, ../sass/structured.scss */
+.sfun.flow-pc > .cell.reres-plus-2s .imgmetric {
+  opacity: 0;
+  transition: opacity 0.3s ease-out 0s;
+}
 
-/* line 300, ../sass/structured.scss */
+/* line 323, ../sass/structured.scss */
 .js .sfun .cell.resizepending {
   visibility: hidden;
 }

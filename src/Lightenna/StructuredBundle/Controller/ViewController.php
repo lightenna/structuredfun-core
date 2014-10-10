@@ -273,6 +273,9 @@ class ViewController extends Controller {
    */
 
   public function convertRawToFilename($name) {
+    // convert utf8 to iso-8859-1
+    $name = iconv( "utf-8", "iso-8859-1//ignore", $name );
+    // strip trailing slash
     $name = rtrim($name, DIR_SEPARATOR);
     // return composite path to real root (back up out of symfony)
     $filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 3);

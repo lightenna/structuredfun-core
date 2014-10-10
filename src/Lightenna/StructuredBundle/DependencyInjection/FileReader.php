@@ -199,9 +199,18 @@ class FileReader {
         unset($listing[$k]);
         continue;
       }
+      // convert from ISO-8859-1 to UTF8 (php 5 can't cope with illegal chars)
+      $v_utf8 = iconv( "iso-8859-1", "utf-8", $v );
+      // hunt for tell-tale 'PHP just gave up' signs
+      if (strpos($v_utf8,'?') !== false) {
+        // @todo don't fail silently, log an error
+        // var_dump($this->file_part_path.'/'.$v);
+        // var_dump(file_exists($this->file_part_path.'/'.$v));
+        // exit;
+      }
       // create an object (stdClass is outside of namespace)
       $obj = new \stdClass();
-      $obj->{'name'} = rtrim($v, '/');
+      $obj->{'name'} = rtrim($v_utf8, '/');
       $obj->{'alias'} = $obj->{'name'};
       // if listing just a file
       if ($this->file_part_leaf !== null) {
@@ -224,13 +233,13 @@ class FileReader {
       $obj->{'hidden'} = false;
       if ($this->inZip()) {
         // crude test for zip folders (trailing slash)
-        if (substr($v, -1) == '/') {
+        if (substr($v_utf8, -1) == '/') {
           $obj->{'type'} = 'directory';
         }
       }
       else {
         // test using filesystem
-        if (is_dir($this->file_part . DIR_SEPARATOR . $v)) {
+        if (is_dir($this->file_part . DIR_SEPARATOR . $v_utf8)) {
           $obj->{'type'} = 'directory';
         }
       }
@@ -268,7 +277,7 @@ class FileReader {
       return $imgdata;
     }
     else {
-      return file_get_contents($this->file_part);
+      return @file_get_contents($this->file_part);
     }
   }
 
@@ -429,24 +438,11 @@ class FileReader {
     $mp = $mdata[0] * $mdata[1];
     // get memory limit (MB)
     $mlim = intval(ini_get('memory_limit'));
-    if ($mlim <= 128) {
-      // 24MP cut-off
-      if ($mp > 24 * 1000 * 1000) {
-        return false;
-      }
-    }
-    else if ($mlim <= 256) {
-      // 50MP cut-off
-      if ($mp > 50 * 1000 * 1000) {
-        return false;
-      }
-
-    }
-    else if ($mlim <= 512) {
-      // 100MP cut-off
-      if ($mp > 100 * 1000 * 1000) {
-        return false;
-      }
+    // cut-offs: 128MB is about 24MP, 256 about 49MP, 512 about 100MP
+    // absolute limit is about 0.194
+    $cutoff = 0.19 * $mlim * 1000 * 1000;
+    if ($mp > $cutoff) {
+      return false;
     }
     return true;
   }
