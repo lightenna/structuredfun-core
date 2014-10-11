@@ -1,5 +1,4 @@
 
-
 * need some kind of cell tile colouring
   + crucial to explain why the borders all look so different
     + otherwise the alignment just feel sketchy
