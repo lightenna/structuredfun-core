@@ -1,4 +1,5 @@
 
+
 * need some kind of cell tile colouring
   + crucial to explain why the borders all look so different
     + otherwise the alignment just feel sketchy
@@ -3114,6 +3115,16 @@ http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-i
   + only place seems to be the test suite
     + vis non-vis simple assumes the first image to display will be seq8
 
+* turn requirements.txt into INSTALL.md
+  + use that file to document issues
+
+* work out SELinux steps and document in INSTALL.md
+  + it's probably an semanage to httpd_sys_content_t && restorecon
+
+* test write permission nicely
+  + fail with a decent error
+Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-linux/structured/htdocs/src/Lightenna/StructuredBundle/DependencyInjection/CachedMetadataFileReader.php on line 30
+
 * bug: flow-pc changing
   + changing either
     + breadth
@@ -3171,4 +3182,3 @@ http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-i
 
 * centring in vertical mode
   + click image to make it go fullscreen
-
