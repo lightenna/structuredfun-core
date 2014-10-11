@@ -15,6 +15,7 @@ chmod -R g+w structured/mediacache
 setenforce 0
 
 * work out SELinux steps and document in INSTALL.md
+  + it's probably an semanage to httpd_rw_t && refresh
 
 * test write permission nicely
   + fail with a decent error
