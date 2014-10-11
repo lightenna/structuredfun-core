@@ -150,6 +150,34 @@ html.no-js, html.disabled-js {
 }
 
 // ---------------------------------------------------------------------------
+// Fullscreen overlay effect
+
+$shape: circle farthest-corner;
+$colour_0: rgba(255,255,255,0);
+$colour_mid: rgba(0,0,0,0);
+$position_mid: 80%;
+$colour_100: rgba(0,0,0,0.45);
+
+html.flow-1 .overlay-holder {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  background-color: #ff0000;
+  top: 0;
+  left: 0;
+  pointer-events:none;
+
+background: -moz-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* FF3.6+ */
+background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,$colour_0), color-stop($position_mid,$colour_mid), color-stop(100%,$colour_100)); /* Chrome,Safari4+ */
+background: -webkit-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* Chrome10+,Safari5.1+ */
+background: -o-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* Opera 12+ */
+background: -ms-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* IE10+ */
+background: radial-gradient($shape at center, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+
+}
+
+// ---------------------------------------------------------------------------
 // Structured container
 
 .sfun {
