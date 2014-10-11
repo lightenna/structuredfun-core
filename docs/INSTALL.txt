@@ -1,0 +1,54 @@
+
+Windows install
+---------------
+
+1. Download and expand .zip into folder of images
+2. Run sfun.lnk shortcut to start server
+3. Browse to http://localhost:8097/ to see images
+
+The Windows package is entirely self-contained.  All the rest of the instructions in this file apply only to manual installs.
+
+
+
+Linux manual install
+--------------------
+
+1. Download or checkout structuredfun-linux
+2. Setup vhost, see example in structured/vhosts
+3. Create subdirectories and assign writeable permissions
+     mkdir -p structured/htdocs/app/cache/prod
+     chmod -R g+w structured/htdocs/app/cache
+     mkdir -p structured/htdocs/app/logs
+     chmod -R g+w structured/htdocs/app/logs
+     mkdir -p structured/mediacache
+     chmod -R g+w structured/mediacache
+3b.If using SELinux, set a read/write context onto the writeable directories
+     sudo semanage fcontext -a -t httpd_sys_content_t "structured/htdocs/app/cache(/.*)?"
+     sudo semanage fcontext -a -t httpd_sys_content_t "structured/htdocs/app/logs(/.*)?"
+     sudo semanage fcontext -a -t httpd_sys_content_t "structured/mediacache(/.*)?"
+     sudo restorecon -R -v structured/
+
+
+
+Errors and their meaning
+------------------------
+
+Fatal error: Uncaught exception 'RuntimeException' with message 'Unable to create the cache directory (/var/www/git/github.com/structuredfun-linux/structured/htdocs/app/cache/prod) ' in /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache:2500 Stack trace: #0 /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache(2461): Symfony\Component\HttpKernel\Kernel->buildContainer() #1 /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache(2241): Symfony\Component\HttpKernel\Kernel->initializeContainer() #2 /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache(2272): Symfony\Component\HttpKernel\Kernel->boot() #3 /var/www/git/github.com/structuredfun-linux/structured/htdocs/web/app.php(23): Symfony\Component\HttpKernel\Kernel->handle(Object(Symfony\Component\HttpFoundation\Request)) #4 {main} thrown in /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache on line 2500 
+
+This is Symfony complaining that it can't write to the app directory.  See 'Create subdirectories' above.
+
+
+
+Requirements for manual install
+-------------------------------
+
+PHP needs to have some modules enabled.
+
+extension=php_gd2.dll
+extension=php_mbstring.dll
+extension=php_openssl.dll
+
+PHP optionally needs a higher memory limit, depending on how large the images are.
+
+memory_limit = 384M
+
