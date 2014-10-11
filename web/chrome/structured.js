@@ -150,6 +150,7 @@ window.sfun = (function($, undefined) {
         bindToHotKeys();
         bindToImageLinks();
         bindToDirectoryLinks();
+        bindToHover();
         // if we're sideways scrolling, bind to scroll event
         setDirection(getDirection());
         // execute queue of API calls
@@ -181,14 +182,6 @@ window.sfun = (function($, undefined) {
   // ----------------
   // FUNCTIONS: cells
   // ----------------
-
-  /**
-   * @todo this currently assume that every cell is the same width on the major axis
-   * @return {float} number of cells along the major axis
-   */
-  var getCountMajor = function() {
-    return 4;
-  };
 
   /**
    * check that ratio is set for each of the images
@@ -788,6 +781,20 @@ window.sfun = (function($, undefined) {
     });    
   };
 
+  /**
+   * if a user hovers over an image, select it
+   */
+  var bindToHover = function() {
+    var that = this;
+    $sfun.on('mouseenter', '.selectablecell a.container', function(event) {
+      // be very careful with code in here as :hover is a very frequent event
+      var seq = $(this).parent().data('seq');
+      if (debug && true) {
+        console.log('hover over img-'+seq);
+      }
+    });
+  }
+
   // ------------------
   // FUNCTIONS: getters
   // ------------------
@@ -929,15 +936,38 @@ window.sfun = (function($, undefined) {
   }
 
   /**
-   * get cell size for first cell
    * @return {float} current size of cell along the major axis
    */
-  var getCellSize = function() {
+  var getCellMajor = function() {
     if (getDirection() == 'x') {
       return $sfun_selectablecell_first.width();
     } else {
       return $sfun_selectablecell_first.height();
     }
+  };
+
+  /**
+   * @param {int} round non-zero to round to the nearest whole cell
+   *   negative to round down, positive to round up
+   * @return {float} work out how many cells appear on the major axis
+   */
+  var getCellMajorCount = function(round) {
+    var cell_major = getCellMajor();
+    var major_len = (getDirection() == 'x' ? getViewportWidth() : getViewportHeight());
+    var cell_count = major_len / cell_major;
+    // assume don't round if unset
+    if (round == undefined) {
+      round = 0;
+    }
+    // negative to round down
+    if (round < 0) {
+      cell_count = Math.floor(cell_count);
+    }
+    // negative to round up
+    if (round > 0) {
+      cell_count = Math.ceil(cell_count);
+    }
+    return cell_count;
   };
 
   /**
@@ -3327,7 +3357,7 @@ window.sfun = (function($, undefined) {
     var next_pos, current_pos = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
     // active mousewheel reaction is dependent on which direction we're flowing in
     if (imagesnap) {
-      // calculate how many major axis cells
+      // calculate how many minor axis cells
       var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
       // find first spanning min boundary
       var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
@@ -3347,7 +3377,7 @@ window.sfun = (function($, undefined) {
       }
     }
     // optional debugging
-    if (debug && true) {
+    if (debug && false) {
       console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
   };
@@ -3731,10 +3761,12 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @param {int} round non-zero to round to the nearest whole cell
+     *   negative to round down, positive to round up
      * @return {float} number of cells on the major axis
      */
-    'api_getCountMajor': function() {
-      return getCountMajor();
+    'api_getCellMajorCount': function(round) {
+      return getCellMajorCount(round);
     },
 
     /**

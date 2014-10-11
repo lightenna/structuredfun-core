@@ -1,6 +1,17 @@
 
-* feature: separate flow-x name from grid resolution
-  + read cell size using some kind of gutterball (gridball)
+* look into reres last failing sometimes
+  + seems to always fail on wikimedia-gallery1
+
+* quick profile and optimise load
+  + we're doing a lot more now
+
+* dvb1 needs work
+  + it's making sensible decision
+    + but it really needs to try to show the images as big as possible
+  + in fact that's really true of all the vertical displays
+
+* could use hover to select an image
+  + makes sense to keep the seq updated
 
 * work on metadata display
   + MVP to display wikimedia images online
@@ -3060,10 +3071,29 @@ http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-i
     + &.flow-dynamic-major > .cell
   + probably do want to guess at ratio when rendering html
     + can simply pull ratio in init() where it's available
+  + there's a lot to 
 
 * bug: need to make new flow-pc work vertical
   + changing either
     + breadth
     + direction
   + needs to refresh it
+  + resize event is covered by the hashchanged(force)
+
+* imgmetric showing up middle-left on landscape images
+  + I'm going to call it a feature!
+
+* feature: separate flow-x name from grid resolution
+  + read cell size using some kind of gutterball (gridball)
+    + actually couldn't we just use a cell?
+      + if they're all the same size it shouldn't matter which
+      + getCellSize function is fine
+        + but will rename major
+  + struggling to remember the places where we use this
+    + page up and down
+      + nope
+    + wheel up and down
+      + nope
+  + only place seems to be the test suite
+    + vis non-vis simple assumes the first image to display will be seq8
 

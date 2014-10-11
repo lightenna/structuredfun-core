@@ -589,7 +589,7 @@
     });
 
     test( 'vis non-vis simple', function() {
-      var cellcount = sfun.api_getCountMajor() * sfun.api_getBreadth();
+      var cellcount = sfun.api_getCellMajorCount(+1) * sfun.api_getBreadth();
       window.location.hash = 'vis-non-vis-simple';
       var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
       // wait for keypress event to process
