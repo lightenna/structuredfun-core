@@ -27,7 +27,12 @@ class CachedMetadataFileReader extends MetadataFileReader {
     $this->cachedir = $this->controller->convertRawToInternalFilename($this->settings['mediacache']['path']);
     // create cache directory if it's not already present
     if (!is_dir($this->cachedir)) {
-      mkdir($this->cachedir);
+      @mkdir($this->cachedir);
+      if (!is_dir($this->cachedir)) {
+        // unable to create cache directory, throw nice error
+        print('Error: unable to create cache directory ('.$this->cachedir.')');
+        exit;
+      }
     }
     if (!$this->isDirectory()) {
       $this->stats->cachekey = null;
