@@ -1,17 +1,34 @@
 
-* look into reres last failing sometimes
+* need some kind of cell tile colouring
+  + crucial to explain why the borders all look so different
+    + otherwise the alignment just feel sketchy
+
+* move imgmetric to top-right
+  + make its text right aligning
+
+* profile: switching back and forth between fullscreen and tile view
+  + it's very sluggish on large image sets
+
+* debug nasty interaction between offseq and scroll
+  + we get into some game-ending recursion
+
+* think about offseq for page up/down
+  + think about offseq for wheel up/down
+
+* look into reres-last test failing sometimes
   + seems to always fail on wikimedia-gallery1
 
 * quick profile and optimise load
   + we're doing a lot more now
+    + nothing obvious from resize or scroll or init/reload
+      + it's the same old stuff
+      + lot of time spent idle (loading images)
+        + would do better to split the stages
 
 * dvb1 needs work
   + it's making sensible decision
     + but it really needs to try to show the images as big as possible
   + in fact that's really true of all the vertical displays
-
-* could use hover to select an image
-  + makes sense to keep the seq updated
 
 * work on metadata display
   + MVP to display wikimedia images online
@@ -20,7 +37,14 @@
 
 * basic website
 
-* bug: massive image sets
+--- next release ---
+
+* bug: image 0 in fullscreen mode
+  + alignment looks wrong because there's no left hand border
+    + could artificially introduce one using offseq
+      + just need to allow a bit of negative document
+
+* bug: massive image sets in zips slow
   + takes too long to prep the HTML
     + seems to be a zip problem
       + large image sets in folders are fine
@@ -3073,13 +3097,6 @@ http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-i
     + can simply pull ratio in init() where it's available
   + there's a lot to 
 
-* bug: need to make new flow-pc work vertical
-  + changing either
-    + breadth
-    + direction
-  + needs to refresh it
-  + resize event is covered by the hashchanged(force)
-
 * imgmetric showing up middle-left on landscape images
   + I'm going to call it a feature!
 
@@ -3096,4 +3113,62 @@ http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-i
       + nope
   + only place seems to be the test suite
     + vis non-vis simple assumes the first image to display will be seq8
+
+* bug: flow-pc changing
+  + changing either
+    + breadth
+    + direction
+  + needs to refresh it
+  + resize event is covered by the hashchanged(force)
+
+* bug: need to make new flow-pc work vertical
+  = lovely bit of calculation
+
+* could use hover to select an image
+  + makes sense to keep the seq updated
+    = works, but there's a slightly complex side effect
+    + selecting an image tries to move it to offseq=0
+      + so we end up scrolling
+  + two ways to approach this
+    1 relax scrolling so if the image is in view, we don't scroll
+    2 implement offseq properly
+  + let's investigate 2
+    + offseq works very very well
+    + intuitive, fast
+      + reloads to exactly the same place
+    - destroyed by infinite recursion
+      - triggered by scroll
+  + wierd thing where if you set an offseq involving a .
+    + it drops the # from the first #!
+    + means all offseqs need to be integers
+
+* clicking to see an image fullscreen
+  + should centre the offseq
+    + but that's a tricky op
+    + because it's centre of the viewport - half the cell width
+      + infact harder than that
+  + the cell changes size when it goes full screen
+    + we don't know exactly how big it will be
+      + that's hard to guess beforehand
+        + even if we can guess accurately based on
+          + mean cell width for b = 1
+        + it may not be that size if we run flow
+      + one problem at a time
+        + we can guess now
+        + and that gets us through the night
+          + so let's just do that for now
+          + and review later when/if it becomes a problem
+    + not sure that's possible
+      + getCellMajor pulls it from DOM
+    + is possible
+      + done using same algorithm that compute we cell width percentage
+  + might be able to set offseq=centre
+    + then dynamically replace that at scroll-time
+    + really want offseq to be a number
+
+* oval focus overlay
+  + keep it subtle
+
+* centring in vertical mode
+  + click image to make it go fullscreen
 

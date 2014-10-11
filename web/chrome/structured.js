@@ -789,6 +789,16 @@ window.sfun = (function($, undefined) {
     $sfun.on('mouseenter', '.selectablecell a.container', function(event) {
       // be very careful with code in here as :hover is a very frequent event
       var seq = $(this).parent().data('seq');
+      // work out image and viewports positions on major axis
+      var direction = getDirection();
+      var viewport_base = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
+      var image_pos = $img(seq).offset();
+      var image_base = (direction == 'x' ? image_pos.left : image_pos.top);
+      // find current offset of image within viewport, to 1DP
+      var offseq = exp.api_round(image_base - viewport_base, 0);
+      // select image using hash update
+      fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false);
+      // optional debugging
       if (debug && true) {
         console.log('hover over img-'+seq);
       }
@@ -1136,8 +1146,11 @@ window.sfun = (function($, undefined) {
         continue;
       }
       $sfun_flow.removeClass('flow-'+i);
+      $html.removeClass('flow-'+i);
     }
+    // apply class to both sfun and page (for page-wise effects)
     $sfun_flow.addClass('flow-' + breadth);
+    $html.addClass('flow-' + breadth);
     // return whether we actually changed it or not
     return changed;
   };
@@ -1147,6 +1160,7 @@ window.sfun = (function($, undefined) {
    */
   var refreshDynamicMajors = function(breadth, direction) {
     var ratio_mean = ratio_total / ratio_count;
+    // avoid division by zero
     if (ratio_total == 0) {
       ratio_mean = 1.5;
     }
@@ -1157,7 +1171,10 @@ window.sfun = (function($, undefined) {
     // get viewport ratio
     var viewport_ratio = getViewportWidth() / getViewportHeight();
     // calculate number of cells to show on the major axis (at least 1)
-    var cell_count = Math.max(1, viewport_ratio * breadth / ratio_mean);
+    var cell_count = (direction == 'x' ? 
+      Math.max(1, viewport_ratio * breadth * 1 / ratio_mean) :
+      Math.max(1, 1 / viewport_ratio * breadth * ratio_mean)
+    );
     var cell_perc = 100 / cell_count;
     // optional debugging
     if (debug && true) {
@@ -1647,11 +1664,30 @@ window.sfun = (function($, undefined) {
     var $ent = $img(seq);
     switch (getType($ent)) {
       case 'image':
+        // work out how to centre image
+        var direction = getDirection();
+        var viewport_ratio = getViewportWidth() / getViewportHeight();
+        var ratio_mean = ratio_total / ratio_count;
+        // we're centring the image fullscreen, so can't use current width
+        var cell_count_fullscreen = (direction == 'x' ? 
+          Math.max(1, viewport_ratio * 1 * 1 / ratio_mean) :
+          Math.max(1, 1 / viewport_ratio * 1 * ratio_mean)
+        );
+        // work out what the cell width will be when fullscreen
+        var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight())
+        var viewport_midpoint = viewport_major / 2;
+        var cell_major = viewport_major / cell_count_fullscreen;
+        var cell_midpoint = cell_major / 2;
+        var offseq = exp.api_round(viewport_midpoint - cell_midpoint, 0);
+        // optional debugging
+        if (debug && false) {
+          console.log('viewport_midpoint['+viewport_midpoint+'] cell_count_fullscreen['+cell_count_fullscreen+'] cell_midpoint['+cell_midpoint+'] offseq['+offseq+']');
+        }
         // toggle using hash change
         if (getBreadth() == 1) {
-          return fireHashUpdate( { 'breadth': state_previous['breadth'], 'seq': seq }, false, eventContext);
+          return fireHashUpdate( { 'breadth': state_previous['breadth'], 'seq': seq, 'offseq': state_previous['offseq'] }, false, eventContext);
         } else {
-          return fireHashUpdate( { 'breadth': 1, 'seq': seq }, false, eventContext);
+          return fireHashUpdate( { 'breadth': 1, 'seq': seq, 'offseq': offseq }, false, eventContext);
         }
         break;
       case 'directory':
@@ -3874,10 +3910,13 @@ window.sfun = (function($, undefined) {
 
     /** 
      * @param {real} k value to round
-     * @param {int} dp number of decimal places to round to
+     * @param {int} dp number of decimal places to round to (0 by default)
      * @return {real} number rounded to dp
      */
     'api_round': function(k, dp) {
+      if (dp == undefined) {
+        dp = 0;
+      }
       var scalar = Math.pow(10, dp);
       return Math.round(k * scalar) / scalar;
     },
