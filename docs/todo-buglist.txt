@@ -1,26 +1,4 @@
 
-* turn requirements.txt into INSTALL.md
-  + use that file to document issues
-
-* blog about example errors
-Fatal error: Uncaught exception 'RuntimeException' with message 'Unable to create the cache directory (/var/www/git/github.com/structuredfun-linux/structured/htdocs/app/cache/prod) ' in /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache:2500 Stack trace: #0 /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache(2461): Symfony\Component\HttpKernel\Kernel->buildContainer() #1 /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache(2241): Symfony\Component\HttpKernel\Kernel->initializeContainer() #2 /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache(2272): Symfony\Component\HttpKernel\Kernel->boot() #3 /var/www/git/github.com/structuredfun-linux/structured/htdocs/web/app.php(23): Symfony\Component\HttpKernel\Kernel->handle(Object(Symfony\Component\HttpFoundation\Request)) #4 {main} thrown in /var/www/git/github.com/structuredfun-linux/structured/htdocs/app/bootstrap.php.cache on line 2500 
-
-Solution
-mkdir -p structured/htdocs/app/cache/prod
-chmod -R g+w structured/htdocs/app/cache
-mkdir -p structured/htdocs/app/logs
-chmod -R g+w structured/htdocs/app/logs
-mkdir -p structured/mediacache
-chmod -R g+w structured/mediacache
-setenforce 0
-
-* work out SELinux steps and document in INSTALL.md
-  + it's probably an semanage to httpd_rw_t && refresh
-
-* test write permission nicely
-  + fail with a decent error
-Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-linux/structured/htdocs/src/Lightenna/StructuredBundle/DependencyInjection/CachedMetadataFileReader.php on line 30
-
 * look into reres last failing sometimes
   + seems to always fail on wikimedia-gallery1
 
@@ -3118,4 +3096,14 @@ http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-i
       + nope
   + only place seems to be the test suite
     + vis non-vis simple assumes the first image to display will be seq8
+
+* turn requirements.txt into INSTALL.md
+  + use that file to document issues
+
+* work out SELinux steps and document in INSTALL.md
+  + it's probably an semanage to httpd_sys_content_t && restorecon
+
+* test write permission nicely
+  + fail with a decent error
+Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-linux/structured/htdocs/src/Lightenna/StructuredBundle/DependencyInjection/CachedMetadataFileReader.php on line 30
 
