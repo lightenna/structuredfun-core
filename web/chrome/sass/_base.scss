@@ -32,3 +32,9 @@ $wide2: 2400px;
   #{$property}: calc(#{$expression});
 }
 
+@mixin calc4($property, $exp_top, $exp_right, $exp_bottom, $exp_left) { 
+  #{$property}: -webkit-calc(#{$exp_top}) -webkit-calc(#{$exp_right}) -webkit-calc(#{$exp_bottom}) -webkit-calc(#{$exp_left});
+  #{$property}: -moz-calc(#{$exp_top}) -moz-calc(#{$exp_right}) -moz-calc(#{$exp_bottom}) -moz-calc(#{$exp_left});
+  #{$property}: calc(#{$exp_top}) calc(#{$exp_right}) calc(#{$exp_bottom}) calc(#{$exp_left});
+}
+

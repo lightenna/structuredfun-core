@@ -39,12 +39,13 @@
     // all orientation-agnostic now
 
     // 1x1
-    &.flow-1 > .cell {
-      width: 100%;
-      height: 100%;
-      // use calc to subtract cell margin, if supported
-      @include calc(width, (100%)+" - "+($alley));
-      @include calc(height, (100%)+" - "+($alley));
+    &.flow-1 {
+      > .cell {
+        width: 100%;
+        height: 100%;
+        // turn off margins for fullscreen mode
+        margin: 0;
+      }
     }
 
     // 2x2, default
@@ -108,7 +109,9 @@
       // don't allow anything to bleed over the edge (to avoid superfluous scrollbars)
       overflow: hidden;
       // add margin here but subtract twice (left+right or top+bottom) from cell dimensions
-      @include calc(margin, ($alley/2));
+      // put margin left and right, top but not bottom, so that we can ensure a consistent
+      // outer gutter and inner alley
+      @include calc4(margin, ($alley), ($alley/2), 0px, ($alley/2));
 
       // currently these classes are only used by js
       &.selectablecell {}
@@ -210,18 +213,25 @@
             // all the spans (blocks) within metadata base
             span {
               margin: 1.0em;
+              height: 1.2em;
               display: block;
 
-              &.icons {
-                height: 2.0em;
-              }
+              // truncate metadata lines
+              white-space: nowrap;
+              overflow: hidden;
+              // needs fixed width
+              // text-overflow: ellipsis;
 
               &.caption {
                 font-weight: bold;
               }
 
-              &.byline {
+              &.byline, &.keywords, &.copyright {
                 margin-top: .5em;
+              }
+
+              &.default {
+                display: none;
               }
             }
           }

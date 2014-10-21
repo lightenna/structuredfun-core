@@ -139,8 +139,11 @@ window.sfun = (function($, undefined) {
             ratio_total += ratio;
             ratio_count += 1;
           }
+          // apply cell tinting
+          var seq = $(this).data('seq');
         });
         // process state in page HTML next
+        state_previous['theme'] = state_default['theme'] = getTheme();
         state_previous['direction'] = state_default['direction'] = getDirection();
         state_previous['breadth'] = state_default['breadth'] = getBreadth();
         state_previous['seq'] = state_default['seq'] = 0;
@@ -150,7 +153,6 @@ window.sfun = (function($, undefined) {
         bindToHotKeys();
         bindToImageLinks();
         bindToDirectoryLinks();
-        bindToHover();
         // if we're sideways scrolling, bind to scroll event
         setDirection(getDirection());
         // execute queue of API calls
@@ -540,11 +542,20 @@ window.sfun = (function($, undefined) {
         })
         .done(function(data, textStatus, jqXHR) {
           if (typeof(data.meta) != 'undefined') {
-            // if we get a response, set the missing metadata to the image
+            // if we get a response, set the missing resolution data to the image
             $reresable.data('native-width', data.meta.width);
             $reresable.data('native-height', data.meta.height);
             if (debug && false) {
               console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
+            }
+            // set missing metadata fields to their DOM elements
+            var fields = ['caption', 'byline', 'keywords', 'copyright'];
+            for (var i=0 ; i<fields.length ; ++i) {
+              var value = data.meta[fields[i]];
+              var $field = $ent.cachedFind('.' + fields[i]).html(value);
+              if (value == state_default[fields[i]]) {
+                $field.addClass('default');
+              }
             }
           }
           // resolve the context
@@ -704,11 +715,11 @@ window.sfun = (function($, undefined) {
     });
     // light or dark theme
     $('#theme-light').click(function(event) {
-      $html.removeClass('theme-dark');
+      fireHashUpdate( { 'theme': 'theme-light' }, false);
       event.preventDefault();
     });
     $('#theme-dark').click(function(event) {
-      $html.addClass('theme-dark');
+      fireHashUpdate( { 'theme': 'theme-dark' }, false);
       event.preventDefault();
     });
     // 1x, 2x, 4x, or 8x
@@ -783,6 +794,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * if a user hovers over an image, select it
+   * currently turned off
    */
   var bindToHover = function() {
     var that = this;
@@ -989,7 +1001,7 @@ window.sfun = (function($, undefined) {
    * @return {object} get URL default hash arguments
    */
   var getDefaults = function() {
-    return { 'direction': state_default['direction'], 'breadth': state_default['breadth'], 'seq': state_default['seq'], 'offseq': state_default['offseq'] };
+    return { 'theme': state_default['theme'], 'direction': state_default['direction'], 'breadth': state_default['breadth'], 'seq': state_default['seq'], 'offseq': state_default['offseq'] };
   }
 
   /**
@@ -1005,6 +1017,16 @@ window.sfun = (function($, undefined) {
       return 0;
     }
     return seq;
+  };
+
+  /**
+   * @return {string} theme name, with the theme- prepend
+   */
+  var getTheme = function() {
+    if ($html.hasClass('theme-dark')) {
+      return 'theme-dark';
+    }
+    return 'theme-light';
   };
 
   /**
@@ -1209,7 +1231,23 @@ window.sfun = (function($, undefined) {
     var changed = (current !== offseq && current !== undefined);
     $html.data('offseq', offseq);
     return changed;
-  }
+  };
+
+  /**
+   * @param {string} theme_name css name of theme to apply (includes theme- prepend)
+   */
+  var setTheme = function(theme_name) {
+    switch (theme_name) {
+      case 'theme-dark':
+        $html.addClass(theme_name);
+        break;
+      case 'theme-light':
+      default:
+        // darkness is only the absence of light
+        $html.removeClass('theme-dark');
+        break;
+    }
+  };
 
   /**
    * set bounds for a cell
@@ -1807,6 +1845,11 @@ window.sfun = (function($, undefined) {
             // strictly limit to defined set
             value = 'x';
             if (components[1] == 'y') value = 'y';
+            break;
+          case 'theme' :
+            // strictly limit to defined set
+            value = 'theme-light'
+            if (components[1] == 'theme-dark') value = 'theme-dark';
             break;
           default:
             // limit to integers
@@ -3163,7 +3206,7 @@ window.sfun = (function($, undefined) {
     }
     merge(obj, fromHash);
     // update previous values if changed
-    var cdirection = getDirection(), cbreadth = getBreadth(), cseq = getSeq(), coffseq = getOffseq();
+    var cdirection = getDirection(), cbreadth = getBreadth(), cseq = getSeq(), coffseq = getOffseq(), ctheme = getTheme();
     if (cdirection != obj.direction) {
       state_previous['direction'] = cdirection;
     }
@@ -3176,8 +3219,11 @@ window.sfun = (function($, undefined) {
     if (coffseq != obj.offseq) {
       state_previous['offseq'] = coffseq;
     }
+    if (ctheme != obj.theme) {
+      state_previous['theme'] = ctheme;
+    }
     // stage 1: apply [hash] state to DOM
-    // direction changes potentially affect ??? images
+    // direction changes potentially affect all images
     var directionChanged = setDirection(obj.direction);
     // breadth changes potentially affect all images
     var breadthChanged = setBreadth(obj.breadth);
@@ -3185,6 +3231,8 @@ window.sfun = (function($, undefined) {
     var seqChanged = setSeq(obj.seq);
     // seqoffset changes at most only affect the images being viewed
     var offseqChanged = setOffseq(obj.offseq);
+    // theme changes should affect no images
+    var themeChanged = setTheme(obj.theme);
     // updates based on certain types of change
     if (breadthChanged || directionChanged || forceChange) {
       refreshDynamicMajors(getBreadth(), getDirection());
@@ -3701,6 +3749,16 @@ window.sfun = (function($, undefined) {
       layoutManager.push(obj);
       // allow element to bind its handlers
       obj.callback.call(obj.context);
+    },
+
+    /**
+     * ingest default values
+     * @param {obj} list list of defaults
+     */
+    'api_setDefaults': function(list) {
+      for (var key in list) {
+        state_default[key] = list[key];
+      }
     },
 
     /**
