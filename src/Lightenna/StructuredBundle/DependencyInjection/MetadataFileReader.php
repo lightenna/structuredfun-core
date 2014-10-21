@@ -8,8 +8,9 @@ class MetadataFileReader extends FileReader {
   protected $args;
   protected $settings;
   protected $controller;
+  protected $metadata;
   protected $name = null;
-  
+
   public function __construct($filename, $con) {
     parent::__construct($filename);
     $this->controller = $con;
@@ -20,6 +21,7 @@ class MetadataFileReader extends FileReader {
       $this->getListing();
       $this->stats = $this->getStats();
     }
+    $this->metadata = new Metadata($this, $this->stats);
   }
 
   /**
@@ -29,17 +31,17 @@ class MetadataFileReader extends FileReader {
   public function get() {
     $imgdata = parent::get();
     if ($imgdata) {
-      $this->getImageMetadata($imgdata);
+      $this->readImageMetadata($imgdata);
     }
     return $imgdata;
   }
 
   /**
-   * Pull metadata from this file and store in stats
+   * Pull metadata from this image data block and store in stats
    * @param string $imgdata Image file as a string
    * @return object processed metadata object
    */
-  public function getImageMetadata($imgdata) {
+  public function readImageMetadata($imgdata) {
     // read metadata
     $info = array();
     // test (fast) if imgdata length > 0
@@ -50,27 +52,21 @@ class MetadataFileReader extends FileReader {
     } else {
       print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
     }
-    $this->processRawMetadata($info);
+    // could potentially get back a new metadata object if unserialized
+    $this->metadata = $this->metadata->read($info);
+    // store metadata block in stats for controller
+    $this->stats->{'meta'} = $this->metadata;
+    // return object
+    return $this->metadata;
   }
 
   /**
-   * Process raw output from getimagesize()
-   * @param array $info
+   * @return object return metadata object
    */
-  function processRawMetadata($info) {
-    // if metadata has IPTC fields
-    if (isset($info['APP13'])) {
-      $iptc = new IptcWriter();
-      $iptc->prime(iptcparse($info['APP13']));
-      // silence warning
-      $iptc_special = $iptc->get(IPTC_SPECIAL_INSTRUCTIONS);
-      $this->stats->{'meta'} = @unserialize($iptc_special);
-      if ($this->stats->{'meta'} === false) {
-        $this->stats->{'meta'} = new \stdClass();
-      }
-    }
+  public function getMetadata() {
+    return $this->metadata;
   }
-  
+
   /**
    * Overriden getListing function that adds metadata to the elements
    * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
@@ -257,20 +253,4 @@ class MetadataFileReader extends FileReader {
     return $newname;
   }
 
-  /**
-   * Select and rename a few of the stats fields for storing as image metadata
-   * @param object $in
-   * @return object Filtered and renamed metadata
-   */
-  public function filterStatsForMetadata($in) {
-    $out = new \stdClass();
-    $out->width = $in->width;
-    $out->height = $in->height;
-    $out->width_loaded = $in->newwidth;
-    $out->height_loaded = $in->newheight;
-    // round to 5DP (0.1px for a 10k image)
-    $out->ratio = round($out->width_loaded / $out->height_loaded, 5);
-    return $out;
-  }
-  
 }

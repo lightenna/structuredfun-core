@@ -48,6 +48,8 @@ class ImageviewController extends ViewController {
       // @todo currently have to re-pull from cache to put metadata in .meta{} subobject
       $imgdata = $this->mfr->getOnlyIfCached();
     }
+    // embed metadata within stats object
+    $this->stats->{'meta'} = $this->mfr->getMetadata();
     // encode as json
     print(json_encode($this->stats));
     exit;
@@ -80,7 +82,6 @@ class ImageviewController extends ViewController {
   /**
    * @return array stats (metadata) array
    */
-
   public function getStats() {
     return $this->stats;
   }
@@ -89,7 +90,6 @@ class ImageviewController extends ViewController {
    * fetch a thumbnail image from the file (video/image)
    * - by this point, we've had a cache miss on the thumbnail/specific-resolution request
    */
-
   public function fetchImage() {
     // generate image based on media type
     switch ($this->stats->type) {
@@ -137,7 +137,6 @@ class ImageviewController extends ViewController {
    * @param  string $outputname name of file to write to
    * @return string name of file written to, or false on failure
    */
-
   public function takeSnapshot($time, $outputname) {
     $path_ffmpeg = $this->settings['general']['path_ffmpeg'];
     // escape arguments
@@ -194,7 +193,6 @@ class ImageviewController extends ViewController {
    * Output an image with correct headers
    * @param string $imgdata Raw image data as a string
    */
-
   public function returnImage($imgdata) {
     if (!headers_sent()) {
       header("Content-Type: image/" . $this->stats->{'ext'});
@@ -207,7 +205,6 @@ class ImageviewController extends ViewController {
   /**
    * print out an image based on an array of its metadata
    */
-
   public function loadAndFilterImage() {
     // load image into buffer
     $imgdata = $this->loadImage();
@@ -222,7 +219,6 @@ class ImageviewController extends ViewController {
    * filter image based on its arguments
    * @param $imgdata image data as a string
    */
-
   public function filterImage(&$imgdata) {
     if ($this->argsSayFilterImage()) {
       // test image datastream size before trying to process
@@ -267,7 +263,6 @@ class ImageviewController extends ViewController {
    * decide if we're going to need to filter the image
    * @return boolean true if filtering required
    */
-
   public function argsSayFilterImage() {
     return ($this->argsSayResizeImage() || $this->argsSayClipImage());
   }
@@ -276,7 +271,6 @@ class ImageviewController extends ViewController {
    * decide if we're going to need to resize the image
    * @return boolean true if resize required
    */
-
   public function argsSayResizeImage() {
     return (isset($this->args->{'maxwidth'}) || isset($this->args->{'maxheight'}) || isset($this->args->{'maxlongest'}) || isset($this->args->{'maxshortest'}));
   }
@@ -285,7 +279,6 @@ class ImageviewController extends ViewController {
    * decide if we're going to need to clip the image
    * @return boolean true if clipping required
    */
-
   public function argsSayClipImage() {
     return (isset($this->args->{'clipwidth'}) || isset($this->args->{'clipheight'}));
   }
@@ -294,7 +287,6 @@ class ImageviewController extends ViewController {
    * load image into a buffer
    * @return string image as a string
    **/
-
   public function loadImage() {
     return $this->mfr->get();
   }

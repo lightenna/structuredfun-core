@@ -11,6 +11,10 @@
 <script type="text/javascript" src="/chrome/structured-flow.js"></script>
 <script type="text/javascript" src="/chrome/structured-QUnit-all.js"></script>
 <script type="text/javascript" src="/chrome/structured-QUnit-single.js"></script>
+<script type="text/javascript">
+  // write dynamic settings JSON into HTML [async]
+  sfun.push('setDefaults', {{ defaults | raw }});
+</script>
 <link href="/chrome/stylesheets/structured.css" media="screen, projection" rel="stylesheet" type="text/css" />
 <link href="/chrome/stylesheets/structuredfun.css" media="screen, projection" rel="stylesheet" type="text/css" />
 <link href="/chrome/stylesheets/overflow.css" media="screen, projection" rel="stylesheet" type="text/css" />

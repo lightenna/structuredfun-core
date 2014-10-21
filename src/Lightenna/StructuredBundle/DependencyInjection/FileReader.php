@@ -335,7 +335,6 @@ class FileReader {
    * @param $name full path of file
    * @return string the extension
    */
-
   static function getExtension($name) {
     // find end of filename section (pre-args)
     $end = strpos($name, ARG_SEPARATOR);
@@ -357,6 +356,16 @@ class FileReader {
     // pull out extension
     $ext = substr($name, $pos + 1, $len);
     return strtolower($ext);
+  }
+
+  /**
+   * @param $name full path of file
+   * @return string filename without extension
+   */
+  static function stripExtension($filename) {
+    // remove extension and . separator
+    $file_without = substr($filename, 0, strlen($filename) - 1 - strlen(self::getExtension($filename)));
+    return $file_without;
   }
 
   /**

@@ -1,16 +1,63 @@
 
-* need some kind of cell tile colouring
-  + crucial to explain why the borders all look so different
-    + otherwise the alignment just feel sketchy
+* set sfun_version in cache
+  + formalise stats->meta into its own class
+    + give its fields default values if not set
+  + set sfun_version
+  + could load its own metadata
+  + could save metadata changes
+    + can always request filename stuff from parent (MetadataFileReader)
+  + I think unserialize() will cope with that so long as we serialize() it that way
+    + actually another reason for giving it its own class
+  + pretty broken at the moment
+    + not even setting metadata to cached images
+  + right, now at least saving it properly
+    + need to pull metadata
+      + all looking pretty good now
+  + need to embed correct stuff in HTML
+    + we're doing it for js version, now we need to populate it properly from HTML
+      + where cached
+  + check first stage
+    + read correctly from file
+      + dump metadata from original source file
+    + file to cached thumbnail
 
-* move imgmetric to top-right
-  + make its text right aligning
+* maybe refactor video thumbnail metadata
+  + good to get it all into the same class
 
-* profile: switching back and forth between fullscreen and tile view
-  + it's very sluggish on large image sets
+* first read (when using imagemeta) no column resizing
+  + ratio is 1.5
+  + but it is correct when we do a resize
 
-* debug nasty interaction between offseq and scroll
-  + we get into some game-ending recursion
+* metadata flow
+  + original image -> loses it to cache
+  + cache -> loses it to browser (saved)
+  + focus on first stage first
+    + preserve existing metadata between original image and cache
+      http://10.12.1.120:8097/image/playspace/wikimedia-gallery1/Squirrel_posing_meta.jpg~args&thumb=true&maxwidth=1000&maxheight=
+    + cache key
+      d00f6b283a8bf3abe022d338761785a9.dat
+  + seems like we're just not reading it properly
+    + we're only reading out that which we serialized in
+    + which is useless for real images
+      + it's good for cache images, but not for real ones
+
+* work on metadata display
+  + MVP to display wikimedia images online
+--o--
+* if caption set, use caption instead of filename
+  + put caption on a single image using Photoshop
+    + check that caption gets put on cached copies
+
+* not sure if we need left-right margins on fullscreen
+  + stuff photos look all joined up
+    + might work if every cell had a tint
+      + e.g. background +#111111 and background -#111111
+    + that works well acros 
+
+* turn off wrap-around on scroll
+  + it's actually confusing
+    + take it out
+    + shows up in fullscreen and left/right
 
 * think about offseq for page up/down
   + think about offseq for wheel up/down
@@ -18,26 +65,15 @@
 * look into reres-last test failing sometimes
   + seems to always fail on wikimedia-gallery1
 
-* quick profile and optimise load
-  + we're doing a lot more now
-    + nothing obvious from resize or scroll or init/reload
-      + it's the same old stuff
-      + lot of time spent idle (loading images)
-        + would do better to split the stages
-
-* dvb1 needs work
-  + it's making sensible decision
-    + but it really needs to try to show the images as big as possible
-  + in fact that's really true of all the vertical displays
-
-* work on metadata display
-  + MVP to display wikimedia images online
-
 * basic demo with Wikimedia images
+  + look at overall experience, start to finish
 
 * basic website
 
 --- next release ---
+
+* feature: move imgmetric to top-right
+  + make its text right aligning
 
 * bug: image 0 in fullscreen mode
   + alignment looks wrong because there's no left hand border
@@ -53,6 +89,20 @@
   + instead of first general file
 
 * feature: directory expansion
+  + could maintain a URL state of the expanded and upexpanded directories
+    + clicking a folder expands it
+      + adds it to the expansion list
+  + all folders expanded by default
+  + or maybe partly expaned by default
+    + show the first n images from the folder
+      + a little bit like directories now
+        + but whole column (minor) view
+
+* feature: directory explorer overlay
+  + thinking about some kind of directory overlay for sfun
+    + frequently I want to quickly find another directory
+      + 1 up
+      + completely different part of the tree
 
 * bug: prevent flash of unbound image
   + shows up in Firefox/bug because ultra-wide window
@@ -3181,3 +3231,72 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
 
 * centring in vertical mode
   + click image to make it go fullscreen
+
+* make theme part of the hash state
+
+* margin is uneven top and bottom in flow-2 (and probably -4/-8)
+  + 4px at the top and 8px at the bottom
+    + seems to be the height - 4px on .page .content
+  + can't simply remove height: 100% - 4px
+    + because it causes a scrollbar right
+
+* expand fullscreen to edges
+  + needed to make cell tinting look right
+
+* need some kind of cell tile colouring (tinting)
+  + crucial to explain why the borders all look so different
+    + otherwise the alignment just feel sketchy
+  + calling this 'tinting'
+    + many complications
+      + probably need some kind of clever HTML class to apply it
+    + outer border needs aligning to cell tint too
+  + trying only on flow-1 for now
+
+* hover selecting boxes is a bit too much
+--o-- (hopefully)
+* debug nasty interaction between offseq and scroll
+  + we get into some game-ending recursion
+  + seems to happen when we're in Firebug
+
+* profile: switching back and forth between fullscreen and tile view
+  + it's very sluggish on large image sets
+    + not clear results
+    + chrome says it's mainly idle
+    + firefox hints at
+      + 300ms redoing metric positions
+      + 100ms updating visTable
+  + nothing obvious for now
+
+* could add an alternator li in for the current flow
+  + or even one for all flows
+    + doesn't really solve the problem
+  + adding just for current flow requires js
+    + keen to avoid that
+      + because we might as well just do manual colouring in js
+      + if we're going to do that
+
+* quick profile and optimise load
+  + we're doing a lot more now
+    + nothing obvious from resize or scroll or init/reload
+      + it's the same old stuff
+      + lot of time spent idle (loading images)
+        + would do better to split the stages
+  + can wait until after first release
+
+* rejig this list
+  + more important to get to a first release
+
+* dvb1 needs work
+  + it's making sensible decisions
+    + but it really needs to try to show the images as big as possible
+  + in fact that's really true of all the vertical displays
+
+* when receiving image metadata by js /imagemeta call
+  + set to DOM for hover
+    + take out GHOTI
+    + strip extension
+
+* write clever defaults thing
+  + don't want to show a metadata value if it's just the default
+    + e.g. Author unknown
+

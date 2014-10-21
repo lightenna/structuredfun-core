@@ -2,6 +2,7 @@
 
 namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Lightenna\StructuredBundle\DependencyInjection\Metadata;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 class FileviewController extends ViewController {
@@ -32,7 +33,8 @@ class FileviewController extends ViewController {
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
               'argsbase' => ARG_SEPARATOR . 'thumb=true&',
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
-              'dirlisting' => $dirlisting
+              'dirlisting' => $dirlisting,
+              'defaults' => json_encode(Metadata::getDefaults()),
             ));
       } else {
         // process file

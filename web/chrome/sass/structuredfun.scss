@@ -76,7 +76,6 @@ html.no-js, html.disabled-js {
 
 .page {
   font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
-  // font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
   height: 100%;
 
   // header and footer are full-width by default.
@@ -134,9 +133,6 @@ html.no-js, html.disabled-js {
   .content {
     // can't use padding without introducing a minor axis scrollbar
     height: 100%;
-    margin: $gutter;
-    @include calc(margin, $gutter);
-    @include calc(height, (100%)+" - "+($gutter));
     // simple margin on content introduces a scrollbar, 
     //   hiding overflow on parent (.page) break horizontal scroll
     //   overflow-y: hidden;
@@ -154,38 +150,58 @@ html.no-js, html.disabled-js {
 // Fullscreen overlay effect
 
 $shape: circle farthest-corner;
-$colour_0: rgba(255,255,255,0);
-$colour_mid: rgba(0,0,0,0);
+$colour_white_solid: rgba(255,255,255,0);
+$colour_black_solid: rgba(0,0,0,0);
 $position_mid: 80%;
-$colour_100: rgba(0,0,0,0.45);
+$colour_black_alpha: rgba(0,0,0,0.45);
+$colour_white_alpha: rgba(255,255,255,0.45);
 
-html.flow-1 .overlay-holder {
-  position: fixed;
-  height: 100%;
-  width: 100%;
-  background-color: #ff0000;
-  top: 0;
-  left: 0;
-  pointer-events:none;
+html.flow-1 {
+  // no margin around page when fullscreen
+  .page .content {
+    height: 100%;
+    margin: 0;
+    .sfun {
+      margin: 0;
 
-  // radial corner-fade effect
-  background: -moz-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* FF3.6+ */
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,$colour_0), color-stop($position_mid,$colour_mid), color-stop(100%,$colour_100)); /* Chrome,Safari4+ */
-  background: -webkit-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* Opera 12+ */
-  background: -ms-radial-gradient(center, $shape, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* IE10+ */
-  background: radial-gradient($shape at center, $colour_0 0%, $colour_mid $position_mid, $colour_100 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+      // no selected border either
+      .media-container .selectreflector {
+        border: none;
+      }
 
+      // checkerboard effect to show image alignment
+      .cell:nth-child(2n+0) {
+        background-color: ($background_html_light - #111111);
+      }
+    }
+  }
+
+  .overlay-holder {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    background-color: #ff0000;
+    top: 0;
+    left: 0;
+    pointer-events:none;
+
+    // radial corner-fade effect
+    background: -moz-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_white_solid $position_mid, $colour_white_alpha 100%); /* FF3.6+ */
+    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,$colour_white_solid), color-stop($position_mid,$colour_white_solid), color-stop(100%,$colour_white_alpha)); /* Chrome,Safari4+ */
+    background: -webkit-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_white_solid $position_mid, $colour_white_alpha 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_white_solid $position_mid, $colour_white_alpha 100%); /* Opera 12+ */
+    background: -ms-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_white_solid $position_mid, $colour_white_alpha 100%); /* IE10+ */
+    background: radial-gradient($shape at center, $colour_white_solid 0%, $colour_white_solid $position_mid, $colour_white_alpha 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Structured container
 
 .sfun {
-  // offset the cell margins above and left
+  // offset the cell margin above
   margin-top: (-($alley / 2));
-  margin-left: (-($alley));
 }
 
 // ---------------------------------------------------------------------------
@@ -238,15 +254,28 @@ html.theme-dark {
         
       } // .cell
 
-      &.flow-1 .media-container .selectreflector {
-        border-color: $background_html_dark;
+      &.flow-1 {
+        .media-container .selectreflector {
+          border-color: $background_html_dark;
+        }
+        .cell:nth-child(2n+0) {
+          background-color: ($background_html_dark + #111111);
+        }
       }
-
+  
     } // .sfun
   } // .header
 
-  .overlay-holder {
-    // @todo set corner colour to black and make white by default
+  &.flow-1 .overlay-holder {
+    // radial corner-fade effect is black
+    background: -moz-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_black_solid $position_mid, $colour_black_alpha 100%); /* FF3.6+ */
+    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,$colour_white_solid), color-stop($position_mid,$colour_black_solid), color-stop(100%,$colour_black_alpha)); /* Chrome,Safari4+ */
+    background: -webkit-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_black_solid $position_mid, $colour_black_alpha 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_black_solid $position_mid, $colour_black_alpha 100%); /* Opera 12+ */
+    background: -ms-radial-gradient(center, $shape, $colour_white_solid 0%, $colour_black_solid $position_mid, $colour_black_alpha 100%); /* IE10+ */
+    background: radial-gradient($shape at center, $colour_white_solid 0%, $colour_black_solid $position_mid, $colour_black_alpha 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+
   }
 }
 
