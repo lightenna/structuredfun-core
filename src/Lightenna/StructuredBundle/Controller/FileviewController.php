@@ -34,7 +34,7 @@ class FileviewController extends ViewController {
               'argsbase' => ARG_SEPARATOR . 'thumb=true&',
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
               'dirlisting' => $dirlisting,
-              'defaults' => json_encode(Metadata::getDefaults()),
+              'defaults' => Metadata::getDefaults(),
             ));
       } else {
         // process file

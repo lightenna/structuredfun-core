@@ -25,8 +25,6 @@
         <span class="base">
           <span class="caption">{{ file.alias|e }}</span>
           <span class="byline">{{ file.seq }}</span>
-          <span class="keywords">{{ file.seq }}</span>
-          <span class="copyright">{{ file.seq }}</span>
         </span>
       </span>
     </a>
@@ -51,9 +49,15 @@
            data-seq="{{ file.seq }}" />
       <noscript><img class="{{ file.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %}{% if file.meta.ratio is defined %}data-ratio="{{ file.meta.ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
       <span class="meta">
-        <span class="base">
-          <span class="caption">{{ file.name }}</span>
-          <span class="byline">{{ file.seq }}</span>
+        <span class="base">{#
+          Show headline or if not set, file.alias #}
+          <span class="headline">{{ file.meta is defined and file.meta.headline != defaults.headline ? file.meta.headline : file.alias }}</span>{#
+          Only show other metadata if it's not the default #}
+          <span class="caption" {{ file.meta is defined and file.meta.caption == defaults.caption ? 'style="display: none;"' }}>{{ file.meta is defined ? file.meta.caption : '' }}</span>
+          <span class="byline" {{ file.meta is defined and file.meta.byline == defaults.byline ? 'style="display: none;"' }}>{{ file.meta is defined ? file.meta.byline : '' }}</span>
+          <span class="keywords" {{ file.meta is defined and file.meta.keywords == defaults.keywords ? 'style="display: none;"' }}>{{ file.meta is defined ? file.meta.keywords : '' }}</span>
+          <span class="copyright" {{ file.meta is defined and file.meta.copyright == defaults.copyright ? 'style="display: none;"' }}>{{ file.meta is defined ? file.meta.copyright : '' }}</span>
+          <span class="source" {{ file.meta is defined and file.meta.source == defaults.source ? 'style="display: none;"' }}>{{ file.meta is defined ? file.meta.source : '' }}</span>
         </span>
       </span>
     </a>

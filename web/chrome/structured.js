@@ -549,7 +549,7 @@ window.sfun = (function($, undefined) {
               console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
             }
             // set missing metadata fields to their DOM elements
-            var fields = ['caption', 'byline', 'keywords', 'copyright'];
+            var fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source'];
             for (var i=0 ; i<fields.length ; ++i) {
               var value = data.meta[fields[i]];
               var $field = $ent.cachedFind('.' + fields[i]).html(value);

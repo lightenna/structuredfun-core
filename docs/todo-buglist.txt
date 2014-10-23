@@ -1,25 +1,23 @@
 
-* set sfun_version in cache
-  + formalise stats->meta into its own class
-    + give its fields default values if not set
-  + set sfun_version
-  + could load its own metadata
-  + could save metadata changes
-    + can always request filename stuff from parent (MetadataFileReader)
-  + I think unserialize() will cope with that so long as we serialize() it that way
-    + actually another reason for giving it its own class
-  + pretty broken at the moment
-    + not even setting metadata to cached images
-  + right, now at least saving it properly
-    + need to pull metadata
-      + all looking pretty good now
-  + need to embed correct stuff in HTML
-    + we're doing it for js version, now we need to populate it properly from HTML
-      + where cached
-  + check first stage
-    + read correctly from file
-      + dump metadata from original source file
-    + file to cached thumbnail
+* change out call to getOrientation 
+  + it's misleading to call it getOrientation
+    + also don't pass back orientation
+
+* condense certain metadata fields into icons
+  + copyright, keywords, source
+
+* feature: IPTC editing
+  + should be turn-offable in settings
+    + but on by default
+  + useful to set IPTC Source/licence
+  + probably have to pull this up
+    + because we don't have anything that can edit IPTC nicely
+
+* go through wikimedia images
+  + add metadata properly
+    + verify in sfun
+      + or fallback to photoshop
+    - windows just makes a mess
 
 * maybe refactor video thumbnail metadata
   + good to get it all into the same class
@@ -28,31 +26,11 @@
   + ratio is 1.5
   + but it is correct when we do a resize
 
-* metadata flow
-  + original image -> loses it to cache
-  + cache -> loses it to browser (saved)
-  + focus on first stage first
-    + preserve existing metadata between original image and cache
-      http://10.12.1.120:8097/image/playspace/wikimedia-gallery1/Squirrel_posing_meta.jpg~args&thumb=true&maxwidth=1000&maxheight=
-    + cache key
-      d00f6b283a8bf3abe022d338761785a9.dat
-  + seems like we're just not reading it properly
-    + we're only reading out that which we serialized in
-    + which is useless for real images
-      + it's good for cache images, but not for real ones
-
-* work on metadata display
-  + MVP to display wikimedia images online
---o--
-* if caption set, use caption instead of filename
-  + put caption on a single image using Photoshop
-    + check that caption gets put on cached copies
-
 * not sure if we need left-right margins on fullscreen
   + stuff photos look all joined up
     + might work if every cell had a tint
       + e.g. background +#111111 and background -#111111
-    + that works well acros 
+    + that works well across
 
 * turn off wrap-around on scroll
   + it's actually confusing
@@ -3299,4 +3277,64 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
 * write clever defaults thing
   + don't want to show a metadata value if it's just the default
     + e.g. Author unknown
+
+* work on metadata display
+  + MVP to display wikimedia images online
+--o--
+* if caption set, use caption instead of filename
+  + put caption on a single image using Photoshop
+    + check that caption gets put on cached copies
+
+* set sfun_version in cache
+  + formalise stats->meta into its own class
+    + give its fields default values if not set
+  + set sfun_version
+  + could load its own metadata
+  + could save metadata changes
+    + can always request filename stuff from parent (MetadataFileReader)
+  + I think unserialize() will cope with that so long as we serialize() it that way
+    + actually another reason for giving it its own class
+  + pretty broken at the moment
+    + not even setting metadata to cached images
+  + right, now at least saving it properly
+    + need to pull metadata
+      + all looking pretty good now
+  + need to embed correct stuff in HTML
+    + we're doing it for js version, now we need to populate it properly from HTML
+      + where cached
+  + check first stage
+    + read correctly from file
+      + dump metadata from original source file
+    + file to cached thumbnail
+      + not there yet
+    + working well
+      + display more metadata (copyright, keywords and source)
+
+* metadata flow
+  + original image -> loses it to cache
+  + cache -> loses it to browser (saved)
+  + focus on first stage first
+    + preserve existing metadata between original image and cache
+      http://10.12.1.120:8097/image/playspace/wikimedia-gallery1/Squirrel_posing_meta.jpg~args&thumb=true&maxwidth=1000&maxheight=
+    + cache key
+      d00f6b283a8bf3abe022d338761785a9.dat
+  + seems like we're just not reading it properly
+    + we're only reading out that which we serialized in
+    + which is useless for real images
+      + it's good for cache images, but not for real ones
+
+* lost title on space shuttle
+
+* need to be able to set metadata
+  + photoshop can't do it without re-writing the file
+  + hunt around for a tool
+    + worst case write into sfun
+    = pull that feature forward
+
+* only my squirrel has proper metadata at the moment
+
+* load metadata in HTML
+
+* bug in display of metadata
+  + we're displaying some defaults
 
