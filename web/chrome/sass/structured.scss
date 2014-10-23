@@ -222,11 +222,11 @@
               // needs fixed width
               // text-overflow: ellipsis;
 
-              &.caption {
+              &.headline {
                 font-weight: bold;
               }
 
-              &.byline, &.keywords, &.copyright {
+              &.caption, &.byline, &.keywords, &.copyright {
                 margin-top: .5em;
               }
 

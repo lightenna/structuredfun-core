@@ -260,11 +260,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   overflow: hidden;
 }
 /* line 225, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base span.caption {
+.sfun.flow-pc > .cell .container .meta .base span.headline {
   font-weight: bold;
 }
 /* line 229, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base span.byline, .sfun.flow-pc > .cell .container .meta .base span.keywords, .sfun.flow-pc > .cell .container .meta .base span.copyright {
+.sfun.flow-pc > .cell .container .meta .base span.caption, .sfun.flow-pc > .cell .container .meta .base span.byline, .sfun.flow-pc > .cell .container .meta .base span.keywords, .sfun.flow-pc > .cell .container .meta .base span.copyright {
   margin-top: .5em;
 }
 /* line 233, ../sass/structured.scss */

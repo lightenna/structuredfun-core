@@ -146,6 +146,10 @@ class MetadataFileReader extends FileReader {
         $obj->meta = $localstats->meta;
       }
     }
+    // try and use metadata first
+    if (isset($obj->meta->orientation)) {
+      return $obj->meta->orientation;
+    }
     // assume landscape if there's a problem reading
     if ($imgdata == null)
       return 'x';

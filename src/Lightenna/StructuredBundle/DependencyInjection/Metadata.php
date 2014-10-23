@@ -10,10 +10,11 @@ class Metadata {
   public $width, $height;
   // resolution as loaded in this instance (after transform)
   public $width_loaded, $height_loaded;
-  // ratio of width:height
-  public $ratio;
+  // ratio of width:height, orientation (x || y)
+  public $ratio, $orientation;
   // IPTC fields that we use/display
-  public $caption, $byline, $keywords, $copyright;
+  public $headline = null, $caption = null, $byline = null;
+  public $keywords = null, $copyright = null, $source = null;
 
   /**
    * @param object $mfr Metadata File Reader (parent)
@@ -32,15 +33,22 @@ class Metadata {
    */
   public function recalcRatio() {
     // round to 5DP (0.1px for a 10k image)
-    $this->ratio = round($this->width_loaded / $this->height_loaded, 5);    
+    $this->ratio = round($this->width_loaded / $this->height_loaded, 5);
+    // orientation
+    $this->orientation = 'x';
+    if ($this->width_loaded < $this->height_loaded) {
+      $this->orientation = 'y';
+    }
   }
 
   static function getDefaults() {
     return array(
+      'headline' => 'Untitled',
       'caption' => 'Untitled',
       'byline' => 'Author unknown',
       'keywords' => 'structured;fun',
       'copyright' => 'Copyright unknown, image transformation licence granted to StructuredFun',
+      'source' => 'Source unknown',
     );
   }
 
@@ -51,11 +59,13 @@ class Metadata {
    */
   public function filterStats($in) {
     // setup defaults (hopefully overwrite later)
-    $this->imbue(self::getDefaults());
-    // use alias to set caption
+    $values = self::getDefaults();
+    // use alias to set headline (if unset, hence imbue)
     if (isset($in->{'alias'})) {
-      $this->caption = str_replace('_', ' ', FileReader::stripExtension($in->alias));
+      $values['headline'] = str_replace('_', ' ', FileReader::stripExtension($in->alias));
     }
+    $this->imbue($values);
+    // always update resolution/resolution_loaded
     if (isset($in->{'width'})) {
       $this->width = $in->width;
       $this->height = $in->height;
@@ -86,13 +96,15 @@ class Metadata {
       }
       // unable to read metadata object whole, so read field-by-field
       $candidate = array(
+        'headline' => $iptc->get(IPTC_HEADLINE),
         'caption' => $iptc->get(IPTC_CAPTION),
         'byline' => $iptc->get(IPTC_BYLINE),
         'keywords' => $iptc->get(IPTC_KEYWORDS),
         'copyright' => $iptc->get(IPTC_COPYRIGHT_STRING),
+        'source' => $iptc->get(IPTC_SOURCE),
       );
       // if we retreived any of the above fields, use them to overwrite defaults
-      $this->imbue($candidate);
+      $this->imbue($candidate, true);
     }
     return $this;
   }
@@ -100,10 +112,12 @@ class Metadata {
   /**
    * should really be ingest, but I like the word imbue
    * @param  array $candidate array of values to set as fields
+   * @param  boolean $force true to always imbue the value if it's set
    */
-  public function imbue($candidate) {
+  public function imbue($candidate, $force = false) {
     foreach($candidate as $k => $v) {
-      if ($v) {
+      // only set values if unset or forced
+      if ($v && (is_null($this->{$k}) || $force)) {
         $this->{$k} = $v;
       }
     }
@@ -117,6 +131,8 @@ class Metadata {
     $iptc = new IptcWriter($filename);
     // can use set without get, because we're creating the file from scratch
     $iptc->set(IPTC_SPECIAL_INSTRUCTIONS, $this->serialize());
+    // IPTC Caption: Windows 'Subject'
+    $iptc->set(IPTC_HEADLINE, $this->headline);
     // IPTC Caption: Windows 'Title'
     $iptc->set(IPTC_CAPTION, $this->caption);
     // IPTC Byline: Windows 'Authors'
@@ -125,6 +141,8 @@ class Metadata {
     $iptc->set(IPTC_KEYWORDS, $this->keywords);
     // IPTC Copyright string: Windows 'Copyright', visibile in 'Details'
     $iptc->set(IPTC_COPYRIGHT_STRING, $this->copyright);
+    // IPTC Source
+    $iptc->set(IPTC_SOURCE, $this->source);
     // write the file
     $iptc->save();
   }
