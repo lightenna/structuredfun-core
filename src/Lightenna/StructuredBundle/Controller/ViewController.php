@@ -12,6 +12,7 @@ define('FOLDER_NAME', 'structured');
 define('ZIP_EXTMATCH', 'zip');
 define('ZIP_SEPARATOR', '/');
 define('ARG_SEPARATOR', '~args&');
+define('FILEARG_SEPARATOR', '~');
 define('SUB_REGEX', '/\[([0-9i]*)\]/');
 
 class ViewController extends Controller {

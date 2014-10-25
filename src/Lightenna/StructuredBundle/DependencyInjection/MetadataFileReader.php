@@ -21,6 +21,7 @@ class MetadataFileReader extends FileReader {
       $this->getListing();
       $this->stats = $this->getStats();
     }
+    // assume we're dealing simple Metadata for now (e.g. not Video)
     $this->metadata = new Metadata($this, $this->stats);
   }
 

@@ -153,6 +153,7 @@ window.sfun = (function($, undefined) {
         bindToHotKeys();
         bindToImageLinks();
         bindToDirectoryLinks();
+        bindToVideoHover();
         // if we're sideways scrolling, bind to scroll event
         setDirection(getDirection());
         // execute queue of API calls
@@ -806,7 +807,7 @@ window.sfun = (function($, undefined) {
       var viewport_base = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
       var image_pos = $img(seq).offset();
       var image_base = (direction == 'x' ? image_pos.left : image_pos.top);
-      // find current offset of image within viewport, to 1DP
+      // find current offset of image within viewport, to 0DP
       var offseq = exp.api_round(image_base - viewport_base, 0);
       // select image using hash update
       fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false);
@@ -814,6 +815,26 @@ window.sfun = (function($, undefined) {
       if (debug && true) {
         console.log('hover over img-'+seq);
       }
+    });
+  }
+
+  /**
+   * if a user hovers over a video, use relative position to change thumbnail
+   */
+  var bindToVideoHover = function() {
+    var that = this;
+    $sfun.on('mouseover', '.selectablecell a.video-container', function(event) {
+      // be very careful with code in here as :hover is a very frequent event
+      var $cell = $(this).parent();
+      var seq = $cell.data('seq');
+      var length = $cell.data('length');
+      // work out image and cursor positions on x axis (always)
+      var image_pos = $img(seq).offset();
+      var cursor_pos = e.pageX - image_pos.left;
+      // @todo calculate rounded frame rather than rounded percentage (change out 100)
+      var cursor_perc = exp.api_round(cursor_pos * 100 / $(img).width(), 0);
+      // just change out the img src; no res/ratio changes
+      
     });
   }
 
