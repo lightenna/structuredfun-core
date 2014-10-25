@@ -1,4 +1,17 @@
 
+* change cache encoding from hash to escape
+  + symmetry with mod_rewrite unescape
+
+* create VideoMetadata
+  + make sure VideoMetadata gets written through into all thumbnails by the cache
+
+* feature exploration: dynamic video thumbnails
+  + percentage frames from ffmpeg is tricky
+    + need to know the length of the video
+      + that's a good thing to have in metadata anyway
+  + get length in frames to js via metadata
+  + use length to calculate request in frames
+
 * change out call to getOrientation 
   + it's misleading to call it getOrientation
     + also don't pass back orientation
@@ -19,12 +32,12 @@
       + or fallback to photoshop
     - windows just makes a mess
 
-* maybe refactor video thumbnail metadata
-  + good to get it all into the same class
-
 * first read (when using imagemeta) no column resizing
   + ratio is 1.5
   + but it is correct when we do a resize
+
+* debug mx-hd
+  + 0 byte png throwing errors
 
 * not sure if we need left-right margins on fullscreen
   + stuff photos look all joined up
@@ -49,6 +62,11 @@
 * basic website
 
 --- next release ---
+
+* optimisation: experiment with using this.offsetLeft/Top instead of $(img).offset().left/top
+
+* feature: open folder in explorer
+  + nice to be able to pop-up the folder in Windows/Mac OS X explorer
 
 * feature: move imgmetric to top-right
   + make its text right aligning
@@ -123,6 +141,8 @@
   + checkout how IIIF feels about an/arbitrary/number/of/chunks in the path
     + before /width/200/height/.. etc
 
+* push forward with flow
+  + it's a really beautiful layout system
 * re-enable flow
   + debug and optimise
     + it's close
@@ -3337,4 +3357,7 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
 
 * bug in display of metadata
   + we're displaying some defaults
+
+* maybe refactor video thumbnail metadata
+  + good to get it all into the same class
 

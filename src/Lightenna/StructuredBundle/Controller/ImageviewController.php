@@ -4,6 +4,8 @@ namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\IptcWriter;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
+use Lightenna\StructuredBundle\DependencyInjection\Metadata;
+use Lightenna\StructuredBundle\DependencyInjection\VideoMetadata;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
@@ -96,32 +98,8 @@ class ImageviewController extends ViewController {
       case 'video':
         // override the extension to return an image
         $this->stats->ext = 'jpg';
-        // prepend the cache location
-        $key = CachedMetadataFileReader::hash($this->stats->file) . '_videofullres' . '.' . 'dat';
-        // create mfr in two stages, because we need to point at the image file in the cache
-        $localmfr = new CachedMetadataFileReader(null, $this);
-        $localmfr->rewrite($localmfr->getFilename($key));
-        if ($localmfr->existsInCache()) {
-          // pull image from cache
-          $imgdata = $localmfr->get();
-          // just filter the image
-          return $this->filterImage($imgdata);
-        }
-        else {
-          // update stats array with new location of image in cache
-          $returnedFile = $this->takeSnapshot('00:00:10.0', $localmfr->getFilename($key));
-          // if no image produced (e.g. video corrupted or stored in zip)
-          if ($returnedFile === false) {
-            $errorimgdata = $this->loadErrorImage();
-            return $this->filterImage($errorimgdata);
-          }
-          // point the local reader at the returned file
-          $localmfr->rewrite($returnedFile);
-          // pull image from cache
-          $imgdata = $localmfr->get();
-          // just filter the image
-          return $this->filterImage($imgdata);
-        }
+        $imgdata = $this->fetchVideoFrame();
+        return $this->filterImage($imgdata);
         break;
       default:
       case 'image':
@@ -130,25 +108,64 @@ class ImageviewController extends ViewController {
     }
   }
 
+  private function fetchVideoFrame() {
+    // calculate position in video
+    if (!isset($this->args->{'timecode'})) {
+      $this->args->{'timecode'} = '00:00:10.0';
+    }
+    // prepend the cache location
+    $key = CachedMetadataFileReader::hash($this->stats->file.FILEARG_SEPARATOR.$this->args->timecode) . '_videofullres' . '.' . 'dat';
+    // create mfr in two stages, because we need to point at the image file in the cache
+    $localmfr = new CachedMetadataFileReader(null, $this);
+    $localmfr->rewrite($localmfr->getFilename($key));
+    if ($localmfr->existsInCache()) {
+      // pull image from cache
+      $imgdata = $localmfr->get();
+    }
+    else {
+      // update stats array with new location of image in cache
+      $returnedFile = $this->takeSnapshot($this->args->{'timecode'}, $localmfr->getFilename($key));
+      // if no image produced (e.g. video corrupted or stored in zip)
+      if ($returnedFile === false) {
+        $errorimgdata = $this->loadErrorImage();
+        return $errorimgdata;
+      }
+      // point the local reader at the returned file
+      $localmfr->rewrite($returnedFile);
+      // pull image from cache
+      $imgdata = $localmfr->get();
+    }
+    // return the image data
+    return $imgdata;
+  }
+
+
   /**
    * Use FFmpeg to take a snapshot of part of this video
    * It always uses the original filename, not the redirected stats->{file}
-   * @param  string $time timecode [HH:MM:SS.MS]
+   * @param  string $time timecode [HH:MM:SS.MS] or second [123] or frame number [f12345]
    * @param  string $outputname name of file to write to
    * @return string name of file written to, or false on failure
    */
   public function takeSnapshot($time, $outputname) {
     $path_ffmpeg = $this->settings['general']['path_ffmpeg'];
-    // escape arguments
+    // escape arguments (minus flags)
     $shell_filename = escapeshellarg($this->stats->file_original);
     $shell_output = escapeshellarg($outputname);
-    $shell_time = escapeshellarg($time);
+    $shell_time = escapeshellarg(ltrim($time, 'f'));
     // remove output file if it exists already
     if (file_exists($outputname)) {
       unlink($outputname);      
     }
+    // detect what kind of timecode we're using
+    if ($time[0] == 'f') {
+      $shell_time_phrase = "-filter:v select=\"eq(n\,{$shell_time})\"";
+      $time = intval(ltrim($time, 'f'));
+    } else {
+      $shell_time_phrase = "-ss {$shell_time}";
+    }
     // setup command to run ffmpeg and relay output to /dev/null
-    $command = "{$path_ffmpeg}ffmpeg -i {$shell_filename} -ss {$shell_time} -f image2 -vframes 1 {$shell_output} ";
+    $command = "{$path_ffmpeg}ffmpeg -i {$shell_filename} {$shell_time_phrase} -f image2 -vframes 1 {$shell_output} ";
     // 2>&1 >/dev/null
     // print($command."<br />\r\n");
     // extract a thumbnail from the video and store in the mediacache
@@ -159,30 +176,13 @@ class ImageviewController extends ViewController {
       $command = "{$path_ffmpeg}ffprobe -loglevel error -show_streams {$shell_filename}";
       $ffoutput = @shell_exec($command);
       // store metadata in object
-      $vmd = new \stdClass();
-      $vmd->timecode = $time;
-      $vmd->file_original = $this->stats->file_original;
-      // parse output into name:value pairs
-      foreach(explode("\n",$ffoutput) as $arraykey => $line) {
-        $eqpos = strpos($line, '=');
-        if ($eqpos !== false) {
-          $name = substr($line, 0, $eqpos);
-          $vmd->{$name} = substr($line, $eqpos+1);
-        }
-      }
+      $vmd = new VideoMetadata(null, $this->stats);
+      $vmd->imbue(array(
+        'dv_timecode' => $time,
+      ));
+      $vmd->ingestFFmpegOutput($ffoutput);
       // apply metadata to output file
-      $iptc = new IptcWriter($outputname);
-      // can use set without get, because we're creating the file from scratch
-      $iptc->set(IPTC_SPECIAL_INSTRUCTIONS, serialize($vmd));
-      // IPTC Caption: Windows 'Title'
-      $iptc->set(IPTC_CAPTION, 'Video thumbnail');
-      // IPTC Byline: Windows 'Authors'
-      $iptc->set(IPTC_BYLINE, 'Thumbnail generated by StructuredFun');
-      // IPTC Keywords: Windows 'Tags'
-      $iptc->set(IPTC_KEYWORDS, 'structured');
-      // IPTC Copyright string: Windows 'Copyright', visibile in 'Details'
-      $iptc->set(IPTC_COPYRIGHT_STRING, 'Copyright belongs to the original author, thumbnail licence granted to StructuredFun');
-      $iptc->save();
+      $vmd->write($outputname);
     } else {
       return false;
     }

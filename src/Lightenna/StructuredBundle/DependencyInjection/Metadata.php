@@ -3,13 +3,14 @@
 namespace Lightenna\StructuredBundle\DependencyInjection;
 use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 class Metadata {
+  // only fields defined here get unserialised back from files
   // version number used to verify ours/not-ours
   public $sfun_version = '0.9.1';
 
   // resolution of original file
   public $width, $height;
   // resolution as loaded in this instance (after transform)
-  public $width_loaded, $height_loaded;
+  public $loaded_width, $loaded_height;
   // ratio of width:height, orientation (x || y)
   public $ratio, $orientation;
   // IPTC fields that we use/display
@@ -33,10 +34,10 @@ class Metadata {
    */
   public function recalcRatio() {
     // round to 5DP (0.1px for a 10k image)
-    $this->ratio = round($this->width_loaded / $this->height_loaded, 5);
+    $this->ratio = round($this->loaded_width / $this->loaded_height, 5);
     // orientation
     $this->orientation = 'x';
-    if ($this->width_loaded < $this->height_loaded) {
+    if ($this->loaded_width < $this->loaded_height) {
       $this->orientation = 'y';
     }
   }
@@ -71,8 +72,8 @@ class Metadata {
       $this->height = $in->height;
     }
     if (isset($in->{'newwidth'})) {
-      $this->width_loaded = $in->newwidth;
-      $this->height_loaded = $in->newheight;
+      $this->loaded_width = $in->newwidth;
+      $this->loaded_height = $in->newheight;
       $this->recalcRatio();
     }
     return $this;

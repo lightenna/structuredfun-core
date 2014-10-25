@@ -33,7 +33,7 @@
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type
   " data-seq="{{ file.seq }}">
     <a class="container media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
-      <p class="imgmetric super"><span class="size"><span class="width">{% if file.meta.width_loaded is defined %}{{ file.meta.width_loaded }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.height_loaded is defined %}{{ file.meta.height_loaded }}{% else %}-{% endif %}</span> @ </span><span class="perc">x%</span></p>
+      <p class="imgmetric super"><span class="size"><span class="width">{% if file.meta.loaded_width is defined %}{{ file.meta.loaded_width }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.loaded_height is defined %}{{ file.meta.loaded_height }}{% else %}-{% endif %}</span> @ </span><span class="perc">x%</span></p>
       <img class="loadable reresable boundable {{ file.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
@@ -43,11 +43,11 @@
            {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}
 {#
            do not send the loaded-width and height, because we need to use the loaded event to trigger cell resize and image reres
-           {% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %}
+           {% if file.meta.loaded_width is defined %}data-loaded-width="{{ file.meta.loaded_width }}" {% endif %}{% if file.meta.loaded_height is defined %}data-loaded-height="{{ file.meta.loaded_height }}" {% endif %}
 #}
            data-loaded="false"
            data-seq="{{ file.seq }}" />
-      <noscript><img class="{{ file.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.width_loaded is defined %}data-loaded-width="{{ file.meta.width_loaded }}" {% endif %}{% if file.meta.height_loaded is defined %}data-loaded-height="{{ file.meta.height_loaded }}" {% endif %}{% if file.meta.ratio is defined %}data-ratio="{{ file.meta.ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
+      <noscript><img class="{{ file.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}{% if file.meta.loaded_width is defined %}data-loaded-width="{{ file.meta.loaded_width }}" {% endif %}{% if file.meta.loaded_height is defined %}data-loaded-height="{{ file.meta.loaded_height }}" {% endif %}{% if file.meta.ratio is defined %}data-ratio="{{ file.meta.ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
       <span class="meta">
         <span class="base">{#
           Show headline or if not set, file.alias #}
