@@ -37,12 +37,7 @@ class MetadataFileReader extends FileReader {
     return $imgdata;
   }
 
-  /**
-   * Pull metadata from this image data block and store in stats
-   * @param string $imgdata Image file as a string
-   * @return object processed metadata object
-   */
-  public function readImageMetadata($imgdata) {
+  public function dumbreadImageMetadata($imgdata) {
     // read metadata
     $info = array();
     // test (fast) if imgdata length > 0
@@ -53,10 +48,19 @@ class MetadataFileReader extends FileReader {
     } else {
       print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
     }
-    // could potentially get back a new metadata object if unserialized
-    $this->metadata = $this->metadata->read($info);
+    $md = new Metadata();
+    $md = $md->read($info);
+    return $md;
+  }
+
+  /**
+   * Pull metadata from this image data block and store in stats
+   * @param string $imgdata Image file as a string
+   * @return object processed metadata object
+   */
+  public function readImageMetadata($imgdata) {
     // store metadata block in stats for controller
-    $this->stats->{'meta'} = $this->metadata;
+    $this->stats->{'meta'} = $this->metadata = $this->dumbreadImageMetadata($imgdata);
     // return object
     return $this->metadata;
   }
@@ -66,6 +70,13 @@ class MetadataFileReader extends FileReader {
    */
   public function getMetadata() {
     return $this->metadata;
+  }
+
+  /**
+   * @param object $md metadata object
+   */
+  public function setMetadata($md) {
+    $this->metadata = $md;
   }
 
   /**

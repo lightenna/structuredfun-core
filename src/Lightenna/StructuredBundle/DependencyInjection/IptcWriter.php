@@ -69,6 +69,33 @@ class IptcWriter {
     }
   }
 
+  private function serialiseAsIPTC() {
+    $data = '';
+    foreach($this->meta as $name => $value) {
+      $key = substr($name, 2);
+      $data .= $this->makeTag(2, $key, $value[0]);
+    }
+    return $data;    
+  }
+
+  /**
+   * @param  string $imgdata image data to pull IPTC from
+   */
+  public function loadFromStream(&$imgdata) {
+    $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
+    $this->reload($uri);
+  }
+
+  /**
+   * @param  string $path path to read image file from
+   * @return string image data with embedded IPTC
+   */
+  public function getStream($path) {
+    // load image from file and embed IPTC data
+    $imgdata = iptcembed($this->serialiseAsIPTC(), $path);
+    return $imgdata;
+  }
+
   public function save($path_override = null) {
     // exit if we haven't setup a file
     if (is_null($this->filename)) {
@@ -80,13 +107,8 @@ class IptcWriter {
       $path = $path_override;
     }
     if (count($this->meta)) {
-      $data = '';
-      foreach($this->meta as $name => $value) {
-        $key = substr($name, 2);
-        $data .= $this->makeTag(2, $key, $value[0]);
-      }
       // load image and embed IPTC data
-      $content = iptcembed($data, $path);
+      $content = $this->getStream($path);
       // write the new image data out to the file.
       $fp = fopen($path, "wb");
       fwrite($fp, $content);
