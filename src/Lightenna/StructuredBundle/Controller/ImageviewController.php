@@ -2,7 +2,6 @@
 
 namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Lightenna\StructuredBundle\DependencyInjection\IptcWriter;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\Metadata;
 use Lightenna\StructuredBundle\DependencyInjection\VideoMetadata;
@@ -130,11 +129,12 @@ class ImageviewController extends ViewController {
         $errorimgdata = $this->loadErrorImage();
         return $errorimgdata;
       }
-      // point the local reader at the returned file
+      // point the local reader at the returned file, then read from it
       $localmfr->rewrite($returnedFile);
-      // pull image from cache
       $imgdata = $localmfr->get();
     }
+    // pull the metadata from localmfr and store in mfr (for when we write the image out later)
+    $this->mfr->setMetadata($localmfr->getMetadata());
     // return the image data
     return $imgdata;
   }
@@ -239,7 +239,9 @@ class ImageviewController extends ViewController {
       }
       // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
       $imgdata = self::getImageData($oldimg, isset($this->stats->{'ext'}) ? $this->stats->{'ext'} : 'jpg');
-      $this->mfr->cache($imgdata);
+      // cache derived image, but don't reread the metadata as 
+      //   original metadata is lost by imagecreatefromstring() call
+      $this->mfr->cache($imgdata, false);
       // then [optionally] clip
       if ($this->argsSayClipImage()) {
         if ($oldimg === null) {

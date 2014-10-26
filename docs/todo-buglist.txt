@@ -1,16 +1,13 @@
 
-* change cache encoding from hash to escape
-  + symmetry with mod_rewrite unescape
-
-* create VideoMetadata
-  + make sure VideoMetadata gets written through into all thumbnails by the cache
-
 * feature exploration: dynamic video thumbnails
   + percentage frames from ffmpeg is tricky
     + need to know the length of the video
       + that's a good thing to have in metadata anyway
   + get length in frames to js via metadata
+    + js being sent all metadata in imagemeta
+      + think about getting metadata (entire json object) into $img()
   + use length to calculate request in frames
+  + swap out image
 
 * change out call to getOrientation 
   + it's misleading to call it getOrientation
@@ -3360,4 +3357,31 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
 
 * maybe refactor video thumbnail metadata
   + good to get it all into the same class
+
+* change cache encoding from hash to escape
+  + symmetry with mod_rewrite unescape
+    + also helps me see what's going on in file names
+  + at this stage, don't try and be clever with attributes
+    + that's for later
+  - turns out this is not simple
+    + md5 does a great job of dealing with chars that Windows won't allow in filenames
+  - also all kinds of problems doing path substitutions
+    + escaping would only work for local files within the document root
+    - not shares
+
+* create VideoMetadata
+  + make sure VideoMetadata gets written through into all thumbnails by the cache
+    + currently first video (fullres) thumbnail is good
+      + but derivatives are all just Metadata
+    + it's lost somewhere in filterImage
+  + when we do anything to the metadata up in the controller
+    + we should set it back to the mfr
+    + so any writes out of the mfr
+      + do it with the right metadata
+  + IptcWriter is now only used by Metadata.php to write out metadata
+    + which is way more sensible
+
+* merge Metadata and IptcWriter
+  + should be a single class
+    + for now it's a subclass which is fine
 

@@ -84,19 +84,23 @@ class CachedMetadataFileReader extends MetadataFileReader {
   /**
    * Store the imgdata in the cache if the cache is enabled
    * @param string $imgdata
+   * @param boolean $reread_metadata
    * @return true if written to cache
    */
-  public function cache(&$imgdata) {
+  public function cache(&$imgdata, $reread_metadata = true) {
     if ($this->cacheIsEnabled()) {
+      if ($reread_metadata) {
+        // unless told not to, read metadata from imgdata stream
+        $this->readImageMetadata($imgdata);
+      }
+      // either way update the metadata object with image's current stats
+      $this->metadata->filterStats($this->stats);
+      // derive full filename from cachekey
       $filename = $this->getFilename($this->stats->cachekey);
       // only cache the file if it's not already in the cache
       if (!$this->existsInCache($filename)) {
-        // read metadata from imgdata stream
-        $this->readImageMetadata($imgdata);
         // write out file
         file_put_contents($filename, $imgdata);
-        // update the metadata object with image's current stats
-        $this->metadata->filterStats($this->stats);
         if ($this->fileCanHoldMetadata()) {
           $this->metadata->write($filename);
         } else {
@@ -270,7 +274,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
   /**
    * Generate hash in a standard way
    * @param string $key
-   * @return string MD5 checksum
+   * @return string hashed string
    */
   static function hash($key) {
     return md5($key);

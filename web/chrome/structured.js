@@ -54,6 +54,20 @@ window.sfun = (function($, undefined) {
     return this.litter.cache[subselector];
   };
 
+  // jQuery caching getter
+  $.fn.cachedGet = function(key) {
+    this.litter = this.litter || {};
+    this.litter.cache = this.litter.cache || {};
+    return this.litter.cache[key];
+  }
+
+  // jQuery caching setter
+  $.fn.cachedSet = function(key, value) {
+    this.litter = this.litter || {};
+    this.litter.cache = this.litter.cache || {};
+    this.litter.cache[key] = value;
+  }
+
   // ---------
   // CONSTANTS
   // and private variables
@@ -433,6 +447,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * Check the display resolution of the image and swap out src if higher res available 
+   * @param {object} $ent jQuery entity (shared cached copy)
    * @return {object} jQuery deferred
    */
   var refreshResolution = function($ent) {
@@ -527,6 +542,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * Request metadata about this image from the server if we don't have it
+   * @param {object} $ent jQuery entity (shared cached copy)
    * @return {object} jQuery deferred
    */
   var refreshMetadata = function($ent) {
@@ -558,6 +574,8 @@ window.sfun = (function($, undefined) {
                 $field.addClass('default');
               }
             }
+            // store the entire meta object in the cached jquery object
+            $ent.cachedSet('meta', data.meta);
           }
           // resolve the context
           deferred.resolve();
@@ -581,7 +599,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * refresh a single image, but ensure that it's loaded first
-   * @param {object} $ent jQuery entity
+   * @param {object} $ent jQuery entity (shared cached copy)
    * @param {boolean} reres also refresh the image's resolution
    * @return {object} jQuery deferred
    */
@@ -649,7 +667,9 @@ window.sfun = (function($, undefined) {
           $set = $set.refresh();
           // stage 3: refresh resolutions as a batch
           $set.each(function() {
-            defs.push(refreshImageResolution($(this), true));
+            // get shared cached copy of cell
+            var $ent = $img($(this).data('seq'));
+            defs.push(refreshImageResolution($ent, true));
           });
           $.when.apply($, defs).always(function() {
             // finally resolve
@@ -823,18 +843,21 @@ window.sfun = (function($, undefined) {
    */
   var bindToVideoHover = function() {
     var that = this;
-    $sfun.on('mouseover', '.selectablecell a.video-container', function(event) {
+    $sfun.on('mousemove', '.selectablecell a.video-container', function(event) {
       // be very careful with code in here as :hover is a very frequent event
       var $cell = $(this).parent();
       var seq = $cell.data('seq');
       var length = $cell.data('length');
       // work out image and cursor positions on x axis (always)
       var image_pos = $img(seq).offset();
-      var cursor_pos = e.pageX - image_pos.left;
+      var cursor_pos = event.pageX - image_pos.left;
       // @todo calculate rounded frame rather than rounded percentage (change out 100)
-      var cursor_perc = exp.api_round(cursor_pos * 100 / $(img).width(), 0);
-      // just change out the img src; no res/ratio changes
-      
+      var meta = $img(seq).cachedGet('meta');
+      if (meta != undefined) {
+        var cursor_perc = exp.api_round(cursor_pos * meta.dv_framecount / $img(seq).width(), 0);
+        // just change out the img src; no res/ratio changes
+        console.log(cursor_perc + ' of ' + meta.dv_framecount);
+      }
     });
   }
 
