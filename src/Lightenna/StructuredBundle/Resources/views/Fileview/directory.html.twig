@@ -38,7 +38,7 @@
            alt="image thumbnail for {{ file.alias}}"
            data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            data-desrc="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
-           data-template-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
+           data-template-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}{% if file.type == 'video' %}{% verbatim %}&timecode={{ timecode }}{% endverbatim %}{% endif %}"
            {% if file.meta.ratio is defined %}data-ratio="{{ file.meta.ratio }}" {% endif %}
            {% if file.meta.width is defined %}data-native-width="{{ file.meta.width }}" {% endif %}{% if file.meta.height is defined %}data-native-height="{{ file.meta.height }}" {% endif %}
 {#
