@@ -167,7 +167,8 @@ window.sfun = (function($, undefined) {
         bindToHotKeys();
         bindToImageLinks();
         bindToDirectoryLinks();
-        bindToVideoHover();
+        // bindToHover();
+        // bindToVideoHover();
         // if we're sideways scrolling, bind to scroll event
         setDirection(getDirection());
         // execute queue of API calls
@@ -840,23 +841,52 @@ window.sfun = (function($, undefined) {
 
   /**
    * if a user hovers over a video, use relative position to change thumbnail
+   * currently turned off
    */
   var bindToVideoHover = function() {
     var that = this;
+    // be very careful with code in here as :hover is a very frequent event
     $sfun.on('mousemove', '.selectablecell a.video-container', function(event) {
-      // be very careful with code in here as :hover is a very frequent event
-      var $cell = $(this).parent();
-      var seq = $cell.data('seq');
-      var length = $cell.data('length');
+      // pull ent using shared cached copy
+      var $ent = $img($(this).parent().data('seq'));
       // work out image and cursor positions on x axis (always)
-      var image_pos = $img(seq).offset();
+      var image_pos = $ent.offset();
       var cursor_pos = event.pageX - image_pos.left;
-      // @todo calculate rounded frame rather than rounded percentage (change out 100)
-      var meta = $img(seq).cachedGet('meta');
+      var meta = $ent.cachedGet('meta');
       if (meta != undefined) {
-        var cursor_perc = exp.api_round(cursor_pos * meta.dv_framecount / $img(seq).width(), 0);
-        // just change out the img src; no res/ratio changes
-        console.log(cursor_perc + ' of ' + meta.dv_framecount);
+        // calculate frame to request (grouped by partitions)
+        // var partitions = 20;
+        // var cursor_part = exp.api_round(cursor_pos * partitions / $ent.width(), 0);
+        // var cursor_frame = exp.api_round(cursor_part * meta.dv_framecount / partitions, 0);
+        // calculate frame to request
+        var cursor_frame = exp.api_round(cursor_pos * meta.dv_framecount / $ent.width(), 0);
+        // check to see if we're already displaying this frame
+        if ($ent.data('frame') == cursor_frame) {
+          // do nothing
+        } else {
+          // tag cell as displaying this frame
+          $ent.data('frame', cursor_frame);
+          // find image
+          var $loadable = $ent.cachedFind('> .container > .loadable');
+          if ($loadable.hasClass('frame_pending')) {
+            // do nothing
+          } else {
+            // just change out the img src; no res/ratio changes
+            var highres = substitute($loadable.data('template-src'), { 'maxwidth': last_longest, 'maxheight': last_longest, 'timecode': 'f' + cursor_frame } );
+            var im = new Image();
+            im.onload = im.onerror = function() {
+              // re-enable frame loading
+              $loadable.removeClass('frame_pending');
+              $loadable.attr('src', highres);
+            }
+            im.src = highres;
+            $loadable.addClass('frame_pending')
+            // optional debugging
+            if (debug && true) {
+              console.log(cursor_frame + ' of ' + meta.dv_framecount);
+            }            
+          }
+        }
       }
     });
   }

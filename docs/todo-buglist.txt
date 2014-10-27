@@ -1,14 +1,4 @@
 
-* feature exploration: dynamic video thumbnails
-  + percentage frames from ffmpeg is tricky
-    + need to know the length of the video
-      + that's a good thing to have in metadata anyway
-  + get length in frames to js via metadata
-    + js being sent all metadata in imagemeta
-      + think about getting metadata (entire json object) into $img()
-  + use length to calculate request in frames
-  + swap out image
-
 * change out call to getOrientation 
   + it's misleading to call it getOrientation
     + also don't pass back orientation
@@ -59,6 +49,13 @@
 * basic website
 
 --- next release ---
+
+* optimisation: swap out $(this) references to use cached copy
+  + from
+        var $ent = $(this);
+  + to
+        var $ent = $img($(this).data('seq'));
+  + important wherever there's a cachedFind/Get/Set downstream
 
 * optimisation: experiment with using this.offsetLeft/Top instead of $(img).offset().left/top
 
@@ -3384,4 +3381,24 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
 * merge Metadata and IptcWriter
   + should be a single class
     + for now it's a subclass which is fine
+
+* feature exploration: dynamic video thumbnails
+  + percentage frames from ffmpeg is tricky
+    + need to know the length of the video
+      + that's a good thing to have in metadata anyway
+  + get length in frames to js via metadata
+    + js being sent all metadata in imagemeta
+      + think about getting metadata (entire json object) into $img()
+  + use length to calculate request in frames
+  + what we want is a micro trailer
+    + 10x1s snips from the first third of the clip
+  + swap out image
+  + it's ok, but not a home run
+    + it doesn't give that much information
+    + the scan left-right operation doesn't really add value
+      + scan could be good for thumb selection
+        + but it needs to be much faster
+          + perhaps we could generate all partition images in one go
+          + then scan would be instantaneous
+  = resume later
 
