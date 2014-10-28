@@ -222,15 +222,24 @@
               // needs fixed width
               // text-overflow: ellipsis;
 
+              // make headline and summary icons appear on one line
               &.headline {
                 font-weight: bold;
+                display: inline;
+                margin-right: 0;
               }
 
-              &.caption, &.byline, &.keywords, &.copyright {
-                margin-top: .5em;
+              &.caption, &.keywords, &.copyright, &.source {
+                display: inline;
+                margin: 0;
               }
 
-              &.default {
+              &.byline {
+                display: block;
+              }
+
+              // generally if it's a default value we don't show it (except headline and byline)
+              &.default.caption, &.default.keywords, &.default.copyright, &.default.source, {
                 display: none;
               }
             }

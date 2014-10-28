@@ -83,7 +83,6 @@ class MetadataFileReader extends FileReader {
    * Overriden getListing function that adds metadata to the elements
    * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
    */
-
   public function getListing() {
     $listing = parent::getListing();
     // loop through each obj (object refs have implicit &$obj)
@@ -134,12 +133,13 @@ class MetadataFileReader extends FileReader {
 
   /**
    * Work out the orientation of the current or a named image
-   * @return string orientation (x|y)
+   * @param object $obj to update with orientation (x|y)
+   * @return object $obj only used for testing
    */
-
-  public function getOrientation($obj = null) {
+  public function getDirectoryEntryMetadata($obj = null) {
     if (is_null($obj)) {
       $imgdata = $this->get();
+      $obj = new \stdClass();
     }
     else {
       $imgdata = null;
@@ -160,20 +160,22 @@ class MetadataFileReader extends FileReader {
     }
     // try and use metadata first
     if (isset($obj->meta->orientation)) {
-      return $obj->meta->orientation;
+      $obj->orientation = $obj->meta->orientation;
+      return;
     }
     // assume landscape if there's a problem reading
+    $obj->orientation = 'x';
     if ($imgdata == null)
-      return 'x';
+      return;
     if (!self::checkImageDatastream($imgdata))
-      return 'x';
+      return;
     // create an image, then read out the width and height
     $img = @imagecreatefromstring($imgdata);
     if ($img) {
       if (imagesx($img) < imagesy($img))
-        return 'y';
+        $obj->orientation = 'y';
     }
-    return 'x';
+    return $obj;
   }
 
   /**
@@ -226,11 +228,11 @@ class MetadataFileReader extends FileReader {
       case 'image':
         // get the image metadata by reading (cached-only) file
         // fast enough (110ms for 91 images)
-        $obj->orientation = $this->getOrientation($obj);
+        $this->getDirectoryEntryMetadata($obj);
         break;
       case 'video':
-        // assume all video is landscape
-        $obj->orientation = 'x';
+        // get the video metadata by reading (cached-only) file
+        $this->getDirectoryEntryMetadata($obj);
         break;
       default:
         $obj->orientation = 'x';

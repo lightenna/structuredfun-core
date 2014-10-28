@@ -1,10 +1,8 @@
 
-* change out call to getOrientation 
-  + it's misleading to call it getOrientation
-    + also don't pass back orientation
-
-* condense certain metadata fields into icons
-  + copyright, keywords, source
+* not sure if we need left-right margins on fullscreen
+  + stuff photos look all joined up
+    + might work if every cell had a tint
+      + e.g. background +#111111 and background -#111111
 
 * feature: IPTC editing
   + should be turn-offable in settings
@@ -25,12 +23,6 @@
 
 * debug mx-hd
   + 0 byte png throwing errors
-
-* not sure if we need left-right margins on fullscreen
-  + stuff photos look all joined up
-    + might work if every cell had a tint
-      + e.g. background +#111111 and background -#111111
-    + that works well across
 
 * turn off wrap-around on scroll
   + it's actually confusing
@@ -3401,4 +3393,21 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
           + perhaps we could generate all partition images in one go
           + then scan would be instantaneous
   = resume later
+
+* change out call to getOrientation 
+  + it's misleading to call it getOrientation
+    + also don't pass back orientation
+  + maybe call for video too
+    + good continuity
+
+* re-run test suite
+  + check ok after all these changes
+  + just one failure which has been there for ages
+    + test broken because now we push files to the end of the directory view
+    + maybe should just leave them in order
+      + directories too?
+    + no, I like them being at the end
+
+* condense certain metadata fields into icons
+  + copyright, keywords, source
 
