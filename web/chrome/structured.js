@@ -570,8 +570,22 @@ window.sfun = (function($, undefined) {
             var fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source'];
             for (var i=0 ; i<fields.length ; ++i) {
               var value = data.meta[fields[i]];
-              var $field = $ent.cachedFind('.' + fields[i]).html(value);
+              var $field = $ent.cachedFind('.' + fields[i]);
+              switch (fields[i]) {
+                case 'headline':
+                case 'byline':
+                  $field.html(value);
+                  break;
+                case 'caption':
+                case 'copyright':
+                case 'keywords':
+                case 'source':
+                  $field.attr('title', value);
+                  break;
+              }
+console.log('v['+value+'] default['+state_default[fields[i]]+']');
               if (value == state_default[fields[i]]) {
+console.log('true');
                 $field.addClass('default');
               }
             }
