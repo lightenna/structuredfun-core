@@ -1,4 +1,15 @@
 
+* think about offseq for page up/down
+  + think about offseq for wheel up/down
+    + think it's a matter of preserving the current offseq on a wheel
+--o--
+* resize needs to refresh the hashed offseq
+  + in order to maintain centring
+    + works when just applied
+  + also need to buffer fired events
+  + for some reason it's not putting it in the centre
+    + probably needs a force
+
 * not sure if we need left-right margins on fullscreen
   + stuff photos look all joined up
     + might work if every cell had a tint
@@ -28,9 +39,6 @@
   + it's actually confusing
     + take it out
     + shows up in fullscreen and left/right
-
-* think about offseq for page up/down
-  + think about offseq for wheel up/down
 
 * look into reres-last test failing sometimes
   + seems to always fail on wikimedia-gallery1

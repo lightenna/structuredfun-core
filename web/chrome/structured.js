@@ -186,8 +186,18 @@ window.sfun = (function($, undefined) {
             // flush cache
             getViewportWidth(true);
             getViewportHeight(true);
-            // process resize as forced hash change
-            handlerHashChanged(getHash(), true);
+            // get current hash
+            var hash = getHash();
+            // update any parts of hash that are viewport-dependent
+            if (hash.indexOf('offseq') != -1) {
+              var fromHash = hashParse(hash);
+              fromHash.offseq = imageCentreOffseq();
+              hash = hashGenerate(fromHash);
+              hashSetTo(hash, false);
+            } else {
+              // process resize as forced hash change
+              handlerHashChanged(hash, true);
+            }
           // },
           // // do nothing if dumped
           // function(){},
@@ -583,9 +593,10 @@ window.sfun = (function($, undefined) {
                   $field.attr('title', value);
                   break;
               }
-console.log('v['+value+'] default['+state_default[fields[i]]+']');
               if (value == state_default[fields[i]]) {
-console.log('true');
+                if (debug && false) {
+                  console.log('v['+value+'] default['+state_default[fields[i]]+'] is default');
+                }
                 $field.addClass('default');
               }
             }
@@ -1781,6 +1792,32 @@ console.log('true');
   };
 
   /**
+   * @return {int} viewport centre offset by half the width of a cell (for this view size)
+   */
+  var imageCentreOffseq = function() {
+    // work out how to centre image
+    var direction = getDirection();
+    var viewport_ratio = getViewportWidth() / getViewportHeight();
+    var ratio_mean = ratio_total / ratio_count;
+    // we're centring the image fullscreen, so can't use current width
+    var cell_count_fullscreen = (direction == 'x' ? 
+      Math.max(1, viewport_ratio * 1 * 1 / ratio_mean) :
+      Math.max(1, 1 / viewport_ratio * 1 * ratio_mean)
+    );
+    // work out what the cell width will be when fullscreen
+    var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight())
+    var viewport_midpoint = viewport_major / 2;
+    var cell_major = viewport_major / cell_count_fullscreen;
+    var cell_midpoint = cell_major / 2;
+    var offseq = exp.api_round(viewport_midpoint - cell_midpoint, 0);
+    // optional debugging
+    if (debug && false) {
+      console.log('viewport_midpoint['+viewport_midpoint+'] cell_count_fullscreen['+cell_count_fullscreen+'] cell_midpoint['+cell_midpoint+'] offseq['+offseq+']');
+    }
+    return offseq;
+  }
+
+  /**
    * switch between the default breadth and fullscreen
    * @param {int} seq image to make fullscreen
    * @param {object} eventContext optional event context for decorating an existing deferred
@@ -1790,25 +1827,7 @@ console.log('true');
     var $ent = $img(seq);
     switch (getType($ent)) {
       case 'image':
-        // work out how to centre image
-        var direction = getDirection();
-        var viewport_ratio = getViewportWidth() / getViewportHeight();
-        var ratio_mean = ratio_total / ratio_count;
-        // we're centring the image fullscreen, so can't use current width
-        var cell_count_fullscreen = (direction == 'x' ? 
-          Math.max(1, viewport_ratio * 1 * 1 / ratio_mean) :
-          Math.max(1, 1 / viewport_ratio * 1 * ratio_mean)
-        );
-        // work out what the cell width will be when fullscreen
-        var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight())
-        var viewport_midpoint = viewport_major / 2;
-        var cell_major = viewport_major / cell_count_fullscreen;
-        var cell_midpoint = cell_major / 2;
-        var offseq = exp.api_round(viewport_midpoint - cell_midpoint, 0);
-        // optional debugging
-        if (debug && false) {
-          console.log('viewport_midpoint['+viewport_midpoint+'] cell_count_fullscreen['+cell_count_fullscreen+'] cell_midpoint['+cell_midpoint+'] offseq['+offseq+']');
-        }
+        var offseq = imageCentreOffseq();
         // toggle using hash change
         if (getBreadth() == 1) {
           return fireHashUpdate( { 'breadth': state_previous['breadth'], 'seq': seq, 'offseq': state_previous['offseq'] }, false, eventContext);
@@ -1877,6 +1896,26 @@ console.log('true');
   // ---------------
   // FUNCTIONS: hash
   // ---------------
+
+  /**
+   * @param {hash}    hash string to go to browser
+   * @param {boolean} push true to push a history item
+   */
+  var hashSetTo = function(hash, push) {
+    // fire event: change the window.location.hash, allow handler to resolve context
+    if (push) {
+      History.pushState({}, null, exp.stringHASHBANG + hash);
+    } else {
+      // -- doesn't always work!
+      History.replaceState({}, 'Image', exp.stringHASHBANG + hash);
+      // have to read it back and check; History hashes come back without #
+      readback = History.getHash();
+      if ((exp.stringHASHBANG + hash) != ('#'+readback)) {
+        // -- leaves a messy history trail
+        window.location.hash = exp.stringHASHBANG + hash;
+      }
+    }
+  }
 
   /**
    * convert an object to a hash string
@@ -2480,6 +2519,8 @@ console.log('true');
         'deps': null,
         // has not been handled yet
         'handled': false,
+        // force an update irrespective of flagged changes
+        'force': false,
         // can not be dumped if peered
         'dumpable': false,
         // has no action
@@ -3141,7 +3182,6 @@ console.log('true');
    * @param {object}  options      name:value pairs to go in the hash
    * @param {boolean} push         true to push a history item
    * @param {object} [eventContext] optional event context for decorating an existing deferred
-   * @return {object} updated event context
    * @return {object} jQuery deferred
    */
   var fireHashUpdate = function(options, push, eventContext) {
@@ -3164,19 +3204,7 @@ console.log('true');
     if (hashEquals(getHash(), hash)) {
       return eventQueue.resolve(localContext);
     } else {
-      // fire event: change the window.location.hash, allow handler to resolve context
-      if (push) {
-        History.pushState({}, null, exp.stringHASHBANG + hash);
-      } else {
-        // -- doesn't always work!
-        History.replaceState({}, 'Image', exp.stringHASHBANG + hash);
-        // have to read it back and check; History hashes come back without #
-        readback = History.getHash();
-        if ((exp.stringHASHBANG + hash) != ('#'+readback)) {
-          // -- leaves a messy history trail
-          window.location.hash = exp.stringHASHBANG + hash;
-        }
-      }
+      hashSetTo(hash, push);
       // @todo test; instant firing doesn't seem to save much time
       if (false) {
         // manually fire the handler instantly, even before the event trickles through
@@ -3284,6 +3312,10 @@ console.log('true');
       'key': 'hash:'+hash,
       'comment': 'invented context for handlerHashChanged'
     });
+    // check context for forcing
+    if (eventContext.force != undefined) {
+      forceChange = eventContext.force;
+    }
     // start with defaults
     var obj = getDefaults();
     // overwrite with current hash values
@@ -3535,9 +3567,14 @@ console.log('true');
       var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
       var next_ref = (current_ref + advance_by) % visTableMajor.getSize();
       next_pos = visTableMajor.key(next_ref);
+      // increment next_pos by existing offseq
+      var offseq = getOffseq();
+      console.log(next_pos + ' + ' + offseq + ' = ' + (next_pos+offseq));
+      next_pos -= offseq;
+      // put into target object then crop against viewport
       var target = {};
       target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
-      fireScrollBuffered(target, (breadth == 1 ? 0 : exp.implicitScrollDURATION));
+      fireScrollBuffered(cropScrollPositionAgainstViewport(target), (breadth == 1 ? 0 : exp.implicitScrollDURATION));
       event.preventDefault();
     } else {
       // if not snapping to images
