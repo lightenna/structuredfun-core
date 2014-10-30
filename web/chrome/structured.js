@@ -2519,8 +2519,6 @@ window.sfun = (function($, undefined) {
         'deps': null,
         // has not been handled yet
         'handled': false,
-        // force an update irrespective of flagged changes
-        'force': false,
         // can not be dumped if peered
         'dumpable': false,
         // has no action
@@ -3312,10 +3310,6 @@ window.sfun = (function($, undefined) {
       'key': 'hash:'+hash,
       'comment': 'invented context for handlerHashChanged'
     });
-    // check context for forcing
-    if (eventContext.force != undefined) {
-      forceChange = eventContext.force;
-    }
     // start with defaults
     var obj = getDefaults();
     // overwrite with current hash values
@@ -3354,7 +3348,7 @@ window.sfun = (function($, undefined) {
     // theme changes should affect no images
     var themeChanged = setTheme(obj.theme);
     // updates based on certain types of change
-    if (breadthChanged || directionChanged || forceChange) {
+    if (breadthChanged || directionChanged || offseqChanged || forceChange) {
       refreshDynamicMajors(getBreadth(), getDirection());
       // clear cell-specific dimensions and read back positions
       cellsClear();
@@ -3483,9 +3477,10 @@ window.sfun = (function($, undefined) {
         case exp.KEY_PAGE_DOWN:
           if (!event.ctrlKey) {
             event.preventDefault();
-            // animate if not fullscreen
+            // animate on/off can be based on breadth
             var breadth = getBreadth();
-            if (breadth != 1) {
+            if (true) {
+              // always animate
               eventContext.animate = exp.implicitScrollDURATION;
             }
             // apply position change as relative offset
@@ -3574,14 +3569,14 @@ window.sfun = (function($, undefined) {
       // put into target object then crop against viewport
       var target = {};
       target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
-      fireScrollBuffered(cropScrollPositionAgainstViewport(target), (breadth == 1 ? 0 : exp.implicitScrollDURATION));
+      fireScrollBuffered(cropScrollPositionAgainstViewport(target), exp.implicitScrollDURATION);
       event.preventDefault();
     } else {
       // if not snapping to images
       if (direction == 'x') {
         // use both axes to scroll along X
         next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
-        fireScrollBuffered( { 'scrollLeft': next_pos }, (breadth == 1 || likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
+        fireScrollBuffered( { 'scrollLeft': next_pos }, (likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
         event.preventDefault();
       }
     }
