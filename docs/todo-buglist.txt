@@ -9,6 +9,11 @@
   + also need to buffer fired events
   + for some reason it's not putting it in the centre
     + probably needs a force
+    + introduced forcing for offseqChanged for now
+--o--
+* scroll doesn't always work full screen
+  + doesn't go forward
+    + goes back in two-steps
 
 * not sure if we need left-right margins on fullscreen
   + stuff photos look all joined up
