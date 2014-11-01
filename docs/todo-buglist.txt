@@ -1,4 +1,31 @@
 
+* not sure if we need left-right margins on fullscreen
+  - stuff photos look all joined up
+  + might work if every cell had a tint
+    + e.g. background +#111111 and background -#111111
+  + also will want to put lines down the middle of the gutter
+    + think about orange strips on Kodak negs
+    + not sure how to do that while preserving cell shades
+      + maybe just say that's not possible with shaded cells
+  + start with plain vanilla cell margin left-right
+
+* feature: IPTC editing
+  + should be turn-offable in settings
+    + but on by default
+  + useful to set IPTC Source/licence
+  + probably have to pull this up
+    + because we don't have anything that can edit IPTC nicely
+
+* go through wikimedia images
+  + add metadata properly
+    + verify in sfun
+      + or fallback to photoshop
+    - windows just makes a mess
+
+* some wikimedia images don't load under linux
+  + don't really have to support all filenames
+    + but wikimedia images are important for online sfun demo
+
 * think about offseq for page up/down
   + think about offseq for wheel up/down
     + think it's a matter of preserving the current offseq on a wheel
@@ -14,24 +41,6 @@
 * scroll doesn't always work full screen
   + doesn't go forward
     + goes back in two-steps
-
-* not sure if we need left-right margins on fullscreen
-  + stuff photos look all joined up
-    + might work if every cell had a tint
-      + e.g. background +#111111 and background -#111111
-
-* feature: IPTC editing
-  + should be turn-offable in settings
-    + but on by default
-  + useful to set IPTC Source/licence
-  + probably have to pull this up
-    + because we don't have anything that can edit IPTC nicely
-
-* go through wikimedia images
-  + add metadata properly
-    + verify in sfun
-      + or fallback to photoshop
-    - windows just makes a mess
 
 * first read (when using imagemeta) no column resizing
   + ratio is 1.5
@@ -3423,4 +3432,10 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
 
 * condense certain metadata fields into icons
   + copyright, keywords, source
+
+* nice message for no-read directories
+  + when linux can't access a folder
+    + we currently get an error message
+  + sorted
+    + now says File Not Found which is ok
 
