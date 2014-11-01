@@ -9,6 +9,11 @@
       + maybe just say that's not possible with shaded cells
   + start with plain vanilla cell margin left-right
 
+* bug: non-imagesnap scroll locking
+  + seems to happen when scroll events queue up
+
+* substitute hamburger icon for class="icon ion-navicon-round"
+
 * feature: IPTC editing
   + should be turn-offable in settings
     + but on by default
@@ -3438,4 +3443,8 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
     + we currently get an error message
   + sorted
     + now says File Not Found which is ok
+
+* feature: use proper symbols for c p s k
+  + &copy; for copyright
+  + installed open source font (ionicons)
 

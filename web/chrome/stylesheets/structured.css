@@ -1,4 +1,4 @@
-/* line 17, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 17, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -20,45 +20,45 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
-/* line 22, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 22, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html {
   line-height: 1;
 }
 
-/* line 24, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 24, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 ol, ul {
   list-style: none;
 }
 
-/* line 26, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 26, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-/* line 28, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 28, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 caption, th, td {
   text-align: left;
   font-weight: normal;
   vertical-align: middle;
 }
 
-/* line 30, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 30, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q, blockquote {
   quotes: none;
 }
-/* line 103, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 103, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q:before, q:after, blockquote:before, blockquote:after {
   content: "";
   content: none;
 }
 
-/* line 32, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 32, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 a img {
   border: none;
 }
 
-/* line 116, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 116, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
 }
@@ -124,9 +124,13 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 .sfun.flow-pc.flow-1 > .cell {
   width: 100%;
   height: 100%;
-  margin: 0;
+  width: -webkit-calc(100% - 8px);
+  width: -moz-calc(100% - 8px);
+  width: calc(100% - 8px);
+  margin-top: 0;
+  margin-bottom: 0;
 }
-/* line 52, ../sass/structured.scss */
+/* line 54, ../sass/structured.scss */
 .sfun.flow-pc.flow-2 > .cell {
   width: 50%;
   height: 50%;
@@ -137,7 +141,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(50% - 8px);
   height: calc(50% - 8px);
 }
-/* line 59, ../sass/structured.scss */
+/* line 61, ../sass/structured.scss */
 .sfun.flow-pc.flow-4 > .cell {
   width: 25%;
   height: 25%;
@@ -148,7 +152,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(25% - 8px);
   height: calc(25% - 8px);
 }
-/* line 66, ../sass/structured.scss */
+/* line 68, ../sass/structured.scss */
 .sfun.flow-pc.flow-8 > .cell {
   width: 12.5%;
   height: 12.5%;
@@ -159,7 +163,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(12.5% - 8px);
   height: calc(12.5% - 8px);
 }
-/* line 106, ../sass/structured.scss */
+/* line 108, ../sass/structured.scss */
 .sfun.flow-pc > .cell {
   text-align: center;
   overflow: hidden;
@@ -167,22 +171,22 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: -moz-calc(8px) -moz-calc(4px) -moz-calc(0px) -moz-calc(4px);
   margin: calc(8px) calc(4px) calc(0px) calc(4px);
 }
-/* line 121, ../sass/structured.scss */
+/* line 123, ../sass/structured.scss */
 .sfun.flow-pc > .cell .selectreflector {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   border: 1px solid;
 }
-/* line 130, ../sass/structured.scss */
+/* line 132, ../sass/structured.scss */
 .sfun.flow-pc > .cell .media-container .selectreflector {
   border-color: white;
 }
-/* line 134, ../sass/structured.scss */
+/* line 136, ../sass/structured.scss */
 .sfun.flow-pc > .cell.selected .selectreflector {
   border-color: gray;
 }
-/* line 138, ../sass/structured.scss */
+/* line 140, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container {
   position: relative;
   display: block;
@@ -194,7 +198,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: -moz-calc(0px);
   margin: calc(0px);
 }
-/* line 151, ../sass/structured.scss */
+/* line 153, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container img.x-bound {
   position: relative;
   width: 100%;
@@ -203,11 +207,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   -ms-transform: translate(0, -50%);
   -webkit-transform: translate(0, -50%);
 }
-/* line 161, ../sass/structured.scss */
+/* line 163, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container img.y-bound {
   height: 100%;
 }
-/* line 165, ../sass/structured.scss */
+/* line 167, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric {
   line-height: 1.0em;
   position: absolute;
@@ -216,21 +220,21 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   white-space: nowrap;
   display: none;
 }
-/* line 173, ../sass/structured.scss */
+/* line 175, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric .size, .sfun.flow-pc > .cell .container .imgmetric .perc {
   display: none;
 }
-/* line 177, ../sass/structured.scss */
+/* line 179, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric.super {
   background-color: #009900;
   color: #BBFFBB;
 }
-/* line 182, ../sass/structured.scss */
+/* line 184, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .imgmetric.sub {
   background-color: #990000;
   color: #FFBBBB;
 }
-/* line 190, ../sass/structured.scss */
+/* line 192, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta {
   display: block;
   position: absolute;
@@ -246,12 +250,12 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
-/* line 209, ../sass/structured.scss */
+/* line 211, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base {
   position: absolute;
   bottom: 0;
 }
-/* line 214, ../sass/structured.scss */
+/* line 216, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span {
   margin: 1.0em;
   height: 1.2em;
@@ -259,36 +263,36 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   white-space: nowrap;
   overflow: hidden;
 }
-/* line 226, ../sass/structured.scss */
+/* line 228, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.headline {
   font-weight: bold;
   display: inline;
-  margin-right: 0;
+  margin-right: 0.5em;
 }
-/* line 232, ../sass/structured.scss */
+/* line 234, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.caption, .sfun.flow-pc > .cell .container .meta .base span.keywords, .sfun.flow-pc > .cell .container .meta .base span.copyright, .sfun.flow-pc > .cell .container .meta .base span.source {
   display: inline;
   margin: 0;
 }
-/* line 237, ../sass/structured.scss */
+/* line 239, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.byline {
   display: block;
 }
-/* line 242, ../sass/structured.scss */
+/* line 244, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.default.caption, .sfun.flow-pc > .cell .container .meta .base span.default.keywords, .sfun.flow-pc > .cell .container .meta .base span.default.copyright, .sfun.flow-pc > .cell .container .meta .base span.default.source {
   display: none;
 }
-/* line 251, ../sass/structured.scss */
+/* line 253, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 258, ../sass/structured.scss */
+/* line 260, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container:hover .imgmetric {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 269, ../sass/structured.scss */
+/* line 271, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory {
   border: 1px solid #dddddd;
   border-radius: 16px;
@@ -297,7 +301,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: 100%;
   position: relative;
 }
-/* line 277, ../sass/structured.scss */
+/* line 279, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory .overlay {
   width: 100%;
   height: 100%;
@@ -306,7 +310,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   top: 0;
   z-index: 1;
 }
-/* line 290, ../sass/structured.scss */
+/* line 292, ../sass/structured.scss */
 .sfun.flow-pc > .cell .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -321,7 +325,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 305, ../sass/structured.scss */
+/* line 307, ../sass/structured.scss */
 .sfun.flow-pc > .cell .subcell {
   width: 50%;
   height: 50%;
@@ -335,21 +339,21 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(50% - 8px);
   height: calc(50% - 8px);
 }
-/* line 316, ../sass/structured.scss */
+/* line 318, ../sass/structured.scss */
 .sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
   display: block;
 }
-/* line 320, ../sass/structured.scss */
+/* line 322, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reresing .imgmetric {
   display: none;
 }
-/* line 326, ../sass/structured.scss */
+/* line 328, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reres-plus-2s .imgmetric {
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
 
-/* line 342, ../sass/structured.scss */
+/* line 344, ../sass/structured.scss */
 .js .sfun .cell.resizepending {
   visibility: hidden;
 }
