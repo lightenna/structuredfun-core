@@ -41,10 +41,12 @@
     // 1x1
     &.flow-1 {
       > .cell {
-        width: 100%;
+        width: (100%);
         height: 100%;
-        // turn off margins for fullscreen mode
-        margin: 0;
+        @include calc(width, (100%)+" - "+($alley));
+        // turn off top and bottom margins for fullscreen
+        margin-top: 0;
+        margin-bottom: 0;
       }
     }
 
@@ -226,7 +228,7 @@
               &.headline {
                 font-weight: bold;
                 display: inline;
-                margin-right: 0;
+                margin-right: 0.5em;
               }
 
               &.caption, &.keywords, &.copyright, &.source {
