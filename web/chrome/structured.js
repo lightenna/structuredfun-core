@@ -1302,7 +1302,7 @@ window.sfun = (function($, undefined) {
       console.log('ratio_mean['+ratio_mean+'] viewport_ratio['+viewport_ratio+'] cell_count['+cell_count+']');
     }
     // overwrite existing CSS selector
-    createCSSSelector('.sfun.flow-pc.flow-dynamic-major > .cell', (direction == 'x' ? 'width' : 'height') + ': calc(' + cell_perc + '% - 8px);');
+    createCSSSelector('.sfun.flow-pc.flow-dynamic-major > .cell.resizeablecell', (direction == 'x' ? 'width' : 'height') + ': calc(' + cell_perc + '% - 8px);');
   };
 
   /**
@@ -3581,7 +3581,7 @@ window.sfun = (function($, undefined) {
       }
     }
     // optional debugging
-    if (debug && false) {
+    if (debug && true) {
       console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
   };
