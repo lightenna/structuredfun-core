@@ -191,7 +191,7 @@ window.sfun = (function($, undefined) {
             // update any parts of hash that are viewport-dependent
             if (hash.indexOf('offseq') != -1) {
               var fromHash = hashParse(hash);
-              fromHash.offseq = imageCentreOffseq();
+              fromHash.offseq = imageCentreOffseq(getDirection());
               hash = hashGenerate(fromHash);
               hashSetTo(hash, false);
             } else {
@@ -1061,9 +1061,9 @@ window.sfun = (function($, undefined) {
    */
   var getCellMajor = function() {
     if (getDirection() == 'x') {
-      return $sfun_selectablecell_first.width();
+      return $sfun_selectablecell_first.width() + getAlley();
     } else {
-      return $sfun_selectablecell_first.height();
+      return $sfun_selectablecell_first.height() + getAlley();
     }
   };
 
@@ -1792,11 +1792,11 @@ window.sfun = (function($, undefined) {
   };
 
   /**
+   * @param {string} direction
    * @return {int} viewport centre offset by half the width of a cell (for this view size)
    */
-  var imageCentreOffseq = function() {
+  var imageCentreOffseq = function(direction) {
     // work out how to centre image
-    var direction = getDirection();
     var viewport_ratio = getViewportWidth() / getViewportHeight();
     var ratio_mean = ratio_total / ratio_count;
     // we're centring the image fullscreen, so can't use current width
@@ -1827,7 +1827,7 @@ window.sfun = (function($, undefined) {
     var $ent = $img(seq);
     switch (getType($ent)) {
       case 'image':
-        var offseq = imageCentreOffseq();
+        var offseq = imageCentreOffseq(getDirection());
         // toggle using hash change
         if (getBreadth() == 1) {
           return fireHashUpdate( { 'breadth': state_previous['breadth'], 'seq': seq, 'offseq': state_previous['offseq'] }, false, eventContext);
@@ -3477,18 +3477,18 @@ window.sfun = (function($, undefined) {
         case exp.KEY_PAGE_DOWN:
           if (!event.ctrlKey) {
             event.preventDefault();
-            // animate on/off can be based on breadth
-            var breadth = getBreadth();
-            if (true) {
-              // always animate
-              eventContext.animate = exp.implicitScrollDURATION;
-            }
+            // get cell count and round down
+            var cellcount = getCellMajorCount(-1);
+            var cellmajor = getCellMajor();
+            // always animate
+            eventContext.animate = exp.implicitScrollDURATION;
             // apply position change as relative offset
             var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
+            // envisionPos() using relative offset
             if (getDirection() == 'x') {
-              return envisionPos( {'scrollLeft': pagedir * getViewportWidth() }, eventContext, true);
+              return envisionPos( {'scrollLeft': pagedir * cellcount * cellmajor }, eventContext, true);
             } else {
-              return envisionPos( {'scrollTop': pagedir * getViewportHeight() }, eventContext, true);
+              return envisionPos( {'scrollTop': pagedir * cellcount * cellmajor }, eventContext, true);
             }
           }
           break;
@@ -3530,11 +3530,13 @@ window.sfun = (function($, undefined) {
         case exp.KEY_H_UPPER:
         case exp.KEY_H_LOWER:
           event.preventDefault();
-          return fireHashUpdate( { 'direction': 'x' }, false, eventContext);
+          var offseq = imageCentreOffseq('x');
+          return fireHashUpdate( { 'direction': 'x', 'offseq': offseq }, false, eventContext);
         case exp.KEY_V_UPPER:
         case exp.KEY_V_LOWER:
           event.preventDefault();
-          return fireHashUpdate( { 'direction': 'y' }, false, eventContext);
+          var offseq = imageCentreOffseq('y');
+          return fireHashUpdate( { 'direction': 'y', 'offseq': offseq }, false, eventContext);
       }
     });
   };

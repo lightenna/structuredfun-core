@@ -197,27 +197,12 @@ html.flow-1 .page .content {
 /* line 164, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun {
   margin: 0;
-  /**
-   * could do checkerboard effect to show image alignment
-   *
-  .cell:nth-child(2n+0) {
-    background-color: ($background_html_light - $cell_tint_distance);
-  }
-  .cell:nth-child(2n+1) {
-    background-color: ($background_html_light + $cell_tint_distance);
-  }
-   *
-   */
 }
 /* line 168, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun .media-container .selectreflector {
   border: none;
 }
-/* line 172, ../sass/structuredfun.scss */
-html.flow-1 .page .content .sfun .cell {
-  background-color: white;
-}
-/* line 189, ../sass/structuredfun.scss */
+/* line 174, ../sass/structuredfun.scss */
 html.flow-1 .overlay-holder {
   position: fixed;
   height: 100%;
@@ -242,16 +227,16 @@ html.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 212, ../sass/structuredfun.scss */
+/* line 197, ../sass/structuredfun.scss */
 .sfun {
   margin-top: -4px;
 }
 
-/* line 220, ../sass/structuredfun.scss */
+/* line 205, ../sass/structuredfun.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 224, ../sass/structuredfun.scss */
+/* line 209, ../sass/structuredfun.scss */
 html.theme-dark .page .header {
   color: white;
   background: #000000;
@@ -271,51 +256,37 @@ html.theme-dark .page .header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222',GradientType=0 );
   /* IE6-9 */
 }
-/* line 238, ../sass/structuredfun.scss */
+/* line 223, ../sass/structuredfun.scss */
 html.theme-dark .page .header p a, html.theme-dark .page .header li a {
   color: white;
 }
-/* line 241, ../sass/structuredfun.scss */
+/* line 226, ../sass/structuredfun.scss */
 html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu-icon {
   background-image: url("/chrome/images/fullres/menu-icon-64x64-white.png");
 }
-/* line 250, ../sass/structuredfun.scss */
+/* line 234, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell {
+  background-color: black;
+}
+/* line 238, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell:not(.selected) .media-container .selectreflector {
   border-color: #222222;
 }
-/* line 255, ../sass/structuredfun.scss */
+/* line 243, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta {
   background-image: linear-gradient(rgba(34, 34, 34, 0), rgba(34, 34, 34, 0.8));
   color: #ffffff;
 }
-/* line 259, ../sass/structuredfun.scss */
+/* line 247, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #222222;
   color: #ffffff;
 }
-/* line 267, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun.flow-1 {
-  /**
-   * could do checkerboard
-   *
-  .cell:nth-child(2n+0) {
-    background-color: ($background_html_dark - $cell_tint_distance);
-  }
-  .cell:nth-child(2n+1) {
-    background-color: ($background_html_dark + $cell_tint_distance);
-  }
-   *
-   */
-}
-/* line 268, ../sass/structuredfun.scss */
+/* line 256, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #222222;
 }
-/* line 272, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun.flow-1 .cell {
-  background-color: black;
-}
-/* line 291, ../sass/structuredfun.scss */
+/* line 264, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -333,7 +304,7 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 307, ../sass/structuredfun.scss */
+/* line 280, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

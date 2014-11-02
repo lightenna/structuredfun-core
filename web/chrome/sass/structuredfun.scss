@@ -168,21 +168,6 @@ html.flow-1 {
       .media-container .selectreflector {
         border: none;
       }
-      // tint all cells lighter
-      .cell {
-        background-color: ($background_html_light + $cell_tint_distance);
-      }
-      /**
-       * could do checkerboard effect to show image alignment
-       *
-      .cell:nth-child(2n+0) {
-        background-color: ($background_html_light - $cell_tint_distance);
-      }
-      .cell:nth-child(2n+1) {
-        background-color: ($background_html_light + $cell_tint_distance);
-      }
-       *
-       */
     }
   }
 
@@ -247,6 +232,9 @@ html.theme-dark {
 
     .content .sfun {
       > .cell {
+        // tint all cells darker
+        background-color: ($background_html_dark - $cell_tint_distance);
+
         &:not(.selected) .media-container .selectreflector {
           border-color: $background_html_dark;
         }
@@ -268,21 +256,6 @@ html.theme-dark {
         .media-container .selectreflector {
           border-color: $background_html_dark;
         }
-        // tint all cells darker
-        .cell {
-          background-color: ($background_html_dark - $cell_tint_distance);
-        }
-        /**
-         * could do checkerboard
-         *
-        .cell:nth-child(2n+0) {
-          background-color: ($background_html_dark - $cell_tint_distance);
-        }
-        .cell:nth-child(2n+1) {
-          background-color: ($background_html_dark + $cell_tint_distance);
-        }
-         *
-         */
       }
   
     } // .sfun
