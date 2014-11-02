@@ -1,10 +1,11 @@
 
-* page up and down should scroll exactly x cell widths
-  + 1 when at fullscreen
-    + basically want to make sure we show each partial image
-      + in its entirety when paging
-
 * zero offseq when moving to horizontal scrolling
+  + it's actually not always zero
+    + depends on the breadth
+      + it'll be zero for b1
+    + but at b2 we need to centre
+      + so good to centre on a switchover
+  + nicely done, needs testing
 
 * bug: non-imagesnap scroll locking
   + seems to happen when scroll events queue up
@@ -3471,4 +3472,9 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
     + verified
   + need to rejig the css
     + done nicely using extra selector
+
+* page up and down should scroll exactly x cell widths
+  + 1 when at fullscreen
+    + basically want to make sure we show each partial image
+      + in its entirety when paging
 

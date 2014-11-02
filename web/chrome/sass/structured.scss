@@ -137,6 +137,9 @@
       // outer gutter and inner alley
       @include calc4(margin, ($alley), ($alley/2), 0px, ($alley/2));
 
+      // tint all cells lighter
+      background-color: ($background_html_light + $cell_tint_distance);
+
       // currently these classes are only used by js
       &.selectablecell {}
       &.resizeablecell {}
