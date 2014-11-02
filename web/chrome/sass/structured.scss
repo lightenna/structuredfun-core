@@ -40,14 +40,35 @@
 
     // 1x1
     &.flow-1 {
+      // turn off top and bottom margins for fullscreen, horizontal flow
+      &.flow-x > .cell {
+        width: (100%);
+        height: 100%;
+        @include calc(width, (100%)+" - "+($alley));
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+      // turn off left and right margins for fullscreen, vertical flow
+      &.flow-y > .cell {
+        width: 100%;
+        height: (100%);
+        @include calc(height, (100%)+" - "+($alley));
+        margin-left: 0;
+        margin-right: 0;
+      }
+    /**
+     * problem
+     *
       > .cell {
         width: (100%);
         height: 100%;
         @include calc(width, (100%)+" - "+($alley));
-        // turn off top and bottom margins for fullscreen
         margin-top: 0;
         margin-bottom: 0;
       }
+     *
+     */
     }
 
     // 2x2, default
@@ -73,7 +94,8 @@
     }
 
     // empty placeholder for js-inserted (dynamic) major axis cell widths
-    &.flow-dynamic-major > .cell {
+    &.flow-dynamic-major > .cell.resizeablecell {
+      // .cell.resizeablecell required to raise selector up stack over default
     }
 
     /**

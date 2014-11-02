@@ -168,11 +168,21 @@ html.flow-1 {
       .media-container .selectreflector {
         border: none;
       }
-
-      // checkerboard effect to show image alignment
-      .cell:nth-child(2n+0) {
-        background-color: ($background_html_light - #111111);
+      // tint all cells lighter
+      .cell {
+        background-color: ($background_html_light + $cell_tint_distance);
       }
+      /**
+       * could do checkerboard effect to show image alignment
+       *
+      .cell:nth-child(2n+0) {
+        background-color: ($background_html_light - $cell_tint_distance);
+      }
+      .cell:nth-child(2n+1) {
+        background-color: ($background_html_light + $cell_tint_distance);
+      }
+       *
+       */
     }
   }
 
@@ -258,9 +268,21 @@ html.theme-dark {
         .media-container .selectreflector {
           border-color: $background_html_dark;
         }
-        .cell:nth-child(2n+0) {
-          background-color: ($background_html_dark + #111111);
+        // tint all cells darker
+        .cell {
+          background-color: ($background_html_dark - $cell_tint_distance);
         }
+        /**
+         * could do checkerboard
+         *
+        .cell:nth-child(2n+0) {
+          background-color: ($background_html_dark - $cell_tint_distance);
+        }
+        .cell:nth-child(2n+1) {
+          background-color: ($background_html_dark + $cell_tint_distance);
+        }
+         *
+         */
       }
   
     } // .sfun

@@ -1,4 +1,4 @@
-/* line 17, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 17, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -20,45 +20,45 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
-/* line 22, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 22, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html {
   line-height: 1;
 }
 
-/* line 24, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 24, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 ol, ul {
   list-style: none;
 }
 
-/* line 26, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 26, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-/* line 28, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 28, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 caption, th, td {
   text-align: left;
   font-weight: normal;
   vertical-align: middle;
 }
 
-/* line 30, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 30, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q, blockquote {
   quotes: none;
 }
-/* line 103, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 103, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q:before, q:after, blockquote:before, blockquote:after {
   content: "";
   content: none;
 }
 
-/* line 32, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 32, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 a img {
   border: none;
 }
 
-/* line 116, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 116, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
 }
@@ -77,7 +77,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 
 /* line 21, ../sass/structuredfun.scss */
 html {
-  background-color: white;
+  background-color: #dddddd;
   color: #999999;
   height: 100%;
 }
@@ -197,16 +197,27 @@ html.flow-1 .page .content {
 /* line 164, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun {
   margin: 0;
+  /**
+   * could do checkerboard effect to show image alignment
+   *
+  .cell:nth-child(2n+0) {
+    background-color: ($background_html_light - $cell_tint_distance);
+  }
+  .cell:nth-child(2n+1) {
+    background-color: ($background_html_light + $cell_tint_distance);
+  }
+   *
+   */
 }
 /* line 168, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun .media-container .selectreflector {
   border: none;
 }
-/* line 173, ../sass/structuredfun.scss */
-html.flow-1 .page .content .sfun .cell:nth-child(2n+0) {
-  background-color: #eeeeee;
+/* line 172, ../sass/structuredfun.scss */
+html.flow-1 .page .content .sfun .cell {
+  background-color: white;
 }
-/* line 179, ../sass/structuredfun.scss */
+/* line 189, ../sass/structuredfun.scss */
 html.flow-1 .overlay-holder {
   position: fixed;
   height: 100%;
@@ -231,16 +242,16 @@ html.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 202, ../sass/structuredfun.scss */
+/* line 212, ../sass/structuredfun.scss */
 .sfun {
   margin-top: -4px;
 }
 
-/* line 210, ../sass/structuredfun.scss */
+/* line 220, ../sass/structuredfun.scss */
 html.theme-dark {
   background-color: #222222;
 }
-/* line 214, ../sass/structuredfun.scss */
+/* line 224, ../sass/structuredfun.scss */
 html.theme-dark .page .header {
   color: white;
   background: #000000;
@@ -260,37 +271,51 @@ html.theme-dark .page .header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222',GradientType=0 );
   /* IE6-9 */
 }
-/* line 228, ../sass/structuredfun.scss */
+/* line 238, ../sass/structuredfun.scss */
 html.theme-dark .page .header p a, html.theme-dark .page .header li a {
   color: white;
 }
-/* line 231, ../sass/structuredfun.scss */
+/* line 241, ../sass/structuredfun.scss */
 html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu-icon {
   background-image: url("/chrome/images/fullres/menu-icon-64x64-white.png");
 }
-/* line 240, ../sass/structuredfun.scss */
+/* line 250, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell:not(.selected) .media-container .selectreflector {
   border-color: #222222;
 }
-/* line 245, ../sass/structuredfun.scss */
+/* line 255, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta {
   background-image: linear-gradient(rgba(34, 34, 34, 0), rgba(34, 34, 34, 0.8));
   color: #ffffff;
 }
-/* line 249, ../sass/structuredfun.scss */
+/* line 259, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #222222;
   color: #ffffff;
 }
-/* line 258, ../sass/structuredfun.scss */
+/* line 267, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun.flow-1 {
+  /**
+   * could do checkerboard
+   *
+  .cell:nth-child(2n+0) {
+    background-color: ($background_html_dark - $cell_tint_distance);
+  }
+  .cell:nth-child(2n+1) {
+    background-color: ($background_html_dark + $cell_tint_distance);
+  }
+   *
+   */
+}
+/* line 268, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #222222;
 }
-/* line 261, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun.flow-1 .cell:nth-child(2n+0) {
-  background-color: #333333;
+/* line 272, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun.flow-1 .cell {
+  background-color: black;
 }
-/* line 269, ../sass/structuredfun.scss */
+/* line 291, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -308,7 +333,7 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 285, ../sass/structuredfun.scss */
+/* line 307, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;
