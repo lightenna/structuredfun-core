@@ -1,7 +1,9 @@
 <?php
 
 namespace Lightenna\StructuredBundle\Controller;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
 use Lightenna\StructuredBundle\DependencyInjection\Metadata;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 

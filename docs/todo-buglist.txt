@@ -4,7 +4,8 @@
   + it's sufficiently annoying that it needs never to happen
   + start by making sure the scroll event is fired
 
-* substitute hamburger icon for class="icon ion-navicon-round"
+* create metadata type (using Metadata.php)
+http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
 
 * feature: IPTC editing
   + should be turn-offable in settings
@@ -13,6 +14,8 @@
   + probably have to pull this up
     + because we don't have anything that can edit IPTC nicely
   + use nice ion edit icon (ion-compose or icon-edit)
+
+* substitute hamburger icon for class="icon ion-navicon-round"
 
 * go through wikimedia images
   + add metadata properly

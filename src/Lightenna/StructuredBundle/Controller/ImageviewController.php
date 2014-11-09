@@ -1,10 +1,12 @@
 <?php
 
 namespace Lightenna\StructuredBundle\Controller;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Lightenna\StructuredBundle\DependencyInjection\FileReader;
+
 use Lightenna\StructuredBundle\DependencyInjection\Metadata;
 use Lightenna\StructuredBundle\DependencyInjection\VideoMetadata;
+use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 

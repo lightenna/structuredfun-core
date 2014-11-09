@@ -1,0 +1,7 @@
+{# export form out for js to use as a reference on metadata-edit event #}
+<form action="{{ path('lightenna_structured_temppost') }}" method="post" {{ form_enctype(postform) }}>
+    {{ form_widget(postform) }}
+    <p>
+        <button type="submit">Create</button>
+    </p>
+</form>
