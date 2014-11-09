@@ -1,12 +1,4 @@
 
-* bug: non-imagesnap scroll locking
-  + seems to happen when scroll events queue up
-  + it's sufficiently annoying that it needs never to happen
-  + start by making sure the scroll event is fired
-
-* create metadata type (using Metadata.php)
-http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
-
 * feature: IPTC editing
   + should be turn-offable in settings
     + but on by default
@@ -16,6 +8,11 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
   + use nice ion edit icon (ion-compose or icon-edit)
 
 * substitute hamburger icon for class="icon ion-navicon-round"
+
+* bug: non-imagesnap scroll locking
+  + seems to happen when scroll events queue up
+  + it's sufficiently annoying that it needs never to happen
+  + start by making sure the scroll event is fired
 
 * go through wikimedia images
   + add metadata properly
@@ -3483,4 +3480,7 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
     = seems good
 
 * feature: grey the icons with more information
+
+* create metadata type (using Metadata.php)
+http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
 
