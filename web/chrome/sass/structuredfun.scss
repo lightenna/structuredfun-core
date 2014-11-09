@@ -233,7 +233,7 @@ html.theme-dark {
     .content .sfun {
       > .cell {
         // tint all cells darker
-        background-color: ($background_html_dark - $cell_tint_distance);
+        background-color: ($background_html_dark - $tint_cell_distance);
 
         &:not(.selected) .media-container .selectreflector {
           border-color: $background_html_dark;
@@ -243,6 +243,12 @@ html.theme-dark {
           .meta {
             background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
             color: #ffffff;
+            // off-colour for metadata icons
+            span {
+              &.caption, &.keywords, &.copyright, &.source {
+                color: $text_icon_dark;
+              }
+            }
           }
           .title {
             background-color: $background_html_dark;
