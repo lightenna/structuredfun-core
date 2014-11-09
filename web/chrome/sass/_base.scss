@@ -10,16 +10,19 @@ $gutter: ($alley / 2);
 
 // standard colours
 $highlight: gray;
-$cell_tint_distance: #222222;
+$tint_cell_distance: #171717;
+$tint_icon_distance: #555555;
 
 // light theme colours
-$background_html_light: #dddddd;
-$directory_light: #dddddd;
+$background_html_light: (#ffffff - $tint_cell_distance);
+$directory_light: $background_html_light;
 $text_light: #000000;
+$text_icon_light: ($text_light + $tint_icon_distance);
 
 // dark theme colours
-$background_html_dark: #222222;
+$background_html_dark: (#000000 + $tint_cell_distance);
 $text_dark: #ffffff;
+$text_icon_dark: ($text_dark - $tint_icon_distance);
 
 // transition points between media queries
 $wide1: 1600px;

@@ -1,12 +1,4 @@
 
-* zero offseq when moving to horizontal scrolling
-  + it's actually not always zero
-    + depends on the breadth
-      + it'll be zero for b1
-    + but at b2 we need to centre
-      + so good to centre on a switchover
-  + nicely done, needs testing
-
 * bug: non-imagesnap scroll locking
   + seems to happen when scroll events queue up
   + it's sufficiently annoying that it needs never to happen
@@ -3477,4 +3469,15 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
   + 1 when at fullscreen
     + basically want to make sure we show each partial image
       + in its entirety when paging
+
+* zero offseq when moving to horizontal scrolling
+  + it's actually not always zero
+    + depends on the breadth
+      + it'll be zero for b1
+    + but at b2 we need to centre
+      + so good to centre on a switchover
+  + nicely done, needs testing
+    = seems good
+
+* feature: grey the icons with more information
 

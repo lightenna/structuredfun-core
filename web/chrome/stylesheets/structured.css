@@ -206,7 +206,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 }
 /* line 157, ../sass/structured.scss */
 .sfun.flow-pc > .cell .media-container .selectreflector {
-  border-color: #dddddd;
+  border-color: #e8e8e8;
 }
 /* line 161, ../sass/structured.scss */
 .sfun.flow-pc > .cell.selected .selectreflector {
@@ -265,7 +265,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   display: block;
   position: absolute;
   bottom: 0;
-  background-image: linear-gradient(rgba(221, 221, 221, 0), rgba(221, 221, 221, 0.8));
+  background-image: linear-gradient(rgba(232, 232, 232, 0), rgba(232, 232, 232, 0.8));
   color: #000000;
   height: 8em;
   text-align: left;
@@ -295,39 +295,40 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   display: inline;
   margin-right: 0.5em;
 }
-/* line 259, ../sass/structured.scss */
+/* line 260, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.caption, .sfun.flow-pc > .cell .container .meta .base span.keywords, .sfun.flow-pc > .cell .container .meta .base span.copyright, .sfun.flow-pc > .cell .container .meta .base span.source {
+  color: #555555;
   display: inline;
   margin: 0;
 }
-/* line 264, ../sass/structured.scss */
+/* line 266, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.byline {
   display: block;
 }
-/* line 269, ../sass/structured.scss */
+/* line 271, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container .meta .base span.default.caption, .sfun.flow-pc > .cell .container .meta .base span.default.keywords, .sfun.flow-pc > .cell .container .meta .base span.default.copyright, .sfun.flow-pc > .cell .container .meta .base span.default.source {
   display: none;
 }
-/* line 278, ../sass/structured.scss */
+/* line 280, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 285, ../sass/structured.scss */
+/* line 287, ../sass/structured.scss */
 .sfun.flow-pc > .cell .container:hover .imgmetric {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 296, ../sass/structured.scss */
+/* line 298, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory {
-  border: 1px solid #dddddd;
+  border: 1px solid #e8e8e8;
   border-radius: 16px;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   position: relative;
 }
-/* line 304, ../sass/structured.scss */
+/* line 306, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory .overlay {
   width: 100%;
   height: 100%;
@@ -336,7 +337,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   top: 0;
   z-index: 1;
 }
-/* line 317, ../sass/structured.scss */
+/* line 319, ../sass/structured.scss */
 .sfun.flow-pc > .cell .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -346,12 +347,12 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   top: -4.0em;
   position: relative;
   width: 100px;
-  background-color: #dddddd;
+  background-color: #e8e8e8;
   color: #000000;
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 332, ../sass/structured.scss */
+/* line 334, ../sass/structured.scss */
 .sfun.flow-pc > .cell .subcell {
   width: 50%;
   height: 50%;
@@ -365,21 +366,21 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(50% - 8px);
   height: calc(50% - 8px);
 }
-/* line 343, ../sass/structured.scss */
+/* line 345, ../sass/structured.scss */
 .sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
   display: block;
 }
-/* line 347, ../sass/structured.scss */
+/* line 349, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reresing .imgmetric {
   display: none;
 }
-/* line 353, ../sass/structured.scss */
+/* line 355, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reres-plus-2s .imgmetric {
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
 
-/* line 369, ../sass/structured.scss */
+/* line 371, ../sass/structured.scss */
 .js .sfun .cell.resizepending {
   visibility: hidden;
 }
