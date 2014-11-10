@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 
 use Lightenna\StructuredBundle\DependencyInjection\Metadata;
 use Lightenna\StructuredBundle\DependencyInjection\VideoMetadata;
@@ -40,7 +41,7 @@ class ImageviewController extends ViewController {
     }
   }
 
-  public function metaAction($rawname, $output = true) {
+  public function metaAction($rawname, Request $request) {
     $this->populate($rawname);
     // request image from cache (including metadata)
     $imgdata = $this->mfr->getOnlyIfCached();
@@ -51,9 +52,26 @@ class ImageviewController extends ViewController {
       // @todo currently have to re-pull from cache to put metadata in .meta{} subobject
       $imgdata = $this->mfr->getOnlyIfCached();
     }
+    // get metadata object
+    $md = $this->mfr->getMetadata();
     // embed metadata within stats object
-    $this->stats->{'meta'} = $this->mfr->getMetadata();
-    // encode as json
+    $this->stats->{'meta'} = $md;
+
+    // see if we have form data to process
+    $form = $md->getForm($this);
+print("<br />\r\n".'before'."<br />\r\n");
+var_dump($md);
+    $form->handleRequest($request);
+print("<br />\r\n".'after'."<br />\r\n");
+var_dump($md);
+print("<br />\r\n".'*****'."<br />\r\n");
+    if ($form->isValid()) {
+      // @todo update metadata in cached file
+      // @todo update metadata in original file
+      $data = $form->getData();
+      // $md->processFormData($data);
+    }
+    // return metadata for this object, encoded as json
     print(json_encode($this->stats));
     exit;
   }

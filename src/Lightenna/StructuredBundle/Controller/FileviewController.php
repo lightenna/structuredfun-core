@@ -36,6 +36,7 @@ class FileviewController extends ViewController {
               'argsbase' => ARG_SEPARATOR . 'thumb=true&',
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
               'dirlisting' => $dirlisting,
+              'metaform' => $this->mfr->getMetadata()->getForm($this)->createView(),
               'defaults' => Metadata::getDefaults(),
             ));
       } else {

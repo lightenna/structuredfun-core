@@ -23,10 +23,3 @@ lightenna_structured_imagemeta:
     defaults:  { _controller: LightennaStructuredBundle:Imageview:meta }
     requirements:
         rawname:  ".*"
-
-lightenna_structured_temppost:
-    path:      /post/
-    defaults:  { _controller: LightennaStructuredBundle:MetadataPost:create }
-    requirements:
-        rawname:  ".*"
-
