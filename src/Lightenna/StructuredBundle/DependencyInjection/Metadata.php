@@ -155,4 +155,26 @@ class Metadata {
     return serialize($this);
   }
 
+  /**
+   * @return object form for updating this metadata object
+   */
+  public function getForm($controller) {
+    $form = $controller->createFormBuilder($this)
+      ->add('headline', 'text')
+      ->add('byline', 'text')
+      ->add('caption', 'textarea')
+      ->add('keywords', 'text')
+      ->add('copyright', 'text')
+      ->add('source', 'text')
+      ->add('save', 'submit', array('label' => 'Update Metadata'))
+      ->getForm();
+    return $form;
+  }
+
+  /**
+   * @param object raw form data
+   */
+  public function processFormData($data) {
+  }
+
 }

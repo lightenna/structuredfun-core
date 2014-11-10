@@ -6,6 +6,15 @@
   + probably have to pull this up
     + because we don't have anything that can edit IPTC nicely
   + use nice ion edit icon (ion-compose or icon-edit)
+  + got basic form working being rendered
+    + stop all fields being mandatory
+    = needs action
+  + javascript to pull form into shape on edit
+    + better than testing raw form because we don't break images
+    + doesn't need to be pretty
+  + setup form handler within imagemeta route
+    + handleRequest seems to update the object
+    + just need to write back to file
 
 * substitute hamburger icon for class="icon ion-navicon-round"
 
