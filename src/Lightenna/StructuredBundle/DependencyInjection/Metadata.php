@@ -29,12 +29,11 @@ class Metadata {
     if ($in !== null) {
       $this->filterStats($in);
     }
-    // if ($mfr !== null) {
-    //   // metadata editability is dependent on settings
-    //   $settings = $mfr->getSettings();
-    //   $this->editable = ($settings['general']['metadata_editable'] == true);
-    // }
-    $this->editable = true;
+    if ($mfr !== null) {
+      // metadata editability is dependent on settings
+      $settings = $mfr->getSettings();
+      $this->editable = ($settings['general']['metadata_editable'] == true);
+    }
   }
 
   /**

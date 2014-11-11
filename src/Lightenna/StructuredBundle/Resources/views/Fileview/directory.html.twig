@@ -59,9 +59,7 @@
           <span class="caption icon ion-document-text" {{ file.meta is defined and file.meta.caption == defaults.caption ? 'style="display: none;"' }} title="{{ file.meta is defined ? file.meta.caption : '' }}"></span>
           <span class="keywords icon ion-pricetags" {{ file.meta is defined and file.meta.keywords == defaults.keywords ? 'style="display: none;"' }} title="{{ file.meta is defined ? file.meta.keywords : '' }}"></span>
           {# Show edit icon if we have edit permissions #}
-          {% if file.meta is defined and file.meta.editable %}
-          <span class="edit icon ion-edit"></span>
-          {% endif %}
+          <span class="editable icon ion-edit" style="{{ file.meta is defined and file.meta.editable ? '' : 'display: none;' }}"></span>
           {# Always show author #}
           <span class="byline">{{ file.meta is defined ? file.meta.byline : defaults.byline }}</span>
         </span>

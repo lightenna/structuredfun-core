@@ -577,7 +577,7 @@ window.sfun = (function($, undefined) {
               console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
             }
             // set missing metadata fields to their DOM elements
-            var fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source'];
+            var fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source', 'editable'];
             for (var i=0 ; i<fields.length ; ++i) {
               var value = data.meta[fields[i]];
               var $field = $ent.cachedFind('.' + fields[i]);
@@ -591,6 +591,17 @@ window.sfun = (function($, undefined) {
                 case 'keywords':
                 case 'source':
                   $field.attr('title', value);
+                  break;
+                case 'editable':
+                  if (value) {
+console.log('showing edit icon for image-'+$ent.data('seq'));
+console.log($field.attr('style'));
+                    $field.show();
+console.log($field.attr('style'));
+                  } else {
+console.log('hiding edit icon for image-'+$ent.data('seq'));
+                    $field.hide();
+                  }
                   break;
               }
               if (value == state_default[fields[i]]) {
@@ -819,9 +830,19 @@ window.sfun = (function($, undefined) {
     var that = this;
     // bind to click using delegated event handler (http://api.jQuery.com/on/), instead of individual N handlers
     $sfun.on('click', '.selectablecell a.media-container', function(event) {
-      // select image, then toggle
-      var seq = $(this).parents('.selectablecell').data('seq');
-      imageToggleFullscreen(seq);
+      // find out which element was clicked
+      // START HERE
+      var clickedElement = '';
+      switch (clickedElement) {
+        case 'span.editable':
+          // setup edit
+          break;
+        default: 
+          // select image, then toggle
+          var seq = $(this).parents('.selectablecell').data('seq');
+          imageToggleFullscreen(seq);
+          break;
+      }
       event.preventDefault();
     });
   };
