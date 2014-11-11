@@ -37,6 +37,13 @@ class MetadataFileReader extends FileReader {
     return $imgdata;
   }
 
+  /**
+   * @return array settings
+   */
+  public function getSettings() {
+    return $this->settings;
+  }
+
   public function dumbreadImageMetadata($imgdata) {
     // read metadata
     $info = array();
@@ -48,7 +55,7 @@ class MetadataFileReader extends FileReader {
     } else {
       print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
     }
-    $md = new Metadata();
+    $md = new Metadata($this);
     $md = $md->read($info);
     return $md;
   }

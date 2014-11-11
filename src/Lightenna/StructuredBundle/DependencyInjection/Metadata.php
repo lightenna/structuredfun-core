@@ -16,6 +16,8 @@ class Metadata {
   // IPTC fields that we use/display
   public $headline = null, $caption = null, $byline = null;
   public $keywords = null, $copyright = null, $source = null;
+  // metadata is not editable without settings connection
+  public $editable = null;
 
   /**
    * @param object $mfr Metadata File Reader (parent)
@@ -27,6 +29,12 @@ class Metadata {
     if ($in !== null) {
       $this->filterStats($in);
     }
+    // if ($mfr !== null) {
+    //   // metadata editability is dependent on settings
+    //   $settings = $mfr->getSettings();
+    //   $this->editable = ($settings['general']['metadata_editable'] == true);
+    // }
+    $this->editable = true;
   }
 
   /**

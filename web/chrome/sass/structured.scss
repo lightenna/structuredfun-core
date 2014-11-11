@@ -263,6 +263,12 @@
                 margin: 0;
               }
 
+              // edit icon to stand out
+              &.edit {
+                display: inline;
+                margin: 0;
+              }
+
               &.byline {
                 display: block;
               }
