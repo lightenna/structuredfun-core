@@ -11,7 +11,7 @@
     = needs action
   + javascript to pull form into shape on edit
     + better than testing raw form because we don't break images
-    + weird this->editable bug
+    + detect clicks on spans
   + setup form handler within imagemeta route
     + handleRequest seems to update the object
     + just need to write back to file
@@ -19,6 +19,7 @@
 * substitute hamburger icon for class="icon ion-navicon-round"
 
 * add metadata editable flag to windows settings
+  + clear mediacache
 
 * bug: non-imagesnap scroll locking
   + seems to happen when scroll events queue up
@@ -308,6 +309,12 @@ http://www.hongkiat.com/blog/css-filter/
 * snameed jQueryUI scroller for number of images wide/high
 
 * make imagemeta returned JSON take IIIF Image API format
+
+* overwrite settings that have been cached in mediacache images
+  + e.g. metadata_editable
+  + when serialized into a file
+    + the file-loaded-setting currently takes precedence over the global setting
+    + it shouldn't
 
 * Fail nicely when a file/directory/path element doesn't exist
 
@@ -3494,4 +3501,12 @@ Warning: mkdir(): Permission denied in /var/www/git/github.com/structuredfun-lin
 
 * create metadata type (using Metadata.php)
 http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
+
+* fix editable bug
+    + weird $this->editable bug
+      + I think it's serialization
+        + old serialized objects wouldn't have the field
+
+* edit icon needs to work in js-only
+  + current depends on html (cached images)
 

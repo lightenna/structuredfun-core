@@ -59,12 +59,7 @@ class ImageviewController extends ViewController {
 
     // see if we have form data to process
     $form = $md->getForm($this);
-print("<br />\r\n".'before'."<br />\r\n");
-var_dump($md);
     $form->handleRequest($request);
-print("<br />\r\n".'after'."<br />\r\n");
-var_dump($md);
-print("<br />\r\n".'*****'."<br />\r\n");
     if ($form->isValid()) {
       // @todo update metadata in cached file
       // @todo update metadata in original file

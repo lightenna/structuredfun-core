@@ -302,7 +302,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: 0;
 }
 /* line 267, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base span.edit {
+.sfun.flow-pc > .cell .container .meta .base span.editable {
   display: inline;
   margin: 0;
 }
