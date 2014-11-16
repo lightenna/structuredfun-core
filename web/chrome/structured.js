@@ -594,12 +594,8 @@ window.sfun = (function($, undefined) {
                   break;
                 case 'editable':
                   if (value) {
-console.log('showing edit icon for image-'+$ent.data('seq'));
-console.log($field.attr('style'));
                     $field.show();
-console.log($field.attr('style'));
                   } else {
-console.log('hiding edit icon for image-'+$ent.data('seq'));
                     $field.hide();
                   }
                   break;
@@ -825,15 +821,15 @@ console.log('hiding edit icon for image-'+$ent.data('seq'));
 
   /**
    *  if the image is clicked, redirect to in-page image
+   *  based on http://stackoverflow.com/questions/2420970/how-can-i-get-selector-from-jquery-object
    */
   var bindToImageLinks = function() {
     var that = this;
     // bind to click using delegated event handler (http://api.jQuery.com/on/), instead of individual N handlers
     $sfun.on('click', '.selectablecell a.media-container', function(event) {
-      // find out which element was clicked
-      // START HERE
-      var clickedElement = '';
-      switch (clickedElement) {
+      // find out which element was clicked using node name and first class only
+      var selector = event.target.nodeName.toLowerCase() +'.'+ event.target.classList[0];
+      switch (selector) {
         case 'span.editable':
           // setup edit
           break;
