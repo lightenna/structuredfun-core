@@ -18,8 +18,8 @@
 
 * substitute hamburger icon for class="icon ion-navicon-round"
 
-* add metadata editable flag to windows settings
-  + clear mediacache
+* make vertical the default scroll direction
+  + it's just what people are used to
 
 * bug: non-imagesnap scroll locking
   + seems to happen when scroll events queue up
@@ -3509,4 +3509,7 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
 
 * edit icon needs to work in js-only
   + current depends on html (cached images)
+
+* add metadata editable flag to windows settings
+  + clear mediacache
 
