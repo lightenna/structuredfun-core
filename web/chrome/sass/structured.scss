@@ -233,6 +233,7 @@
           // animation for disappearance
           transition: opacity 0.3s ease-out 0s;
 
+          // metadata display
           .base {
             position: absolute;
             bottom: 0;
@@ -277,6 +278,24 @@
               &.default.caption, &.default.keywords, &.default.copyright, &.default.source, {
                 display: none;
               }
+            }
+          } // base
+
+          // metadata editing
+          form {
+            // lighter background to make form pop
+            background-image: linear-gradient(rgba($background_html_light, 0.5), rgba($background_html_light, 0.8));
+
+            input[type=text], textarea {
+              background: none;
+              color: $text_light;
+              border: 1px solid $text_icon_light;
+              width: 100%;
+            }
+
+            // hide labels
+            label {
+              display: none;
             }
           }
         } // meta

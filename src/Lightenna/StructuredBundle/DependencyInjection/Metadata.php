@@ -167,12 +167,12 @@ class Metadata {
    */
   public function getForm($controller) {
     $form = $controller->createFormBuilder($this)
-      ->add('headline', 'text')
-      ->add('byline', 'text')
-      ->add('caption', 'textarea')
-      ->add('keywords', 'text')
-      ->add('copyright', 'text')
-      ->add('source', 'text')
+      ->add('headline', 'text', array('required' => false))
+      ->add('byline', 'text', array('required' => false))
+      ->add('caption', 'textarea', array('required' => false))
+      ->add('keywords', 'text', array('required' => false))
+      ->add('copyright', 'text', array('required' => false))
+      ->add('source', 'text', array('required' => false))
       ->add('save', 'submit', array('label' => 'Update Metadata'))
       ->getForm();
     return $form;

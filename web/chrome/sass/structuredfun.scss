@@ -240,6 +240,7 @@ html.theme-dark {
         }
 
         a {
+          // metadata display
           .meta {
             background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
             color: #ffffff;
@@ -250,6 +251,17 @@ html.theme-dark {
               }
             }
           }
+
+          // metadata editing
+          form {
+            // darker fade to make form data clearer
+            background-image: linear-gradient(rgba($text_icon_dark, 0.5), rgba($text_icon_dark, 0.8));
+            input[type=text], textarea {
+              color: $text_dark;
+              border: 1px solid $text_icon_dark;
+            }
+          }
+
           .title {
             background-color: $background_html_dark;
             color: #ffffff;
