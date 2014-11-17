@@ -1,8 +1,8 @@
 {# export form out for js to use as a reference on metadata-edit event #}
 {# write the metadata update form into a hidden div for js retrieval and reuse #}
-<div style="display: none;">
+<div id="metadata_form_sleeve" style="display: none;">
 {# this form is not designed to be submitted in its current state, only by AJAX in a tranformed state #}
-<form action="/imagemeta/{% verbatim %}{{ rawname }}{% endverbatim %}" method="post" {{ form_enctype(metaform) }}>
+<form id="metaform" action="/imagemeta/{% verbatim %}{{ rawname }}{% endverbatim %}" method="post" {{ form_enctype(metaform) }}>
     {{ form_widget(metaform) }}
 </form>
 </div>

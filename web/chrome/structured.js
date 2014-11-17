@@ -83,6 +83,10 @@ window.sfun = (function($, undefined) {
   var resize_timeout = null;
   // default selector used to select top-level container
   var container_selector = '#sfun';
+  // list of metadata fields supported
+  var metadata_fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source'];
+  var metadata_flags = ['editable'];
+  var editing_metadata = false;
   // last image maxlongest, to shortcut reres using thumb size
   var last_longest = null;
   // device detection
@@ -577,7 +581,7 @@ window.sfun = (function($, undefined) {
               console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
             }
             // set missing metadata fields to their DOM elements
-            var fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source', 'editable'];
+            var fields = metadata_fields + metadata_flags;
             for (var i=0 ; i<fields.length ; ++i) {
               var value = data.meta[fields[i]];
               var $field = $ent.cachedFind('.' + fields[i]);
@@ -828,18 +832,15 @@ window.sfun = (function($, undefined) {
     // bind to click using delegated event handler (http://api.jQuery.com/on/), instead of individual N handlers
     $sfun.on('click', '.selectablecell a.media-container', function(event) {
       // find out which element was clicked using node name and first class only
-      var selector = event.target.nodeName.toLowerCase() +'.'+ event.target.classList[0];
-      switch (selector) {
-        case 'span.editable':
-          // setup edit
-          break;
-        default: 
-          // select image, then toggle
-          var seq = $(this).parents('.selectablecell').data('seq');
-          imageToggleFullscreen(seq);
-          break;
+      var selector = event.target.nodeName.toLowerCase();
+      if (event.target.classList.length > 0) {
+        selector += '.'+ event.target.classList[0];
       }
-      event.preventDefault();
+      // use parent cell to find seq
+      var $ent = $(this).parents('.selectablecell');
+      if (handlerImageClicked($ent, selector)) {
+        event.preventDefault();
+      }
     });
   };
 
@@ -1860,6 +1861,45 @@ window.sfun = (function($, undefined) {
         break;
     }
     return eventQueue.resolve(eventContext);
+  };
+
+  /**
+   * setup an image metadata editing form for this image
+   * @param {int} seq image to edit
+   */
+  var imageSetupEdit = function(seq) {
+    var $root = $img(seq);
+    var $form = $('#metaform');
+    // setup fields to edit
+    var fields = metadata_fields;
+    // substitute values
+    for (var i=0 ; i<fields.length ; ++i) {
+      var key = fields[i];
+      $form.cachedFind('input#form_'+key).val($root.cachedFind('.'+key).html());
+    }
+    // move form (don't clone) because it's full of #ids
+    $root.cachedFind('.meta').append($form);
+    // hide displayed metadata (in spans)
+    $root.cachedFind('.meta > .base').hide();
+    // disable other listeners
+
+    // flag that we're editing
+    editing_metadata = seq;
+  };
+
+  /**
+   * tear down an image metadata editing form for this image
+   */
+  var imageTeardownEdit = function() {
+    var seq = editing_metadata;
+    var $root = $img(seq);
+    var $form = $('#metaform');
+    // move form (don't clone) back to its invisible holder
+    $('#metadata_form_sleeve').append($form);
+    // re-show displayed metadata (in spans)
+    $root.cachedFind('.meta > .base').show();
+    // flag that we're no longer editing an image
+    editing_metadata = false;
   };
 
   // ------------------
@@ -3603,6 +3643,42 @@ window.sfun = (function($, undefined) {
     if (debug && true) {
       console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
+  };
+
+  /**
+   * process a click on an image
+   * @param {object} $ent jQuery object
+   * @param {string} selector (type.class) for the click target
+   * @return {boolean} true if we processed the click (preventDefault)
+   */
+  var handlerImageClicked = function($ent, selector) {
+    var seq = $ent.data('seq');
+    switch (selector) {
+      case 'input':
+      case 'textarea':
+        // leave form elements alone
+        break;
+      case 'span.editable':
+        // if editing, a click elsewhere terminates the edit
+        if (editing_metadata !== false) {
+          imageTeardownEdit(editing_metadata);
+        }
+        // setup edit
+        imageSetupEdit(seq);
+        break;
+      default:
+        // if editing, a click elsewhere terminates the edit
+        if (editing_metadata) {
+          imageTeardownEdit(editing_metadata);
+        }
+        // select image, then toggle
+        imageToggleFullscreen(seq);
+        break;
+    }
+    if (debug && false) {
+      console.log('bindToImageLinks click event on selector['+selector+']');
+    }
+    return true;
   };
 
   // ------------------
