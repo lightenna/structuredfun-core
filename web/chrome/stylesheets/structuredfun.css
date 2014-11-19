@@ -281,25 +281,25 @@ html.theme-dark .page .content .sfun > .cell a .meta {
 html.theme-dark .page .content .sfun > .cell a .meta span.caption, html.theme-dark .page .content .sfun > .cell a .meta span.keywords, html.theme-dark .page .content .sfun > .cell a .meta span.copyright, html.theme-dark .page .content .sfun > .cell a .meta span.source {
   color: #aaaaaa;
 }
-/* line 256, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun > .cell a form {
-  background-image: linear-gradient(rgba(170, 170, 170, 0.5), rgba(170, 170, 170, 0.8));
-}
-/* line 259, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun > .cell a form input[type=text], html.theme-dark .page .content .sfun > .cell a form textarea {
-  color: white;
-  border: 1px solid #aaaaaa;
-}
-/* line 265, ../sass/structuredfun.scss */
+/* line 255, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #171717;
   color: #ffffff;
 }
-/* line 274, ../sass/structuredfun.scss */
+/* line 263, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text], html.theme-dark .page .content .sfun > .cell .metaform-holder textarea {
+  color: white;
+}
+/* line 265, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text]:focus, html.theme-dark .page .content .sfun > .cell .metaform-holder textarea:focus {
+  border: 1px solid #aaaaaa;
+  background-image: linear-gradient(rgba(23, 23, 23, 0.5), rgba(23, 23, 23, 0.8));
+}
+/* line 276, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 282, ../sass/structuredfun.scss */
+/* line 284, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -317,7 +317,7 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 298, ../sass/structuredfun.scss */
+/* line 300, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

@@ -1868,7 +1868,7 @@ window.sfun = (function($, undefined) {
    * @param {int} seq image to edit
    */
   var imageSetupEdit = function(seq) {
-    var $root = $img(seq);
+    var $root = $img(seq).addClass('editing');
     var $form = $('#metaform');
     // setup fields to edit
     var fields = metadata_fields;
@@ -1877,12 +1877,10 @@ window.sfun = (function($, undefined) {
       var key = fields[i];
       $form.cachedFind('input#form_'+key).val($root.cachedFind('.'+key).html());
     }
-    // move form (don't clone) because it's full of #ids
-    $root.cachedFind('.meta').append($form);
     // hide displayed metadata (in spans)
     $root.cachedFind('.meta > .base').hide();
-    // disable other listeners
-
+    // move form (don't clone) because it's full of #ids
+    $root.append($form);
     // flag that we're editing
     editing_metadata = seq;
   };
@@ -1892,7 +1890,7 @@ window.sfun = (function($, undefined) {
    */
   var imageTeardownEdit = function() {
     var seq = editing_metadata;
-    var $root = $img(seq);
+    var $root = $img(seq).removeClass('editing');
     var $form = $('#metaform');
     // move form (don't clone) back to its invisible holder
     $('#metadata_form_sleeve').append($form);

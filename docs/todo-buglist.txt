@@ -1,5 +1,5 @@
 
-* javascript error on processing imagemeta read request
+* bug: javascript error on processing imagemeta read request
 
 * feature: IPTC editing
   + should be turn-offable in settings
@@ -18,19 +18,41 @@
   + clicks on form elements
   + got basic form working being rendered
     + stop all fields being mandatory
---+ up to here
+  + update button in full width box
+  + max width the box at 400px
+    + don't need full width for big screens/images
+  + put form down to bottom of pane as per .meta
+  + alignment of editable form fields
   + problem putting forms inside clickable <a> tags
     + need to bubble up to put caret into correct place in form field
     + can't bubble all the way up because otherwise we click into image
+      + try moving the form outside into the cell
+    + works outside cell
+  + fadey thing on back of metaform-holder too
+    + leave the span showing!
+--+ up to here
+  + set caret to headline when first editing metadata
+  + show little icons next to form fields
+    + reinforce what they mean
+      + on hover the icons should show the field name
+  + show HTML5 empty text in fields that haven't been filled out yet
+    + use default detection
+      + in (default -> blank) and out (blank -> default)
+      + because our default text won't mean anything to most people
+  + show form fields with same spacing as display
+    + again makes for a consistent feel
   + arrow keys
     + disable keypress listener altogether
       + or just silence using flag
-  + alignment of editable form fields
+    + quite like to use keys to change between form fields
+      + down or tab to change to next field
 
 * substitute hamburger icon for class="icon ion-navicon-round"
+  + it always need to be 10% of the screen
+    + because it's way too small on mobiles in ems
 
-* make vertical the default scroll direction
-  + it's just what people are used to
+* bug: mobile browsers only use half the height
+  + when horizontal scrolling (direction=x)
 
 * bug: non-imagesnap scroll locking
   + seems to happen when scroll events queue up
@@ -79,6 +101,12 @@
 
 * look into reres-last test failing sometimes
   + seems to always fail on wikimedia-gallery1
+
+* scrolling and clicking fullscreen is still very buggy on slow connections
+  + keys stop working while waiting for images to load
+    + I don't think it's launchable like this
+  + discovered on Mac on train with bluetooth connection
+    + even though elan VM was running locally
 
 * basic demo with Wikimedia images
   + look at overall experience, start to finish
@@ -3523,4 +3551,35 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
 
 * add metadata editable flag to windows settings
   + clear mediacache
+
+* I _think_ we can set height on meta to auto
+  + which means that the metadata can fill the box nicely
+    + very useful for the form
+  + need to test that assumption in a few browsers
+    + try chrome
+  - loses background
+    + try min-height: 50%;
+  + works
+  + happy accident that the metadata form pops up to 50%
+
+* make vertical the default scroll direction
+  + it's just what people are used to
+
+* bug: darkening is no longer showing up under meta
+  + just needed height back
+
+* bug: something is connecting to cloudfront
+  + GET https://d3ijcis4e2ziok.cloudfront.net/tpc-check.html net::ERR_TIMED_OUT 
+  + which really messes up my loads when offline/nearly offline
+    + I suspect it's just google
+    + actually it's buffer
+
+* metadata position
+  + I wonder if we should put metadata in the middle of the image
+  + it's not perfect at the moment
+    + after all it crosses over the border of the image
+  + could be centre
+    + could be top
+  + leave it where it is for now
+    + think I've found a solution to the fadey background problem
 
