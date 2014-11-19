@@ -29,7 +29,7 @@ class FileviewController extends ViewController {
           ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
             array(
               'dirname' => $name,
-              'direction' => 'x',
+              'direction' => 'y',
               'celltype' => 'pc',
               'breadth' => 2,
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,

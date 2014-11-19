@@ -221,7 +221,7 @@
           bottom: 0;
           background-image: linear-gradient(rgba($background_html_light, 0), rgba($background_html_light, 0.8));
           color: #000000;
-          height: 8em;
+          min-height: 50%;
           text-align: left;
           left: 50%;
           margin-left: -50%;
@@ -233,7 +233,6 @@
           // animation for disappearance
           transition: opacity 0.3s ease-out 0s;
 
-          // metadata display
           .base {
             position: absolute;
             bottom: 0;
@@ -280,30 +279,12 @@
               }
             }
           } // base
-
-          // metadata editing
-          form {
-            // lighter background to make form pop
-            background-image: linear-gradient(rgba($background_html_light, 0.5), rgba($background_html_light, 0.8));
-
-            input[type=text], textarea {
-              background: none;
-              color: $text_light;
-              border: 1px solid $text_icon_light;
-              width: 100%;
-            }
-
-            // hide labels
-            label {
-              display: none;
-            }
-          }
         } // meta
 
         // when a user hovers over a cell
         &:hover {
           .meta {
-            // show on hover
+            // show on hover or editing
             opacity: 1;
             // animation for appearance
             transition: opacity 0.3s ease-in 0s;
@@ -318,6 +299,56 @@
         }
 
       } // a
+
+      &.editing {
+        .meta {
+          // show on hover or editing
+          opacity: 1;
+          // animation for appearance
+          transition: opacity 0.3s ease-in 0s;
+        }
+      }
+
+      // metadata editing
+      .metaform-holder {
+        // show over the top of the image
+        position: relative;
+        top: -100%;
+
+        // container fills the cell
+        width: 100%;
+        height: 100%;
+
+        // inner has flexible height but aligns to bottom
+        > div {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+        }
+
+        input[type=text], textarea {
+          // take out defaults
+          background: none;
+          border: none;
+          color: $text_light;
+          width: 100%;
+          max-width: 50em;
+
+          // show form field boxes only on focus
+          &:focus {
+            border: 1px solid $text_icon_light;
+          }
+          // headline should keep its bold during editing
+          &.headline {
+            font-weight: bold;
+          }
+        }
+
+        // hide labels
+        label {
+          display: none;
+        }
+      }
 
       // directories with preview images
       .directory {

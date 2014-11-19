@@ -3,6 +3,8 @@
 <div id="metadata_form_sleeve" style="display: none;">
 {# this form is not designed to be submitted in its current state, only by AJAX in a tranformed state #}
 <form id="metaform" action="/imagemeta/{% verbatim %}{{ rawname }}{% endverbatim %}" method="post" {{ form_enctype(metaform) }}>
+  <div class="metaform-holder">
     {{ form_widget(metaform) }}
+  </div>
 </form>
 </div>
