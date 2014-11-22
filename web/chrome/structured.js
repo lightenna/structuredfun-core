@@ -581,7 +581,7 @@ window.sfun = (function($, undefined) {
               console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
             }
             // set missing metadata fields to their DOM elements
-            var fields = metadata_fields + metadata_flags;
+            var fields = metadata_fields.concat(metadata_flags);
             for (var i=0 ; i<fields.length ; ++i) {
               var value = data.meta[fields[i]];
               var $field = $ent.cachedFind('.' + fields[i]);
@@ -1881,6 +1881,8 @@ window.sfun = (function($, undefined) {
     $root.cachedFind('.meta > .base').hide();
     // move form (don't clone) because it's full of #ids
     $root.append($form);
+    // put the caret in the headline box
+    fieldPutCursorAtEnd($form.cachedFind('.headline'));
     // flag that we're editing
     editing_metadata = seq;
   };
@@ -3867,6 +3869,25 @@ window.sfun = (function($, undefined) {
       styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length);
     }
   }
+
+  /**
+   * put cursor at the end of an input field
+   * based on http://css-tricks.com/snippets/jquery/move-cursor-to-end-of-textarea-or-input/
+   * @param {object} $field jQuery field
+   */
+  var fieldPutCursorAtEnd = function($field) {
+    var element = $field[0];
+    $field.focus();
+    // use setSelectionRange if it exists (not in IE)
+    if (element.setSelectionRange) {
+      // double the length because Opera is inconsistent about whether a carriage return is one character or two
+      var len = $field.val().length * 2;
+      element.setSelectionRange(len, len);
+    } else {
+      // otherwise replace the contents with itself
+      $field.val($field.val());
+    }
+  };
 
   // ---------------------
   // FUNCTIONS: deprecated

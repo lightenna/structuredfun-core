@@ -1,6 +1,4 @@
 
-* bug: javascript error on processing imagemeta read request
-
 * feature: IPTC editing
   + should be turn-offable in settings
     + but on by default
@@ -30,8 +28,8 @@
     + works outside cell
   + fadey thing on back of metaform-holder too
     + leave the span showing!
---+ up to here
   + set caret to headline when first editing metadata
+--+ up to here
   + show little icons next to form fields
     + reinforce what they mean
       + on hover the icons should show the field name
@@ -50,6 +48,14 @@
 * substitute hamburger icon for class="icon ion-navicon-round"
   + it always need to be 10% of the screen
     + because it's way too small on mobiles in ems
+
+* bug: image border needs tweaking
+  + it's currently slightly too light
+    + didn't update it when we did the cell tint adjustment
+
+* bug: first load on imageset (uncached) doesn't upres all visible images
+  + I suspect it's because it doesn't recognise them as visible
+    + requires cache clear to demonstrate
 
 * bug: mobile browsers only use half the height
   + when horizontal scrolling (direction=x)
@@ -114,6 +120,17 @@
 * basic website
 
 --- next release ---
+
+* bug: chrome blacks out image when editing metadata
+  + seems to just be a rendering bug
+    + may be able to get around it by apply a class after appending
+
+* feature: directories shouldn't go to the edges
+  + they're just too big
+  + delay this just long enough to get wikimedia1 out
+
+* feature: directories ALWAYS need a name
+  + file systems encourage users to think about directories by name
 
 * optimisation: swap out $(this) references to use cached copy
   + from
@@ -3582,4 +3599,6 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
     + could be top
   + leave it where it is for now
     + think I've found a solution to the fadey background problem
+
+* bug: javascript error on processing imagemeta read request
 
