@@ -62,7 +62,7 @@
     var subcellGroup = {};
     // iterate across visible and visnear cells
     for (var i = range.first_1 ; i <= range.last_n ; ++i) {
-      var $ent = $('#seq-'+i);
+      var $ent = sfun.api_$img(i);
       // only include resizeablecells in the bucket
       if (!$ent.hasClass('resizeablecell')) {
         continue;
@@ -70,7 +70,7 @@
       // store cell in correct bucket, by position on major axis
       _bucketCell($ent, direction, cellGroup);
       // see if cell contains subcells
-      $ent.find('.subcell').each(function() {
+      $ent.cachedFind('.subcell').each(function() {
         // store subcell in correct bucket, by parent, then position on major axis
         _bucketCell($(this), direction, subcellGroup, $ent);
       });
@@ -98,7 +98,7 @@
       var $parent = parentList[i];
       var subcellRatio = _getSubcellCombinedRatio($parent);
       // store the ratio on the boundable container (ul.directory)
-      $parent.find('> .container > .boundable').data('ratio', subcellRatio);
+      $parent.cachedFind('> .container > .boundable').data('ratio', subcellRatio);
     }
     // viewport is parent for defining percentages of
     var viewportBounds = {
@@ -134,7 +134,7 @@
   var _getSubcellCombinedRatio = function($ent) {
     var x1 = y1 = 99999, x2 = y2 = -99999;
     // find bounding box of subcells
-    $ent.find('.subcell').each(function() {
+    $ent.cachedFind('.subcell').each(function() {
       var pos = $(this).offset();
       x1 = Math.min(x1, pos.left);
       y1 = Math.min(y1, pos.top);
@@ -142,7 +142,7 @@
       y2 = Math.max(y2, pos.top + $(this).height());
     });
     // write loaded width and height on to ul.directory
-    var directory = $ent.find('> .container > .boundable');
+    var directory = $ent.cachedFind('> .container > .boundable');
     directory.data({ 'loaded-width': (x2 - x1), 'loaded-height': (y2 - y1) });
     // ratio is width/height
     return (x2 - x1) /  (y2 - y1);
@@ -210,7 +210,7 @@
     var direction = sfun.api_getDirection();
     for (var i = 0 ; i<bucket.length ; ++i) {
       var $ent = bucket[i];
-      var $boundable = $ent.find('> .container > .boundable');
+      var $boundable = $ent.cachedFind('> .container > .boundable');
       var ratio = $boundable.data('ratio');
       // calculate the normalised minor-axis size based on image ratio and size of cell
       // don't have to worry about margins here, because we're only ultimately interested in the ratio
@@ -238,7 +238,7 @@
     var maxMajor = 0;
     for (var i = 0 ; i<bucket.length ; ++i) {
       var $ent = bucket[i];
-      var $boundable = $ent.find('> .container > .boundable');
+      var $boundable = $ent.cachedFind('> .container > .boundable');
       // calculate the normal minor based on ratio
       var ratio = $boundable.data('ratio');
       var normalMinor = (direction == 'x' ? $ent.width() / ratio : $ent.height() * ratio);
@@ -302,7 +302,7 @@
     for (var i = 0 ; i<bucket.length ; ++i) {
       var $ent = bucket[i];
       // make all images y-bound, as it's a simpler alignment than
-      var $boundable = $ent.find('> .container > .boundable');
+      var $boundable = $ent.cachedFind('> .container > .boundable');
       $boundable.removeClass('x-bound').addClass('y-bound');
       // also remove any 'pending resize' flags
       $ent.removeClass('resizepending');

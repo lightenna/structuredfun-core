@@ -1,4 +1,71 @@
 
+* retest flow
+  + made a few api changes
+  + worth checking they haven't broken anything
+
+* modes design
+  + thinking about some kind of global mode flag
+    + relevant for key handler (arrows on metadata edit)
+    + but applies across everything
+      + global event model
+    + shared events
+      + click on image (fullscreen or select)
+      + keypress
+      + hover over image
+  + break clickfull into 'tool'
+    + separate js file
+  + break metadata-edit into tool
+  + switching between tools deactivates certain listeners
+    + sounds like an API activate/deactivate call
+  + master
+    + there are some events that shouldn't be delegated
+      + e.g. alt-up
+  + shares
+    + some tools might want to share some behaviour
+    + e.g. clickfull and select
+      + both want to use arrow-left/right to change selection
+    + leaning towards event trees
+      + that allows sharing
+        + each node has the option of acting and/or delegating
+  + it would be nice to prove the concept before investing in this
+    + but it is a good clean-up op
+      + this is just like all the PPO-SSO-CSO work on wito2
+      + it's dangerous by virtue of its scale of aspiration
+        + we've created so much already that needs more testing/debugging
+  + complicated by eventQueue
+    + need to return a deferred
+      + that means that we need to aggregate all the children deferreds
+        + at every level in the tree
+        + which means children
+          + another parent-child relationship
+  + currently we have parent to indicate peer to call on resolution
+    + can we use that same mechanism to handle children
+  + for now, just keep it simple
+    + single master acts like a fallback
+      + tools can grab an event
+        + need a name
+    + need to go simpler than that
+      + because otherwise we'll implement an interim solution
+        + that's both complicated and needs rewriting
+    + it's worth really thinking about this
+      + it's a potential time sink
+    + how about just
+      + all active tools get notified of all events
+        + return deferreds
+      + that works pretty well
+        + just means we don't handle 'both/either/or'
+          + metadata-edit deactivates clickfull
+            + ideally we want it to be simple
+            + to move events up or down the tree in the future
+        + duplicating down is fine
+          + it's a comparatively small amount of code in the event handler
+            + ideally don't want to have to duplicate all the actual doer functions
+              + tools could contribute to a function pool
+    + this plan is laced with complexities
+      + loads of useful functions are within the structured.js closure
+        + e.g. $img()
+        + have added api call
+
 * feature: IPTC editing
   + should be turn-offable in settings
     + but on by default
@@ -30,6 +97,11 @@
     + leave the span showing!
   + set caret to headline when first editing metadata
 --+ up to here
+  + arrow keys
+    + disable keypress listener altogether
+      + or just silence using flag
+    + quite like to use keys to change between form fields
+      + down or tab to change to next field
   + show little icons next to form fields
     + reinforce what they mean
       + on hover the icons should show the field name
@@ -39,11 +111,9 @@
       + because our default text won't mean anything to most people
   + show form fields with same spacing as display
     + again makes for a consistent feel
-  + arrow keys
-    + disable keypress listener altogether
-      + or just silence using flag
-    + quite like to use keys to change between form fields
-      + down or tab to change to next field
+
+* browsing experience on mobile/touch device
+  + jumping around, not updating offseq, delay on fullscreen
 
 * substitute hamburger icon for class="icon ion-navicon-round"
   + it always need to be 10% of the screen

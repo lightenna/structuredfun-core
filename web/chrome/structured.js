@@ -24,6 +24,7 @@ var console = window.console || { log: function() {} };
 
 /**
  * StructuredFun javascript
+ * @param {object} $ object reference, so polyfills apply to all jQuery objects
  */
 window.sfun = (function($, undefined) {
 
@@ -119,7 +120,7 @@ window.sfun = (function($, undefined) {
     }
     // return cached jQuery object
     return $sfun_selectablecell_img[seq];
-  }
+  };
 
   // ---------
   // FUNCTIONS
@@ -2546,7 +2547,18 @@ window.sfun = (function($, undefined) {
    */
   var layoutManager = function() {
     return $.extend(createHashTable('layoutManager'), {
-      // FUNCTIONS
+      // comma-less last field
+      'lastEntry': null
+    });
+  }();
+
+  /** 
+   * The toolManager is used:
+   * - to store an indexed list of available tools
+   */
+  var toolManager = function() {
+    return $.extend(createHashTable('toolManager'), {
+      // comma-less last field
       'lastEntry': null
     });
   }();
@@ -3983,6 +3995,25 @@ window.sfun = (function($, undefined) {
       layoutManager.push(obj);
       // allow element to bind its handlers
       obj.callback.call(obj.context);
+    },
+
+    /**
+     * register a tool
+     * @param {object} obj arguments
+     */
+    'api_registerTool': function(obj) {
+      toolManager.push(obj);
+      // allow element to bind its handlers
+      obj.callback.call(obj.context);
+    },
+
+    /**
+     * jQuery selector caching
+     * @param {string} seq
+     * @return {object} cached jQuery object
+     */
+    'api_$img': function(seq) {
+      return $img(seq);
     },
 
     /**
