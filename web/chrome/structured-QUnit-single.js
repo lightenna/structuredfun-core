@@ -15,7 +15,7 @@
   var init = function() {
     var obj = {
       'context': this,
-      'callback': bindToTemplate,
+      'receiverRegistered': bindToTemplate,
       'view': {
         'title': 'Test'
       },

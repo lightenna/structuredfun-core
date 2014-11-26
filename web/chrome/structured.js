@@ -272,7 +272,7 @@ window.sfun = (function($, undefined) {
       var layout = layoutManager.select(0);
       if (layout != null) {
         // tell it that we've resized cells
-        var laid = layout.layoutResize.call(layout.context, range);
+        var laid = layout.receiverLayoutResized.call(layout.context, range);
         // laid may be a deferred, but when can cope if it's not
         $.when(laid).done(wrapUp);
       } else {
@@ -839,9 +839,7 @@ window.sfun = (function($, undefined) {
       }
       // use parent cell to find seq
       var $ent = $(this).parents('.selectablecell');
-      if (handlerImageClicked($ent, selector)) {
-        event.preventDefault();
-      }
+      handlerImageClicked(event, $ent, selector);
     });
   };
 
@@ -1155,6 +1153,7 @@ window.sfun = (function($, undefined) {
   };
 
   /**
+   * @param {object} $ent jQuery entity
    * @return {string} type of entity
    */
   var getType = function($ent) {
@@ -1789,7 +1788,7 @@ window.sfun = (function($, undefined) {
       }
     }
     if (seq >= 0 && seq < getTotalEntries()) {
-      // iterate to find next image
+      // increment (+/-) to find next image
       if ((seq = getNextSeq(seq, increment)) !== false) {
         return imageAdvanceTo(seq, eventContext).done(wrapUp);
       }
@@ -1835,34 +1834,6 @@ window.sfun = (function($, undefined) {
     }
     return offseq;
   }
-
-  /**
-   * switch between the default breadth and fullscreen
-   * @param {int} seq image to make fullscreen
-   * @param {object} eventContext optional event context for decorating an existing deferred
-   * @return {object} jQuery deferred
-   */
-  var imageToggleFullscreen = function(seq, eventContext) {
-    var $ent = $img(seq);
-    switch (getType($ent)) {
-      case 'image':
-        var offseq = imageCentreOffseq(getDirection());
-        // toggle using hash change
-        if (getBreadth() == 1) {
-          return fireHashUpdate( { 'breadth': state_previous['breadth'], 'seq': seq, 'offseq': state_previous['offseq'] }, false, eventContext);
-        } else {
-          return fireHashUpdate( { 'breadth': 1, 'seq': seq, 'offseq': offseq }, false, eventContext);
-        }
-        break;
-      case 'directory':
-        var $clickable = $ent.cachedFind('.clickable');
-        if ($clickable.length) {
-          window.location = $clickable.attr('href');
-        }
-        break;
-    }
-    return eventQueue.resolve(eventContext);
-  };
 
   /**
    * setup an image metadata editing form for this image
@@ -2438,6 +2409,16 @@ window.sfun = (function($, undefined) {
           return null;
         }
         return this.keyarr[ref];
+      },
+
+      /**
+       * @param {function} func function to call on all objects in hashTable
+       */
+      'iterate': function(func) {
+        for (var i=0 ; i<this.objarr.length ; i++) {
+          var obj = this.objarr[i];
+          func(obj);
+        }
       },
 
       lastEntry: null
@@ -3515,99 +3496,115 @@ window.sfun = (function($, undefined) {
       console.log('keydown event code['+event.which+']');
     }
     return eventQueue.actOnContext(eventContext, function() {
-      // process key press
-      switch (event.which) {
-
-        // directory navigation
-        case exp.KEY_ARROW_UP:
-          if (event.altKey) {
-            event.preventDefault();
-            urlChangeUp();
-          }
-          break;
-
-        // single image changes
-        case exp.KEY_ARROW_LEFT:
-          if (!event.altKey) {
-            event.preventDefault();
-            // advance to previous image
-            return imageAdvanceBy(-1, eventContext);
-          }
-          break;
-        case exp.KEY_ARROW_RIGHT:
-        case exp.KEY_TAB:
-        case exp.KEY_ARROW_DOWN:
-          // advance to next image
-          event.preventDefault();
-          return imageAdvanceBy(1, eventContext);
-
-        // page-wise navigation
-        case exp.KEY_PAGE_UP:
-        case exp.KEY_PAGE_DOWN:
-          if (!event.ctrlKey) {
-            event.preventDefault();
-            // get cell count and round down
-            var cellcount = getCellMajorCount(-1);
-            var cellmajor = getCellMajor();
-            // always animate
-            eventContext.animate = exp.implicitScrollDURATION;
-            // apply position change as relative offset
-            var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
-            // envisionPos() using relative offset
-            if (getDirection() == 'x') {
-              return envisionPos( {'scrollLeft': pagedir * cellcount * cellmajor }, eventContext, true);
-            } else {
-              return envisionPos( {'scrollTop': pagedir * cellcount * cellmajor }, eventContext, true);
-            }
-          }
-          break;
-        case exp.KEY_HOME:
-          event.preventDefault();
-          return imageAdvanceTo(0, eventContext);
-        case exp.KEY_END:
-          event.preventDefault();
-          return imageAdvanceTo(getTotalEntries()-1, eventContext);
-        case exp.KEY_RETURN:
-          event.preventDefault();
-          return imageToggleFullscreen(getSeq(), eventContext);
-
-        // change breadth
-        case exp.KEY_NUMBER_1:
-          event.preventDefault();
-          return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
-        case exp.KEY_NUMBER_2:
-          event.preventDefault();
-          return fireHashUpdate( { 'breadth': 2 }, false, eventContext);
-        case exp.KEY_NUMBER_4:
-          event.preventDefault();
-          return fireHashUpdate( { 'breadth': 4 }, false, eventContext);
-        case exp.KEY_NUMBER_8:
-          event.preventDefault();
-          return fireHashUpdate( { 'breadth': 8 }, false, eventContext);
-
-        // plus and minus effectively zoom in and out using breadth
-        case exp.KEY_PLUS:
-        case exp.KEY_EQUALS:
-          event.preventDefault();
-          return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), -1) }, false, eventContext);
-        case exp.KEY_MINUS:
-        case exp.KEY_UNDERSCORE:
-          event.preventDefault();
-          return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), +1) }, false, eventContext);
-
-        // change between horizontal and vertical
-        case exp.KEY_H_UPPER:
-        case exp.KEY_H_LOWER:
-          event.preventDefault();
-          var offseq = imageCentreOffseq('x');
-          return fireHashUpdate( { 'direction': 'x', 'offseq': offseq }, false, eventContext);
-        case exp.KEY_V_UPPER:
-        case exp.KEY_V_LOWER:
-          event.preventDefault();
-          var offseq = imageCentreOffseq('y');
-          return fireHashUpdate( { 'direction': 'y', 'offseq': offseq }, false, eventContext);
-      }
+      // process keypress with local receiver
+      var localDeferred = receiverKeyPressed(event, eventContext);
+      // delegate keypress to tool receivers
+      var defs = [ localDeferred ];
+      toolManager.iterate(function(obj) {
+        var tool = obj;
+        defs[defs.length] = tool.receiverKeyPressed.call(tool.context, event, eventContext);
+      });
+      // aggregate deferreds then resolve context
+      $.when.apply($, defs).always(eventQueue.resolve(eventContext));
     });
+  };
+
+  /**
+   * process events generated by key presses
+   * downstream of: EVENT key pressed, HANDLER key pressed
+   * @return {object} jQuery deferred
+   */
+  var receiverKeyPressed = function(event, eventContext) {
+    // process key press
+    switch (event.which) {
+
+      // directory navigation
+      case exp.KEY_ARROW_UP:
+        if (event.altKey) {
+          event.preventDefault();
+          urlChangeUp();
+        }
+        break;
+
+      // single image changes
+      case exp.KEY_ARROW_LEFT:
+        if (!event.altKey) {
+          event.preventDefault();
+          // advance to previous image
+          return imageAdvanceBy(-1, eventContext);
+        }
+        break;
+      case exp.KEY_ARROW_RIGHT:
+      case exp.KEY_TAB:
+      case exp.KEY_ARROW_DOWN:
+        // advance to next image
+        event.preventDefault();
+        return imageAdvanceBy(1, eventContext);
+
+      // page-wise navigation
+      case exp.KEY_PAGE_UP:
+      case exp.KEY_PAGE_DOWN:
+        if (!event.ctrlKey) {
+          event.preventDefault();
+          // get cell count and round down
+          var cellcount = getCellMajorCount(-1);
+          var cellmajor = getCellMajor();
+          // always animate
+          eventContext.animate = exp.implicitScrollDURATION;
+          // apply position change as relative offset
+          var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
+          // envisionPos() using relative offset
+          if (getDirection() == 'x') {
+            return envisionPos( {'scrollLeft': pagedir * cellcount * cellmajor }, eventContext, true);
+          } else {
+            return envisionPos( {'scrollTop': pagedir * cellcount * cellmajor }, eventContext, true);
+          }
+        }
+        break;
+      case exp.KEY_HOME:
+        event.preventDefault();
+        return imageAdvanceTo(0, eventContext);
+      case exp.KEY_END:
+        event.preventDefault();
+        return imageAdvanceTo(getTotalEntries()-1, eventContext);
+
+      // change breadth
+      case exp.KEY_NUMBER_1:
+        event.preventDefault();
+        return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
+      case exp.KEY_NUMBER_2:
+        event.preventDefault();
+        return fireHashUpdate( { 'breadth': 2 }, false, eventContext);
+      case exp.KEY_NUMBER_4:
+        event.preventDefault();
+        return fireHashUpdate( { 'breadth': 4 }, false, eventContext);
+      case exp.KEY_NUMBER_8:
+        event.preventDefault();
+        return fireHashUpdate( { 'breadth': 8 }, false, eventContext);
+
+      // plus and minus effectively zoom in and out using breadth
+      case exp.KEY_PLUS:
+      case exp.KEY_EQUALS:
+        event.preventDefault();
+        return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), -1) }, false, eventContext);
+      case exp.KEY_MINUS:
+      case exp.KEY_UNDERSCORE:
+        event.preventDefault();
+        return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), +1) }, false, eventContext);
+
+      // change between horizontal and vertical
+      case exp.KEY_H_UPPER:
+      case exp.KEY_H_LOWER:
+        event.preventDefault();
+        var offseq = imageCentreOffseq('x');
+        return fireHashUpdate( { 'direction': 'x', 'offseq': offseq }, false, eventContext);
+      case exp.KEY_V_UPPER:
+      case exp.KEY_V_LOWER:
+        event.preventDefault();
+        var offseq = imageCentreOffseq('y');
+        return fireHashUpdate( { 'direction': 'y', 'offseq': offseq }, false, eventContext);
+    }
+    return getDeferred().resolve();
   };
 
   /**
@@ -3659,16 +3656,38 @@ window.sfun = (function($, undefined) {
 
   /**
    * process a click on an image
+   * @param {object} event raw DOM event
    * @param {object} $ent jQuery object
    * @param {string} selector (type.class) for the click target
-   * @return {boolean} true if we processed the click (preventDefault)
    */
-  var handlerImageClicked = function($ent, selector) {
+  var handlerImageClicked = function(event, $ent, selector) {
+    if (debug && false) {
+      console.log('bindToImageLinks click event on selector['+selector+']');
+    }
+    // process image click with local receiver
+    receiverImageClicked(event, $ent, selector);
+    // delegate image click to tool receivers
+    toolManager.iterate(function(obj) {
+      var tool = obj;
+      tool.receiverImageClicked.call(tool.context, event, $ent, selector);
+    });
+  };
+
+  /**
+   * process a click on an image
+   * downstream of: EVENT image click, HANDLER image click
+   * @param {object} event raw DOM event
+   * @param {object} $ent jQuery object
+   * @param {string} selector (type.class) for the click target
+   */
+  var receiverImageClicked = function(event, $ent, selector) {
     var seq = $ent.data('seq');
     switch (selector) {
       case 'input':
       case 'textarea':
         // leave form elements alone
+        // stop the click from bubbling up
+        event.preventDefault();
         break;
       case 'span.editable':
         // if editing, a click elsewhere terminates the edit
@@ -3677,20 +3696,16 @@ window.sfun = (function($, undefined) {
         }
         // setup edit
         imageSetupEdit(seq);
+        // stop the click from bubbling up
+        event.preventDefault();
         break;
       default:
         // if editing, a click elsewhere terminates the edit
         if (editing_metadata) {
           imageTeardownEdit(editing_metadata);
         }
-        // select image, then toggle
-        imageToggleFullscreen(seq);
         break;
     }
-    if (debug && false) {
-      console.log('bindToImageLinks click event on selector['+selector+']');
-    }
-    return true;
   };
 
   // ------------------
@@ -3713,11 +3728,13 @@ window.sfun = (function($, undefined) {
    * overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
    * @param obj1
    * @param obj2
+   * @return {object} obj1, now containing merged fields from obj2
    */
   var merge = function(obj1, obj2){
     for (var attrname in obj2) {
       obj1[attrname] = obj2[attrname];
     }
+    return obj1;
   }
 
   /**
@@ -3984,7 +4001,7 @@ window.sfun = (function($, undefined) {
       // attach output to header
       $('.header').append(output);
       // allow element to bind its handlers
-      obj.callback.call(obj.context, obj);
+      obj.receiverRegistered.call(obj.context, obj);
     },
 
     /**
@@ -3994,7 +4011,7 @@ window.sfun = (function($, undefined) {
     'api_registerLayout': function(obj) {
       layoutManager.push(obj);
       // allow element to bind its handlers
-      obj.callback.call(obj.context);
+      obj.receiverRegistered.call(obj.context);
     },
 
     /**
@@ -4004,7 +4021,7 @@ window.sfun = (function($, undefined) {
     'api_registerTool': function(obj) {
       toolManager.push(obj);
       // allow element to bind its handlers
-      obj.callback.call(obj.context);
+      obj.receiverRegistered.call(obj.context);
     },
 
     /**
@@ -4096,6 +4113,14 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @param {object} $ent jQuery entity
+     * @return {string} type of entity
+     */
+    'api_getType': function($ent) {
+      return getType($ent);
+    },
+
+    /**
      * @return {int} return viewport width/height
      */
     'api_getViewportWidth': function() {
@@ -4150,6 +4175,22 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @return {object} previous state as name:value pairs
+     */
+    'api_getPreviousState': function() {
+      return { 'breadth': state_previous['breadth'], 'seq': state_previous['seq'], 'offseq': state_previous['offseq'] };
+    },
+
+    /**
+     * @param {object} over [typically selective] state to overwrite previous with
+     * @return {object} previous state as name:value pairs
+     */
+    'api_overwritePreviousState': function(over) {
+      var prev = this.api_getPreviousState();
+      return merge(prev, over);
+    },
+
+    /**
      * @param {object} $ent cell to check (and re-set) bounds for
      */
     'api_setBound': function($ent) {
@@ -4195,6 +4236,17 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * Make a change to the document's hash
+     * @param {object}  options      name:value pairs to go in the hash
+     * @param {boolean} push         true to push a history item
+     * @param {object} [eventContext] optional event context for decorating an existing deferred
+     * @return {object} jQuery deferred
+     */
+    'api_fireHashUpdate': function(options, push, eventContext) {
+      return fireHashUpdate(options, push, eventContext);
+    },
+
+    /**
      * fire scroll update
      * @param {object} pos  {scrollLeft, scrollTop} new scroll coordinate
      * @param {boolean} numb true to numb listener
@@ -4221,6 +4273,14 @@ window.sfun = (function($, undefined) {
      */
     'api_imageAdvanceTo': function(seq) {
       return imageAdvanceTo(seq);
+    },
+
+    /**
+     * use offseq to centre the image
+     * @param {string} direction axis to centre on
+     */
+    'api_imageCentreOffseq': function(direction) {
+      return imageCentreOffseq(direction);
     },
 
     /**
