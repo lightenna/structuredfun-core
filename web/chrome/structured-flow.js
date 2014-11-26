@@ -25,8 +25,8 @@
     var obj = {
       'context' : this,
       'key' : 'flow',
-      'callback' : flow_register,
-      'layoutResize' : flow_cellsResize,
+      'receiverRegistered' : flow_registered,
+      'receiverLayoutResized' : flow_cellsResize,
     };
     // not sure of init order, so push async
     // sfun.push('registerLayout', obj);
@@ -37,7 +37,7 @@
   /**
    * called by sfun when ready
    */
-  var flow_register = function() {
+  var flow_registered = function() {
     $('.resizeablecell').addClass('resizepending');
   }
 
