@@ -1,18 +1,12 @@
 
-* try and factor out [at least some of] clickfull
-  + into clickfull tool
-    + that's such an interesting illustration
-      + toggleFullscreen is full of library calls
-    + it is doable externally
-      + moved toggleFullscreen
-      + now move all the calls
-    + leaning towards notify all
-      + let listeners be smart about what they react to
-        + can always do activate/deactivate later
-        + can always do event cascades/trees later too
-  + don't use true/false to preventDefault
-    + pass down the event
-      + let anyone squash it
+* break metadata-editing out into its own module
+
+* break navigator into its own module
+  + just include the things that we'll want to turn off
+
+* think about exclusivity
+  + the only requirement at the moment is that we
+    + can disable navigator modulegc1
 
 * feature: IPTC editing
   + should be turn-offable in settings
@@ -138,6 +132,15 @@
 * basic website
 
 --- next release ---
+
+* feature: hover on fullscreen smaller
+  + black faded overlay covers 30% of the image
+    + it's much too distracting and there's no way to turn it off
+
+* feature: consider centring (offseq) image in b2
+  + currently centring only applies to fullscreen
+    + it's just nicer to look at images in the middle of the window
+    + rather than in the top corner
 
 * bug: chrome blacks out image when editing metadata
   + seems to just be a rendering bug
@@ -3690,4 +3693,19 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
     + flow is so beautiful
       + I'm always struck by it each time I turn it on
       + worth persevering with it
+
+* try and factor out [at least some of] clickfull
+  + into clickfull tool
+    + that's such an interesting illustration
+      + toggleFullscreen is full of library calls
+    + it is doable externally
+      + moved toggleFullscreen
+      + now move all the calls
+    + leaning towards notify all
+      + let listeners be smart about what they react to
+        + can always do activate/deactivate later
+        + can always do event cascades/trees later too
+  + don't use true/false to preventDefault
+    + pass down the event
+      + let anyone squash it
 
