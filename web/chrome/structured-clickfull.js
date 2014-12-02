@@ -27,8 +27,6 @@
     sfun.push('registerTool', obj);
   };
 
-  // Layout API
-
   /**
    * called by sfun when ready
    */
@@ -53,7 +51,7 @@
         var seq = $ent.data('seq');
         // select image, then toggle
         _imageToggleFullscreen(seq);
-        // stop the event from bubbling up
+        // stop the event from bubbling up, leave active
         event.preventDefault();
         break;
     }
@@ -69,6 +67,7 @@
     switch (event.which) {
       case sfun.KEY_RETURN:
         var seq = sfun.api_getSeq();
+        // stop the event from bubbling up, leave active
         event.preventDefault();
         return _imageToggleFullscreen(seq, eventContext);
     }

@@ -87,7 +87,6 @@ window.sfun = (function($, undefined) {
   // list of metadata fields supported
   var metadata_fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source'];
   var metadata_flags = ['editable'];
-  var editing_metadata = false;
   // last image maxlongest, to shortcut reres using thumb size
   var last_longest = null;
   // device detection
@@ -574,47 +573,7 @@ window.sfun = (function($, undefined) {
           dataType: 'json',
         })
         .done(function(data, textStatus, jqXHR) {
-          if (typeof(data.meta) != 'undefined') {
-            // if we get a response, set the missing resolution data to the image
-            $reresable.data('native-width', data.meta.width);
-            $reresable.data('native-height', data.meta.height);
-            if (debug && false) {
-              console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
-            }
-            // set missing metadata fields to their DOM elements
-            var fields = metadata_fields.concat(metadata_flags);
-            for (var i=0 ; i<fields.length ; ++i) {
-              var value = data.meta[fields[i]];
-              var $field = $ent.cachedFind('.' + fields[i]);
-              switch (fields[i]) {
-                case 'headline':
-                case 'byline':
-                  $field.html(value);
-                  break;
-                case 'caption':
-                case 'copyright':
-                case 'keywords':
-                case 'source':
-                  $field.attr('title', value);
-                  break;
-                case 'editable':
-                  if (value) {
-                    $field.show();
-                  } else {
-                    $field.hide();
-                  }
-                  break;
-              }
-              if (value == state_default[fields[i]]) {
-                if (debug && false) {
-                  console.log('v['+value+'] default['+state_default[fields[i]]+'] is default');
-                }
-                $field.addClass('default');
-              }
-            }
-            // store the entire meta object in the cached jquery object
-            $ent.cachedSet('meta', data.meta);
-          }
+          refreshMetadataApplyToFields($ent, data);
           // resolve the context
           deferred.resolve();
         })
@@ -633,6 +592,56 @@ window.sfun = (function($, undefined) {
     }
     // if we couldn't find a suitable candidate and get it's metadata, fail out the deferred
     return getDeferred().reject();
+  };
+
+  /**
+   * Apply returned metadata to fields
+   * @param {object} $ent jQuery entity (shared cached copy)
+   * @param {object} data metadata from server
+   */
+  var refreshMetadataApplyToFields = function($ent, data) {
+    var $reresable = $ent.cachedFind('.reresable');
+    if (typeof(data.meta) != 'undefined') {
+      // if we get a response, set the missing resolution data to the image
+      $reresable.data('native-width', data.meta.width);
+      $reresable.data('native-height', data.meta.height);
+      if (debug && true) {
+        console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
+      }
+      // set missing metadata fields to their DOM elements
+      var fields = metadata_fields.concat(metadata_flags);
+      for (var i=0 ; i<fields.length ; ++i) {
+        var value = data.meta[fields[i]];
+        var $field = $ent.cachedFind('.' + fields[i]);
+        switch (fields[i]) {
+          case 'headline':
+          case 'byline':
+            $field.html(value);
+            break;
+          case 'caption':
+          case 'copyright':
+          case 'keywords':
+          case 'source':
+            $field.attr('title', value);
+            break;
+          case 'editable':
+            if (value) {
+              $field.show();
+            } else {
+              $field.hide();
+            }
+            break;
+        }
+        if (value == state_default[fields[i]]) {
+          if (debug && false) {
+            console.log('v['+value+'] default['+state_default[fields[i]]+'] is default');
+          }
+          $field.addClass('default');
+        }
+      }
+      // store the entire meta object in the cached jquery object
+      $ent.cachedSet('meta', data.meta);
+    }
   };
 
   /**
@@ -1834,45 +1843,6 @@ window.sfun = (function($, undefined) {
     }
     return offseq;
   }
-
-  /**
-   * setup an image metadata editing form for this image
-   * @param {int} seq image to edit
-   */
-  var imageSetupEdit = function(seq) {
-    var $root = $img(seq).addClass('editing');
-    var $form = $('#metaform');
-    // setup fields to edit
-    var fields = metadata_fields;
-    // substitute values
-    for (var i=0 ; i<fields.length ; ++i) {
-      var key = fields[i];
-      $form.cachedFind('input#form_'+key).val($root.cachedFind('.'+key).html());
-    }
-    // hide displayed metadata (in spans)
-    $root.cachedFind('.meta > .base').hide();
-    // move form (don't clone) because it's full of #ids
-    $root.append($form);
-    // put the caret in the headline box
-    fieldPutCursorAtEnd($form.cachedFind('.headline'));
-    // flag that we're editing
-    editing_metadata = seq;
-  };
-
-  /**
-   * tear down an image metadata editing form for this image
-   */
-  var imageTeardownEdit = function() {
-    var seq = editing_metadata;
-    var $root = $img(seq).removeClass('editing');
-    var $form = $('#metaform');
-    // move form (don't clone) back to its invisible holder
-    $('#metadata_form_sleeve').append($form);
-    // re-show displayed metadata (in spans)
-    $root.cachedFind('.meta > .base').show();
-    // flag that we're no longer editing an image
-    editing_metadata = false;
-  };
 
   // ------------------
   // FUNCTIONS: URL ops
@@ -3496,14 +3466,21 @@ window.sfun = (function($, undefined) {
       console.log('keydown event code['+event.which+']');
     }
     return eventQueue.actOnContext(eventContext, function() {
-      // process keypress with local receiver
-      var localDeferred = receiverKeyPressed(event, eventContext);
+      var defs = [];
+      // setup event to allow delegates to prevent
+      event.sfun_active = true;
       // delegate keypress to tool receivers
-      var defs = [ localDeferred ];
       toolManager.iterate(function(obj) {
         var tool = obj;
-        defs[defs.length] = tool.receiverKeyPressed.call(tool.context, event, eventContext);
+        // only process event if it hasn't been deactivated
+        if (event.sfun_active) {
+          defs[defs.length] = tool.receiverKeyPressed.call(tool.context, event, eventContext);
+        }
       });
+      if (event.sfun_active) {
+        // process keypress with local receiver (if still active)
+        defs[defs.length] = receiverKeyPressed(event, eventContext);
+      }
       // aggregate deferreds then resolve context
       $.when.apply($, defs).always(eventQueue.resolve(eventContext));
     });
@@ -3561,6 +3538,7 @@ window.sfun = (function($, undefined) {
           }
         }
         break;
+
       case exp.KEY_HOME:
         event.preventDefault();
         return imageAdvanceTo(0, eventContext);
@@ -3649,7 +3627,7 @@ window.sfun = (function($, undefined) {
       }
     }
     // optional debugging
-    if (debug && true) {
+    if (debug && false) {
       console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
   };
@@ -3664,13 +3642,19 @@ window.sfun = (function($, undefined) {
     if (debug && false) {
       console.log('bindToImageLinks click event on selector['+selector+']');
     }
-    // process image click with local receiver
-    receiverImageClicked(event, $ent, selector);
+    // setup event to allow delegates to deactivate
+    event.sfun_active = true;
     // delegate image click to tool receivers
     toolManager.iterate(function(obj) {
       var tool = obj;
-      tool.receiverImageClicked.call(tool.context, event, $ent, selector);
+      if (event.sfun_active) {
+        tool.receiverImageClicked.call(tool.context, event, $ent, selector);
+      }
     });
+    if (event.sfun_active) {
+      // process image click with local receiver
+      receiverImageClicked(event, $ent, selector);
+    }
   };
 
   /**
@@ -3683,27 +3667,7 @@ window.sfun = (function($, undefined) {
   var receiverImageClicked = function(event, $ent, selector) {
     var seq = $ent.data('seq');
     switch (selector) {
-      case 'input':
-      case 'textarea':
-        // leave form elements alone
-        // stop the click from bubbling up
-        event.preventDefault();
-        break;
-      case 'span.editable':
-        // if editing, a click elsewhere terminates the edit
-        if (editing_metadata !== false) {
-          imageTeardownEdit(editing_metadata);
-        }
-        // setup edit
-        imageSetupEdit(seq);
-        // stop the click from bubbling up
-        event.preventDefault();
-        break;
       default:
-        // if editing, a click elsewhere terminates the edit
-        if (editing_metadata) {
-          imageTeardownEdit(editing_metadata);
-        }
         break;
     }
   };
@@ -3898,25 +3862,6 @@ window.sfun = (function($, undefined) {
       styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length);
     }
   }
-
-  /**
-   * put cursor at the end of an input field
-   * based on http://css-tricks.com/snippets/jquery/move-cursor-to-end-of-textarea-or-input/
-   * @param {object} $field jQuery field
-   */
-  var fieldPutCursorAtEnd = function($field) {
-    var element = $field[0];
-    $field.focus();
-    // use setSelectionRange if it exists (not in IE)
-    if (element.setSelectionRange) {
-      // double the length because Opera is inconsistent about whether a carriage return is one character or two
-      var len = $field.val().length * 2;
-      element.setSelectionRange(len, len);
-    } else {
-      // otherwise replace the contents with itself
-      $field.val($field.val());
-    }
-  };
 
   // ---------------------
   // FUNCTIONS: deprecated
@@ -4182,6 +4127,13 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @return {array} list of field names
+     */
+    'api_getMetadataFieldNames': function() {
+      return metadata_fields;
+    },
+
+    /**
      * @param {object} over [typically selective] state to overwrite previous with
      * @return {object} previous state as name:value pairs
      */
@@ -4211,6 +4163,15 @@ window.sfun = (function($, undefined) {
     'api_waitLoadCell': function($cell) {
       var recurse = false;
       return waitLoadedGetResolution($cell, recurse);
+    },
+
+    /**
+     * Apply returned metadata to fields
+     * @param {object} $ent jQuery entity (shared cached copy)
+     * @param {object} data metadata from server
+     */
+    'api_refreshMetadataApplyToFields': function($ent, data) {
+      return refreshMetadataApplyToFields($ent, data);
     },
 
     /**

@@ -2,7 +2,7 @@
 {# write the metadata update form into a hidden div for js retrieval and reuse #}
 <div id="metadata_form_sleeve" style="display: none;">
 {# this form is not designed to be submitted in its current state, only by AJAX in a tranformed state #}
-<form id="metaform" action="/imagemeta/{% verbatim %}{{ rawname }}{% endverbatim %}" method="post" {{ form_enctype(metaform) }}>
+<form id="metaform" action="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) }}" method="post" {{ form_enctype(metaform) }}>
   <div class="metaform-holder">
     {{ form_widget(metaform) }}
   </div>
