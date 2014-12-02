@@ -1,56 +1,45 @@
 
-* break metadata-editing out into its own module
+* apply metadata to fields
+  + needs to actually put response back into fields
+    + post is coming back with changes
+    + but they're getting lost
+      + not showing up in the field
 
-* break navigator into its own module
-  + just include the things that we'll want to turn off
+* store metadata on POST
+  + store in original image
+    + store in all cached copies
+      + finding those cached copies is hard
+      + it makes a metadata update an expensive write
+      + might be better to
+        + write to original
+        + dump cached copies
+        + regen current-size cached image
+          + i.e. the one currently being used
+        + regen 200px version
+      + revise given that we need to keep args
+        + write to current
+        + return
+          + continue work in separate thread maybe
+        + write to original
+        + find and dump all cached copies except current
+  + keep it simple to start with
+    + just write to the image variant we've named in the args
+      + that's always maxlongest=200
+        + hmmm, not sure about that
+    + anyway, just updating local is good enough
+      + that means that the metadata will atleast persist after an edit
 
-* think about exclusivity
-  + the only requirement at the moment is that we
-    + can disable navigator modulegc1
-
-* feature: IPTC editing
-  + should be turn-offable in settings
-    + but on by default
-  + useful to set IPTC Source/licence
-  + probably have to pull this up
-    + because we don't have anything that can edit IPTC nicely
-  + use nice ion edit icon (ion-compose or icon-edit)
-  + javascript to pull form into shape on edit
-    + better than testing raw form because we don't break images
-    + detect clicks on spans
-  + setup form handler within imagemeta route
-    + handleRequest seems to update the object
-    + just need to write back to file
-  + transparent, 100% width, hide labels
-  + clicks on form elements
-  + got basic form working being rendered
-    + stop all fields being mandatory
-  + update button in full width box
-  + max width the box at 400px
-    + don't need full width for big screens/images
-  + put form down to bottom of pane as per .meta
-  + alignment of editable form fields
-  + problem putting forms inside clickable <a> tags
-    + need to bubble up to put caret into correct place in form field
-    + can't bubble all the way up because otherwise we click into image
-      + try moving the form outside into the cell
-    + works outside cell
-  + fadey thing on back of metaform-holder too
-    + leave the span showing!
-  + set caret to headline when first editing metadata
---+ up to here
-  + arrow keys
-    + disable keypress listener altogether
-      + or just silence using flag
-    + quite like to use keys to change between form fields
-      + down or tab to change to next field
-  + show little icons next to form fields
-    + reinforce what they mean
-      + on hover the icons should show the field name
+* look and feel on IPTC editing
   + show HTML5 empty text in fields that haven't been filled out yet
     + use default detection
       + in (default -> blank) and out (blank -> default)
       + because our default text won't mean anything to most people
+  + return should move to next form field
+    + until it gets to the last one
+      + then submit
+  + show little icons next to form fields
+    + reinforce what they mean
+      + on hover the icons should show the field name
   + show form fields with same spacing as display
     + again makes for a consistent feel
 
@@ -141,6 +130,12 @@
   + currently centring only applies to fullscreen
     + it's just nicer to look at images in the middle of the window
     + rather than in the top corner
+
+* feature: align images to outside edge of border
+  + when aligning an image
+    + we don't want to butt the image up against the edge
+      + because it gives the impression of a 
+      + crop
 
 * bug: chrome blacks out image when editing metadata
   + seems to just be a rendering bug
@@ -3708,4 +3703,114 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
   + don't use true/false to preventDefault
     + pass down the event
       + let anyone squash it
+
+* break metadata-editing out into its own module
+
+* think about exclusivity
+  + the only requirement at the moment is that we
+    + can disable navigator module
+  + start with simple preventDefault event preventing
+
+* tool ordering if going to be important
+  + we need everything to be higher than navigator
+    + well
+      + we need metaedit to be higher than navigator
+    + the order we include the js in should do it
+
+* break navigator into its own module
+  + just include the things that we'll want to turn off
+  + actually leave it all in main
+    + because we can disable it using a simple prevent
+  + and we'll want to use navigator across multiple modules
+
+* can't use preventDefault
+  + as suspected
+  + because we sometimes need to actually execute the default handler
+    + but ignore our own receivers
+    + e.g. arrow keys
+  + add a simple attribute to the event
+    + because it's a controlled environment
+    + no need to confuse with jitter
+      + which is actually called litter
+  + change in language
+    + prevent (preventDefault) stops js from processing
+    + inactive (sfun_active = false) stops other tools from processing
+
+* chase down breakthrough return
+  + caused by mde-cf script ordering
+    = solved
+
+* feature: IPTC editing
+  + should be turn-offable in settings
+    + but on by default
+  + useful to set IPTC Source/licence
+  + probably have to pull this up
+    + because we don't have anything that can edit IPTC nicely
+  + use nice ion edit icon (ion-compose or icon-edit)
+    + switch to compose because it's bigger (more clickable)
+  + javascript to pull form into shape on edit
+    + better than testing raw form because we don't break images
+    + detect clicks on spans
+  + setup form handler within imagemeta route
+    + handleRequest seems to update the object
+    + just need to write back to file
+  + transparent, 100% width, hide labels
+  + clicks on form elements
+  + got basic form working being rendered
+    + stop all fields being mandatory
+  + update button in full width box
+  + max width the box at 400px
+    + don't need full width for big screens/images
+  + put form down to bottom of pane as per .meta
+  + alignment of editable form fields
+  + problem putting forms inside clickable <a> tags
+    + need to bubble up to put caret into correct place in form field
+    + can't bubble all the way up because otherwise we click into image
+      + try moving the form outside into the cell
+    + works outside cell
+  + fadey thing on back of metaform-holder too
+    + leave the span showing!
+  + set caret to headline when first editing metadata
+  + arrow keys
+    + disable keypress listener altogether
+      + or just silence using flag
+    + quite like to use keys to change between form fields
+      + down or tab to change to next field
+  + hover over edit icon
+    + should go read to show there's an action
+
+* plugin metadata editing form
+  + make button just take you back to the same page
+    + little bit of graceful degradation
+      + takes you to the top of the folder
+      + but that's not the end of the world
+  + capture click
+    + ajax submit form data
+    + data-action on form doesn't really make sense
+      + might as well put something on image
+        + that's where all the other data is
+        + for now could just use meta-src
+    + we want to process the metadata that comes back
+      + applying it back to the fields
+        + allows the user to validate their edit
+        + and see any server-side correction we've done
+
+* strip arguments off meta-src
+  + I don't think we need the args
+    + seems ok
+    + clear media cache test
+  + imagemeta doesn't work
+    + will reintroduce args to see if that's it
+      + yeap
+    + the reason it's problematic is
+    + image/... requests the image
+      + loads source
+      + caches, with metadata
+    + imagemeta/... then loads from cache
+      + without args
+        + imagemeta never matches the image
+  + there's no problem in pushing metadata with arguments
+    + but I'm got to do something a bit clever server-side
+      + to find
+  = leave args on meta-src
 

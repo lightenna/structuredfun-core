@@ -267,6 +267,10 @@
               &.editable {
                 display: inline;
                 margin: 0;
+
+                &:hover {
+                  color: $text_overaction;
+                }
               }
 
               &.byline {

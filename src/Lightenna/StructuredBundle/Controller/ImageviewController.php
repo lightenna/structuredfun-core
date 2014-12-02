@@ -61,8 +61,9 @@ class ImageviewController extends ViewController {
     $form = $md->getForm($this);
     $form->handleRequest($request);
     if ($form->isValid()) {
-      // @todo update metadata in cached file
+      // @todo update metadata in named cached file
       // @todo update metadata in original file
+      // @todo eliminate dirty cached copies
       $data = $form->getData();
       // $md->processFormData($data);
     }
