@@ -17,13 +17,6 @@ use Symfony\Component\DependencyInjection\Definition;
 
 class RegisterEventListenersAndSubscribersPassTest extends \PHPUnit_Framework_TestCase
 {
-    protected function setUp()
-    {
-        if (!class_exists('Symfony\Component\DependencyInjection\Container')) {
-            $this->markTestSkipped('The "DependencyInjection" component is not available');
-        }
-    }
-
     /**
      * @expectedException InvalidArgumentException
      */
@@ -144,6 +137,17 @@ class RegisterEventListenersAndSubscribersPassTest extends \PHPUnit_Framework_Te
         sort($unordered);
         $this->assertEquals(array('c', 'd', 'e'), $unordered);
         $this->assertEquals(array('b', 'a'), $serviceOrder);
+    }
+
+    public function testProcessNoTaggedServices()
+    {
+        $container = $this->createBuilder(true);
+
+        $this->process($container);
+
+        $this->assertEquals(array(), $container->getDefinition('doctrine.dbal.default_connection.event_manager')->getMethodCalls());
+
+        $this->assertEquals(array(), $container->getDefinition('doctrine.dbal.second_connection.event_manager')->getMethodCalls());
     }
 
     private function process(ContainerBuilder $container)

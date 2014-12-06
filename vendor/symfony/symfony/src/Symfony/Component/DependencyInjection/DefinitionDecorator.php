@@ -24,7 +24,7 @@ use Symfony\Component\DependencyInjection\Exception\OutOfBoundsException;
 class DefinitionDecorator extends Definition
 {
     private $parent;
-    private $changes;
+    private $changes = array();
 
     /**
      * Constructor.
@@ -38,7 +38,6 @@ class DefinitionDecorator extends Definition
         parent::__construct();
 
         $this->parent = $parent;
-        $this->changes = array();
     }
 
     /**
@@ -75,6 +74,16 @@ class DefinitionDecorator extends Definition
         $this->changes['class'] = true;
 
         return parent::setClass($class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setFactory($callable)
+    {
+        $this->changes['factory'] = true;
+
+        return parent::setFactory($callable);
     }
 
     /**

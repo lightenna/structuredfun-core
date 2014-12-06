@@ -254,7 +254,7 @@ UPGRADE FROM 2.x to 3.0
    and all of its implementations were removed. Use the new interface
    `Symfony\Component\Security\Csrf\CsrfTokenManagerInterface` instead.
 
- * The options "`csrf_provider`" and "`intention`" were renamed to "`csrf_token_generator`"
+ * The options "`csrf_provider`" and "`intention`" were renamed to  "`csrf_token_generator`"
    and "`csrf_token_id`".
 
  * The method `Form::getErrorsAsString()` was removed. Use `Form::getErrors()`
@@ -268,6 +268,10 @@ UPGRADE FROM 2.x to 3.0
    ```
 
    After:
+
+   ```php
+   echo $form->getErrors(true, false);
+   ```
 
    ```php
    echo $form->getErrors(true, false);

@@ -79,11 +79,12 @@ class ModelChoiceList extends ObjectChoiceList
      *                                                    Either an array if $choices is given,
      *                                                    or a ModelCriteria to be merged with the $queryObject.
      * @param PropertyAccessorInterface $propertyAccessor The reflection graph for reading property paths.
+     * @param string                    $useAsIdentifier  a custom unique column (eg slug) to use instead of primary key.
      *
-     * @throws MissingOptionsException when no model class is given
-     * @throws InvalidOptionsException when the model class cannot be found
+     * @throws MissingOptionsException In case the class parameter is empty.
+     * @throws InvalidOptionsException In case the query class is not found.
      */
-    public function __construct($class, $labelPath = null, $choices = null, $queryObject = null, $groupPath = null, $preferred = array(), PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct($class, $labelPath = null, $choices = null, $queryObject = null, $groupPath = null, $preferred = array(), PropertyAccessorInterface $propertyAccessor = null, $useAsIdentifier = null)
     {
         $this->class = $class;
 
@@ -98,7 +99,12 @@ class ModelChoiceList extends ObjectChoiceList
         $query = new $queryClass();
 
         $this->query = $queryObject ?: $query;
-        $this->identifier = $this->query->getTableMap()->getPrimaryKeys();
+        if ($useAsIdentifier) {
+            $this->identifier = array( $this->query->getTableMap()->getColumn($useAsIdentifier) );
+        } else {
+            $this->identifier = $this->query->getTableMap()->getPrimaryKeys();
+        }
+
         $this->loaded = is_array($choices) || $choices instanceof \Traversable;
 
         if ($preferred instanceof ModelCriteria) {
@@ -293,6 +299,8 @@ class ModelChoiceList extends ObjectChoiceList
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated Deprecated since version 2.4, to be removed in 3.0.
      */
     public function getIndicesForChoices(array $models)
     {
@@ -337,6 +345,8 @@ class ModelChoiceList extends ObjectChoiceList
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated Deprecated since version 2.4, to be removed in 3.0.
      */
     public function getIndicesForValues(array $values)
     {
@@ -433,6 +443,14 @@ class ModelChoiceList extends ObjectChoiceList
     {
         if (!$model instanceof $this->class) {
             return array();
+        }
+
+        if (1 === count($this->identifier) && current($this->identifier) instanceof \ColumnMap) {
+            $phpName = current($this->identifier)->getPhpName();
+
+            if (method_exists($model, 'get'.$phpName)) {
+                return array($model->{'get'.$phpName}());
+            }
         }
 
         if ($model instanceof Persistent) {

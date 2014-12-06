@@ -13,6 +13,7 @@ namespace Symfony\Component\Security\Http\Firewall;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Authorization\AccessDeniedHandlerInterface;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolverInterface;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
@@ -70,16 +71,22 @@ class ExceptionListener
     }
 
     /**
+     * Unregisters the dispatcher.
+     *
+     * @param EventDispatcherInterface $dispatcher An EventDispatcherInterface instance
+     */
+    public function unregister(EventDispatcherInterface $dispatcher)
+    {
+        $dispatcher->removeListener(KernelEvents::EXCEPTION, array($this, 'onKernelException'));
+    }
+
+    /**
      * Handles security related exceptions.
      *
      * @param GetResponseForExceptionEvent $event An GetResponseForExceptionEvent instance
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
-        // we need to remove ourselves as the exception listener can be
-        // different depending on the Request
-        $event->getDispatcher()->removeListener(KernelEvents::EXCEPTION, array($this, 'onKernelException'));
-
         $exception = $event->getException();
         do {
             if ($exception instanceof AuthenticationException) {
@@ -140,7 +147,7 @@ class ExceptionListener
                 }
             } elseif (null !== $this->errorPage) {
                 $subRequest = $this->httpUtils->createRequest($event->getRequest(), $this->errorPage);
-                $subRequest->attributes->set(SecurityContextInterface::ACCESS_DENIED_ERROR, $exception);
+                $subRequest->attributes->set(Security::ACCESS_DENIED_ERROR, $exception);
 
                 $event->setResponse($event->getKernel()->handle($subRequest, HttpKernelInterface::SUB_REQUEST, true));
             }

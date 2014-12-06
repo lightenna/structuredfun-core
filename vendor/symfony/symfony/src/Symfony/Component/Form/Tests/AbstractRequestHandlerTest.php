@@ -287,7 +287,7 @@ abstract class AbstractRequestHandlerTest extends \PHPUnit_Framework_TestCase
         if ($shouldFail) {
             $errors = array(new FormError($options['post_max_size_message'], null, $errorParams));
 
-            $this->assertEquals($errors, $form->getErrors());
+            $this->assertEquals($errors, iterator_to_array($form->getErrors()));
             $this->assertTrue($form->isSubmitted());
         } else {
             $this->assertCount(0, $form->getErrors());

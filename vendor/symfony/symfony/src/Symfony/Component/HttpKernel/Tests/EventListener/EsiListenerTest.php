@@ -12,7 +12,7 @@
 namespace Symfony\Component\HttpKernel\Tests\EventListener;
 
 use Symfony\Component\HttpKernel\HttpCache\Esi;
-use Symfony\Component\HttpKernel\EventListener\EsiListener;
+use Symfony\Component\HttpKernel\EventListener\SurrogateListener;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -22,19 +22,12 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class EsiListenerTest extends \PHPUnit_Framework_TestCase
 {
-    protected function setUp()
-    {
-        if (!class_exists('Symfony\Component\EventDispatcher\EventDispatcher')) {
-            $this->markTestSkipped('The "EventDispatcher" component is not available');
-        }
-    }
-
     public function testFilterDoesNothingForSubRequests()
     {
         $dispatcher = new EventDispatcher();
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $response = new Response('foo <esi:include src="" />');
-        $listener = new EsiListener(new Esi());
+        $listener = new SurrogateListener(new Esi());
 
         $dispatcher->addListener(KernelEvents::RESPONSE, array($listener, 'onKernelResponse'));
         $event = new FilterResponseEvent($kernel, new Request(), HttpKernelInterface::SUB_REQUEST, $response);
@@ -48,7 +41,7 @@ class EsiListenerTest extends \PHPUnit_Framework_TestCase
         $dispatcher = new EventDispatcher();
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $response = new Response('foo <esi:include src="" />');
-        $listener = new EsiListener(new Esi());
+        $listener = new SurrogateListener(new Esi());
 
         $dispatcher->addListener(KernelEvents::RESPONSE, array($listener, 'onKernelResponse'));
         $event = new FilterResponseEvent($kernel, new Request(), HttpKernelInterface::MASTER_REQUEST, $response);
@@ -62,7 +55,7 @@ class EsiListenerTest extends \PHPUnit_Framework_TestCase
         $dispatcher = new EventDispatcher();
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $response = new Response('foo');
-        $listener = new EsiListener(new Esi());
+        $listener = new SurrogateListener(new Esi());
 
         $dispatcher->addListener(KernelEvents::RESPONSE, array($listener, 'onKernelResponse'));
         $event = new FilterResponseEvent($kernel, new Request(), HttpKernelInterface::MASTER_REQUEST, $response);

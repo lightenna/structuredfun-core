@@ -23,7 +23,7 @@ class MoneyToLocalizedStringTransformer extends NumberToLocalizedStringTransform
 {
     private $divisor;
 
-    public function __construct($precision = null, $grouping = null, $roundingMode = null, $divisor = null)
+    public function __construct($precision = 2, $grouping = true, $roundingMode = self::ROUND_HALF_UP, $divisor = 1)
     {
         if (null === $grouping) {
             $grouping = true;

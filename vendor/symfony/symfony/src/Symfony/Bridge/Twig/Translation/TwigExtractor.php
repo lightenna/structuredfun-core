@@ -56,7 +56,7 @@ class TwigExtractor implements ExtractorInterface
     {
         // load any existing translation files
         $finder = new Finder();
-        $files = $finder->files()->name('*.twig')->in($directory);
+        $files = $finder->files()->name('*.twig')->sortByName()->in($directory);
         foreach ($files as $file) {
             try {
                 $this->extractTemplate(file_get_contents($file->getPathname()), $catalogue);

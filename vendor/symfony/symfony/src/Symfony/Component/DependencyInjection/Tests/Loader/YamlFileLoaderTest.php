@@ -20,21 +20,11 @@ use Symfony\Component\DependencyInjection\Loader\IniFileLoader;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\Config\Loader\LoaderResolver;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\ExpressionLanguage\Expression;
 
 class YamlFileLoaderTest extends \PHPUnit_Framework_TestCase
 {
     protected static $fixturesPath;
-
-    protected function setUp()
-    {
-        if (!class_exists('Symfony\Component\Config\Loader\Loader')) {
-            $this->markTestSkipped('The "Config" component is not available');
-        }
-
-        if (!class_exists('Symfony\Component\Yaml\Yaml')) {
-            $this->markTestSkipped('The "Yaml" component is not available');
-        }
-    }
 
     public static function setUpBeforeClass()
     {
@@ -148,9 +138,12 @@ class YamlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('sc_configure', $services['configurator1']->getConfigurator(), '->load() parses the configurator tag');
         $this->assertEquals(array(new Reference('baz'), 'configure'), $services['configurator2']->getConfigurator(), '->load() parses the configurator tag');
         $this->assertEquals(array('BazClass', 'configureStatic'), $services['configurator3']->getConfigurator(), '->load() parses the configurator tag');
-        $this->assertEquals(array(array('setBar', array()), array('setBar', array())), $services['method_call1']->getMethodCalls(), '->load() parses the method_call tag');
+        $this->assertEquals(array(array('setBar', array()), array('setBar', array()), array('setBar', array(new Expression('service("foo").foo() ~ (container.hasparameter("foo") ? parameter("foo") : "default")')))), $services['method_call1']->getMethodCalls(), '->load() parses the method_call tag');
         $this->assertEquals(array(array('setBar', array('foo', new Reference('foo'), array(true, false)))), $services['method_call2']->getMethodCalls(), '->load() parses the method_call tag');
         $this->assertEquals('baz_factory', $services['factory_service']->getFactoryService());
+        $this->assertEquals('factory', $services['new_factory1']->getFactory(), '->load() parses the factory tag');
+        $this->assertEquals(array(new Reference('baz'), 'getClass'), $services['new_factory2']->getFactory(), '->load() parses the factory tag');
+        $this->assertEquals(array('BazClass', 'getInstance'), $services['new_factory3']->getFactory(), '->load() parses the factory tag');
 
         $this->assertTrue($services['request']->isSynthetic(), '->load() parses the synthetic flag');
         $this->assertTrue($services['request']->isSynchronized(), '->load() parses the synchronized flag');
@@ -163,6 +156,21 @@ class YamlFileLoaderTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(isset($aliases['another_alias_for_foo']));
         $this->assertEquals('foo', (string) $aliases['another_alias_for_foo']);
         $this->assertFalse($aliases['another_alias_for_foo']->isPublic());
+
+        $this->assertNull($services['request']->getDecoratedService());
+        $this->assertEquals(array('decorated', null), $services['decorator_service']->getDecoratedService());
+        $this->assertEquals(array('decorated', 'decorated.pif-pouf'), $services['decorator_service_with_name']->getDecoratedService());
+    }
+
+    public function testLoadFactoryShortSyntax()
+    {
+        $container = new ContainerBuilder();
+        $loader = new YamlFileLoader($container, new FileLocator(self::$fixturesPath.'/yaml'));
+        $loader->load('services14.yml');
+        $services = $container->getDefinitions();
+
+        $this->assertEquals(array(new Reference('baz'), 'getClass'), $services['factory']->getFactory(), '->load() parses the factory tag with service:method');
+        $this->assertEquals(array('FooBacFactory', 'createFooBar'), $services['factory_with_static_call']->getFactory(), '->load() parses the factory tag with Class::method');
     }
 
     public function testExtensions()
@@ -243,7 +251,7 @@ class YamlFileLoaderTest extends \PHPUnit_Framework_TestCase
             $this->fail('->load() should throw an exception when a tag-attribute is not a scalar');
         } catch (\Exception $e) {
             $this->assertInstanceOf('Symfony\Component\DependencyInjection\Exception\InvalidArgumentException', $e, '->load() throws an InvalidArgumentException if a tag-attribute is not a scalar');
-            $this->assertStringStartsWith('A "tags" attribute must be of a scalar-type for service ', $e->getMessage(), '->load() throws an InvalidArgumentException if a tag-attribute is not a scalar');
+            $this->assertStringStartsWith('A "tags" attribute must be of a scalar-type for service "foo_service", tag "foo", attribute "bar"', $e->getMessage(), '->load() throws an InvalidArgumentException if a tag-attribute is not a scalar');
         }
     }
 }
