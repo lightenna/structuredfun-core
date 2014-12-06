@@ -56,16 +56,15 @@ class ImageviewController extends ViewController {
     $md = $this->mfr->getMetadata();
     // embed metadata within stats object
     $this->stats->{'meta'} = $md;
-
     // see if we have form data to process
     $form = $md->getForm($this);
     $form->handleRequest($request);
     if ($form->isValid()) {
-      // @todo update metadata in named cached file
+      // $form data already in $md object
+      // @todo update metadata in named cached file using object data, not stream
+      $this->mfr->cache($imgdata, false);
       // @todo update metadata in original file
       // @todo eliminate dirty cached copies
-      $data = $form->getData();
-      // $md->processFormData($data);
     }
     // return metadata for this object, encoded as json
     print(json_encode($this->stats));

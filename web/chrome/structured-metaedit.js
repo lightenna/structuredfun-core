@@ -92,12 +92,13 @@
           type: "post",
           url: $reresable.data('meta-src'),
           data: $form.serialize(),
-          success: function(data) {
-            // apply data to fields, in case it's been changed
-            sfun.api_refreshMetadataApplyToFields($ent, data);
-            // close up the form
-            _imageTeardownEdit(editing_metadata);
-          }
+          dataType: 'json',
+        })
+        .done(function(data, textStatus, jqXHR) {
+          // apply data to fields, in case it's been changed
+          sfun.api_refreshMetadataApplyToFields($ent, data);
+          // close up the form
+          _imageTeardownEdit(editing_metadata);
         });
       }
     }

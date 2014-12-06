@@ -1,33 +1,25 @@
 
-* apply metadata to fields
-  + needs to actually put response back into fields
-    + post is coming back with changes
-    + but they're getting lost
-      + not showing up in the field
+* setup sqlite and doctrine
+  + may not use it immediately
+  + but good to do
 
-* store metadata on POST
-  + store in original image
-    + store in all cached copies
-      + finding those cached copies is hard
-      + it makes a metadata update an expensive write
-      + might be better to
-        + write to original
-        + dump cached copies
-        + regen current-size cached image
-          + i.e. the one currently being used
-        + regen 200px version
-      + revise given that we need to keep args
-        + write to current
-        + return
-          + continue work in separate thread maybe
-        + write to original
-        + find and dump all cached copies except current
-  + keep it simple to start with
-    + just write to the image variant we've named in the args
-      + that's always maxlongest=200
-        + hmmm, not sure about that
-    + anyway, just updating local is good enough
-      + that means that the metadata will atleast persist after an edit
+* store metadata in original image
+  + means that we can probably push the IPTC editing stuff out
+    + maybe even push the doctrine-sqlite work out
+  + got to get to a first release
+
+* implement hash and dehash
+  + can't always rely on symmetry
+  + may have done this already
+
+* try and get mediacache filenames to be readable
+  + they don't need to be pretty
+    + but it would be a big plus to be able to actually see the data
+
+* bug: js test suite needs sorting out
+  + now that we're vertical by default
+    + let's insert a set of tests that run twice
+      + once horizontal and once vertical
 
 * look and feel on IPTC editing
   + show HTML5 empty text in fields that haven't been filled out yet
@@ -136,6 +128,8 @@
     + we don't want to butt the image up against the edge
       + because it gives the impression of a 
       + crop
+  + also do this at this top and bottom (vertical scroll)
+    + or left and right (horizontal scroll)
 
 * bug: chrome blacks out image when editing metadata
   + seems to just be a rendering bug
@@ -3813,4 +3807,94 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
     + but I'm got to do something a bit clever server-side
       + to find
   = leave args on meta-src
+
+* show metadata only on hover over .meta span
+
+* apply metadata to fields
+  + needs to actually put response back into fields
+    + post is coming back with changes
+    + but they're getting lost
+      + not showing up in the field
+  = because data was coming back as a string, now json
+
+* think about server-side flow
+  + maybe
+  + it almost doesn't matter if we don't update the cell ratios in js
+    + the first load will be right
+    + resize events are unusual
+  + minor axis is always 100%
+  + major axis could be > or < the guide
+    + say 25% could be 22% or 35%
+  + for simplicity
+    + we want those major axis widths to even out
+      + that only happens if
+        + there's roughly the same number of
+          + portrait and landscape images
+    + actually we don't want it to even out
+    + it doesn't need to be true to the guide (25%)
+  + it just needs to be true to a mean
+    + all the images can be 80% high
+      + so long as they all come out like that over a window
+      + the exact definition of the window is flexible
+        + I like 4 rows/columns
+          + but we can parameterise that
+  + first run still needs to be js
+    + that means js needs to be reliable
+      + implement the 4-col means in js
+
+* metadata being saved to file
+  + but that file doesn't appear again when I reload
+  + shouldn't be saving it in files anyway
+    + let's save it the original only
+  + then implement doctrine-sqlite for metadata caching
+
+
+* store metadata on POST
+  + store in original image
+    + store in all cached copies
+      + finding those cached copies is hard
+      + it makes a metadata update an expensive write
+      + might be better to
+        + write to original
+        + dump cached copies
+        + regen current-size cached image
+          + i.e. the one currently being used
+        + regen 200px version
+      + revise given that we need to keep args
+        + write to current
+        + return
+          + continue work in separate thread maybe
+        + write to original
+        + find and dump all cached copies except current
+  + keep it simple to start with
+    + just write to the image variant we've named in the args
+      + that's always maxlongest=200
+        + hmmm, not sure about that
+    + anyway, just updating local is good enough
+      + that means that the metadata will atleast persist after an edit
+  + could always load the 200
+    + process would be that we
+      + get metadata from the 200 (if it's in the cache), else
+      + get metadata from the original
+    + if we have lots of metadata in lots of cache files
+      + we end up with a caching problem
+        + lots of copies of the data that all need invalidating
+      + really want to get the metadata out of the image files!
+        + but there are advantages to having it there
+          + like if someone right-click-downloads an image
+            + it has its metadata in it
+      + we're slowly shifting towards a DB model
+        + the source image files still are the authoritative source for metadata
+        + but the metadata cache could/should be a DB
+      + is there a simple DB built into PHP?
+        + yes, SQLite
+      + makes sense to write metadata into an SQLite instance
+        + keep the image file 'pure'
+        + also means we don't depend on the 200px image
+          + we can still load the right image first time
+          + because the SQLite DB will have the sizes
+        + also means we can implement flow server-side!
+    + right, that's a big change
+      + but it's the right one
+        + doctrine, symfony2, sqlite
 
