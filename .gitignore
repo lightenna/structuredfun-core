@@ -22,3 +22,5 @@
 # Ignore Compass/Sass cache
 web/chrome/.sass-cache
 
+# Ignore installed composer instance
+composer.phar
