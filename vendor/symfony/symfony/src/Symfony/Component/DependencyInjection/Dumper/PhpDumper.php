@@ -51,6 +51,8 @@ class PhpDumper extends Dumper
     private $referenceVariables;
     private $variableCount;
     private $reservedVariables = array('instance', 'class');
+    private $targetDirRegex;
+    private $targetDirMaxMatches;
 
     /**
      * @var \Symfony\Component\DependencyInjection\LazyProxy\PhpDumper\DumperInterface
@@ -95,10 +97,34 @@ class PhpDumper extends Dumper
      */
     public function dump(array $options = array())
     {
+        $this->targetDirRegex = null;
         $options = array_merge(array(
-            'class'      => 'ProjectServiceContainer',
+            'class' => 'ProjectServiceContainer',
             'base_class' => 'Container',
         ), $options);
+
+        if (!empty($options['file']) && is_dir($dir = dirname($options['file']))) {
+            // Build a regexp where the first two root dirs are mandatory,
+            // but every other sub-dir is optional up to the full path in $dir
+
+            $dir = explode(DIRECTORY_SEPARATOR, realpath($dir));
+            $i = count($dir);
+
+            if (3 <= $i) {
+                $regex = '';
+                $this->targetDirMaxMatches = $i - 3;
+
+                while (2 < --$i) {
+                    $regex = sprintf('(%s%s)?', preg_quote(DIRECTORY_SEPARATOR.$dir[$i], '#'), $regex);
+                }
+
+                do {
+                    $regex = preg_quote(DIRECTORY_SEPARATOR.$dir[$i], '#').$regex;
+                } while (0 < --$i);
+
+                $this->targetDirRegex = '#'.preg_quote($dir[0], '#').$regex.'#';
+            }
+        }
 
         $code = $this->startClass($options['class'], $options['base_class']);
 
@@ -114,6 +140,7 @@ class PhpDumper extends Dumper
             $this->endClass().
             $this->addProxyClasses()
         ;
+        $this->targetDirRegex = null;
 
         return $code;
     }
@@ -240,7 +267,7 @@ class PhpDumper extends Dumper
      *
      * @return string
      *
-     * @throws RuntimeException When the factory definition is incomplete
+     * @throws RuntimeException                  When the factory definition is incomplete
      * @throws ServiceCircularReferenceException When a circular reference is detected
      */
     private function addServiceInlinedDefinitions($id, $definition)
@@ -333,9 +360,9 @@ class PhpDumper extends Dumper
             throw new InvalidArgumentException(sprintf('"%s" is not a valid class name for the "%s" service.', $class, $id));
         }
 
-        $simple           = $this->isSimpleInstance($id, $definition);
+        $simple = $this->isSimpleInstance($id, $definition);
         $isProxyCandidate = $this->getProxyDumper()->isProxyCandidate($definition);
-        $instantiation    = '';
+        $instantiation = '';
 
         if (!$isProxyCandidate && ContainerInterface::SCOPE_CONTAINER === $definition->getScope()) {
             $instantiation = "\$this->services['$id'] = ".($simple ? '' : '$instance');
@@ -546,17 +573,17 @@ EOF;
         }
 
         if ($definition->isLazy()) {
-            $lazyInitialization    = '$lazyLoad = true';
+            $lazyInitialization = '$lazyLoad = true';
             $lazyInitializationDoc = "\n     * @param bool    \$lazyLoad whether to try lazy-loading the service with a proxy\n     *";
         } else {
-            $lazyInitialization    = '';
+            $lazyInitialization = '';
             $lazyInitializationDoc = '';
         }
 
         // with proxies, for 5.3.3 compatibility, the getter must be public to be accessible to the initializer
         $isProxyCandidate = $this->getProxyDumper()->isProxyCandidate($definition);
-        $visibility       = $isProxyCandidate ? 'public' : 'protected';
-        $code             = <<<EOF
+        $visibility = $isProxyCandidate ? 'public' : 'protected';
+        $code = <<<EOF
 
     /**
      * Gets the '$id' service.$doc
@@ -958,9 +985,9 @@ EOF;
     /**
      * Exports parameters.
      *
-     * @param array   $parameters
-     * @param string  $path
-     * @param int     $indent
+     * @param array  $parameters
+     * @param string $path
+     * @param int    $indent
      *
      * @return string
      *
@@ -979,7 +1006,7 @@ EOF;
             } elseif ($value instanceof Reference) {
                 throw new InvalidArgumentException(sprintf('You cannot dump a container with parameters that contain references to other services (reference to service "%s" found in "%s").', $value, $path.'/'.$key));
             } else {
-                $value = var_export($value, true);
+                $value = $this->export($value);
             }
 
             $php[] = sprintf('%s%s => %s,', str_repeat(' ', $indent), var_export($key, true), $value);
@@ -1029,9 +1056,9 @@ EOF;
     /**
      * Builds service calls from arguments.
      *
-     * @param array  $arguments
-     * @param array  &$calls    By reference
-     * @param array  &$behavior By reference
+     * @param array $arguments
+     * @param array &$calls    By reference
+     * @param array &$behavior By reference
      */
     private function getServiceCallsFromArguments(array $arguments, array &$calls, array &$behavior)
     {
@@ -1107,10 +1134,10 @@ EOF;
     /**
      * Checks if a service id has a reference.
      *
-     * @param string  $id
-     * @param array   $arguments
-     * @param bool    $deep
-     * @param array   $visited
+     * @param string $id
+     * @param array  $arguments
+     * @param bool   $deep
+     * @param array  $visited
      *
      * @return bool
      */
@@ -1145,8 +1172,8 @@ EOF;
     /**
      * Dumps values.
      *
-     * @param array   $value
-     * @param bool    $interpolate
+     * @param array $value
+     * @param bool  $interpolate
      *
      * @return string
      *
@@ -1214,14 +1241,14 @@ EOF;
                     return "'.".$that->dumpParameter(strtolower($match[2])).".'";
                 };
 
-                $code = str_replace('%%', '%', preg_replace_callback('/(?<!%)(%)([^%]+)\1/', $replaceParameters, var_export($value, true)));
+                $code = str_replace('%%', '%', preg_replace_callback('/(?<!%)(%)([^%]+)\1/', $replaceParameters, $this->export($value)));
 
                 return $code;
             }
         } elseif (is_object($value) || is_resource($value)) {
             throw new RuntimeException('Unable to dump a service container if a parameter is an object or a resource.');
         } else {
-            return var_export($value, true);
+            return $this->export($value);
         }
     }
 
@@ -1322,5 +1349,27 @@ EOF;
 
             return $name;
         }
+    }
+
+    private function export($value)
+    {
+        if (null !== $this->targetDirRegex && is_string($value) && preg_match($this->targetDirRegex, $value, $matches, PREG_OFFSET_CAPTURE)) {
+            $prefix = $matches[0][1] ? var_export(substr($value, 0, $matches[0][1]), true).'.' : '';
+            $suffix = $matches[0][1] + strlen($matches[0][0]);
+            $suffix = isset($value[$suffix]) ? '.'.var_export(substr($value, $suffix), true) : '';
+            $dirname = '__DIR__';
+
+            for ($i = $this->targetDirMaxMatches - count($matches); 0 <= $i; --$i) {
+                $dirname = sprintf('dirname(%s)', $dirname);
+            }
+
+            if ($prefix || $suffix) {
+                return sprintf('(%s%s%s)', $prefix, $dirname, $suffix);
+            }
+
+            return $dirname;
+        }
+
+        return var_export($value, true);
     }
 }

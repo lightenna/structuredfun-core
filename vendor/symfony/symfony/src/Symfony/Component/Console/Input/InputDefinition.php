@@ -11,11 +11,6 @@
 
 namespace Symfony\Component\Console\Input;
 
-if (!defined('JSON_UNESCAPED_UNICODE')) {
-    define('JSON_UNESCAPED_SLASHES', 64);
-    define('JSON_UNESCAPED_UNICODE', 256);
-}
-
 use Symfony\Component\Console\Descriptor\TextDescriptor;
 use Symfony\Component\Console\Descriptor\XmlDescriptor;
 
@@ -86,9 +81,9 @@ class InputDefinition
      */
     public function setArguments($arguments = array())
     {
-        $this->arguments          = array();
-        $this->requiredCount      = 0;
-        $this->hasOptional        = false;
+        $this->arguments = array();
+        $this->requiredCount = 0;
+        $this->hasOptional = false;
         $this->hasAnArrayArgument = false;
         $this->addArguments($arguments);
     }
@@ -148,7 +143,7 @@ class InputDefinition
     /**
      * Returns an InputArgument by name or by position.
      *
-     * @param string|int     $name The InputArgument name or position
+     * @param string|int $name The InputArgument name or position
      *
      * @return InputArgument An InputArgument object
      *
@@ -170,9 +165,9 @@ class InputDefinition
     /**
      * Returns true if an InputArgument object exists by name or position.
      *
-     * @param string|int     $name The InputArgument name or position
+     * @param string|int $name The InputArgument name or position
      *
-     * @return bool    true if the InputArgument object exists, false otherwise
+     * @return bool true if the InputArgument object exists, false otherwise
      *
      * @api
      */
@@ -198,7 +193,7 @@ class InputDefinition
     /**
      * Returns the number of InputArguments.
      *
-     * @return int     The number of InputArguments
+     * @return int The number of InputArguments
      */
     public function getArgumentCount()
     {
@@ -208,7 +203,7 @@ class InputDefinition
     /**
      * Returns the number of required InputArguments.
      *
-     * @return int     The number of required InputArguments
+     * @return int The number of required InputArguments
      */
     public function getArgumentRequiredCount()
     {
@@ -314,7 +309,7 @@ class InputDefinition
      *
      * @param string $name The InputOption name
      *
-     * @return bool    true if the InputOption object exists, false otherwise
+     * @return bool true if the InputOption object exists, false otherwise
      *
      * @api
      */
@@ -340,7 +335,7 @@ class InputDefinition
      *
      * @param string $name The InputOption shortcut
      *
-     * @return bool    true if the InputOption object exists, false otherwise
+     * @return bool true if the InputOption object exists, false otherwise
      */
     public function hasShortcut($name)
     {
@@ -433,7 +428,7 @@ class InputDefinition
     /**
      * Returns an XML representation of the InputDefinition.
      *
-     * @param bool    $asDom Whether to return a DOM or an XML string
+     * @param bool $asDom Whether to return a DOM or an XML string
      *
      * @return string|\DOMDocument An XML string representing the InputDefinition
      *

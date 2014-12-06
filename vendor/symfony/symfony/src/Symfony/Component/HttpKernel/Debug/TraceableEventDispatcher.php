@@ -289,10 +289,10 @@ class TraceableEventDispatcher implements EventDispatcherInterface, TraceableEve
                 $line = null;
             }
             $info += array(
-                'type'  => 'Function',
+                'type' => 'Function',
                 'function' => $listener,
-                'file'  => $file,
-                'line'  => $line,
+                'file' => $file,
+                'line' => $line,
                 'pretty' => $listener,
             );
         } elseif (is_array($listener) || (is_object($listener) && is_callable($listener))) {
@@ -309,11 +309,11 @@ class TraceableEventDispatcher implements EventDispatcherInterface, TraceableEve
                 $line = null;
             }
             $info += array(
-                'type'  => 'Method',
+                'type' => 'Method',
                 'class' => $class,
                 'method' => $listener[1],
-                'file'  => $file,
-                'line'  => $line,
+                'file' => $file,
+                'line' => $line,
                 'pretty' => $class.'::'.$listener[1],
             );
         }
@@ -324,8 +324,8 @@ class TraceableEventDispatcher implements EventDispatcherInterface, TraceableEve
     /**
      * Updates the stopwatch data in the profile hierarchy.
      *
-     * @param string  $token          Profile token
-     * @param bool    $updateChildren Whether to update the children altogether
+     * @param string $token          Profile token
+     * @param bool   $updateChildren Whether to update the children altogether
      */
     private function updateProfiles($token, $updateChildren)
     {
