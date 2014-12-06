@@ -1,7 +1,8 @@
 
-* setup sqlite and doctrine
-  + may not use it immediately
-  + but good to do
+* try and setup a doctrine custom entity type
+  + look at bootstrap.php
+    + seems not to exist
+    + instead there's bootstrap.php.cache
 
 * store metadata in original image
   + means that we can probably push the IPTC editing stuff out
@@ -3897,4 +3898,8 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
     + right, that's a big change
       + but it's the right one
         + doctrine, symfony2, sqlite
+
+* setup sqlite and doctrine
+  + may not use it immediately
+  + but good to do
 
