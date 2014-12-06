@@ -672,7 +672,16 @@ return self::$httpMethodParameterOverride;
 }
 public function get($key, $default = null, $deep = false)
 {
-return $this->query->get($key, $this->attributes->get($key, $this->request->get($key, $default, $deep), $deep), $deep);
+if ($this !== $result = $this->query->get($key, $this, $deep)) {
+return $result;
+}
+if ($this !== $result = $this->attributes->get($key, $this, $deep)) {
+return $result;
+}
+if ($this !== $result = $this->request->get($key, $this, $deep)) {
+return $result;
+}
+return $default;
 }
 public function getSession()
 {
@@ -1325,7 +1334,7 @@ $obStatus = ob_get_status(1);
 while (($level = ob_get_level()) > 0 && $level !== $previous) {
 $previous = $level;
 if ($obStatus[$level - 1]) {
-if (version_compare(PHP_VERSION,'5.4','>=')) {
+if (PHP_VERSION_ID >= 50400) {
 if (isset($obStatus[$level - 1]['flags']) && ($obStatus[$level - 1]['flags'] & PHP_OUTPUT_HANDLER_REMOVABLE)) {
 ob_end_flush();
 }
@@ -2015,6 +2024,9 @@ $id = strtolower($id);
 if ('service_container'=== $id) {
 return true;
 }
+if (isset($this->aliases[$id])) {
+$id = $this->aliases[$id];
+}
 return isset($this->services[$id]) || array_key_exists($id, $this->services);
 }
 public function getServiceIds()
@@ -2199,11 +2211,11 @@ protected $booted;
 protected $name;
 protected $startTime;
 protected $loadClassCache;
-const VERSION ='2.3.20';
-const VERSION_ID ='20320';
+const VERSION ='2.3.23';
+const VERSION_ID ='20323';
 const MAJOR_VERSION ='2';
 const MINOR_VERSION ='3';
-const RELEASE_VERSION ='20';
+const RELEASE_VERSION ='23';
 const EXTRA_VERSION ='';
 public function __construct($environment, $debug)
 {
@@ -2543,7 +2555,7 @@ $dumper = new PhpDumper($container);
 if (class_exists('ProxyManager\Configuration')) {
 $dumper->setProxyDumper(new ProxyDumper());
 }
-$content = $dumper->dump(array('class'=> $class,'base_class'=> $baseClass));
+$content = $dumper->dump(array('class'=> $class,'base_class'=> $baseClass,'file'=> (string) $cache));
 if (!$this->debug) {
 $content = static::stripComments($content);
 }

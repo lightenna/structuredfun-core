@@ -25,7 +25,7 @@ class TemplateReference implements TemplateReferenceInterface
     public function __construct($name = null, $engine = null)
     {
         $this->parameters = array(
-            'name'   => $name,
+            'name' => $name,
             'engine' => $engine,
         );
     }
@@ -43,7 +43,7 @@ class TemplateReference implements TemplateReferenceInterface
      *
      * @return TemplateReferenceInterface The TemplateReferenceInterface instance
      *
-     * @throws  \InvalidArgumentException if the parameter is not defined
+     * @throws \InvalidArgumentException if the parameter is not defined
      *
      * @api
      */
@@ -65,7 +65,7 @@ class TemplateReference implements TemplateReferenceInterface
      *
      * @return string The parameter value
      *
-     * @throws  \InvalidArgumentException if the parameter is not defined
+     * @throws \InvalidArgumentException if the parameter is not defined
      *
      * @api
      */
