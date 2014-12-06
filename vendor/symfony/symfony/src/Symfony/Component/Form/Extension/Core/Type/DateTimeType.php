@@ -115,8 +115,10 @@ class DateTimeType extends AbstractType
                 'months',
                 'days',
                 'empty_value',
+                'placeholder',
                 'required',
                 'translation_domain',
+                'html5',
                 'invalid_message',
                 'invalid_message_parameters',
             )));
@@ -128,8 +130,10 @@ class DateTimeType extends AbstractType
                 'with_minutes',
                 'with_seconds',
                 'empty_value',
+                'placeholder',
                 'required',
                 'translation_domain',
+                'html5',
                 'invalid_message',
                 'invalid_message_parameters',
             )));
@@ -184,10 +188,11 @@ class DateTimeType extends AbstractType
     {
         $view->vars['widget'] = $options['widget'];
 
-        // Change the input to a HTML5 date input if
+        // Change the input to a HTML5 datetime input if
         //  * the widget is set to "single_text"
         //  * the format matches the one expected by HTML5
-        if ('single_text' === $options['widget'] && self::HTML5_FORMAT === $options['format']) {
+        //  * the html5 is set to true
+        if ($options['html5'] && 'single_text' === $options['widget'] && self::HTML5_FORMAT === $options['format']) {
             $view->vars['type'] = 'datetime';
         }
     }
@@ -222,6 +227,7 @@ class DateTimeType extends AbstractType
             'time_widget' => $timeWidget,
             'with_minutes' => true,
             'with_seconds' => false,
+            'html5' => true,
             // Don't modify \DateTime classes by reference, we treat
             // them like immutable value objects
             'by_reference' => false,
@@ -237,7 +243,8 @@ class DateTimeType extends AbstractType
         // Don't add some defaults in order to preserve the defaults
         // set in DateType and TimeType
         $resolver->setOptional(array(
-            'empty_value',
+            'empty_value', // deprecated
+            'placeholder',
             'years',
             'months',
             'days',

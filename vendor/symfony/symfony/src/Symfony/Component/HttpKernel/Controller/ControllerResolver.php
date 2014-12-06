@@ -40,17 +40,10 @@ class ControllerResolver implements ControllerResolverInterface
     }
 
     /**
-     * Returns the Controller instance associated with a Request.
+     * {@inheritdoc}
      *
      * This method looks for a '_controller' request attribute that represents
      * the controller name (a string like ClassName::MethodName).
-     *
-     * @param Request $request A Request instance
-     *
-     * @return mixed|bool A PHP callable representing the Controller,
-     *                    or false if this resolver is not able to determine the controller
-     *
-     * @throws \InvalidArgumentException|\LogicException If the controller can't be found
      *
      * @api
      */
@@ -78,7 +71,7 @@ class ControllerResolver implements ControllerResolverInterface
 
         if (false === strpos($controller, ':')) {
             if (method_exists($controller, '__invoke')) {
-                return new $controller();
+                return $this->instantiateController($controller);
             } elseif (function_exists($controller)) {
                 return $controller;
             }
@@ -94,14 +87,7 @@ class ControllerResolver implements ControllerResolverInterface
     }
 
     /**
-     * Returns the arguments to pass to the controller.
-     *
-     * @param Request $request    A Request instance
-     * @param mixed   $controller A PHP callable
-     *
-     * @return array
-     *
-     * @throws \RuntimeException When value for argument given is not provided
+     * {@inheritdoc}
      *
      * @api
      */
@@ -167,6 +153,18 @@ class ControllerResolver implements ControllerResolverInterface
             throw new \InvalidArgumentException(sprintf('Class "%s" does not exist.', $class));
         }
 
-        return array(new $class(), $method);
+        return array($this->instantiateController($class), $method);
+    }
+
+    /**
+     * Returns an instantiated controller
+     *
+     * @param string $class A class name
+     *
+     * @return object
+     */
+    protected function instantiateController($class)
+    {
+        return new $class();
     }
 }

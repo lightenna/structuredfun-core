@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Serializer\Normalizer;
 
+use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\Exception\InvalidArgumentException;
 use Symfony\Component\Serializer\Exception\RuntimeException;
 
@@ -33,19 +34,58 @@ use Symfony\Component\Serializer\Exception\RuntimeException;
  * takes place.
  *
  * @author Nils Adermann <naderman@naderman.de>
+ * @author Kévin Dunglas <dunglas@gmail.com>
  */
 class GetSetMethodNormalizer extends SerializerAwareNormalizer implements NormalizerInterface, DenormalizerInterface
 {
+    protected $circularReferenceLimit = 1;
+    protected $circularReferenceHandler;
     protected $callbacks = array();
     protected $ignoredAttributes = array();
     protected $camelizedAttributes = array();
 
     /**
-     * Set normalization callbacks
+     * Set circular reference limit.
      *
-     * @param array $callbacks help normalize the result
+     * @param $circularReferenceLimit limit of iterations for the same object
+     *
+     * @return self
+     */
+    public function setCircularReferenceLimit($circularReferenceLimit)
+    {
+        $this->circularReferenceLimit = $circularReferenceLimit;
+
+        return $this;
+    }
+
+    /**
+     * Set circular reference handler.
+     *
+     * @param callable $circularReferenceHandler
+     *
+     * @return self
+     *
+     * @throws InvalidArgumentException
+     */
+    public function setCircularReferenceHandler($circularReferenceHandler)
+    {
+        if (!is_callable($circularReferenceHandler)) {
+            throw new InvalidArgumentException('The given circular reference handler is not callable.');
+        }
+
+        $this->circularReferenceHandler = $circularReferenceHandler;
+
+        return $this;
+    }
+
+    /**
+     * Set normalization callbacks.
+     *
+     * @param callable[] $callbacks help normalize the result
      *
      * @throws InvalidArgumentException if a non-callable callback is set
+     *
+     * @return self
      */
     public function setCallbacks(array $callbacks)
     {
@@ -55,26 +95,36 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
             }
         }
         $this->callbacks = $callbacks;
+
+        return $this;
     }
 
     /**
-     * Set ignored attributes for normalization
+     * Set ignored attributes for normalization.
      *
      * @param array $ignoredAttributes
+     *
+     * @return self
      */
     public function setIgnoredAttributes(array $ignoredAttributes)
     {
         $this->ignoredAttributes = $ignoredAttributes;
+
+        return $this;
     }
 
     /**
-     * Set attributes to be camelized on denormalize
+     * Set attributes to be camelized on denormalize.
      *
      * @param array $camelizedAttributes
+     *
+     * @return self
      */
     public function setCamelizedAttributes(array $camelizedAttributes)
     {
         $this->camelizedAttributes = $camelizedAttributes;
+
+        return $this;
     }
 
     /**
@@ -82,13 +132,31 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
      */
     public function normalize($object, $format = null, array $context = array())
     {
+        $objectHash = spl_object_hash($object);
+
+        if (isset($context['circular_reference_limit'][$objectHash])) {
+            if ($context['circular_reference_limit'][$objectHash] >= $this->circularReferenceLimit) {
+                unset($context['circular_reference_limit'][$objectHash]);
+
+                if ($this->circularReferenceHandler) {
+                    return call_user_func($this->circularReferenceHandler, $object);
+                }
+
+                throw new CircularReferenceException(sprintf('A circular reference has been detected (configured limit: %d).', $this->circularReferenceLimit));
+            }
+
+            $context['circular_reference_limit'][$objectHash]++;
+        } else {
+            $context['circular_reference_limit'][$objectHash] = 1;
+        }
+
         $reflectionObject = new \ReflectionObject($object);
         $reflectionMethods = $reflectionObject->getMethods(\ReflectionMethod::IS_PUBLIC);
 
         $attributes = array();
         foreach ($reflectionMethods as $method) {
             if ($this->isGetMethod($method)) {
-                $attributeName = lcfirst(substr($method->name, 3));
+                $attributeName = lcfirst(substr($method->name, 0 === strpos($method->name, 'is') ? 2 : 3));
 
                 if (in_array($attributeName, $this->ignoredAttributes)) {
                     continue;
@@ -99,7 +167,11 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
                     $attributeValue = call_user_func($this->callbacks[$attributeName], $attributeValue);
                 }
                 if (null !== $attributeValue && !is_scalar($attributeValue)) {
-                    $attributeValue = $this->serializer->normalize($attributeValue, $format);
+                    if (!$this->serializer instanceof NormalizerInterface) {
+                        throw new \LogicException(sprintf('Cannot normalize attribute "%s" because injected serializer is not a normalizer', $attributeName));
+                    }
+
+                    $attributeValue = $this->serializer->normalize($attributeValue, $format, $context);
                 }
 
                 $attributes[$attributeName] = $attributeValue;
@@ -170,7 +242,7 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
     /**
      * Format attribute name to access parameters or methods
      * As option, if attribute name is found on camelizedAttributes array
-     * returns attribute name in camelcase format
+     * returns attribute name in camelcase format.
      *
      * @param string $attributeName
      *
@@ -226,17 +298,19 @@ class GetSetMethodNormalizer extends SerializerAwareNormalizer implements Normal
     }
 
     /**
-     * Checks if a method's name is get.* and can be called without parameters.
+     * Checks if a method's name is get.* or is.*, and can be called without parameters.
      *
      * @param \ReflectionMethod $method the method to check
      *
-     * @return bool whether the method is a getter.
+     * @return bool whether the method is a getter or boolean getter.
      */
     private function isGetMethod(\ReflectionMethod $method)
     {
+        $methodLength = strlen($method->name);
+
         return (
-            0 === strpos($method->name, 'get') &&
-            3 < strlen($method->name) &&
+            ((0 === strpos($method->name, 'get') && 3 < $methodLength) ||
+            (0 === strpos($method->name, 'is') && 2 < $methodLength)) &&
             0 === $method->getNumberOfRequiredParameters()
         );
     }

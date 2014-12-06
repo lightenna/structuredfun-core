@@ -19,13 +19,16 @@
 
 namespace Doctrine\DBAL\Driver\SQLSrv;
 
+use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Driver\ServerInfoAwareConnection;
+
 /**
  * SQL Server implementation for the Connection interface.
  *
  * @since 2.3
  * @author Benjamin Eberlei <kontakt@beberlei.de>
  */
-class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
+class SQLSrvConnection implements Connection, ServerInfoAwareConnection
 {
     /**
      * @var resource
@@ -33,11 +36,16 @@ class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
     protected $conn;
 
     /**
-     * @var LastInsertId
+     * @var \Doctrine\DBAL\Driver\SQLSrv\LastInsertId
      */
     protected $lastInsertId;
 
-
+    /**
+     * @param string $serverName
+     * @param array  $connectionOptions
+     *
+     * @throws \Doctrine\DBAL\Driver\SQLSrv\SQLSrvException
+     */
     public function __construct($serverName, $connectionOptions)
     {
         if ( ! sqlsrv_configure('WarningsReturnAsErrors', 0)) {
@@ -49,6 +57,24 @@ class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
             throw SQLSrvException::fromSqlSrvErrors();
         }
         $this->lastInsertId = new LastInsertId();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getServerVersion()
+    {
+        $serverInfo = sqlsrv_server_info($this->conn);
+
+        return $serverInfo['SQLServerVersion'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function requiresQueryForServerVersion()
+    {
+        return false;
     }
 
     /**
@@ -68,6 +94,7 @@ class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
         $sql = $args[0];
         $stmt = $this->prepare($sql);
         $stmt->execute();
+
         return $stmt;
     }
 
@@ -79,7 +106,7 @@ class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
     {
         if (is_int($value)) {
             return $value;
-        } else if (is_float($value)) {
+        } elseif (is_float($value)) {
             return sprintf('%F', $value);
         }
 
@@ -93,6 +120,7 @@ class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
     {
         $stmt = $this->prepare($statement);
         $stmt->execute();
+
         return $stmt->rowCount();
     }
 
@@ -151,6 +179,7 @@ class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
         if ($errors) {
             return $errors[0]['code'];
         }
+
         return false;
     }
 
@@ -162,4 +191,3 @@ class SQLSrvConnection implements \Doctrine\DBAL\Driver\Connection
         return sqlsrv_errors(SQLSRV_ERR_ERRORS);
     }
 }
-

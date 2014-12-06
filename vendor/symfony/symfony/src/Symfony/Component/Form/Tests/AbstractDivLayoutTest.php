@@ -13,6 +13,7 @@ namespace Symfony\Component\Form\Tests;
 
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\Tests\Fixtures\AlternatingRowType;
+use Symfony\Component\Security\Csrf\CsrfToken;
 
 abstract class AbstractDivLayoutTest extends AbstractLayoutTest
 {
@@ -283,7 +284,7 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
 
     public function testCollection()
     {
-        $form = $this->factory->createNamed('name', 'collection', array('a', 'b'), array(
+        $form = $this->factory->createNamed('names', 'collection', array('a', 'b'), array(
             'type' => 'text',
         ));
 
@@ -305,7 +306,7 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
             array('title' => 'a'),
             array('title' => 'b'),
         );
-        $form = $this->factory->createNamed('name', 'collection', $data, array(
+        $form = $this->factory->createNamed('names', 'collection', $data, array(
             'type' => new AlternatingRowType(),
         ));
 
@@ -323,13 +324,13 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
 
     public function testEmptyCollection()
     {
-        $form = $this->factory->createNamed('name', 'collection', array(), array(
+        $form = $this->factory->createNamed('names', 'collection', array(), array(
             'type' => 'text',
         ));
 
         $this->assertWidgetMatchesXpath($form->createView(), array(),
 '/div
-    [./input[@type="hidden"][@id="name__token"]]
+    [./input[@type="hidden"][@id="names__token"]]
     [count(./div)=0]
 '
         );
@@ -471,9 +472,9 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
 
     public function testCsrf()
     {
-        $this->csrfProvider->expects($this->any())
-            ->method('generateCsrfToken')
-            ->will($this->returnValue('foo&bar'));
+        $this->csrfTokenManager->expects($this->any())
+            ->method('getToken')
+            ->will($this->returnValue(new CsrfToken('token_id', 'foo&bar')));
 
         $form = $this->factory->createNamedBuilder('name', 'form')
             ->add($this->factory
@@ -670,7 +671,7 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
     public function testCollectionRowWithCustomBlock()
     {
         $collection = array('one', 'two', 'three');
-        $form = $this->factory->createNamedBuilder('name', 'collection', $collection)
+        $form = $this->factory->createNamedBuilder('names', 'collection', $collection)
             ->getForm();
 
         $this->assertWidgetMatchesXpath($form->createView(), array(),
@@ -679,6 +680,28 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
         ./div[./label[.="Custom label: [trans]0[/trans]"]]
         /following-sibling::div[./label[.="Custom label: [trans]1[/trans]"]]
         /following-sibling::div[./label[.="Custom label: [trans]2[/trans]"]]
+    ]
+'
+        );
+    }
+
+    /**
+     * The block "_name_c_entry_label" should be overridden in the theme of the
+     * implemented driver.
+     */
+    public function testChoiceRowWithCustomBlock()
+    {
+        $form = $this->factory->createNamedBuilder('name_c', 'choice', 'a', array(
+                'choices' => array('a' => 'ChoiceA', 'b' => 'ChoiceB'),
+                'expanded' => true,
+            ))
+            ->getForm();
+
+        $this->assertWidgetMatchesXpath($form->createView(), array(),
+'/div
+    [
+        ./label[.="Custom name label: [trans]ChoiceA[/trans]"]
+        /following-sibling::label[.="Custom name label: [trans]ChoiceB[/trans]"]
     ]
 '
         );
@@ -728,5 +751,31 @@ abstract class AbstractDivLayoutTest extends AbstractLayoutTest
         $html = $this->renderEnd($view, array('render_rest' => false));
 
         $this->assertEquals('</form>', $html);
+    }
+
+    public function testWidgetContainerAttributes()
+    {
+        $form = $this->factory->createNamed('form', 'form', null, array(
+            'attr' => array('class' => 'foobar', 'data-foo' => 'bar'),
+        ));
+
+        $form->add('text', 'text');
+
+        $html = $this->renderWidget($form->createView());
+
+        // compare plain HTML to check the whitespace
+        $this->assertContains('<div id="form" class="foobar" data-foo="bar">', $html);
+    }
+
+    public function testWidgetContainerAttributeNameRepeatedIfTrue()
+    {
+        $form = $this->factory->createNamed('form', 'form', null, array(
+            'attr' => array('foo' => true),
+        ));
+
+        $html = $this->renderWidget($form->createView());
+
+        // foo="foo"
+        $this->assertContains('<div id="form" foo="foo">', $html);
     }
 }

@@ -18,11 +18,14 @@
         <parameter key="twig.extension.yaml.class">Symfony\Bridge\Twig\Extension\YamlExtension</parameter>
         <parameter key="twig.extension.form.class">Symfony\Bridge\Twig\Extension\FormExtension</parameter>
         <parameter key="twig.extension.httpkernel.class">Symfony\Bridge\Twig\Extension\HttpKernelExtension</parameter>
+        <parameter key="twig.extension.debug.stopwatch.class">Symfony\Bridge\Twig\Extension\StopwatchExtension</parameter>
+        <parameter key="twig.extension.expression.class">Symfony\Bridge\Twig\Extension\ExpressionExtension</parameter>
         <parameter key="twig.form.engine.class">Symfony\Bridge\Twig\Form\TwigRendererEngine</parameter>
         <parameter key="twig.form.renderer.class">Symfony\Bridge\Twig\Form\TwigRenderer</parameter>
         <parameter key="twig.translation.extractor.class">Symfony\Bridge\Twig\Translation\TwigExtractor</parameter>
         <parameter key="twig.exception_listener.class">Symfony\Component\HttpKernel\EventListener\ExceptionListener</parameter>
         <parameter key="twig.controller.exception.class">Symfony\Bundle\TwigBundle\Controller\ExceptionController</parameter>
+        <parameter key="twig.controller.preview_error.class">Symfony\Bundle\TwigBundle\Controller\PreviewErrorController</parameter>
     </parameters>
 
     <services>
@@ -64,6 +67,7 @@
         <service id="twig.extension.assets" class="%twig.extension.assets.class%" public="false">
             <tag name="twig.extension" />
             <argument type="service" id="service_container" />
+            <argument type="service" id="router.request_context" on-invalid="null" />
         </service>
 
         <service id="twig.extension.actions" class="%twig.extension.actions.class%" public="false">
@@ -83,6 +87,16 @@
         </service>
 
         <service id="twig.extension.yaml" class="%twig.extension.yaml.class%" public="false">
+            <tag name="twig.extension" />
+        </service>
+
+        <service id="twig.extension.debug.stopwatch" class="%twig.extension.debug.stopwatch.class%" public="false">
+            <tag name="twig.extension" />
+            <argument type="service" id="debug.stopwatch" on-invalid="ignore" />
+            <argument>%kernel.debug%</argument>
+        </service>
+
+        <service id="twig.extension.expression" class="%twig.extension.expression.class%" public="false">
             <tag name="twig.extension" />
         </service>
 
@@ -119,6 +133,11 @@
         <service id="twig.controller.exception" class="%twig.controller.exception.class%">
             <argument type="service" id="twig" />
             <argument>%kernel.debug%</argument>
+        </service>
+
+        <service id="twig.controller.preview_error" class="%twig.controller.preview_error.class%">
+            <argument type="service" id="http_kernel" />
+            <argument>%twig.exception_listener.controller%</argument>
         </service>
     </services>
 </container>

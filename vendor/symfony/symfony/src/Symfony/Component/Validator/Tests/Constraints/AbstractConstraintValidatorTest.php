@@ -11,12 +11,18 @@
 
 namespace Symfony\Component\Validator\Tests\Constraints;
 
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\ConstraintValidatorInterface;
 use Symfony\Component\Validator\ConstraintViolation;
-use Symfony\Component\Validator\ExecutionContextInterface;
+use Symfony\Component\Validator\Context\ExecutionContext;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Context\LegacyExecutionContext;
+use Symfony\Component\Validator\ExecutionContextInterface as LegacyExecutionContextInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\PropertyMetadata;
 use Symfony\Component\Validator\Tests\Fixtures\StubGlobalExecutionContext;
+use Symfony\Component\Validator\Validation;
 
 /**
  * @since  2.5.3
@@ -46,6 +52,10 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
 
     protected $propertyPath;
 
+    protected $constraint;
+
+    protected $defaultTimezone;
+
     protected function setUp()
     {
         $this->group = 'MyGroup';
@@ -54,29 +64,99 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
         $this->value = 'InvalidValue';
         $this->root = 'root';
         $this->propertyPath = 'property.path';
+
+        // Initialize the context with some constraint so that we can
+        // successfully build a violation.
+        // The 2.4 API does not keep a reference to the current
+        // constraint yet. There the violation stores null.
+        $this->constraint = Validation::API_VERSION_2_4 === $this->getApiVersion()
+            ? null
+            : new NotNull();
+
         $this->context = $this->createContext();
         $this->validator = $this->createValidator();
         $this->validator->initialize($this->context);
 
         \Locale::setDefault('en');
+
+        $this->setDefaultTimezone('UTC');
+    }
+
+    protected function tearDown()
+    {
+        $this->restoreDefaultTimezone();
+    }
+
+    protected function setDefaultTimezone($defaultTimezone)
+    {
+        // Make sure this method can not be called twice before calling
+        // also restoreDefaultTimezone()
+        if (null === $this->defaultTimezone) {
+            $this->defaultTimezone = date_default_timezone_get();
+            date_default_timezone_set($defaultTimezone);
+        }
+    }
+
+    protected function restoreDefaultTimezone()
+    {
+        if (null !== $this->defaultTimezone) {
+            date_default_timezone_set($this->defaultTimezone);
+            $this->defaultTimezone = null;
+        }
     }
 
     protected function createContext()
     {
         $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
 
-        return $this->getMockBuilder('Symfony\Component\Validator\ExecutionContext')
-            ->setConstructorArgs(array(
-                new StubGlobalExecutionContext($this->root),
-                $translator,
-                null,
-                $this->metadata,
-                $this->value,
-                $this->group,
-                $this->propertyPath,
-            ))
-            ->setMethods(array('validate', 'validateValue'))
-            ->getMock();
+        if (Validation::API_VERSION_2_4 === $this->getApiVersion()) {
+            return $this->getMockBuilder('Symfony\Component\Validator\ExecutionContext')
+                ->setConstructorArgs(array(
+                    new StubGlobalExecutionContext($this->root),
+                    $translator,
+                    null,
+                    $this->metadata,
+                    $this->value,
+                    $this->group,
+                    $this->propertyPath,
+                ))
+                ->setMethods(array('validate', 'validateValue'))
+                ->getMock();
+        }
+
+        $validator = $this->getMock('Symfony\Component\Validator\Validator\ValidatorInterface');
+        $contextualValidator = $this->getMock('Symfony\Component\Validator\Validator\ContextualValidatorInterface');
+
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_5:
+                $context = new ExecutionContext(
+                    $validator,
+                    $this->root,
+                    $translator
+                );
+                break;
+            case Validation::API_VERSION_2_5_BC:
+                $context = new LegacyExecutionContext(
+                    $validator,
+                    $this->root,
+                    $this->getMock('Symfony\Component\Validator\MetadataFactoryInterface'),
+                    $translator
+                );
+                break;
+            default:
+                throw new \RuntimeException('Invalid API version');
+        }
+
+        $context->setGroup($this->group);
+        $context->setNode($this->value, $this->object, $this->metadata, $this->propertyPath);
+        $context->setConstraint($this->constraint);
+
+        $validator->expects($this->any())
+            ->method('inContext')
+            ->with($context)
+            ->will($this->returnValue($contextualValidator));
+
+        return $context;
     }
 
     /**
@@ -102,15 +182,25 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
             $propertyPath,
             $invalidValue,
             $plural,
-            $code
+            $code,
+            $this->constraint
         );
     }
 
     protected function setGroup($group)
     {
         $this->group = $group;
-        $this->context = $this->createContext();
-        $this->validator->initialize($this->context);
+
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context = $this->createContext();
+                $this->validator->initialize($this->context);
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $this->context->setGroup($group);
+                break;
+        }
     }
 
     protected function setObject($object)
@@ -119,8 +209,17 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
         $this->metadata = is_object($object)
             ? new ClassMetadata(get_class($object))
             : null;
-        $this->context = $this->createContext();
-        $this->validator->initialize($this->context);
+
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context = $this->createContext();
+                $this->validator->initialize($this->context);
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $this->context->setNode($this->value, $this->object, $this->metadata, $this->propertyPath);
+                break;
+        }
     }
 
     protected function setProperty($object, $property)
@@ -129,15 +228,33 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
         $this->metadata = is_object($object)
             ? new PropertyMetadata(get_class($object), $property)
             : null;
-        $this->context = $this->createContext();
-        $this->validator->initialize($this->context);
+
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context = $this->createContext();
+                $this->validator->initialize($this->context);
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $this->context->setNode($this->value, $this->object, $this->metadata, $this->propertyPath);
+                break;
+        }
     }
 
     protected function setValue($value)
     {
         $this->value = $value;
-        $this->context = $this->createContext();
-        $this->validator->initialize($this->context);
+
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context = $this->createContext();
+                $this->validator->initialize($this->context);
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $this->context->setNode($this->value, $this->object, $this->metadata, $this->propertyPath);
+                break;
+        }
     }
 
     protected function setRoot($root)
@@ -150,30 +267,81 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
     protected function setPropertyPath($propertyPath)
     {
         $this->propertyPath = $propertyPath;
-        $this->context = $this->createContext();
-        $this->validator->initialize($this->context);
+
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context = $this->createContext();
+                $this->validator->initialize($this->context);
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $this->context->setNode($this->value, $this->object, $this->metadata, $this->propertyPath);
+                break;
+        }
     }
 
     protected function expectNoValidate()
     {
-        $this->context->expects($this->never())
-            ->method('validate');
-        $this->context->expects($this->never())
-            ->method('validateValue');
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context->expects($this->never())
+                    ->method('validate');
+                $this->context->expects($this->never())
+                    ->method('validateValue');
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $validator = $this->context->getValidator()->inContext($this->context);
+                $validator->expects($this->never())
+                    ->method('atPath');
+                $validator->expects($this->never())
+                    ->method('validate');
+                break;
+        }
     }
 
     protected function expectValidateAt($i, $propertyPath, $value, $group)
     {
-        $this->context->expects($this->at($i))
-            ->method('validate')
-            ->with($value, $propertyPath, $group);
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context->expects($this->at($i))
+                    ->method('validate')
+                    ->with($value, $propertyPath, $group);
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $validator = $this->context->getValidator()->inContext($this->context);
+                $validator->expects($this->at(2 * $i))
+                    ->method('atPath')
+                    ->with($propertyPath)
+                    ->will($this->returnValue($validator));
+                $validator->expects($this->at(2 * $i + 1))
+                    ->method('validate')
+                    ->with($value, $this->logicalOr(null, array()), $group);
+                break;
+        }
     }
 
-    protected function expectValidateValueAt($i, $propertyPath, $value, $constraints, $group)
+    protected function expectValidateValueAt($i, $propertyPath, $value, $constraints, $group = null)
     {
-        $this->context->expects($this->at($i))
-            ->method('validateValue')
-            ->with($value, $constraints, $propertyPath, $group);
+        switch ($this->getApiVersion()) {
+            case Validation::API_VERSION_2_4:
+                $this->context->expects($this->at($i))
+                    ->method('validateValue')
+                    ->with($value, $constraints, $propertyPath, $group);
+                break;
+            case Validation::API_VERSION_2_5:
+            case Validation::API_VERSION_2_5_BC:
+                $contextualValidator = $this->context->getValidator()->inContext($this->context);
+                $contextualValidator->expects($this->at(2 * $i))
+                    ->method('atPath')
+                    ->with($propertyPath)
+                    ->will($this->returnValue($contextualValidator));
+                $contextualValidator->expects($this->at(2 * $i + 1))
+                    ->method('validate')
+                    ->with($value, $constraints, $group);
+                break;
+        }
     }
 
     protected function assertNoViolation()
@@ -229,8 +397,10 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
      */
     protected function buildViolation($message)
     {
-        return new ConstraintViolationAssertion($this->context, $message);
+        return new ConstraintViolationAssertion($this->context, $message, $this->constraint);
     }
+
+    abstract protected function getApiVersion();
 
     abstract protected function createValidator();
 }
@@ -241,7 +411,7 @@ abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCa
 class ConstraintViolationAssertion
 {
     /**
-     * @var ExecutionContextInterface
+     * @var LegacyExecutionContextInterface
      */
     private $context;
 
@@ -257,11 +427,14 @@ class ConstraintViolationAssertion
     private $translationDomain;
     private $plural;
     private $code;
+    private $constraint;
+    private $cause;
 
-    public function __construct(ExecutionContextInterface $context, $message, array $assertions = array())
+    public function __construct(LegacyExecutionContextInterface $context, $message, Constraint $constraint = null, array $assertions = array())
     {
         $this->context = $context;
         $this->message = $message;
+        $this->constraint = $constraint;
         $this->assertions = $assertions;
     }
 
@@ -314,12 +487,19 @@ class ConstraintViolationAssertion
         return $this;
     }
 
+    public function setCause($cause)
+    {
+        $this->cause = $cause;
+
+        return $this;
+    }
+
     public function buildNextViolation($message)
     {
         $assertions = $this->assertions;
         $assertions[] = $this;
 
-        return new self($this->context, $message, $assertions);
+        return new self($this->context, $message, $this->constraint, $assertions);
     }
 
     public function assertRaised()
@@ -352,7 +532,9 @@ class ConstraintViolationAssertion
             $this->propertyPath,
             $this->invalidValue,
             $this->plural,
-            $this->code
+            $this->code,
+            $this->constraint,
+            $this->cause
         );
     }
 }

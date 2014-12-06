@@ -27,6 +27,21 @@ class DefinitionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('foo'), $def->getArguments(), '__construct() takes an optional array of arguments as its second argument');
     }
 
+    /**
+     * @covers Symfony\Component\DependencyInjection\Definition::setFactory
+     * @covers Symfony\Component\DependencyInjection\Definition::getFactory
+     */
+    public function testSetGetFactory()
+    {
+        $def = new Definition('stdClass');
+
+        $this->assertSame($def, $def->setFactory('foo'), '->setFactory() implements a fluent interface');
+        $this->assertEquals('foo', $def->getFactory(), '->getFactory() returns the factory');
+
+        $def->setFactory('Foo::bar');
+        $this->assertEquals(array('Foo', 'bar'), $def->getFactory(), '->setFactory() converts string static method call to the array');
+    }
+
     public function testSetGetFactoryClass()
     {
         $def = new Definition('stdClass');
@@ -60,6 +75,26 @@ class DefinitionTest extends \PHPUnit_Framework_TestCase
         $def = new Definition('stdClass');
         $this->assertSame($def, $def->setClass('foo'), '->setClass() implements a fluent interface');
         $this->assertEquals('foo', $def->getClass(), '->getClass() returns the class name');
+    }
+
+    public function testSetGetDecoratedService()
+    {
+        $def = new Definition('stdClass');
+        $this->assertNull($def->getDecoratedService());
+        $def->setDecoratedService('foo', 'foo.renamed');
+        $this->assertEquals(array('foo', 'foo.renamed'), $def->getDecoratedService());
+        $def->setDecoratedService(null);
+        $this->assertNull($def->getDecoratedService());
+
+        $def = new Definition('stdClass');
+        $def->setDecoratedService('foo');
+        $this->assertEquals(array('foo', null), $def->getDecoratedService());
+        $def->setDecoratedService(null);
+        $this->assertNull($def->getDecoratedService());
+
+        $def = new Definition('stdClass');
+        $this->setExpectedException('InvalidArgumentException', 'The decorated service inner name for "foo" must be different than the service name itself.');
+        $def->setDecoratedService('foo', 'foo');
     }
 
     /**

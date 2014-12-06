@@ -14,6 +14,7 @@ namespace Symfony\Component\Translation\Tests;
 use Symfony\Component\Translation\Translator;
 use Symfony\Component\Translation\MessageSelector;
 use Symfony\Component\Translation\Loader\ArrayLoader;
+use Symfony\Component\Translation\MessageCatalogue;
 
 class TranslatorTest extends \PHPUnit_Framework_TestCase
 {
@@ -45,7 +46,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testSetGetLocale()
     {
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
 
         $this->assertEquals('en', $translator->getLocale());
 
@@ -74,9 +75,19 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($locale, $translator->getLocale());
     }
 
+    public function testGetCatalogue()
+    {
+        $translator = new Translator('en');
+
+        $this->assertEquals(new MessageCatalogue('en'), $translator->getCatalogue());
+
+        $translator->setLocale('fr');
+        $this->assertEquals(new MessageCatalogue('fr'), $translator->getCatalogue('fr'));
+    }
+
     public function testSetFallbackLocales()
     {
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array('foo' => 'foofoo'), 'en');
         $translator->addResource('array', array('bar' => 'foobar'), 'fr');
@@ -90,7 +101,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testSetFallbackLocalesMultiple()
     {
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array('foo' => 'foo (en)'), 'en');
         $translator->addResource('array', array('bar' => 'bar (fr)'), 'fr');
@@ -124,7 +135,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testTransWithFallbackLocale()
     {
-        $translator = new Translator('fr_FR', new MessageSelector());
+        $translator = new Translator('fr_FR');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array('foo' => 'foofoo'), 'en_US');
         $translator->addResource('array', array('bar' => 'foobar'), 'en');
@@ -156,7 +167,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testAddResourceAfterTrans()
     {
-        $translator = new Translator('fr', new MessageSelector());
+        $translator = new Translator('fr');
         $translator->addLoader('array', new ArrayLoader());
 
         $translator->setFallbackLocale(array('en'));
@@ -175,7 +186,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
     public function testTransWithoutFallbackLocaleFile($format, $loader)
     {
         $loaderClass = 'Symfony\\Component\\Translation\\Loader\\'.$loader;
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
         $translator->addLoader($format, new $loaderClass());
         $translator->addResource($format, __DIR__.'/fixtures/non-existing', 'en');
         $translator->addResource($format, __DIR__.'/fixtures/resources.'.$format, 'en');
@@ -190,7 +201,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
     public function testTransWithFallbackLocaleFile($format, $loader)
     {
         $loaderClass = 'Symfony\\Component\\Translation\\Loader\\'.$loader;
-        $translator = new Translator('en_GB', new MessageSelector());
+        $translator = new Translator('en_GB');
         $translator->addLoader($format, new $loaderClass());
         $translator->addResource($format, __DIR__.'/fixtures/non-existing', 'en_GB');
         $translator->addResource($format, __DIR__.'/fixtures/resources.'.$format, 'en', 'resources');
@@ -200,7 +211,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testTransWithFallbackLocaleBis()
     {
-        $translator = new Translator('en_US', new MessageSelector());
+        $translator = new Translator('en_US');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array('foo' => 'foofoo'), 'en_US');
         $translator->addResource('array', array('bar' => 'foobar'), 'en');
@@ -209,7 +220,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testTransWithFallbackLocaleTer()
     {
-        $translator = new Translator('fr_FR', new MessageSelector());
+        $translator = new Translator('fr_FR');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array('foo' => 'foo (en_US)'), 'en_US');
         $translator->addResource('array', array('bar' => 'bar (en)'), 'en');
@@ -222,7 +233,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testTransNonExistentWithFallback()
     {
-        $translator = new Translator('fr', new MessageSelector());
+        $translator = new Translator('fr');
         $translator->setFallbackLocales(array('en'));
         $translator->addLoader('array', new ArrayLoader());
         $this->assertEquals('non-existent', $translator->trans('non-existent'));
@@ -233,7 +244,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testWhenAResourceHasNoRegisteredLoader()
     {
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
         $translator->addResource('array', array('foo' => 'foofoo'), 'en');
 
         $translator->trans('foo');
@@ -244,7 +255,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testTrans($expected, $id, $translation, $parameters, $locale, $domain)
     {
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array((string) $id => $translation), $locale, $domain);
 
@@ -282,7 +293,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testFlattenedTrans($expected, $messages, $id)
     {
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', $messages, 'fr', '');
 
@@ -294,7 +305,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testTransChoice($expected, $id, $translation, $number, $parameters, $locale, $domain)
     {
-        $translator = new Translator('en', new MessageSelector());
+        $translator = new Translator('en');
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array((string) $id => $translation), $locale, $domain);
 
@@ -338,6 +349,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
             array('ts', 'QtFileLoader'),
             array('xlf', 'XliffFileLoader'),
             array('yml', 'YamlFileLoader'),
+            array('json', 'JsonFileLoader'),
         );
     }
 
@@ -432,7 +444,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testTransChoiceFallback()
     {
-        $translator = new Translator('ru', new MessageSelector());
+        $translator = new Translator('ru');
         $translator->setFallbackLocales(array('en'));
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array('some_message2' => 'one thing|%count% things'), 'en');
@@ -442,7 +454,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testTransChoiceFallbackBis()
     {
-        $translator = new Translator('ru', new MessageSelector());
+        $translator = new Translator('ru');
         $translator->setFallbackLocales(array('en_US', 'en'));
         $translator->addLoader('array', new ArrayLoader());
         $translator->addResource('array', array('some_message2' => 'one thing|%count% things'), 'en_US');
@@ -452,13 +464,127 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function testTransChoiceFallbackWithNoTranslation()
     {
-        $translator = new Translator('ru', new MessageSelector());
+        $translator = new Translator('ru');
         $translator->setFallbackLocales(array('en'));
         $translator->addLoader('array', new ArrayLoader());
 
         // consistent behavior with Translator::trans(), which returns the string
         // unchanged if it can't be found
         $this->assertEquals('some_message2', $translator->transChoice('some_message2', 10, array('%count%' => 10)));
+    }
+
+    /**
+     * @dataProvider dataProviderGetMessages
+     */
+    public function testGetMessages($resources, $locale, $expected)
+    {
+        $locales = array_keys($resources);
+        $_locale = !is_null($locale) ? $locale : reset($locales);
+        $locales = array_slice($locales, 0, array_search($_locale, $locales));
+
+        $translator = new Translator($_locale, new MessageSelector());
+        $translator->setFallbackLocales(array_reverse($locales));
+        $translator->addLoader('array', new ArrayLoader());
+        foreach ($resources as $_locale => $domainMessages) {
+            foreach ($domainMessages as $domain => $messages) {
+                $translator->addResource('array', $messages, $_locale, $domain);
+            }
+        }
+        $result = $translator->getMessages($locale);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function dataProviderGetMessages()
+    {
+        $resources = array(
+            'en' => array(
+                'jsmessages' => array(
+                    'foo' => 'foo (EN)',
+                    'bar' => 'bar (EN)',
+                ),
+                'messages' => array(
+                    'foo' => 'foo messages (EN)',
+                ),
+                'validators' => array(
+                    'int' => 'integer (EN)',
+                ),
+            ),
+            'pt-PT' => array(
+                'messages' => array(
+                    'foo' => 'foo messages (PT)',
+                ),
+                'validators' => array(
+                    'str' => 'integer (PT)',
+                ),
+            ),
+            'pt_BR' => array(
+                'validators' => array(
+                    'int' => 'integer (BR)',
+                ),
+            ),
+        );
+
+        return array(
+            array($resources, null,
+                array(
+                    'jsmessages' => array(
+                        'foo' => 'foo (EN)',
+                        'bar' => 'bar (EN)',
+                    ),
+                    'messages' => array(
+                        'foo' => 'foo messages (EN)',
+                    ),
+                    'validators' => array(
+                        'int' => 'integer (EN)',
+                    ),
+                ),
+            ),
+            array($resources, 'en',
+                array(
+                    'jsmessages' => array(
+                        'foo' => 'foo (EN)',
+                        'bar' => 'bar (EN)',
+                    ),
+                    'messages' => array(
+                        'foo' => 'foo messages (EN)',
+                    ),
+                    'validators' => array(
+                        'int' => 'integer (EN)',
+                    ),
+                ),
+            ),
+            array($resources, 'pt-PT',
+                array(
+                    'jsmessages' => array(
+                        'foo' => 'foo (EN)',
+                        'bar' => 'bar (EN)',
+                    ),
+                    'messages' => array(
+                        'foo' => 'foo messages (PT)',
+                    ),
+                    'validators' => array(
+                        'int' => 'integer (EN)',
+                        'str' => 'integer (PT)',
+                    ),
+                ),
+            ),
+            array($resources, 'pt_BR',
+                array(
+                    'jsmessages' => array(
+                        'foo' => 'foo (EN)',
+                        'bar' => 'bar (EN)',
+                    ),
+                    'messages' => array(
+                        'foo' => 'foo messages (PT)',
+                    ),
+                    'validators' => array(
+                        'int' => 'integer (BR)',
+                        'str' => 'integer (PT)',
+                    ),
+                ),
+            ),
+        );
     }
 }
 
