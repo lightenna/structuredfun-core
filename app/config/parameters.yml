@@ -4,8 +4,8 @@ parameters:
     database_driver: pdo_sqlite
     database_host: 127.0.0.1
     database_port: null
-    database_name: exampletest.db
-    database_path: exampletext.db
+    database_name: sfun_metadata_cache.db
+    database_path: ../../datacache/sfun_metadata_cache.db
     database_user: root
     database_password: null
     mailer_transport: smtp
