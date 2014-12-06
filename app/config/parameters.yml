@@ -1,9 +1,11 @@
 # This file is auto-generated during the composer install
+# It has since been modified to use SQLite
 parameters:
-    database_driver: pdo_mysql
+    database_driver: pdo_sqlite
     database_host: 127.0.0.1
     database_port: null
-    database_name: symfony
+    database_name: exampletest.db
+    database_path: exampletext.db
     database_user: root
     database_password: null
     mailer_transport: smtp
