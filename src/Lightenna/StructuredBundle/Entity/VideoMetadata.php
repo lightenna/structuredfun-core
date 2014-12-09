@@ -1,8 +1,25 @@
 <?php
 
-namespace Lightenna\StructuredBundle\DependencyInjection;
+namespace Lightenna\StructuredBundle\Entity;
+use Doctrine\ORM\Mapping as ORM;
 use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
-class VideoMetadata extends Metadata {
+
+/**
+ * VideoMetadata model
+ * @ORM\Entity
+ * @ORM\Table(name="video")
+ * @IgnoreAnnotation("fn")
+ */
+class VideoMetadata extends ImageMetadata {
+  /**
+   * Definitions and notes
+   *   scope: only fields defined here get unserialised back from files
+   */
+
+  //
+  // Fields
+  //
+
   // only fields defined here get unserialised back from files
   // derived or set video fields
   public $dv_framecount = null, $dv_framerate = null, $dv_timecode = null;
@@ -63,7 +80,8 @@ class VideoMetadata extends Metadata {
             case 'audio_r_frame_rate' :
             case 'audio_avg_frame_rate':
               $this->{$name} = $value_raw;
-              $this->{$name.'_int'} = intval(explode('/', $value_raw, 2)[0]);
+              $value_raw_array = explode('/', $value_raw, 2);
+              $this->{$name.'_int'} = intval($value_raw_array[0]);
               break;
 
             // store as int

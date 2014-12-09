@@ -49,6 +49,13 @@ class ViewController extends Controller {
     }
     // process settings
     $this->processSettings();
+    // get database connection
+    if (false) {
+      // create database from scratch
+      $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($entityManager);
+      $classes = $entityManager->getMetadataFactory()->getAllMetadata();
+      $schemaTool->createSchema($classes);
+    }
   }
 
   /**

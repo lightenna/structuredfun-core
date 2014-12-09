@@ -1,7 +1,10 @@
 <?php
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
+
+use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
+
 class MetadataFileReader extends FileReader {
 
   protected $stats;
@@ -22,7 +25,7 @@ class MetadataFileReader extends FileReader {
       $this->stats = $this->getStats();
     }
     // assume we're dealing simple Metadata for now (e.g. not Video)
-    $this->metadata = new Metadata($this, $this->stats);
+    $this->metadata = new ImageMetadata($this, $this->stats);
   }
 
   /**
@@ -55,7 +58,7 @@ class MetadataFileReader extends FileReader {
     } else {
       print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
     }
-    $md = new Metadata($this);
+    $md = new ImageMetadata($this);
     $md = $md->read($info);
     return $md;
   }

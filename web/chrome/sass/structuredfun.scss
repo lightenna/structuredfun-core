@@ -246,7 +246,7 @@ html.theme-dark {
             color: #ffffff;
             // off-colour for metadata icons
             span {
-              &.caption, &.keywords, &.copyright, &.source {
+              &.iptc_caption, &.iptc_keywords, &.iptc_copyright, &.iptc_source {
                 color: $text_icon_dark;
               }
             }
