@@ -4,7 +4,7 @@ namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
-use Lightenna\StructuredBundle\DependencyInjection\Metadata;
+use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 class FileviewController extends ViewController {
@@ -37,7 +37,7 @@ class FileviewController extends ViewController {
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
               'dirlisting' => $dirlisting,
               'metaform' => $this->mfr->getMetadata()->getForm($this)->createView(),
-              'defaults' => Metadata::getDefaults(),
+              'defaults' => ImageMetadata::getDefaults(),
             ));
       } else {
         // process file

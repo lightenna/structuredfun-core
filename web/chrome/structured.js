@@ -85,7 +85,7 @@ window.sfun = (function($, undefined) {
   // default selector used to select top-level container
   var container_selector = '#sfun';
   // list of metadata fields supported
-  var metadata_fields = ['caption', 'byline', 'headline', 'keywords', 'copyright', 'source'];
+  var metadata_fields = ['iptc_caption', 'iptc_byline', 'iptc_headline', 'iptc_keywords', 'iptc_copyright', 'iptc_source'];
   var metadata_flags = ['editable'];
   // last image maxlongest, to shortcut reres using thumb size
   var last_longest = null;
@@ -614,14 +614,14 @@ window.sfun = (function($, undefined) {
         var value = data.meta[fields[i]];
         var $field = $ent.cachedFind('.' + fields[i]);
         switch (fields[i]) {
-          case 'headline':
-          case 'byline':
+          case 'iptc_headline':
+          case 'iptc_byline':
             $field.html(value);
             break;
-          case 'caption':
-          case 'copyright':
-          case 'keywords':
-          case 'source':
+          case 'iptc_caption':
+          case 'iptc_copyright':
+          case 'iptc_keywords':
+          case 'iptc_source':
             $field.attr('title', value);
             break;
           case 'editable':

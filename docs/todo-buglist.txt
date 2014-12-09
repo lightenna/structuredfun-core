@@ -1,8 +1,15 @@
 
-* try and setup a doctrine custom entity type
-  + look at bootstrap.php
-    + seems not to exist
-    + instead there's bootstrap.php.cache
+* detect if database exists
+  + create it if it doesn't
+
+* devise a videometadata test
+  + I'd like to refactor VideoMetadata
+    + to use protected instead of public
+  + but we need some kind of test to guard against regression
+
+* store (persist) metadata in sqlite DB
+  + just writing rows is a win
+    + demonstrates that it can work
 
 * store metadata in original image
   + means that we can probably push the IPTC editing stuff out
@@ -3902,4 +3909,54 @@ http://codemonkeys.be/2013/01/ajaxify-your-symfony2-forms-with-jquery/
 * setup sqlite and doctrine
   + may not use it immediately
   + but good to do
+
+* create database if it doesn't exist already
+$schemaTool = new \Doctrine\ORM\Tools\SchemaTool($entityManager);
+$classes = $entityManager->getMetadataFactory()->getAllMetadata();
+$schemaTool->createSchema($classes);
+
+* run php test suite
+  = solid
+
+* rename metadata fields
+  + can rename them so let's do that first
+
+* try and make all metadata fields protected
+  + good setup for merging into ImageMetadata class
+  + can't make them protected
+    + without breaking the form api
+  + protected is the right way to do it
+    + could try and make the ImageMetadata fields public
+      + but that's just bad programming
+  + check that they serialize when protected
+  + biggest barrier seems to be protected -> twig
+    + I think I need to return them as an array
+  + right, getting closer now
+    + we can get the values into twig
+    + but if they're not public values
+      + we need to do something clever with the assignment
+        + x = y = z
+  + sorted
+
+* first run
+  + need to align js tag handling
+  + looks like meta is being sent empty {}
+  + sorted
+    + using a JSON copy
+
+* try and setup a doctrine custom entity type
+  + look at bootstrap.php
+    + seems not to exist
+    + instead there's bootstrap.php.cache
+
+* merge ImageMetadata class with Metadata.php
+  + that's a very good candidate now
+    + field names work
+    + protected fields
+  + try and use entity in rest of program first
+    + seems good
+
+* understand how inheriting entities work in doctrine-managed DBs
+  + pretty simple
+http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
 

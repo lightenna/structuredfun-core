@@ -5,8 +5,8 @@ namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
-use Lightenna\StructuredBundle\DependencyInjection\Metadata;
-use Lightenna\StructuredBundle\DependencyInjection\VideoMetadata;
+use Lightenna\StructuredBundle\Entity\ImageMetadata;
+use Lightenna\StructuredBundle\Entity\VideoMetadata;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
@@ -52,19 +52,19 @@ class ImageviewController extends ViewController {
       // @todo currently have to re-pull from cache to put metadata in .meta{} subobject
       $imgdata = $this->mfr->getOnlyIfCached();
     }
-    // get metadata object
+    // get metadata object (comes with metadata from file)
     $md = $this->mfr->getMetadata();
     // embed metadata within stats object
-    $this->stats->{'meta'} = $md;
+    $this->stats->{'meta'} = $md->getJSONObject();
     // see if we have form data to process
     $form = $md->getForm($this);
     $form->handleRequest($request);
     if ($form->isValid()) {
       // $form data already in $md object
-      // @todo update metadata in named cached file using object data, not stream
-      $this->mfr->cache($imgdata, false);
+      $md->updateDB();
       // @todo update metadata in original file
-      // @todo eliminate dirty cached copies
+      $md->updateOriginal();
+      // @todo leave dirty cached copies for now
     }
     // return metadata for this object, encoded as json
     print(json_encode($this->stats));

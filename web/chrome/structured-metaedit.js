@@ -157,7 +157,7 @@
     // move form (don't clone) because it's full of #ids
     $root.append($form);
     // put the caret in the headline box
-    _fieldPutCursorAtEnd($form.cachedFind('.headline'));
+    _fieldPutCursorAtEnd($form.cachedFind('.iptc_headline'));
     // flag that we're editing
     editing_metadata = seq;
   };

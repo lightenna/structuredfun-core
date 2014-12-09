@@ -250,14 +250,14 @@
               // text-overflow: ellipsis;
 
               // make headline and summary icons appear on one line
-              &.headline {
+              &.iptc_headline {
                 font-weight: bold;
                 display: inline;
                 margin-right: 0.5em;
               }
 
               // summary icons in off-colour
-              &.caption, &.keywords, &.copyright, &.source {
+              &.iptc_caption, &.iptc_keywords, &.iptc_copyright, &.iptc_source {
                 color: $text_icon_light;
                 display: inline;
                 margin: 0;
@@ -273,12 +273,12 @@
                 }
               }
 
-              &.byline {
+              &.iptc_byline {
                 display: block;
               }
 
               // generally if it's a default value we don't show it (except headline and byline)
-              &.default.caption, &.default.keywords, &.default.copyright, &.default.source, {
+              &.default.iptc_caption, &.default.iptc_keywords, &.default.iptc_copyright, &.default.iptc_source, {
                 display: none;
               }
             }
@@ -343,7 +343,7 @@
             border: 1px solid $text_icon_light;
           }
           // headline should keep its bold during editing
-          &.headline {
+          &.iptc_headline {
             font-weight: bold;
           }
         }
