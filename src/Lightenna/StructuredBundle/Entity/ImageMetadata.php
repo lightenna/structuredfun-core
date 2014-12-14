@@ -2,6 +2,9 @@
 
 namespace Lightenna\StructuredBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\InheritanceType;
+use Doctrine\ORM\Mapping\DiscriminatorColumn;
+use Doctrine\ORM\Mapping\DiscriminatorMap;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\IptcWriter;
 use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
@@ -50,13 +53,13 @@ class ImageMetadata {
    * width of original file
    * @ORM\Column(type="decimal", scale=2)
    */
-  protected $width;
+  protected $original_width;
 
   /**
    * height of original file
    * @ORM\Column(type="decimal", scale=2)
    */
-  protected $height;
+  protected $original_height;
 
   /**
    * location of this loaded file
@@ -179,6 +182,10 @@ class ImageMetadata {
   public function filterStats($in) {
     // setup defaults (hopefully overwrite later)
     $values = self::getDefaults();
+    // pull source filename
+    if (isset($in->{'file_original'})) {
+      $this->original_source = 'file://'.$in->file_original;
+    }
     // use alias to set headline (if unset, hence imbue)
     if (isset($in->{'alias'})) {
       $values['iptc_headline'] = str_replace('_', ' ', FileReader::stripExtension($in->alias));
@@ -186,8 +193,8 @@ class ImageMetadata {
     $this->imbue($values);
     // always update resolution/resolution_loaded
     if (isset($in->{'width'})) {
-      $this->width = $in->width;
-      $this->height = $in->height;
+      $this->original_width = $in->width;
+      $this->original_height = $in->height;
     }
     if (isset($in->{'newwidth'})) {
       $this->loaded_width = $in->newwidth;
@@ -315,10 +322,10 @@ class ImageMetadata {
   }
 
   /**
-   *
+   * write metadata back to original image
    */
   public function updateOriginal() {
-    $original_filename = '';
+    $this->write($this->getOriginalSourceFilename());
   }
 
   //
@@ -387,11 +394,23 @@ class ImageMetadata {
     return $this->loaded_height;
   }
 
-  public function getWidth() {
-    return $this->width;
+  public function getOriginalSource() {
+    return $this->original_source;
   }
-  public function getHeight() {
-    return $this->height;
+  public function getOriginalSourceFilename() {
+    $s = $this->getOriginalSource();
+    $filepro = 'file://';
+    $len = strlen($filepro);
+    if (!strncmp($s, $filepro, $len)) {
+      $s = substr($s, $len);
+    }
+    return $s;
+  }
+  public function getOriginalWidth() {
+    return $this->original_width;
+  }
+  public function getOriginalHeight() {
+    return $this->original_height;
   }
 
 }

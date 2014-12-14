@@ -148,7 +148,21 @@
     // substitute values
     for (var i=0 ; i<fields.length ; ++i) {
       var key = fields[i];
-      $form.cachedFind('input#form_'+key).val($root.cachedFind('.'+key).html());
+      var value;
+      switch (key) {
+        case 'iptc_headline':
+        case 'iptc_byline':
+          value = $root.cachedFind('.'+key).html();
+          break;
+        case 'iptc_caption':
+        case 'iptc_copyright':
+        case 'iptc_keywords':
+        case 'iptc_source':
+          value = $root.cachedFind('.'+key).attr('title');
+          break;
+        }
+      // set value to form element
+      $form.cachedFind('input#form_'+key).val(value);
     }
     // hide displayed metadata (in spans)
     $root.cachedFind('.meta > .base').hide();
