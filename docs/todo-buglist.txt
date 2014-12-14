@@ -1,4 +1,7 @@
 
+* install linux tool to read image metadata
+  + xv or xview or something
+
 * detect if database exists
   + create it if it doesn't
 
@@ -10,11 +13,6 @@
 * store (persist) metadata in sqlite DB
   + just writing rows is a win
     + demonstrates that it can work
-
-* store metadata in original image
-  + means that we can probably push the IPTC editing stuff out
-    + maybe even push the doctrine-sqlite work out
-  + got to get to a first release
 
 * implement hash and dehash
   + can't always rely on symmetry
@@ -3959,4 +3957,27 @@ $schemaTool->createSchema($classes);
 * understand how inheriting entities work in doctrine-managed DBs
   + pretty simple
 http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
+
+* get original filename into ImageMetadata
+  + needs to be in there anyway as 
+
+* rename width and height as original_width, original_height
+  + consistent
+
+* not posting description (iptc_caption)
+  + it's just not in the form post
+    + the field is there
+    + but it's empty ('Untitled')
+
+* clear cache
+  + I suspect we have been updating the original images
+    + but it's not showing up
+    + because we don't refresh the cached copy
+  = clear cache does show metadata
+
+* store metadata in original image
+  + means that we can probably push the IPTC editing stuff out
+    + maybe even push the doctrine-sqlite work out
+  + got to get to a first release
+  + it is being stored
 

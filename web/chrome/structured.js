@@ -603,7 +603,7 @@ window.sfun = (function($, undefined) {
     var $reresable = $ent.cachedFind('.reresable');
     if (typeof(data.meta) != 'undefined') {
       // if we get a response, set the missing resolution data to the image
-      $reresable.data('native-width', data.meta.width);
+      $reresable.data('native-width', data.meta.original_width);
       $reresable.data('native-height', data.meta.height);
       if (debug && true) {
         console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');

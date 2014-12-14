@@ -273,10 +273,19 @@ class CachedMetadataFileReader extends MetadataFileReader {
   
   /**
    * Generate hash in a standard way
-   * @param string $key
+   * @param string $key plaintext
    * @return string hashed string
    */
   static function hash($key) {
+    return md5($key);
+  }
+
+  /**
+   * Allow hash operation to by asymmetric
+   * @param string $key hashed string
+   * @return string plaintext
+   */
+  static function dehash($key) {
     return md5($key);
   }
 
