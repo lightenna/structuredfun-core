@@ -1,31 +1,21 @@
 
-* install linux tool to read image metadata
-  + xv or xview or something
-
-* detect if database exists
-  + create it if it doesn't
-
-* devise a videometadata test
-  + I'd like to refactor VideoMetadata
-    + to use protected instead of public
-  + but we need some kind of test to guard against regression
-
-* store (persist) metadata in sqlite DB
-  + just writing rows is a win
-    + demonstrates that it can work
-
-* implement hash and dehash
-  + can't always rely on symmetry
-  + may have done this already
-
-* try and get mediacache filenames to be readable
-  + they don't need to be pretty
-    + but it would be a big plus to be able to actually see the data
-
-* bug: js test suite needs sorting out
+* feature: double-run the test suite
   + now that we're vertical by default
     + let's insert a set of tests that run twice
       + once horizontal and once vertical
+  + options
+    + parameterise existing tests
+    + label anonymous functions and re-call
+    + push onto array
+      + not a straight forward result
+      + retest after last bug fix
+      + push doesn't really work
+        + because the time when the tests are called
+          + not equal to the time the tests are queued
+
+* bug: js test suite needs sorting out
+  + it's in a bit of a mess, but sort of ok
+    + 2 bad tests
 
 * look and feel on IPTC editing
   + show HTML5 empty text in fields that haven't been filled out yet
@@ -40,6 +30,33 @@
       + on hover the icons should show the field name
   + show form fields with same spacing as display
     + again makes for a consistent feel
+
+* install linux tool to read image metadata
+  + xv or xview or something
+
+* detect if database exists
+  + create it if it doesn't
+    + might need to be a try {} catch
+
+* devise a videometadata test
+  + I'd like to refactor VideoMetadata
+    + to use protected instead of public
+  + but we need some kind of test to guard against regression
+
+* store (persist) metadata in sqlite DB
+  + just writing rows is a win
+    + demonstrates that it can work
+
+* try and get mediacache filenames to be readable
+  + they don't need to be pretty
+    + but it would be a big plus to be able to actually see the data
+  + I think simple escaping is the way forward
+    + it's not pretty but it'll work
+  + escaping
+    + should be consistent with apache mod_rewrite internal function 'escape'
+http://httpd.apache.org/docs/current/rewrite/rewritemap.html#int
+    + that way we can do a simple direct cache lookup
+      + save instantiating PHP at all
 
 * browsing experience on mobile/touch device
   + jumping around, not updating offseq, delay on fullscreen
@@ -3980,4 +3997,21 @@ http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
     + maybe even push the doctrine-sqlite work out
   + got to get to a first release
   + it is being stored
+
+* implement hash and dehash
+  + can't always rely on symmetry
+  + may have done this already
+  + working out how hashing/dehashing is done
+    + I think we implement hash-only at the moment
+      + raw name gets hashed
+      + then we look for that hash key in the mediacache folder
+  + that way we never need a dehash
+
+* bug: js test suite doesn't work direction=x
+  + even with 2 bad tests removed
+    + there are other broken ones
+    + could be something to do with the wikimedia image set
+      + try with others
+  + phew!
+    + worked once we fixed a missing original_ for height
 
