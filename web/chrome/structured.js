@@ -604,7 +604,7 @@ window.sfun = (function($, undefined) {
     if (typeof(data.meta) != 'undefined') {
       // if we get a response, set the missing resolution data to the image
       $reresable.data('native-width', data.meta.original_width);
-      $reresable.data('native-height', data.meta.height);
+      $reresable.data('native-height', data.meta.original_height);
       if (debug && true) {
         console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
       }
@@ -1272,6 +1272,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * set all 'flow' elements to flow in the direction
+   * @param string x|y for horizontal or vertical scrolling
    */
   var setDirection = function(direction) {
     var changed = (getDirection() !== direction);
@@ -4147,6 +4148,13 @@ window.sfun = (function($, undefined) {
      */
     'api_setBound': function($ent) {
       return setBound($ent, true);
+    },
+
+    /**
+     * @param {object} $ent cell to check (and re-set) bounds for
+     */
+    'api_setDirection': function(dir) {
+      return setDirection(dir);
     },
 
     /**

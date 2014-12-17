@@ -57,9 +57,30 @@
    */
   var tests = function() {
     QUnit.init();
-    var endTest = function() {
-      window.location.hash = '#!';
-    }
+    var resetTestMarker = '#!';
+    var resetTest = function() {
+      window.location.hash = resetTestMarker;
+    };
+
+    test( 'vis non-vis simple', function() {
+      resetTest();
+      var cellcount = sfun.api_getCellMajorCount(+1) * sfun.api_getBreadth();
+      var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
+      // wait for keypress event to process
+      QUnit.stop();
+      // scroll to first off-screen element
+      sfun.api_triggerKeypress(sfun.KEY_PAGE_DOWN).done(function() {
+        ok( $('ul.flow .selectablecell.selected').data('seq') != initialSeq, 'Page down selected a different image' );
+        // check that first off-screen element (now on-screen) is cellcount
+        ok( $('ul.flow .selectablecell.selected').data('seq') == $('#seq-'+cellcount).data('seq'), 'Page down selected the '+(cellcount+1)+'th image (seq '+cellcount+')' );
+        // check that selected image is visible
+        ok( $('ul.flow .selectablecell.selected').hasClass('visible'), 'Selected cell is visible');
+        // check that the first image is not visible
+        ok( ! $('#seq-'+initialSeq).hasClass('visible'), 'Initially selected cell is no longer visible');
+        QUnit.start();        
+        resetTest();
+      });
+    });
 
     QUnit.start();
   }

@@ -48,6 +48,28 @@
     });
   }
 
+  /**
+   * schedule multiple tests, usually with different hashbangs contexts
+   * note: this (v1) doesn't really work; haven't worked out how to do transition
+  var multi_test = function(name, func, bangs) {
+    test(name + ' variant 0', func('#!'));
+    // delay execution of variants in order to group them
+    setTimeout(function() {
+      sfun.api_setDirection('x');
+      for (var i=0 ; i<bangs.length ; ++i) {
+        test(name + ' variant '+(i+1), func(bangs[i]));
+      }
+    }, 10);
+  }
+   */
+
+  var multi_test = function(name, func, bangs) {
+    test(name + ' variant 0', func(function(){}));
+    for (var i=0 ; i<bangs.length ; ++i) {
+      test(name + ' variant '+(i+1), func(bangs[i]));
+    }
+  }
+
   // -----
   // TESTS
   // -----
@@ -57,9 +79,34 @@
    */
   var tests = function() {
     QUnit.init();
-    var endTest = function() {
-      window.location.hash = '#!';
+    var resetTestMarker = '#!';
+    var resetTest = function() {
+      window.location.hash = resetTestMarker;
+    };
+
+    /**
+     * maintain a list of functions
+     */
+    var dupTestList = dupTestList || [];
+    var parameteriseTest = function(func) {
+      // store function in list
+      dupTestList[dupTestList.length] = func;
+      // return pointer (for first call)
+      return func;
+    };
+
+    /**
+     * call stored tests
+     */
+    var recallTests = function(marker) {
+      // update the marker, used to reset hashbang after each test
+      resetTestMarker = marker;
+      for (var i=0 ; i<dupTestList.length ; ++i) {
+        // stack test in QUnit for execution
+        test('recalled test '+i, dupTestList[i]);
+      }
     }
+
     /*
      * top and tail each test with a hash clear (needs to be different to clear it)
      * 1. to reset the environment because tests can run in any order
@@ -85,39 +132,6 @@
       equal( vt.findCompare(-9999, sfun.compareGTE), 0, 'vistable found -6 >= -9999');
       equal( vt.findCompare(-9999, sfun.compareLTE), -1, 'vistable found nothing <= -9999');
       equal( vt.findCompare(9999, sfun.compareGTE), -1, 'vistable found nothing >= 9999');
-    });
-
-    test( 'check vistable refresh', function() {
-      var direction = sfun.api_getDirection();
-      var breadth = sfun.api_getBreadth();
-      var vt = sfun.api_createVisTable();
-      var vt_partial = sfun.api_createVisTable();
-      var $cells = $('ul.flow .selectablecell');
-      if ($cells.length < (4 * breadth)) {
-        ok(false, "Not enough cells " + $cells.length + "to conduct test");
-      } else {
-        var ref3 = 2 * breadth, ref4 = 3 * breadth;
-        var off3 = $cells.eq(ref3).offset(), off4 = $cells.eq(ref4).offset();
-        var major3 = Math.floor(direction == 'x' ? off3.left : off3.top), major4 = Math.floor(direction == 'x' ? off4.left : off4.top);
-        // update all vis table entries
-        vt.updateAll(direction, $cells);
-        // look for major3 and major4 to check mid-array load
-        equal( vt.findCompare(major3, sfun.compareGTE), ref3, 'vistable found major 3 at ref 3');
-        equal( vt.findCompare(major4, sfun.compareGTE), ref4, 'vistable found major 4 at ref 4');
-        // update only some entries in vt_partial
-        // this creates a sparse array, which isn't typical
-        vt_partial.updateRange(direction, ref3, ref4);
-        // look for first and last to check partials
-        equal( vt_partial.findCompare(0, sfun.compareGTE), ref3, 'vistable found ref 3 >= 0');
-        equal( vt_partial.findCompare(9999, sfun.compareLTE), ref4, 'vistable found ref 4 <= 9999');
-        // imagine we expand the size of column 3 and calculate delta_b
-        var delta_b = 50;
-        // apply delta to affected cells
-        vt_partial.keyShift(ref4, vt_partial.getSize()-1, delta_b);
-        // check update
-        var major4b = vt_partial.select(ref4).key;
-        equal( major4b, major4 + delta_b, 'delta correctly applied to post range cells');
-      }
     });
 
     test( 'check longest loading', function() {
@@ -367,7 +381,62 @@
       equal( mergedContext.deferred.state(), 'resolved', 'merged context is now resolved [sync]');
     });
 
-    test( 'reres of first page of images', function() {
+    test( 'check image bounds', function() {
+      QUnit.stop();
+      $('ul.flow .selectablecell.visible .boundable').each(function() {
+        var tolerance = 1;
+        var imw = $(this).width(), imh = $(this).height();
+        var $ent = $(this).parents('li');
+        var cellw = $ent.width(), cellh = $ent.height();
+        var withinWidth = (imw <= cellw + tolerance);
+        var withinHeight = (imh <= cellh + tolerance);
+        ok( withinWidth && withinHeight, 'image #'+$ent.data('seq')+' ('+imw+'x'+imh+') bounded within it\'s cell ('+cellw+'x'+cellh+')' );
+      }).promise().done(function() {
+        QUnit.start();
+      });
+    });
+
+    /**
+     * URL-reactive tests
+     */
+
+    multi_test( 'check vistable refresh', function(arg) { return function() {
+      resetTest(arg);
+      var direction = sfun.api_getDirection();
+      var breadth = sfun.api_getBreadth();
+      var vt = sfun.api_createVisTable();
+      var vt_partial = sfun.api_createVisTable();
+      var $cells = $('ul.flow .selectablecell');
+      if ($cells.length < (4 * breadth)) {
+        ok(false, "Not enough cells " + $cells.length + "to conduct test");
+      } else {
+        var ref3 = 2 * breadth, ref4 = 3 * breadth;
+        var off3 = $cells.eq(ref3).offset(), off4 = $cells.eq(ref4).offset();
+        var major3 = Math.floor(direction == 'x' ? off3.left : off3.top), major4 = Math.floor(direction == 'x' ? off4.left : off4.top);
+        // update all vis table entries
+        vt.updateAll(direction, $cells);
+        // look for major3 and major4 to check mid-array load
+        equal( vt.findCompare(major3, sfun.compareGTE), ref3, 'vistable found major 3 at ref 3');
+        equal( vt.findCompare(major4, sfun.compareGTE), ref4, 'vistable found major 4 at ref 4');
+        // update only some entries in vt_partial
+        // this creates a sparse array, which isn't typical
+        vt_partial.updateRange(direction, ref3, ref4);
+        // look for first and last to check partials
+        equal( vt_partial.findCompare(0, sfun.compareGTE), ref3, 'vistable found ref 3 >= 0');
+        equal( vt_partial.findCompare(9999, sfun.compareLTE), ref4, 'vistable found ref 4 <= 9999');
+        // imagine we expand the size of column 3 and calculate delta_b
+        var delta_b = 50;
+        // apply delta to affected cells
+        vt_partial.keyShift(ref4, vt_partial.getSize()-1, delta_b);
+        // check update
+        var major4b = vt_partial.select(ref4).key;
+        equal( major4b, major4 + delta_b, 'delta correctly applied to post range cells');
+      }
+      resetTest(arg);
+    }; }, ['#!direction=x']);
+
+    multi_test( 'reres of first page of images', function(arg) { return function() {
+      resetTest(arg);
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
         equal( $('ul.flow .selectablecell.selected').data('seq'), 0, 'Home selected #0 image' );
@@ -377,12 +446,13 @@
           var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
           ok( imw <= lodw && imh <= lodh, 'image #'+$ent.data('seq')+' ('+imw+'x'+imh+') loaded('+lodw+'x'+lodh+')');
         });
-        endTest();
+        resetTest(arg);
         QUnit.start();
       });
-    });
+    }; }, ['#!direction=x']);
 
-    test( 'reres of last page of images', function() {
+    multi_test( 'reres of last page of images', function(arg) { return function() {
+      resetTest(arg);
       // expand div (page-left) to force a vertical scrollbar (page-right)
       var original_height = $('#qunit').height();
       $('#qunit').height(3000);
@@ -409,35 +479,21 @@
           }
         });
         QUnit.start();
-        endTest();
+        resetTest(arg);
         // restore QUnit to original height
         $('#qunit').height(original_height);
       });
-    });
+    }; }, ['#!direction=x']);
 
-    test( 'check image bounds', function() {
-      QUnit.stop();
-      $('ul.flow .selectablecell.visible .boundable').each(function() {
-        var tolerance = 1;
-        var imw = $(this).width(), imh = $(this).height();
-        var $ent = $(this).parents('li');
-        var cellw = $ent.width(), cellh = $ent.height();
-        var withinWidth = (imw <= cellw + tolerance);
-        var withinHeight = (imh <= cellh + tolerance);
-        ok( withinWidth && withinHeight, 'image #'+$ent.data('seq')+' ('+imw+'x'+imh+') bounded within it\'s cell ('+cellw+'x'+cellh+')' );
-      }).promise().done(function() {
-        QUnit.start();
-      });
-    });
-
-    test( 'image click #0', function() {
-      window.location.hash = 'image_click_0';
+    multi_test( 'image click #0', function(arg) { return function() {
+      resetTest(arg);
       $('#seq-0').find('a').trigger('click');
       ok( sfun.api_getBreadth() == 1, 'Went to fullscreen mode' );
       ok( $('ul.flow .selectablecell.selected').data('seq') == 0, 'Selected image zero');
-      endTest();
-    });
+      resetTest(arg);
+    }; }, ['#!direction=x']);
 
+/*
     test( 'image click #1, return, arrow next', function() {
       window.location.hash = 'image_click_1';
       var initialBreadth = sfun.api_getBreadth();
@@ -450,14 +506,14 @@
           sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT).done(function(){
             equal($('ul.flow .selectablecell.selected').data('seq'), 2, 'Right arrow selected #2 image (#1+1)' );
             QUnit.start();
-            endTest();
+            resetTest();
           });
         });
       });
     });
-
-    test( 'set breadth 4, image click #1, return', function() {
-      window.location.hash = 'breadth_4_image_click_1';
+*/
+    multi_test( 'set breadth 4, image click #1, return', function(arg) { return function() {
+      resetTest(arg);
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_NUMBER_4).done(function() {
         equal(sfun.api_getBreadth(), 4, 'Selected breadth' );
@@ -467,14 +523,14 @@
           sfun.api_triggerKeypress(sfun.KEY_RETURN).done(function() {
             equal(sfun.api_getBreadth(), 4, 'Returned to selected breadth' );
             QUnit.start();
-            endTest();
+            resetTest();
           });
         });
       });
-    });
+    }; }, ['#!direction=x']);
 
-    test( 'end select last, home select first, arrow next', function() {
-      window.location.hash = 'end_select_last';
+    multi_test( 'end select last, home select first, arrow next', function(arg) { return function() {
+      resetTest();
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
         ok( $('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries()-1), 'End selected last image' );
@@ -483,15 +539,15 @@
           sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT).done(function() {
             ok( $('ul.flow .selectablecell.selected').data('seq') == 1, 'Right arrow selected #1 image' );
             QUnit.start();
-            endTest();
+            resetTest();
           });
         });
       });
-    });
+    }; }, ['#!direction=x']);
 
-    test( 'end arrow next wrap-around', function() {
+    multi_test( 'end arrow next wrap-around', function(arg) { return function() {
+      resetTest(arg);
       var last = sfun.api_getTotalEntries()-1;
-      window.location.hash = 'end_arrow_next';
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_END).done(function() {
         equal( $('ul.flow .selectablecell.selected').data('seq'), last, 'End selected last image' );
@@ -502,17 +558,16 @@
             sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
               equal( $('ul.flow .selectablecell.selected').data('seq'), 0, 'Home selected #0 image' );
               QUnit.start();        
-              endTest();
+              resetTest(arg);
             });
           });
         });
       });
-    });
+    }; }, ['#!direction=x']);
 
-    test( 'rapid scroll event queuing', function() {
-      window.location.hash = 'rapid-scroll';
+    multi_test( 'rapid scroll event queuing', function(arg) { return function() {
       // clear hash because this test uses bindToContext
-      window.location.hash = '';
+      resetTest(arg);
       var direction = sfun.api_getDirection();
       var evq = sfun.api_getEventQueue();
       // get initial dump count
@@ -582,12 +637,13 @@
                 }
               }, 1);
             }
-            endTest();
+            resetTest(arg);
           });
         });
       });
-    });
+    }; }, ['#!direction=x']);
 
+/*
     test( 'vis non-vis simple', function() {
       var cellcount = sfun.api_getCellMajorCount(+1) * sfun.api_getBreadth();
       window.location.hash = 'vis-non-vis-simple';
@@ -604,12 +660,13 @@
         // check that the first image is not visible
         ok( ! $('#seq-'+initialSeq).hasClass('visible'), 'Initially selected cell is no longer visible');
         QUnit.start();        
-        endTest();
+        resetTest();
       });
     });
+*/
 
     test( 'vis block', function() {
-      window.location.hash = 'vis-block';
+      resetTest();
       QUnit.stop();
       sfun.api_triggerKeypress(sfun.KEY_HOME).done(function() {
         var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
@@ -631,7 +688,7 @@
             // check that selected image is within visible range
             ok( initialSeq <= middleSeq && middleSeq <= finalSeq, 'Selected middle image is within visible range');
             QUnit.start();
-            endTest();
+            resetTest();
           });
         });
       });

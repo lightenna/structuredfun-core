@@ -141,7 +141,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return string A cache key based on the file's metadata
    */
 
-  public function getKey() {
+  private function getKey() {
     $cachestring = $this->getFullname();
     $argstring = self::flattenKeyArgs($this->args);
     if ($argstring != '') {
@@ -273,19 +273,11 @@ class CachedMetadataFileReader extends MetadataFileReader {
   
   /**
    * Generate hash in a standard way
+   *   we never dehash, but always hash and compare
    * @param string $key plaintext
    * @return string hashed string
    */
   static function hash($key) {
-    return md5($key);
-  }
-
-  /**
-   * Allow hash operation to by asymmetric
-   * @param string $key hashed string
-   * @return string plaintext
-   */
-  static function dehash($key) {
     return md5($key);
   }
 
