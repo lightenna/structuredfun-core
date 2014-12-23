@@ -372,16 +372,16 @@ window.sfun = (function($, undefined) {
       perc = Math.round(width_current * 100 / width_native);
       if (debug && false) {
         // show the size of the image that's been loaded into this img container
-        $metric.cachedFind('span.width').html(Math.round($reresable.data('loaded-width')));
-        $metric.cachedFind('span.height').html(Math.round($reresable.data('loaded-height')));
-        $metric.cachedFind('span.size').show();
+        $metric.cachedFind('.width').html(Math.round($reresable.data('loaded-width')));
+        $metric.cachedFind('.height').html(Math.round($reresable.data('loaded-height')));
+        $metric.cachedFind('.size').show();
       } else {
         // update with current image width and height
-        $metric.cachedFind('span.width').html(Math.round(width_current));
-        $metric.cachedFind('span.height').html(Math.round(height_current));
+        $metric.cachedFind('.width').html(Math.round(width_current));
+        $metric.cachedFind('.height').html(Math.round(height_current));
       }
       if (!isNaN(perc)) {
-        $metric.cachedFind('span.perc').html(perc+'%').show();
+        $metric.cachedFind('.perc').html(perc+'%').show();
       }
       // analyse to see if we're over/under the native res
       if (width_current > width_native || height_current > height_native) {
@@ -390,8 +390,8 @@ window.sfun = (function($, undefined) {
         $metric.removeClass('sub').addClass('super');          
       }
     }
-    // finally refresh the position of the metric
-    refreshMetricPosition($ent);
+    // no longer need to refresh the position of the metric, because don't after bounds before reres
+    // refreshMetricPosition($ent);
     // 2s later, add the fade out class, which is almost instant because of mouseout
     $ent.delay(1000).queue(function(next) {
       $(this).addClass('reres-plus-2s');
@@ -407,8 +407,13 @@ window.sfun = (function($, undefined) {
     if ($metric.length) {
       var $image = $ent.cachedFind('.reresable');
       if ($image.length) {
-        // move the metric to the corner of the image using coords relative to parent
-        $metric.css( { 'top': $image[0].offsetTop, 'left': $image[0].offsetLeft });
+        if ($image.hasClass('y-bound')) {
+          // move metric to image_x,50% for continuity with x-bound images
+          $metric.css( { 'top': '50%', 'left': $image[0].offsetLeft });
+        } else {
+          // no need to move the metric to the middle-left of an x-bound image
+          // $metric.css( { 'top': $image[0].offsetTop, 'left': $image[0].offsetLeft });
+        }
       }
     }
   };
@@ -478,6 +483,10 @@ window.sfun = (function($, undefined) {
     }
     // flag this image as updating its resolution
     $ent.addClass('reresing');
+    // move the metric into position and show
+    refreshMetricPosition($ent);
+    var $metricperc = $ent.cachedFind('.imgmetric .perc');
+    $metricperc.html('Reresing...').show();
     // create local deferred and local wrapUp
     var deferred = getDeferred();
     var wrapUp = function() {
@@ -3607,11 +3616,14 @@ window.sfun = (function($, undefined) {
       var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
       // find first spanning min boundary
       var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
-      var next_ref = (current_ref + advance_by) % visTableMajor.getSize();
+      // compute next_ref but don't allow wrap around
+      var next_ref = Math.min(current_ref + advance_by, visTableMajor.getSize()-1);
       next_pos = visTableMajor.key(next_ref);
       // increment next_pos by existing offseq
       var offseq = getOffseq();
-      console.log(next_pos + ' + ' + offseq + ' = ' + (next_pos+offseq));
+      if (debug && false) {
+        console.log(next_pos + ' + ' + offseq + ' = ' + (next_pos+offseq));        
+      }
       next_pos -= offseq;
       // put into target object then crop against viewport
       var target = {};

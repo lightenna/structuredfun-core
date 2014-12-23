@@ -53,6 +53,8 @@
         <span class="base">
           {# Always show headline; if not set use file.alias #}
           <span class="iptc_headline">{{ file.meta is defined and file.meta.IptcHeadline != defaults.iptc_headline ? file.meta.IptcHeadline : file.alias }}</span>
+          {# Always show author #}
+          <span class="iptc_byline">{{ file.meta is defined ? file.meta.IptcByline : defaults.iptc_byline }}</span>
           {# Only show other metadata if it's not the default #}
           <span class="iptc_copyright" {{ file.meta is defined and file.meta.IptcCopyright == defaults.iptc_copyright ? 'style="display: none;"' }} title="{{ file.meta is defined ? file.meta.IptcCopyright : '' }}">&copy;</span>
           <span class="iptc_source icon ion-home" {{ file.meta is defined and file.meta.IptcSource == defaults.iptc_source ? 'style="display: none;"' }} title="{{ file.meta is defined ? file.meta.IptcSource : '' }}"></span>
@@ -60,8 +62,6 @@
           <span class="iptc_keywords icon ion-pricetags" {{ file.meta is defined and file.meta.IptcKeywords == defaults.iptc_keywords ? 'style="display: none;"' }} title="{{ file.meta is defined ? file.meta.IptcKeywords : '' }}"></span>
           {# Show edit icon if we have edit permissions #}
           <span class="editable icon ion-compose" style="{{ file.meta is defined and file.meta.Editable ? '' : 'display: none;' }}"></span>
-          {# Always show author #}
-          <span class="iptc_byline">{{ file.meta is defined ? file.meta.IptcByline : defaults.iptc_byline }}</span>
         </span>
       </span>
     </a>

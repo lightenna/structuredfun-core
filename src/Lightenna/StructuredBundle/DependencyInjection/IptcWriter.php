@@ -2,6 +2,7 @@
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
 
+// http://www.exiv2.org/iptc.html
 define('IPTC_OBJECT_NAME', '005');
 define('IPTC_EDIT_STATUS', '007');
 define('IPTC_PRIORITY', '010');

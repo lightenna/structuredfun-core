@@ -1,4 +1,120 @@
 
+* deploy
+  + structuredfun-linux as submodule of drupal7
+    + put in top-level
+      + not inside /htdocs so that all config files aren't exposed
+    + vhost in /conf
+      + demo.structuredfun.com/file/wikimedia-gallery1
+
+* basic website
+  + plug the demo link into the demo menu item
+    + simple external link is fine
+
+* release a fresh copy of the code
+  + 0.9.2
+  + follow procedure in this file
+
+--- next release ---
+
+* manually compose sharing image
+  + use that javascript that was posted up online
+    + create it once
+    + put the correct metadata on the page accordingly
+
+* substitute hamburger icon for class="icon ion-navicon-round"
+  + it always needs to be 10% of the screen
+    + because it's way too small on mobiles in ems
+
+* separate re-resing from selecting
+  + a slow re-res can mean that we're waiting ages for
+    + the select reflector to show an image is selected
+  + I suspect that's also the reason why we're slow to jump to the right place on the page
+
+* install linux tool to read image metadata
+  + xv or xview or something
+    + exiv2
+
+* detect if database exists
+  + create it if it doesn't
+    + might need to be a try {} catch
+
+* devise a videometadata test
+  + I'd like to refactor VideoMetadata
+    + to use protected instead of public
+  + but we need some kind of test to guard against regression
+
+* store (persist) metadata in sqlite DB
+  + just writing rows is a win
+    + demonstrates that it can work
+
+* try and get mediacache filenames to be readable
+  + they don't need to be pretty
+    + but it would be a big plus to be able to actually see the data
+  + I think simple escaping is the way forward
+    + it's not pretty but it'll work
+  + escaping
+    + should work with apache mod_rewrite internal function 'unescape'
+http://httpd.apache.org/docs/current/rewrite/rewritemap.html#int
+    + that way we can do a simple direct cache lookup
+      + save instantiating PHP at all
+
+* browsing experience on mobile/touch device
+  + jumping around, not updating offseq, delay on fullscreen
+
+* bug: image border needs tweaking
+  + it's currently slightly too light
+    + didn't update it when we did the cell tint adjustment
+
+* bug: first load on imageset (uncached) doesn't up-res all visible images
+  + I suspect it's because it doesn't recognise them as visible
+    + requires cache clear to demonstrate
+
+* bug: mobile browsers only use half the height
+  + when horizontal scrolling (direction=x)
+
+* bug: non-imagesnap scroll locking
+  + seems to happen when scroll events queue up
+  + it's sufficiently annoying that it needs never to happen
+  + start by making sure the scroll event is fired
+
+* some wikimedia images don't load under linux
+  + don't really have to support all filenames
+    + but wikimedia images are important for online sfun demo
+
+* think about offseq for page up/down
+  + think about offseq for wheel up/down
+    + think it's a matter of preserving the current offseq on a wheel
+--o--
+* resize needs to refresh the hashed offseq
+  + in order to maintain centring
+    + works when just applied
+  + also need to buffer fired events
+  + for some reason it's not putting it in the centre
+    + probably needs a force
+    + introduced forcing for offseqChanged for now
+--o--
+* scroll doesn't always work full screen
+  + doesn't go forward
+    + goes back in two-steps
+
+* first read (when using imagemeta) no column resizing
+  + ratio is 1.5
+  + but it is correct when we do a resize
+
+* debug mx-hd
+  + 0 byte png throwing errors
+
+* scrolling and clicking fullscreen is still very buggy on slow connections
+  + keys stop working while waiting for images to load
+    + I don't think it's launchable like this
+  + discovered on Mac on train with bluetooth connection
+    + even though elan VM was running locally
+
+* feature: share preview
+  + re-purpose buttons share code
+    + show nice view of some images
+    + best to do that with flow
+
 * feature: double-run the test suite
   + now that we're vertical by default
     + let's insert a set of tests that run twice
@@ -30,112 +146,6 @@
       + on hover the icons should show the field name
   + show form fields with same spacing as display
     + again makes for a consistent feel
-
-* install linux tool to read image metadata
-  + xv or xview or something
-
-* detect if database exists
-  + create it if it doesn't
-    + might need to be a try {} catch
-
-* devise a videometadata test
-  + I'd like to refactor VideoMetadata
-    + to use protected instead of public
-  + but we need some kind of test to guard against regression
-
-* store (persist) metadata in sqlite DB
-  + just writing rows is a win
-    + demonstrates that it can work
-
-* try and get mediacache filenames to be readable
-  + they don't need to be pretty
-    + but it would be a big plus to be able to actually see the data
-  + I think simple escaping is the way forward
-    + it's not pretty but it'll work
-  + escaping
-    + should be consistent with apache mod_rewrite internal function 'escape'
-http://httpd.apache.org/docs/current/rewrite/rewritemap.html#int
-    + that way we can do a simple direct cache lookup
-      + save instantiating PHP at all
-
-* browsing experience on mobile/touch device
-  + jumping around, not updating offseq, delay on fullscreen
-
-* substitute hamburger icon for class="icon ion-navicon-round"
-  + it always need to be 10% of the screen
-    + because it's way too small on mobiles in ems
-
-* bug: image border needs tweaking
-  + it's currently slightly too light
-    + didn't update it when we did the cell tint adjustment
-
-* bug: first load on imageset (uncached) doesn't upres all visible images
-  + I suspect it's because it doesn't recognise them as visible
-    + requires cache clear to demonstrate
-
-* bug: mobile browsers only use half the height
-  + when horizontal scrolling (direction=x)
-
-* bug: non-imagesnap scroll locking
-  + seems to happen when scroll events queue up
-  + it's sufficiently annoying that it needs never to happen
-  + start by making sure the scroll event is fired
-
-* go through wikimedia images
-  + add metadata properly
-    + verify in sfun
-      + or fallback to photoshop
-      - photoshop requires a recompression of the image
-    - windows just makes a mess
-  ++ surprisingly difficult to find a windows tool that doesn't mess it up!
-
-* some wikimedia images don't load under linux
-  + don't really have to support all filenames
-    + but wikimedia images are important for online sfun demo
-
-* think about offseq for page up/down
-  + think about offseq for wheel up/down
-    + think it's a matter of preserving the current offseq on a wheel
---o--
-* resize needs to refresh the hashed offseq
-  + in order to maintain centring
-    + works when just applied
-  + also need to buffer fired events
-  + for some reason it's not putting it in the centre
-    + probably needs a force
-    + introduced forcing for offseqChanged for now
---o--
-* scroll doesn't always work full screen
-  + doesn't go forward
-    + goes back in two-steps
-
-* first read (when using imagemeta) no column resizing
-  + ratio is 1.5
-  + but it is correct when we do a resize
-
-* debug mx-hd
-  + 0 byte png throwing errors
-
-* turn off wrap-around on scroll
-  + it's actually confusing
-    + take it out
-    + shows up in fullscreen and left/right
-
-* look into reres-last test failing sometimes
-  + seems to always fail on wikimedia-gallery1
-
-* scrolling and clicking fullscreen is still very buggy on slow connections
-  + keys stop working while waiting for images to load
-    + I don't think it's launchable like this
-  + discovered on Mac on train with bluetooth connection
-    + even though elan VM was running locally
-
-* basic demo with Wikimedia images
-  + look at overall experience, start to finish
-
-* basic website
-
---- next release ---
 
 * feature: hover on fullscreen smaller
   + black faded overlay covers 30% of the image
@@ -4014,4 +4024,41 @@ http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
       + try with others
   + phew!
     + worked once we fixed a missing original_ for height
+
+* Change 'Copyright unknown' to 'Copyright remains with author'
+
+* Change 'Author unknown' to blank
+  + when we're loading images for the first time, it's misleading
+    + could say "Loading metadata"
+    + could say "Searching for author information"
+    + Author pending
+
+* go through wikimedia images
+  + add metadata properly
+    + verify in sfun
+      + or fallback to photoshop
+      - photoshop requires a recompression of the image
+    - windows just makes a mess
+  ++ surprisingly difficult to find a windows tool that doesn't mess it up!
+  + apply correct metadata to images
+    + verify in photoshop
+
+* move icons to follow byline
+
+* image %age size label
+  + nice if we could make them all appear in the same place
+
+* show image metric with 'Reresing...' message whilst loading
+
+* make metric default position be middle-left
+
+* turn off wrap-around on scroll
+  + it's actually confusing
+    + take it out
+    + shows up in fullscreen and left/right
+
+* basic demo with Wikimedia images
+  + look at overall experience, start to finish
+    + good enough
+    + not perfect but fine
 

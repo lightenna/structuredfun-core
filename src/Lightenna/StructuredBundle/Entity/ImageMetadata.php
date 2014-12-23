@@ -41,7 +41,7 @@ class ImageMetadata {
    * version number used to verify ours/not-ours
    * @ORM\Column(type="string", length=100)
    */
-  protected $sfun_version = '0.9.1';
+  protected $sfun_version = '0.9.2';
 
   /**
    * location of the remote originator
@@ -166,11 +166,11 @@ class ImageMetadata {
   static function getDefaults() {
     return array(
       'iptc_headline' => 'Untitled',
-      'iptc_caption' => 'Untitled',
-      'iptc_byline' => 'Author unknown',
+      'iptc_caption' => 'Caption pending',
+      'iptc_byline' => 'Author pending',
       'iptc_keywords' => 'structured;fun',
-      'iptc_copyright' => 'Copyright unknown, image transformation licence granted to StructuredFun',
-      'iptc_source' => 'Source unknown',
+      'iptc_copyright' => 'Copyright remains with author, image transformation licence granted to StructuredFun',
+      'iptc_source' => 'Source pending',
     );
   }
 

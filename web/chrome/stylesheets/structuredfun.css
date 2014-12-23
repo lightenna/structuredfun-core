@@ -1,4 +1,4 @@
-/* line 17, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 17, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -20,45 +20,45 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
-/* line 22, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 22, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html {
   line-height: 1;
 }
 
-/* line 24, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 24, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 ol, ul {
   list-style: none;
 }
 
-/* line 26, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 26, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-/* line 28, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 28, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 caption, th, td {
   text-align: left;
   font-weight: normal;
   vertical-align: middle;
 }
 
-/* line 30, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 30, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q, blockquote {
   quotes: none;
 }
-/* line 103, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 103, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q:before, q:after, blockquote:before, blockquote:after {
   content: "";
   content: none;
 }
 
-/* line 32, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 32, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 a img {
   border: none;
 }
 
-/* line 116, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 116, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
 }
@@ -274,32 +274,35 @@ html.theme-dark .page .content .sfun > .cell:not(.selected) .media-container .se
 }
 /* line 244, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta {
-  background-image: linear-gradient(rgba(23, 23, 23, 0), rgba(23, 23, 23, 0.8));
   color: #ffffff;
 }
-/* line 249, ../sass/structuredfun.scss */
+/* line 247, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell a .meta .base {
+  background-image: linear-gradient(rgba(23, 23, 23, 0.4), rgba(23, 23, 23, 0.8));
+}
+/* line 253, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta span.iptc_caption, html.theme-dark .page .content .sfun > .cell a .meta span.iptc_keywords, html.theme-dark .page .content .sfun > .cell a .meta span.iptc_copyright, html.theme-dark .page .content .sfun > .cell a .meta span.iptc_source {
   color: #aaaaaa;
 }
-/* line 255, ../sass/structuredfun.scss */
+/* line 259, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #171717;
   color: #ffffff;
 }
-/* line 263, ../sass/structuredfun.scss */
+/* line 267, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text], html.theme-dark .page .content .sfun > .cell .metaform-holder textarea {
   color: white;
 }
-/* line 265, ../sass/structuredfun.scss */
+/* line 269, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text]:focus, html.theme-dark .page .content .sfun > .cell .metaform-holder textarea:focus {
   border: 1px solid #aaaaaa;
   background-image: linear-gradient(rgba(23, 23, 23, 0.5), rgba(23, 23, 23, 0.8));
 }
-/* line 276, ../sass/structuredfun.scss */
+/* line 280, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 284, ../sass/structuredfun.scss */
+/* line 288, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -317,7 +320,7 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 300, ../sass/structuredfun.scss */
+/* line 304, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

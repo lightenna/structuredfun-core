@@ -192,6 +192,8 @@
         .imgmetric {
           line-height: 1.0em;
           position: absolute;
+          top: 50%;
+          left: 0;
           z-index: 1;
           font-size: 0.6em;
           white-space: nowrap;
@@ -219,7 +221,6 @@
           display: block;
           position: absolute;
           bottom: 0;
-          background-image: linear-gradient(rgba($background_html_light, 0), rgba($background_html_light, 0.8));
           color: #000000;
           min-height: 50%;
           text-align: left;
@@ -235,6 +236,9 @@
 
           .base {
             position: absolute;
+            background-image: linear-gradient(rgba($background_html_light, 0.4), rgba($background_html_light, 0.8));
+            padding-right: 1em;
+            padding-bottom: 1em;
             bottom: 0;
 
             // all the spans (blocks) within metadata base
@@ -252,7 +256,7 @@
               // make headline and summary icons appear on one line
               &.iptc_headline {
                 font-weight: bold;
-                display: inline;
+                display: block;
                 margin-right: 0.5em;
               }
 
@@ -274,7 +278,7 @@
               }
 
               &.iptc_byline {
-                display: block;
+                display: inline;
               }
 
               // generally if it's a default value we don't show it (except headline and byline)
@@ -404,10 +408,6 @@
       // show metric if image is visible or part-visible
       &.visible .imgmetric, &.vispart p.imgmetric {
         display: block;
-      }
-      // but not if it's in the process of reresing
-      &.reresing .imgmetric {
-        display: none;
       }
 
       // 2s after reres completes, add this class to cell
