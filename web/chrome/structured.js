@@ -3621,7 +3621,7 @@ window.sfun = (function($, undefined) {
       next_pos = visTableMajor.key(next_ref);
       // increment next_pos by existing offseq
       var offseq = getOffseq();
-      if (debug && false) {
+      if (debug && true) {
         console.log(next_pos + ' + ' + offseq + ' = ' + (next_pos+offseq));        
       }
       next_pos -= offseq;

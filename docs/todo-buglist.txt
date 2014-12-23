@@ -1,4 +1,8 @@
 
+* changing breadth needs to zero offseq
+  + because we can end up with an offseq > 1 cell width
+    + which then locks the scroll
+
 * deploy
   + structuredfun-linux as submodule of drupal7
     + put in top-level
@@ -4061,4 +4065,7 @@ http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
   + look at overall experience, start to finish
     + good enough
     + not perfect but fine
+
+* horiz scrolling in 2x or 4x views
+  + wheel only goes in one direction
 
