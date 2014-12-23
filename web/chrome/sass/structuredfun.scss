@@ -242,8 +242,12 @@ html.theme-dark {
         a {
           // metadata display
           .meta {
-            background-image: linear-gradient(rgba($background_html_dark, 0), rgba($background_html_dark, 0.8));
             color: #ffffff;
+
+            .base {
+              background-image: linear-gradient(rgba($background_html_dark, 0.4), rgba($background_html_dark, 0.8));            
+            }
+
             // off-colour for metadata icons
             span {
               &.iptc_caption, &.iptc_keywords, &.iptc_copyright, &.iptc_source {
