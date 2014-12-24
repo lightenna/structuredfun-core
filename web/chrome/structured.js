@@ -166,6 +166,8 @@ window.sfun = (function($, undefined) {
         state_previous['breadth'] = state_default['breadth'] = getBreadth();
         state_previous['seq'] = state_default['seq'] = 0;
         state_previous['offseq'] = state_default['offseq'] = 0;
+        // stick default timecode in here as a bit of a hack, until we use data-frame
+        state_default['timecode'] = '00:00:10.0';
         // bind to page
         bindToHeaderLinks();
         bindToHotKeys();
@@ -309,7 +311,7 @@ window.sfun = (function($, undefined) {
       if (typeof attr === 'undefined' || attr === false) {
         // if we have already reres'd another image, use its size instead of the default thumbnail size
         if ((last_longest != null) && $loadable.hasClass('reresable')) {
-          var highres = substitute($loadable.data('template-src'), { 'maxwidth': last_longest, 'maxheight': last_longest } );
+          var highres = substitute($loadable.data('template-src'), { 'maxwidth': last_longest, 'maxheight': last_longest, 'timecode': state_default['timecode'] } );
           $loadable.attr('src', highres);
         } else {
           // otherwise just use desrc
@@ -528,7 +530,7 @@ window.sfun = (function($, undefined) {
             // store max longest to shortcut next thumb load
             last_longest = brackWidth;
             // swap out image and wait for swap to complete
-            imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': brackWidth } )).always(wrapUp);
+            imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': brackWidth, 'timecode': state_default['timecode'] } )).always(wrapUp);
           } else {
             wrapUp();
           }
@@ -539,7 +541,7 @@ window.sfun = (function($, undefined) {
             // store max longest to shortcut next thumb load
             last_longest = brackHeight;
             // swap out image and wait for swap to complete
-            imageReres($ent, substitute($reresable.data('template-src'), { 'maxheight': brackHeight } )).always(wrapUp);
+            imageReres($ent, substitute($reresable.data('template-src'), { 'maxheight': brackHeight, 'timecode': state_default['timecode'] } )).always(wrapUp);
           } else {
             wrapUp();
           }
@@ -553,7 +555,7 @@ window.sfun = (function($, undefined) {
       if (typeof($reresable.data('loaded-width')) != 'undefined' && typeof($reresable.data('loaded-height')) != 'undefined') {
         if ((imageContainerWidth > loadedWidth) || (imageContainerHeight > loadedHeight)) {
           // don't know native width, so just request at loadedWidth/Height
-          imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': imageContainerWidth, 'maxheight': imageContainerHeight } )).always(wrapUp);
+          imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': imageContainerWidth, 'maxheight': imageContainerHeight, 'timecode': state_default['timecode'] } )).always(wrapUp);
         } else {
           wrapUp();
         }
@@ -4283,6 +4285,16 @@ window.sfun = (function($, undefined) {
       }
       var scalar = Math.pow(10, dp);
       return Math.round(k * scalar) / scalar;
+    },
+
+    /** 
+     * substitute values into a mustache template
+     * @param {string} template in mustache format
+     * @param {object} view collection of values to substitute
+     * @return {string} output after substitution
+     */
+    'api_substitute': function(template, view) {
+      return substitute(template, view);
     },
 
     // Test suite support functions

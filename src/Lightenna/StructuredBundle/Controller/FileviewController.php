@@ -3,6 +3,8 @@
 namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
@@ -40,10 +42,17 @@ class FileviewController extends ViewController {
               'defaults' => ImageMetadata::getDefaults(),
             ));
       } else {
-        // process file
-        return $this->render('LightennaStructuredBundle:Fileview:file.html.twig', array(
-            'filename' => $filename,
-        ));
+        // prepare BinaryFileResponse
+        $realname = str_replace('/','\\',$filename);
+        $fileleaf = basename($filename);
+        $response = new BinaryFileResponse($realname);
+        $response->trustXSendfileTypeHeader();
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_INLINE,
+            $fileleaf,
+            iconv('UTF-8', 'ASCII//TRANSLIT', $fileleaf)
+        );
+        return $response;
       }
     } else {
       // implied else

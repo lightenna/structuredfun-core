@@ -225,7 +225,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: calc(0px);
 }
 /* line 178, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container img.x-bound {
+.sfun.flow-pc > .cell .container .x-bound {
   position: relative;
   width: 100%;
   top: 50%;
@@ -234,7 +234,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   -webkit-transform: translate(0, -50%);
 }
 /* line 188, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container img.y-bound {
+.sfun.flow-pc > .cell .container .y-bound {
   height: 100%;
 }
 /* line 192, ../sass/structured.scss */
@@ -332,25 +332,44 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 312, ../sass/structured.scss */
+/* line 310, ../sass/structured.scss */
+.sfun.flow-pc > .cell .container .button {
+  position: absolute;
+  top: 15%;
+  left: 45%;
+  color: #fff;
+  font-size: 2.0em;
+  border: 4px solid #fff;
+  border-radius: 0.8em;
+  box-shadow: 0 0 .2em #fff;
+  padding: 2.5% 5% 2.5% 5%;
+  opacity: 0.5;
+}
+/* line 324, ../sass/structured.scss */
+.sfun.flow-pc > .cell .container .video-js {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+/* line 333, ../sass/structured.scss */
 .sfun.flow-pc > .cell.editing .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
-/* line 321, ../sass/structured.scss */
+/* line 342, ../sass/structured.scss */
 .sfun.flow-pc > .cell .metaform-holder {
   position: relative;
   top: -100%;
   width: 100%;
   height: 100%;
 }
-/* line 331, ../sass/structured.scss */
+/* line 352, ../sass/structured.scss */
 .sfun.flow-pc > .cell .metaform-holder > div {
   position: absolute;
   bottom: 0;
   width: 100%;
 }
-/* line 337, ../sass/structured.scss */
+/* line 358, ../sass/structured.scss */
 .sfun.flow-pc > .cell .metaform-holder input[type=text], .sfun.flow-pc > .cell .metaform-holder textarea {
   background: none;
   border: none;
@@ -358,19 +377,19 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   width: 100%;
   max-width: 50em;
 }
-/* line 346, ../sass/structured.scss */
+/* line 367, ../sass/structured.scss */
 .sfun.flow-pc > .cell .metaform-holder input[type=text]:focus, .sfun.flow-pc > .cell .metaform-holder textarea:focus {
   border: 1px solid #555555;
 }
-/* line 350, ../sass/structured.scss */
+/* line 371, ../sass/structured.scss */
 .sfun.flow-pc > .cell .metaform-holder input[type=text].iptc_headline, .sfun.flow-pc > .cell .metaform-holder textarea.iptc_headline {
   font-weight: bold;
 }
-/* line 356, ../sass/structured.scss */
+/* line 377, ../sass/structured.scss */
 .sfun.flow-pc > .cell .metaform-holder label {
   display: none;
 }
-/* line 362, ../sass/structured.scss */
+/* line 383, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory {
   border: 1px solid #e8e8e8;
   border-radius: 16px;
@@ -379,7 +398,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: 100%;
   position: relative;
 }
-/* line 370, ../sass/structured.scss */
+/* line 391, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory .overlay {
   width: 100%;
   height: 100%;
@@ -388,7 +407,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   top: 0;
   z-index: 1;
 }
-/* line 383, ../sass/structured.scss */
+/* line 404, ../sass/structured.scss */
 .sfun.flow-pc > .cell .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -403,7 +422,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 398, ../sass/structured.scss */
+/* line 419, ../sass/structured.scss */
 .sfun.flow-pc > .cell .subcell {
   width: 50%;
   height: 50%;
@@ -417,17 +436,17 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: -moz-calc(50% - 8px);
   height: calc(50% - 8px);
 }
-/* line 409, ../sass/structured.scss */
+/* line 430, ../sass/structured.scss */
 .sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
   display: block;
 }
-/* line 415, ../sass/structured.scss */
+/* line 436, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reres-plus-2s .imgmetric {
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
 
-/* line 431, ../sass/structured.scss */
+/* line 452, ../sass/structured.scss */
 .js .sfun .cell.resizepending {
   visibility: hidden;
 }

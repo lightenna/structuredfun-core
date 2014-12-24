@@ -125,7 +125,7 @@ class ImageviewController extends ViewController {
   private function fetchVideoFrame() {
     // calculate position in video
     if (!isset($this->args->{'timecode'})) {
-      $this->args->{'timecode'} = '00:00:10.0';
+      $this->args->{'timecode'} = DEFAULT_TIMECODE;
     }
     // prepend the cache location
     $key = CachedMetadataFileReader::hash($this->stats->file.FILEARG_SEPARATOR.$this->args->timecode) . '_videofullres' . '.' . 'dat';

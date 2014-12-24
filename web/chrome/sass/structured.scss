@@ -175,7 +175,7 @@
         @include calc(margin, "0px");
 
         // landscape images
-        img.x-bound {
+        .x-bound {
           position: relative;
           width: 100%;
           top: 50%;
@@ -185,7 +185,7 @@
         }
       
         // portrait images
-        img.y-bound {
+        .y-bound {
           height: 100%;
         }
 
@@ -304,6 +304,27 @@
             // animation for appearance
             transition: opacity 0.3s ease-in 0s;
           }
+        }
+
+        // video (as play button)
+        .button {
+          position: absolute;
+          top: 15%;
+          left: 45%;
+          color: #fff;
+          font-size: 2.0em;
+          border: 4px solid #fff;
+          border-radius: 0.8em;
+          box-shadow: 0 0 .2em #fff;
+          padding: 2.5% 5% 2.5% 5%;
+          opacity: 0.5;
+        }
+
+        // video (as video.js)
+        .video-js {
+          position: absolute;
+          top: 0;
+          left: 0;
         }
 
       } // a
