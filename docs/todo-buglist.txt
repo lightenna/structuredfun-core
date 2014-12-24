@@ -1,4 +1,6 @@
 
+* enable extension=php_fileinfo.dll for structuredfun-linux
+
 * changing breadth needs to zero offseq
   + because we can end up with an offseq > 1 cell width
     + which then locks the scroll
@@ -4068,4 +4070,7 @@ http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
 
 * horiz scrolling in 2x or 4x views
   + wheel only goes in one direction
+
+* videos being rendered with timecode=
+  + gives internal server error
 

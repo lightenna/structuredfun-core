@@ -7,6 +7,13 @@
 <script type="text/javascript" src="/chrome/vendor/jquery/jquery.history-1.8b2.min.js"></script>
 <script type="text/javascript" src="/chrome/vendor/modernizr/modernizr.custom.99817.2p8p3.min.js"></script>
 <script type="text/javascript" src="/chrome/vendor/mustache/mustache-0.7.2.min.js"></script>
+{# video.js for handling moving images #}
+<link href="/chrome/vendor/video.js/video-js.css" rel="stylesheet">
+<script type="text/javascript" src="/chrome/vendor/video.js/video.js"></script>
+<script>
+  videojs.options.flash.swf = "/chrome/vendor/video.js/video-js.swf"
+</script>
+{# structuredfun core #}
 <script type="text/javascript" src="/chrome/structured.js"></script>
 <script type="text/javascript" src="/chrome/structured-flow.js"></script>
 {# tool receiver order, used for event preventing = script order established here #}

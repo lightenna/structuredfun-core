@@ -14,6 +14,7 @@ define('ZIP_SEPARATOR', '/');
 define('ARG_SEPARATOR', '~args&');
 define('FILEARG_SEPARATOR', '~');
 define('SUB_REGEX', '/\[([0-9i]*)\]/');
+define('DEFAULT_TIMECODE', '00:00:10.0');
 
 class ViewController extends Controller {
 

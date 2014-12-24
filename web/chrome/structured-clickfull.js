@@ -103,9 +103,47 @@
           window.location = $clickable.attr('href');
         }
         break;
+      case 'video':
+        _toggleVideo(seq, eventContext, $ent);
+        break;
     }
     return sfun.api_getEventQueue().resolve(eventContext);
   };
+
+  var _getVideoTemplate = function() {
+    var str = '<video id="{{ id }}" class="video-js vjs-default-skin {{ classes }}" controls preload="none" width="{{ width }}" height="{{ height }}" poster="{{ poster }}">';
+    str += '<source src="{{ source }}" type="video/{{ type }}" />';
+    str += '</video>';
+    return str;
+  }
+
+  var _toggleVideo = function(seq, eventContext, $ent) {
+    if ($ent.hasClass('playing')) {
+      // @todo get timecode
+      $ent.removeClass('playing');
+    } else {
+      var $cont = $ent.cachedFind('.video-container');
+      var $img = $ent.cachedFind('.boundable');
+      var id = 'video-'+seq;
+      // flag as playing
+      $ent.addClass('playing');
+      // insert video element
+      var html = sfun.api_substitute(_getVideoTemplate(), {
+        id: id,
+        width: '100%',
+        poster: '',
+        source: $img.data('video-src'),
+        type: 'mp4',
+        // apply all image classes to new video
+        classes: $img.attr('class')
+      });
+      $cont.append(html);
+      // initialise player
+      videojs(id, { "controls": true, "autoplay": true, "preload": "auto" }, function(){
+        // Player (this) is initialized and ready.
+      });
+    }
+  }
 
   // call init function
   init();
