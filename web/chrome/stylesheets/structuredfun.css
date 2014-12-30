@@ -280,29 +280,29 @@ html.theme-dark .page .content .sfun > .cell a .meta {
 html.theme-dark .page .content .sfun > .cell a .meta .base {
   background-image: linear-gradient(rgba(23, 23, 23, 0.4), rgba(23, 23, 23, 0.8));
 }
-/* line 253, ../sass/structuredfun.scss */
-html.theme-dark .page .content .sfun > .cell a .meta span.iptc_caption, html.theme-dark .page .content .sfun > .cell a .meta span.iptc_keywords, html.theme-dark .page .content .sfun > .cell a .meta span.iptc_copyright, html.theme-dark .page .content .sfun > .cell a .meta span.iptc_source {
+/* line 250, ../sass/structuredfun.scss */
+html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_caption, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_keywords, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_copyright, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_source {
   color: #aaaaaa;
 }
-/* line 259, ../sass/structuredfun.scss */
+/* line 257, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #171717;
   color: #ffffff;
 }
-/* line 267, ../sass/structuredfun.scss */
+/* line 265, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text], html.theme-dark .page .content .sfun > .cell .metaform-holder textarea {
   color: white;
 }
-/* line 269, ../sass/structuredfun.scss */
+/* line 267, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text]:focus, html.theme-dark .page .content .sfun > .cell .metaform-holder textarea:focus {
   border: 1px solid #aaaaaa;
   background-image: linear-gradient(rgba(23, 23, 23, 0.5), rgba(23, 23, 23, 0.8));
 }
-/* line 280, ../sass/structuredfun.scss */
+/* line 278, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 288, ../sass/structuredfun.scss */
+/* line 286, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -320,7 +320,7 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 304, ../sass/structuredfun.scss */
+/* line 302, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;
