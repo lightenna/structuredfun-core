@@ -144,6 +144,8 @@
       &.selectablecell {}
       &.resizeablecell {}
 
+      // SELECT REFLECTOR
+
       // cells can be selected, but the selection is shown (reflected) by an element within
       .selectreflector {
         // make borders appear inside to avoid pushing outside cell
@@ -162,6 +164,8 @@
         border-color: $highlight;
       }
 
+      // CONTAINER
+
       .container {
         // relative parent required for alignment of x-bound images and meta
         position: relative;
@@ -173,6 +177,26 @@
         // can't put margin here without cropping images, but we use that as a fallback for non-calc browsers
         margin: ($alley/2);
         @include calc(margin, "0px");
+
+        &.directory-container.directory-outer {
+          width: 90%;
+          height: 90%;
+          margin: 5%;
+
+          > .meta {
+            // always show metadata for folders (not just on hover)
+            opacity: 1;
+
+            .base {
+              // move base over so it doesn't overlap border
+              margin-left: 1px;
+              .iptc_headline {
+                font-weight: normal;
+                font-size: 2.0em;
+              }
+            }
+          }
+        }
 
         // landscape images
         .x-bound {
@@ -189,43 +213,20 @@
           height: 100%;
         }
 
-        .imgmetric {
-          line-height: 1.0em;
-          position: absolute;
-          top: 50%;
-          left: 0;
-          z-index: 1;
-          font-size: 0.6em;
-          white-space: nowrap;
-          display: none;
-          
-          .size, .perc {
-            display: none;
-          }
-
-          &.super {
-            background-color: #009900;        
-            color: #BBFFBB;
-          }
-          
-          &.sub {
-            background-color: #990000;        
-            color: #FFBBBB;
-          }
-
-        } // imgmetric
-
         // metadata over bottom of image/cell
         .meta {
           // position absolute to stick to bottom
           display: block;
           position: absolute;
-          bottom: 0;
+          // show metadata middle left
+          left: 0;
+          bottom: 50%;
+          margin-bottom: -4em;
+          // left: 50%;
+          // margin-left: -50%;
           color: #000000;
           min-height: 50%;
           text-align: left;
-          left: 50%;
-          margin-left: -50%;
           width: 100%;
           font-size: 0.8em;
 
@@ -237,13 +238,14 @@
           .base {
             position: absolute;
             background-image: linear-gradient(rgba($background_html_light, 0.4), rgba($background_html_light, 0.8));
+            padding-left: 1em;
             padding-right: 1em;
             padding-bottom: 1em;
             bottom: 0;
 
             // all the spans (blocks) within metadata base
-            span {
-              margin: 1.0em;
+            .iptc {
+              margin: 1.0em 1.0em 1.0em 0;
               height: 1.2em;
               display: block;
 
@@ -264,13 +266,15 @@
               &.iptc_caption, &.iptc_keywords, &.iptc_copyright, &.iptc_source {
                 color: $text_icon_light;
                 display: inline;
-                margin: 0;
+                margin-left: 0;
+                margin-right: 0;
               }
 
               // edit icon to stand out
               &.editable {
                 display: inline;
-                margin: 0;
+                margin-left: 0;
+                margin-right: 0;
 
                 &:hover {
                   color: $text_overaction;
@@ -281,11 +285,39 @@
                 display: inline;
               }
 
-              // generally if it's a default value we don't show it (except headline and byline)
-              &.default.iptc_caption, &.default.iptc_keywords, &.default.iptc_copyright, &.default.iptc_source, {
+              // generally if it's a default value we don't show it (except headline)
+              &.iptc_default, &.iptc_undefined {
                 display: none;
               }
-            }
+            } // iptc
+
+            .imgmetric {
+              // can send to right edge, but gets chopped off in small grid
+              // float: right;
+              // use margin to offset container padding (1em at 0.6 font)
+              // margin-right: -1.67em;
+              float: left;
+              // use margin to offset container padding (1em at 0.8 font)
+              margin-left: -1.25em;
+              line-height: 1.0em;
+              font-size: 0.8em;
+              padding: 0 0.2em 0 0.2em;
+              white-space: nowrap;
+              
+              .size, .perc {
+                display: none;
+              }
+
+              &.super {
+                background-color: #009900;        
+                color: #BBFFBB;
+              }
+              
+              &.sub {
+                background-color: #990000;        
+                color: #FFBBBB;
+              }
+            } // imgmetric
           } // base
         } // meta
 
@@ -327,7 +359,7 @@
           left: 0;
         }
 
-      } // a
+      } // a.container
 
       &.editing {
         .meta {

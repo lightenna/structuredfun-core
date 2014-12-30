@@ -22,6 +22,13 @@
 
 --- next release ---
 
+* feature: show all metadata on first load
+  + only if we've loaded metadata for all images
+    + that's hard to tell
+    + we need some kind of state on the cell/img to flag it
+  + cleaned up display of .meta.base when metadata hasn't been loaded
+    + so now it's ok to show metadata whilst loading
+
 * manually compose sharing image
   + use that javascript that was posted up online
     + create it once
@@ -4073,4 +4080,15 @@ http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
 
 * videos being rendered with timecode=
   + gives internal server error
+
+* circle back to dark theme variants for image meta
+
+* use padding instead of margin to ensure consistent left gap
+  + makes symbols look nice(ish) when they wrap
+
+* don't show author if not known
+  + still showing on first load
+
+* folder titles
+  + style metadata overlay to be permanent
 

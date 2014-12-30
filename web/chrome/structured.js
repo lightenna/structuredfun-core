@@ -405,13 +405,16 @@ window.sfun = (function($, undefined) {
    * check that the image metric is in the right place
    */
   var refreshMetricPosition = function($ent) {
+    // metric position is current determined using CSS
+    return;
+
     var $metric = $ent.cachedFind('.imgmetric');
     if ($metric.length) {
       var $image = $ent.cachedFind('.reresable');
       if ($image.length) {
         if ($image.hasClass('y-bound')) {
           // move metric to image_x,50% for continuity with x-bound images
-          $metric.css( { 'top': '50%', 'left': $image[0].offsetLeft });
+          $metric.css( { 'left': $image[0].offsetLeft });
         } else {
           // no need to move the metric to the middle-left of an x-bound image
           // $metric.css( { 'top': $image[0].offsetTop, 'left': $image[0].offsetLeft });
@@ -485,10 +488,10 @@ window.sfun = (function($, undefined) {
     }
     // flag this image as updating its resolution
     $ent.addClass('reresing');
-    // move the metric into position and show
-    refreshMetricPosition($ent);
+    // [could] move the metric into position and show
+    // refreshMetricPosition($ent);
     var $metricperc = $ent.cachedFind('.imgmetric .perc');
-    $metricperc.html('Reresing...').show();
+    $metricperc.html('Reresing...');
     // create local deferred and local wrapUp
     var deferred = getDeferred();
     var wrapUp = function() {
@@ -647,8 +650,11 @@ window.sfun = (function($, undefined) {
           if (debug && false) {
             console.log('v['+value+'] default['+state_default[fields[i]]+'] is default');
           }
-          $field.addClass('default');
+          $field.addClass('iptc_default');
+        } else {
+          $field.removeClass('iptc_default');
         }
+        $field.removeClass('iptc_undefined');
       }
       // store the entire meta object in the cached jquery object
       $ent.cachedSet('meta', data.meta);
