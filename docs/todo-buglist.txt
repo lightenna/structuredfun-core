@@ -1,6 +1,12 @@
 
-* enable extension=php_fileinfo.dll for structuredfun-linux
+* flv video
+  + just for fun
 
+* click an image to fullscreen
+  + gets a wierd offseq
+    + only happens in some folders
+      + suspect related to cell aspect ratios
+--o--
 * changing breadth needs to zero offseq
   + because we can end up with an offseq > 1 cell width
     + which then locks the scroll
@@ -4091,4 +4097,15 @@ http://doctrine-orm.readthedocs.org/en/latest/reference/inheritance-mapping.html
 
 * folder titles
   + style metadata overlay to be permanent
+
+* enable extension=php_fileinfo.dll for structuredfun-linux
+  + test if it's actually necessary
+    + maybe only Windows throws an error
+PHP.ini configuration
+---------------------
+Note to self:this may not be necessary on linux.
+Enable php_fileinfo.so.  Typically this just involves adding a line in php.ini:
+```
+extension=fileinfo.so
+```
 
