@@ -45,6 +45,7 @@
       {% if (file.type == 'video') %}
            {# video source #}
            data-video-src="/file{{ linkpath }}{{ file.name }}"
+           data-video-type="{{ file.ext }}"
       {% endif %}
            {% if file.meta.Ratio is defined %}data-ratio="{{ file.meta.Ratio }}" {% endif %}
            {% if file.meta.OriginalWidth is defined %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is defined %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}

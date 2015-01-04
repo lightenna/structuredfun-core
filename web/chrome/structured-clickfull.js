@@ -110,13 +110,6 @@
     return sfun.api_getEventQueue().resolve(eventContext);
   };
 
-  var _getVideoTemplate = function() {
-    var str = '<video id="{{ id }}" class="video-js vjs-default-skin {{ classes }}" controls preload="none" width="{{ width }}" height="{{ height }}" poster="{{ poster }}">';
-    str += '<source src="{{ source }}" type="video/{{ type }}" />';
-    str += '</video>';
-    return str;
-  }
-
   var _toggleVideo = function(seq, eventContext, $ent) {
     if ($ent.hasClass('playing')) {
       // @todo get timecode
@@ -127,22 +120,56 @@
       var id = 'video-'+seq;
       // flag as playing
       $ent.addClass('playing');
-      // insert video element
-      var html = sfun.api_substitute(_getVideoTemplate(), {
+      // insert relevant video element
+      var video_obj = {
         id: id,
         width: '100%',
         poster: '',
         source: $img.data('video-src'),
-        type: 'mp4',
+        type: $img.data('video-type'),
         // apply all image classes to new video
         classes: $img.attr('class')
-      });
+      };
+      var html, player;
+      switch (video_obj.type) {
+        case 'mp4':
+        case 'm4v':
+        case 'flv':
+          player = 'video.js';
+          html = sfun.api_substitute(_getVideoJSTemplate(), video_obj);
+          break;
+        // case 'flv':
+          // player = 'flowplayer';
+          // html = sfun.api_substitute(_getFlowplayerTemplate(), video_obj);
+          // break;
+      }
       $cont.append(html);
       // initialise player
-      videojs(id, { "controls": true, "autoplay": true, "preload": "auto" }, function(){
-        // Player (this) is initialized and ready.
-      });
+      switch (player) {
+        case 'video.js' :
+          videojs(id, { "controls": true, "autoplay": true, "preload": "auto" }, function(){
+            // Player (this) is initialized and ready.
+          });
+          break;
+      }
     }
+  }
+
+  // TEMPLATES
+  // for different embedded video players
+
+  var _getVideoJSTemplate = function() {
+    var str = '<video id="{{ id }}" class="video-js vjs-default-skin {{ classes }}" controls preload="none" width="{{ width }}" height="{{ height }}" poster="{{ poster }}">';
+    str += '<source src="{{ source }}" type="video/{{ type }}" />';
+    str += '</video>';
+    return str;
+  }
+
+  var _getFlowplayerTemplate = function() {
+    var str = '<video id="{{ id }}" class="video-js vjs-default-skin {{ classes }}" controls preload="none" width="{{ width }}" height="{{ height }}" poster="{{ poster }}">';
+    str += '<source src="{{ source }}" type="video/{{ type }}" />';
+    str += '</video>';
+    return str;
   }
 
   // call init function
