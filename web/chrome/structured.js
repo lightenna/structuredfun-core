@@ -787,7 +787,7 @@ window.sfun = (function($, undefined) {
       event.preventDefault();      
     }, function(event) {
       // leave header up for 2s, then collapse back down
-      $(this).stop(true, false).delay(2000).animate( { width: '2.5em', opacity: 0.5 }, 100);
+      $(this).stop(true, false).delay(2000).animate( { width: '3em', opacity: 0.5 }, 100);
     });
     // horizontal or vertical layout
     $('#flow-x').click(function(event) {
@@ -2583,7 +2583,68 @@ window.sfun = (function($, undefined) {
       // count of dumped events
       'dump_count': 0,
 
-      // FUNCTIONS
+      // SUB OBJECT, FUNCTIONS
+
+      /**
+       * event queue visualisation
+       */
+      'visualisationRefresh': function() {
+        // find list if not cached
+        if (typeof(this.$list_static) == 'undefined') {
+          this.$list_static = $('#eventQueueVis');
+          // build list if not found
+          if (this.$list_static.length == 0) {
+            $html.append('<ol class="queue" id="eventQueueVis"></ol>');
+            this.$list_static = $('#eventQueueVis');
+          }
+        }
+        // cache current list elements
+        var $listitems = this.$list_static.find('li');
+        // parse list
+        var i = 0, current = this.critical_section;
+        for ( ; i<exp.loopIterLIMIT && current != null ; ++i, current = current.parent) {
+          var type = 'generic_event';
+          var keypart = current.key.split(':');
+          if (keypart.length) {
+            type = keypart[0];
+          }
+          var itemhtml = '<li class="'+type+'" data-key="'+current.key+'">'+current.key+'</li>';
+          // see if there's anything left in the list
+          if ($listitems.length-1 < i) {
+            // just add item to the end of list
+            this.$list_static.append(itemhtml);
+          } else {
+            var $listitem = $($listitems[i]);
+            // test to see if this event is already in the list
+            var likey = $listitem.data('key');
+            if ((likey != undefined) && (likey == current.key)) {
+              // no action
+            } else {
+              // @todo see if this list item's key (likey) is still somewhere in the queue
+              if (false) {
+                // if it is then move it
+              } else {
+                // if not, delete it
+                $listitem.delay(1000).animate( { width: '100%', opacity: 0.0 }, 300, function() { $(this).remove(); });
+              }
+              // add new item
+              $listitem.before(itemhtml);
+            }
+          }
+        }
+        if (i > 0) {
+          if (i == exp.loopIterLIMIT) {
+            console.log('Warning: hit loop iteration limit, suspect data structure flaw');
+          } else {
+            // remove remaining items
+            for (var j=i ; j < $listitems.length ; j++) {
+              $($listitems[j]).delay(1000).animate( { width: '100%', opacity: 0.0 }, 300, function() { $(this).remove(); });
+            }
+          }
+        }
+      },
+
+      // PUBLIC FUNCTIONS
 
       /**
        * @return {string} render simple string of object
@@ -2649,7 +2710,7 @@ window.sfun = (function($, undefined) {
         if (obj == null) {
           // compose new object ($.extend gives right to left precedence)
           var obj = $.extend({},
-            // 1: statuc defaults
+            // 1: static defaults
             this.default_event_object, {
               // 2: dynamic defaults
               'key': this.default_event_object.key + this.getCounter() + '>',
@@ -2691,6 +2752,9 @@ window.sfun = (function($, undefined) {
             that.checkExpiries();
           }, this.TIMEOUT_expireEVENT);
         }
+        if (debug) {
+          this.visualisationRefresh();
+        }
         // return the object (retreived or pushed)
         return obj;
       },
@@ -2726,6 +2790,9 @@ window.sfun = (function($, undefined) {
         if (debug && true) {
           console.log('  - merged event context[' + this.render(peer) + '] into old context['+olddesc+'], unaffected q len now'+this.getSize());
         }
+        if (debug) {
+          this.visualisationRefresh();
+        }
         return peer;
       },
 
@@ -2748,79 +2815,10 @@ window.sfun = (function($, undefined) {
         var obj = this.push(partial);
         // attach this obj as child to parent
         this.parent(obj, parent);
-        return obj;
-      },
-
-      /**
-       * delay s2 (parent) to follow s1 (child)
-       * equivalent to setup parenting from s1 (child) to s2 (parent)
-       * @param {object} obj child event context to attach to parent
-       * @param {object} parentContext parent event context
-       */
-      'delay': function(obj, parentContext) {
-        var that = this;
-        if (typeof(parentContext) != 'undefined' && parentContext) {
-          // attach to parent
-          this.attachParent(obj, parentContext);
-          // optional debugging
-          if (debug && true) {
-            console.log('  - delayed event context[' + this.render(obj.parent) + '] to follow resolution of context['+this.render(obj)+'], q len now '+this.getSize());
-          }
+        if (debug) {
+          this.visualisationRefresh();
         }
         return obj;
-      },
-
-      /**
-       * setup parenting from s1 (child) to s2 (parent)
-       * @param {object} obj child event context to attach to parent
-       * @param {object} parentContext parent event context
-       */
-      'parent': function(obj, parentContext) {
-        var that = this;
-        if (typeof(parentContext) != 'undefined' && parentContext) {
-          // child inherits certain parental attributes
-          obj.dumpable = parentContext.dumpable;
-          obj.replaceEvent = parentContext.replaceEvent;
-          // attach to parent
-          this.attachParent(obj, parentContext);
-          // optional debugging
-          if (debug && false) {
-            console.log('  - placed child event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.getSize());
-          }
-        }
-        // return original object, not what actually got attached to parent
-        return obj;
-      },
-
-      /**
-       * setup parenting from s1's earliest ancestor (child) to s2 (parent)
-       * @param {object} attach_point [great][grand]child event context
-       * @param {object} parentContext parent event context
-       * @return {object} s1's ancestor that got attached to parent
-       */
-      'attachParent': function(attach_point, parentContext) {
-        // if this object already had a parent
-        if (attach_point.parent != null) {
-          // find its earliest ancestor
-          attach_point = this.earliestAncestor(attach_point);
-        }
-        // store parent relationship
-        attach_point.parent = parentContext;
-        // store child relationship
-        parentContext.deps[parentContext.deps.length] = attach_point;
-        return attach_point;
-      },
-
-      /**
-       * @param {string} key
-       * @return {string} regex pattern to match key's family
-       */
-      'getKeyFamily': function(key) {
-        var colonPos = key.indexOf(':');
-        if (colonPos != -1) {
-          return key.substr(0, colonPos+1) + '.*';
-        }
-        return key;
       },
 
       /** 
@@ -2890,31 +2888,6 @@ window.sfun = (function($, undefined) {
       },
 
       /**
-       * @param {object} eventContext to flag as being in its critical section
-       */
-      'setCriticalSection': function(eventContext) {
-        var that = this;
-        // setup back-to-one function for use in callbacks
-        var scheduleCriticalReset = function() {
-          // if nothing else has swiped it already
-          if (that.critical_section == eventContext) {
-            that.last_critical_section = that.critical_section;
-            // flag that nothing is in its critical section
-            that.critical_section = null;
-          }
-        };
-        // remember last critical section
-        that.last_critical_section = that.critical_section;
-        // store eventContext as current critical section
-        this.critical_section = eventContext;
-        // optional debugging
-        if (debug && false) {
-          console.log('> entering critical section for '+this.render(this.critical_section));
-        }
-        this.critical_section.deferred.done(scheduleCriticalReset);
-      },
-
-      /**
        * process act-on-event decision
        * event contexts:
        *   get resolved when they've done their work (action function)
@@ -2977,10 +2950,164 @@ window.sfun = (function($, undefined) {
       },
 
       /**
+       * @param {object} object to resolve and remove if found
+       * @param {mixed} returnValue optional value to return via resolve
+       * @return {object} jQuery deferred
+       */
+      'resolve': function(obj, returnValue) {
+        if (obj != null) {
+          // remove this object from the eventQueue
+          var ref = this.removeObj(obj);
+          if (debug && false) {
+            console.log('Q resolve event context[' + this.render(obj) + '], qlen now '+this.getSize());
+          }
+          // resolve its deferred if set
+          if (obj.deferred != null) {
+            obj.deferred.resolve(returnValue);
+          }
+          // if object has a parent, update it
+          if (obj.parent != null) {
+            this.parentResolve(obj, obj.parent);
+          }
+        }
+        if (debug) {
+          this.visualisationRefresh();
+        }
+        // always return a resolved deferred
+        return getDeferred().resolve(returnValue);
+      },
+
+      /**
+       * @param {object} object to reject and remove if found
+       * @param {mixed} returnValue optional value to return via reject
+       * @return {object} jQuery deferred
+       */
+      'reject': function(obj, returnValue) {
+        if (obj != null) {
+          // remove this object from the eventQueue
+          var ref = this.removeObj(obj);
+          if (debug && true) {
+            console.log('Q rejected event context[' + this.render(obj) + '], qlen now '+this.getSize());
+          }
+          // reject its deferred if set
+          if (obj.deferred != null) {
+            return obj.deferred.reject(returnValue);
+          }
+        }
+        if (debug) {
+          this.visualisationRefresh();
+        }
+        // always return a rejected deferred
+        return getDeferred().reject(returnValue);
+      },
+
+      // PRIVATE FUNCTIONS
+
+      /**
+       * delay s2 (parent) to follow s1 (child)
+       * equivalent to setup parenting from s1 (child) to s2 (parent)
+       * @param {object} obj child event context to attach to parent
+       * @param {object} parentContext parent event context
+       */
+      delay: function(obj, parentContext) {
+        var that = this;
+        if (typeof(parentContext) != 'undefined' && parentContext) {
+          // attach to parent
+          this.attachParent(obj, parentContext);
+          // optional debugging
+          if (debug && true) {
+            console.log('  - delayed event context[' + this.render(obj.parent) + '] to follow resolution of context['+this.render(obj)+'], q len now '+this.getSize());
+          }
+          if (debug) {
+            this.visualisationRefresh();
+          }
+        }
+        return obj;
+      },
+
+      /**
+       * setup parenting from s1 (child) to s2 (parent)
+       * @param {object} obj child event context to attach to parent
+       * @param {object} parentContext parent event context
+       */
+      parent: function(obj, parentContext) {
+        var that = this;
+        if (typeof(parentContext) != 'undefined' && parentContext) {
+          // child inherits certain parental attributes
+          obj.dumpable = parentContext.dumpable;
+          obj.replaceEvent = parentContext.replaceEvent;
+          // attach to parent
+          this.attachParent(obj, parentContext);
+          // optional debugging
+          if (debug && false) {
+            console.log('  - placed child event context[' + this.render(obj) + '] into parent context['+this.render(obj.parent)+'], q len now '+this.getSize());
+          }
+        }
+        // return original object, not what actually got attached to parent
+        return obj;
+      },
+
+      /**
+       * setup parenting from s1's earliest ancestor (child) to s2 (parent)
+       * @param {object} attach_point [great][grand]child event context
+       * @param {object} parentContext parent event context
+       * @return {object} s1's ancestor that got attached to parent
+       */
+      attachParent: function(attach_point, parentContext) {
+        // if this object already had a parent
+        if (attach_point.parent != null) {
+          // find its earliest ancestor
+          attach_point = this.earliestAncestor(attach_point);
+        }
+        // store parent relationship
+        attach_point.parent = parentContext;
+        // store child relationship
+        parentContext.deps[parentContext.deps.length] = attach_point;
+        return attach_point;
+      },
+
+      /**
+       * @param {string} key
+       * @return {string} regex pattern to match key's family
+       */
+      getKeyFamily: function(key) {
+        var colonPos = key.indexOf(':');
+        if (colonPos != -1) {
+          return key.substr(0, colonPos+1) + '.*';
+        }
+        return key;
+      },
+
+      /**
+       * @param {object} eventContext to flag as being in its critical section
+       */
+      setCriticalSection: function(eventContext) {
+        var that = this;
+        // setup back-to-one function for use in callbacks
+        var scheduleCriticalReset = function() {
+          // if nothing else has swiped it already
+          if (that.critical_section == eventContext) {
+            that.last_critical_section = that.critical_section;
+            // flag that nothing is in its critical section
+            that.critical_section = null;
+          }
+        };
+        // remember last critical section
+        that.last_critical_section = that.critical_section;
+        // store eventContext as current critical section
+        this.critical_section = eventContext;
+        // optional debugging
+        if (debug && false) {
+          console.log('> entering critical section for '+this.render(this.critical_section));
+        }
+        this.critical_section.deferred.done(scheduleCriticalReset);
+      },
+
+      /**
        * call function, then wrap up its context
        * @param {object} eventContext context to wrap up
        */
-      'contextExecute': function(eventContext) {
+      contextExecute: function(eventContext) {
         var that = this;
         var func = eventContext.action;
         var wrapUp = function() {
@@ -2999,7 +3126,7 @@ window.sfun = (function($, undefined) {
        * work through ancestor chain, dump similar peers, attach this context
        * @param {object} eventContext context to attach
        */
-      'contextDelayExecution': function(eventContext) {
+      contextDelayExecution: function(eventContext) {
         var that = this;
         // @deprecated remove any peers to this event from the queue first
         // this.dumpAncestors(this.getKeyFamily(eventContext.key), this.critical_section);
@@ -3018,7 +3145,7 @@ window.sfun = (function($, undefined) {
        * @param {string} regkey regex pattern to match peers by family
        * @param {object} current root context in parent chain
        */
-      'dumpAncestors': function(regkey, current) {
+      dumpAncestors: function(regkey, current) {
         var re = new RegExp(regkey, 'g');
         // start with root's parent because we don't want to dump current critial_section
         current = current.parent;
@@ -3039,7 +3166,7 @@ window.sfun = (function($, undefined) {
        * @param {object} current eventContex to remove from parent chain
        * @return {object} next eventContext in chain after deleted one, or null if none
        */
-      'deleteAncestor': function(current) {
+      deleteAncestor: function(current) {
         var parent = current.parent;
         var children = current.deps;
         // tell the children initially that they no longer have a parent
@@ -3093,7 +3220,7 @@ window.sfun = (function($, undefined) {
        * @param {object} current
        * @return {object} earliest ancestor (end of parent chain)
        */
-      'earliestAncestor': function(current) {
+      earliestAncestor: function(current) {
         while ((current != null) && (current.parent != null)) {
           current = current.parent;
         }
@@ -3105,7 +3232,7 @@ window.sfun = (function($, undefined) {
        * @param {object} s2 event context
        * @return {boolean} true if s1 is a parent of s2
        */
-      'isParentOf': function(s1, s2) {
+      isParentOf: function(s1, s2) {
         while (s2.parent != null) {
           if (s2.parent == s1) {
             return true;
@@ -3117,46 +3244,11 @@ window.sfun = (function($, undefined) {
       },
 
       /**
-       * @param {object} s1 event context
-       * @param {object} s2 event context
-       * @return {boolean} true if s1 and s2 are the same context
-       */
-      'equals': function(s1, s2) {
-        // for now, just compare memory pointers
-        return (s1 == s2);
-      },
-
-      /**
-       * @param {object} object to resolve and remove if found
-       * @param {mixed} returnValue optional value to return via resolve
-       * @return {object} jQuery deferred
-       */
-      'resolve': function(obj, returnValue) {
-        if (obj != null) {
-          // remove this object from the eventQueue
-          var ref = this.removeObj(obj);
-          if (debug && false) {
-            console.log('Q resolve event context[' + this.render(obj) + '], qlen now '+this.getSize());
-          }
-          // resolve its deferred if set
-          if (obj.deferred != null) {
-            obj.deferred.resolve(returnValue);
-          }
-          // if object has a parent, update it
-          if (obj.parent != null) {
-            this.parentResolve(obj, obj.parent);
-          }
-        }
-        // always return a resolved deferred
-        return getDeferred().resolve(returnValue);
-      },
-
-      /**
        * tell parent that one of its child objects has been resolved
        * @param {object} obj child that's been resolved
        * @param {object} parentContext context to update
        */
-      'parentResolve': function(obj, parentContext) {
+      parentResolve: function(obj, parentContext) {
         // remove this from parent's outstanding deps
         var ref = parentContext.deps.indexOf(obj);
         if (ref != -1) {
@@ -3174,27 +3266,6 @@ window.sfun = (function($, undefined) {
         }
         // flag as no longer parented
         obj.parent = null;
-      },
-
-      /**
-       * @param {object} object to reject and remove if found
-       * @param {mixed} returnValue optional value to return via reject
-       * @return {object} jQuery deferred
-       */
-      'reject': function(obj, returnValue) {
-        if (obj != null) {
-          // remove this object from the eventQueue
-          var ref = this.removeObj(obj);
-          if (debug && true) {
-            console.log('Q rejected event context[' + this.render(obj) + '], qlen now '+this.getSize());
-          }
-          // reject its deferred if set
-          if (obj.deferred != null) {
-            return obj.deferred.reject(returnValue);
-          }
-        }
-        // always return a rejected deferred
-        return getDeferred().reject(returnValue);
       },
 
       lastEntry: null
@@ -3373,6 +3444,10 @@ window.sfun = (function($, undefined) {
     }
     if (ctheme != obj.theme) {
       state_previous['theme'] = ctheme;
+    }
+    // optional debugging
+    if (debug && false) {
+      console.log('caught hashChanged event ['+hash+']');
     }
     // stage 1: apply [hash] state to DOM
     // direction changes potentially affect all images
@@ -3955,6 +4030,7 @@ window.sfun = (function($, undefined) {
     stringHASHBANG: '#!',
     visnearBreadthMULTIPLIER: 4,
     implicitScrollDURATION: 100,
+    loopIterLIMIT: 100,
     compareGTE: 1,
     compareLTE: -1,
 

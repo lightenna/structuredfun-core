@@ -81,8 +81,8 @@ html.no-js, html.disabled-js {
   // header and footer are full-width by default.
   .header, .footer {
     clear: both;
-    height: 2.5em;
-    width: 2.5em;
+    height: 3em;
+    width: 3em;
     position: fixed;
     z-index: 2;
     overflow: hidden;
@@ -103,21 +103,28 @@ html.no-js, html.disabled-js {
     p, li {
       float: left;
       height: 100%;
-      // background at 100% height
-      background-size: 2.5em 2.5em;
-      background-repeat: no-repeat;
-      padding-top: 0.7em;
-      padding-left: 3.0em;
+      padding-left: 3em;
+      padding-top: 1em;
 
       a {
         text-decoration: none;
         color: $text_light;
       }
 
-
-      &.menu-icon {
-        background-image: url('/chrome/images/fullres/menu-icon-64x64-black.png');
+      &.menu.icon {
+        padding: 0 0 0 0.1em;
+        font-size: 3.0em;
       }
+
+      // done the background image way
+      // background at 100% height
+      // background-size: 2.5em 2.5em;
+      // background-repeat: no-repeat;
+      // padding-top: 0.7em;
+      // padding-left: 3.0em;
+      // &.menu-icon {
+      //   background-image: url('/chrome/images/fullres/menu-icon-64x64-black.png');
+      // }
     }
   }
 
@@ -293,6 +300,33 @@ html.theme-dark {
     background: radial-gradient($shape at center, $colour_white_solid 0%, $colour_black_solid $position_mid, $colour_black_alpha 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
 
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Queue visualisation
+
+#eventQueueVis {
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  // stick to right-hand edge
+  left: 100%;
+  margin-left: -10em;
+
+  li {
+    width: 10em;
+    height: 1.0em;
+    background-color: #660000;
+    border: 1px solid #000;
+
+    &.hash {
+      background-color: #006600;
+    }
+
+    &.scroll {
+      background-color: #000066;
+    }
   }
 }
 

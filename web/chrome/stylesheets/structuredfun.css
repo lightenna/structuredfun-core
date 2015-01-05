@@ -1,4 +1,4 @@
-/* line 17, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 17, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -20,45 +20,45 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
-/* line 22, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 22, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html {
   line-height: 1;
 }
 
-/* line 24, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 24, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 ol, ul {
   list-style: none;
 }
 
-/* line 26, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 26, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-/* line 28, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 28, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 caption, th, td {
   text-align: left;
   font-weight: normal;
   vertical-align: middle;
 }
 
-/* line 30, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 30, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q, blockquote {
   quotes: none;
 }
-/* line 103, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 103, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q:before, q:after, blockquote:before, blockquote:after {
   content: "";
   content: none;
 }
 
-/* line 32, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 32, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 a img {
   border: none;
 }
 
-/* line 116, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 116, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
 }
@@ -127,8 +127,8 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
 /* line 82, ../sass/structuredfun.scss */
 .page .header, .page .footer {
   clear: both;
-  height: 2.5em;
-  width: 2.5em;
+  height: 3em;
+  width: 3em;
   position: fixed;
   z-index: 2;
   overflow: hidden;
@@ -156,29 +156,28 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
 .page .header p, .page .header li, .page .footer p, .page .footer li {
   float: left;
   height: 100%;
-  background-size: 2.5em 2.5em;
-  background-repeat: no-repeat;
-  padding-top: 0.7em;
-  padding-left: 3.0em;
+  padding-left: 3em;
+  padding-top: 1em;
 }
-/* line 112, ../sass/structuredfun.scss */
+/* line 109, ../sass/structuredfun.scss */
 .page .header p a, .page .header li a, .page .footer p a, .page .footer li a {
   text-decoration: none;
   color: black;
 }
-/* line 118, ../sass/structuredfun.scss */
-.page .header p.menu-icon, .page .header li.menu-icon, .page .footer p.menu-icon, .page .footer li.menu-icon {
-  background-image: url("/chrome/images/fullres/menu-icon-64x64-black.png");
+/* line 114, ../sass/structuredfun.scss */
+.page .header p.menu.icon, .page .header li.menu.icon, .page .footer p.menu.icon, .page .footer li.menu.icon {
+  padding: 0 0 0 0.1em;
+  font-size: 3.0em;
 }
-/* line 124, ../sass/structuredfun.scss */
+/* line 131, ../sass/structuredfun.scss */
 .page .header {
   top: 0;
 }
-/* line 129, ../sass/structuredfun.scss */
+/* line 136, ../sass/structuredfun.scss */
 .page .footer {
   bottom: 0;
 }
-/* line 133, ../sass/structuredfun.scss */
+/* line 140, ../sass/structuredfun.scss */
 .page .content {
   height: 100%;
   -webkit-touch-callout: none;
@@ -189,20 +188,20 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   user-select: none;
 }
 
-/* line 161, ../sass/structuredfun.scss */
+/* line 168, ../sass/structuredfun.scss */
 html.flow-1 .page .content {
   height: 100%;
   margin: 0;
 }
-/* line 164, ../sass/structuredfun.scss */
+/* line 171, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun {
   margin: 0;
 }
-/* line 168, ../sass/structuredfun.scss */
+/* line 175, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun .media-container .selectreflector {
   border: none;
 }
-/* line 174, ../sass/structuredfun.scss */
+/* line 181, ../sass/structuredfun.scss */
 html.flow-1 .overlay-holder {
   position: fixed;
   height: 100%;
@@ -227,16 +226,16 @@ html.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 197, ../sass/structuredfun.scss */
+/* line 204, ../sass/structuredfun.scss */
 .sfun {
   margin-top: -4px;
 }
 
-/* line 205, ../sass/structuredfun.scss */
+/* line 212, ../sass/structuredfun.scss */
 html.theme-dark {
   background-color: #171717;
 }
-/* line 209, ../sass/structuredfun.scss */
+/* line 216, ../sass/structuredfun.scss */
 html.theme-dark .page .header {
   color: white;
   background: #000000;
@@ -256,53 +255,53 @@ html.theme-dark .page .header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222',GradientType=0 );
   /* IE6-9 */
 }
-/* line 223, ../sass/structuredfun.scss */
+/* line 230, ../sass/structuredfun.scss */
 html.theme-dark .page .header p a, html.theme-dark .page .header li a {
   color: white;
 }
-/* line 226, ../sass/structuredfun.scss */
+/* line 233, ../sass/structuredfun.scss */
 html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu-icon {
   background-image: url("/chrome/images/fullres/menu-icon-64x64-white.png");
 }
-/* line 234, ../sass/structuredfun.scss */
+/* line 241, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell {
   background-color: black;
 }
-/* line 238, ../sass/structuredfun.scss */
+/* line 245, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell:not(.selected) .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 244, ../sass/structuredfun.scss */
+/* line 251, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta {
   color: #ffffff;
 }
-/* line 247, ../sass/structuredfun.scss */
+/* line 254, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta .base {
   background-image: linear-gradient(rgba(23, 23, 23, 0.4), rgba(23, 23, 23, 0.8));
 }
-/* line 250, ../sass/structuredfun.scss */
+/* line 257, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_caption, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_keywords, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_copyright, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_source {
   color: #aaaaaa;
 }
-/* line 257, ../sass/structuredfun.scss */
+/* line 264, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #171717;
   color: #ffffff;
 }
-/* line 265, ../sass/structuredfun.scss */
+/* line 272, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text], html.theme-dark .page .content .sfun > .cell .metaform-holder textarea {
   color: white;
 }
-/* line 267, ../sass/structuredfun.scss */
+/* line 274, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text]:focus, html.theme-dark .page .content .sfun > .cell .metaform-holder textarea:focus {
   border: 1px solid #aaaaaa;
   background-image: linear-gradient(rgba(23, 23, 23, 0.5), rgba(23, 23, 23, 0.8));
 }
-/* line 278, ../sass/structuredfun.scss */
+/* line 285, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 286, ../sass/structuredfun.scss */
+/* line 293, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -320,7 +319,31 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 302, ../sass/structuredfun.scss */
+/* line 309, ../sass/structuredfun.scss */
+#eventQueueVis {
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 100%;
+  margin-left: -10em;
+}
+/* line 317, ../sass/structuredfun.scss */
+#eventQueueVis li {
+  width: 10em;
+  height: 1.0em;
+  background-color: #660000;
+  border: 1px solid #000;
+}
+/* line 323, ../sass/structuredfun.scss */
+#eventQueueVis li.hash {
+  background-color: #006600;
+}
+/* line 327, ../sass/structuredfun.scss */
+#eventQueueVis li.scroll {
+  background-color: #000066;
+}
+
+/* line 336, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;
