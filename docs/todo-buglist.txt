@@ -1,4 +1,44 @@
 
+* instrument event ordering
+  + need to see what's happening with the different events
+  + visualising the queue is neat
+    + potentially useful for other projects
+  + visualisation as separate queue?
+    + one copy exists in DOM
+    + one copy exists in eventQueue as critical_section linked list
+  + API
+    + call a simple updateVis() function
+      + compare critical section linked list with DOM?
+  + can't see a reason to introduce another cache
+
+* separate re-resing from selecting
+  + a slow re-res can mean that we're waiting ages for
+    + the select reflector to show an image is selected
+  + I suspect that's also the reason why we're slow to jump to the right place on the page
+--o--
+  + this is linked to a slow click
+    + we need to process the jump immediately
+  + check the split behaviour
+    + we seem to jump to the breadth immediately
+    + then follow up with a scroll much later
+      + is it the scroll event that's getting delayed?
+        + I think so
+  + this is tricky
+    + there's an array of preceding events
+      + that are all getting stacked up
+    + reordering events
+      + each event type gets a priority
+      + a high priority event jumps the queue
+  + solution isn't clear yet
+  + build instrumentation
+
+* feature: show all metadata on first load
+  + only if we've loaded metadata for all images
+    + that's hard to tell
+    + we need some kind of state on the cell/img to flag it
+  + cleaned up display of .meta.base when metadata hasn't been loaded
+    + so now it's ok to show metadata whilst loading
+
 * flv video
   + just for fun
 
@@ -28,26 +68,11 @@
 
 --- next release ---
 
-* feature: show all metadata on first load
-  + only if we've loaded metadata for all images
-    + that's hard to tell
-    + we need some kind of state on the cell/img to flag it
-  + cleaned up display of .meta.base when metadata hasn't been loaded
-    + so now it's ok to show metadata whilst loading
-
 * manually compose sharing image
   + use that javascript that was posted up online
     + create it once
-    + put the correct metadata on the page accordingly
-
-* substitute hamburger icon for class="icon ion-navicon-round"
-  + it always needs to be 10% of the screen
-    + because it's way too small on mobiles in ems
-
-* separate re-resing from selecting
-  + a slow re-res can mean that we're waiting ages for
-    + the select reflector to show an image is selected
-  + I suspect that's also the reason why we're slow to jump to the right place on the page
+  + transfer manually composed image from discus to demo.sfun
+  + put the correct metadata on the page accordingly
 
 * install linux tool to read image metadata
   + xv or xview or something
@@ -95,10 +120,6 @@ http://httpd.apache.org/docs/current/rewrite/rewritemap.html#int
   + seems to happen when scroll events queue up
   + it's sufficiently annoying that it needs never to happen
   + start by making sure the scroll event is fired
-
-* some wikimedia images don't load under linux
-  + don't really have to support all filenames
-    + but wikimedia images are important for online sfun demo
 
 * think about offseq for page up/down
   + think about offseq for wheel up/down
@@ -4108,4 +4129,15 @@ Enable php_fileinfo.so.  Typically this just involves adding a line in php.ini:
 ```
 extension=fileinfo.so
 ```
+
+* some wikimedia images don't load under linux
+  + don't really have to support all filenames
+    + but wikimedia images are important for online sfun demo
+
+* substitute hamburger icon for class="icon ion-navicon-round"
+  + it always needs to be 10% of the screen
+    + because it's way too small on mobiles in ems
+  + need to set font size
+    + so can't be a percentage of screen height
+    + although could do in javascript
 
