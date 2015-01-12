@@ -19,6 +19,7 @@
 }
 
 html {
+  font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
   background-color: $background_html_light;
   color: #999999;
   height: 100%;
@@ -75,7 +76,6 @@ html.no-js, html.disabled-js {
 // Page
 
 .page {
-  font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
   height: 100%;
 
   // header and footer are full-width by default.
@@ -307,6 +307,9 @@ html.theme-dark {
 // Queue visualisation
 
 #eventQueueVis {
+  color: #fff;
+  font-size: 0.8em;
+  // scroll in top-right
   position: fixed;
   z-index: 1;
   top: 0;
@@ -316,7 +319,7 @@ html.theme-dark {
 
   li {
     width: 10em;
-    height: 1.0em;
+    padding: 0.2em;
     background-color: #660000;
     border: 1px solid #000;
 

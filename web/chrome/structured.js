@@ -2600,6 +2600,9 @@ window.sfun = (function($, undefined) {
         }
         // cache current list elements
         var $listitems = this.$list_static.find('li');
+        var _localDelete = function($li) {
+          $li.delay(1000).animate( { width: '100%', opacity: 0.0 }, 300, function() { $(this).remove(); });
+        };
         // parse list
         var i = 0, current = this.critical_section;
         for ( ; i<exp.loopIterLIMIT && current != null ; ++i, current = current.parent) {
@@ -2625,21 +2628,19 @@ window.sfun = (function($, undefined) {
                 // if it is then move it
               } else {
                 // if not, delete it
-                $listitem.delay(1000).animate( { width: '100%', opacity: 0.0 }, 300, function() { $(this).remove(); });
+                _localDelete($listitem);
               }
               // add new item
               $listitem.before(itemhtml);
             }
           }
         }
-        if (i > 0) {
-          if (i == exp.loopIterLIMIT) {
-            console.log('Warning: hit loop iteration limit, suspect data structure flaw');
-          } else {
-            // remove remaining items
-            for (var j=i ; j < $listitems.length ; j++) {
-              $($listitems[j]).delay(1000).animate( { width: '100%', opacity: 0.0 }, 300, function() { $(this).remove(); });
-            }
+        if (i == exp.loopIterLIMIT) {
+          console.log('Warning: hit loop iteration limit, suspect data structure flaw');
+        } else {
+          // remove remaining items
+          for (var j=i ; j < $listitems.length ; j++) {
+            _localDelete($($listitems[j]));
           }
         }
       },
@@ -3100,6 +3101,9 @@ window.sfun = (function($, undefined) {
         if (debug && false) {
           console.log('> entering critical section for '+this.render(this.critical_section));
         }
+        if (debug) {
+          this.visualisationRefresh();
+        }
         this.critical_section.deferred.done(scheduleCriticalReset);
       },
 
@@ -3490,7 +3494,7 @@ window.sfun = (function($, undefined) {
     if (eventContext == null) {
       // don't process scroll event every time, buffer unless there's a context
       buffer('handlerScrolled_event',
-      // function to execute if/when we are processing this event
+      // success function to execute if/when we are processing this event
       function() {
         // get context if we created the event, invent if it was user generated
         eventContext = eventQueue.getOrInvent({
@@ -3506,8 +3510,10 @@ window.sfun = (function($, undefined) {
           return handlerScrolled_eventProcess(event, sx, sy);
         });
       },
-      // function to execute if we're dumping this event
-      function(){}, 50);
+      // drop function to execute if we're dumping this event
+      function(){
+        // nothing to do
+      }, 50);
     } else {
       // process this event if we're meant to as we originated it
       return eventQueue.actOnContext(eventContext, function() {
@@ -3803,32 +3809,63 @@ window.sfun = (function($, undefined) {
    * @param {function} successCallback to call if we're executing this event
    * @param {function} dropCallback to call if we're dropping this event
    * @param {int} timeout in milliseconds, needs to be about 200ms for normal dragging
+   * @param {int} mode 0 (default) = bufferExecFIRST, 1 = bufferExecLAST
    */
-  var buffer = function(name, successCallback, dropCallback, timeout) {
+  var buffer = function(name, successCallback, dropCallback, timeout, mode) {
+    // defaults
+    if (mode == undefined) {
+      mode = exp.bufferExecLAST;
+    }
     // option to disable buffer
     var disabled = false;
     if (disabled) {
       return successCallback();
     }
-    // reschedule is important when dragging, because the events come thick and fast
-    var reschedule = true;
+    // assume that we're going to schedule the current event, not execute it now
+    var schedule = true;
+    // if we've already scheduled something
     if (typeof(this[name]) != 'undefined' && this[name]) {
-      if (reschedule) {
-        // timeout pending, delay it
-        clearTimeout(this[name]);
-        // reschedule it
-        this[name] = setTimeout(this[name+'__function'], timeout);      
+      switch(mode) {
+        case exp.bufferExecFIRST:
+          // delay the scheduled event (first event will eventually get executed)
+          clearTimeout(this[name]);
+          this[name] = setTimeout(this[name+'__function'], timeout);
+          // drop, don't schedule the current event
+          schedule = false;
+          dropCallback();
+          break;
+        case exp.bufferExecLAST:
+          // drop the previous event
+          this[name+'__function'](false);
+          // schedule the current
+          schedule = true;
+          break;
       }
-      // drop current
-      dropCallback();
-    } else {
-      // save callback function in case it needs rescheduling
-      this[name+'__function'] = function() {
-        successCallback();
+    }
+    // if we've got a fresh queue
+    else {
+      // schedule the current event
+      schedule = true;
+    }
+    if (schedule) {
+      // save callback function in case it needs delaying
+      this[name+'__function'] = function(exec) {
+        // by default, we execute the success callback
+        if (exec == undefined) {
+          // because the default occurs when we hit the timeout
+          exec = true;
+        }
+        if (exec) {
+          successCallback();
+        } else {  
+          dropCallback();
+        }
+        // clear timeout var (<name>) and callback function (<name>__function)
+        clearTimeout(this[name]);
         this[name] = null;
         this[name+'__function'] = null;
       };
-      // schedule timeout
+      // schedule event
       this[name] = setTimeout(this[name+'__function'], timeout);
     }
   }
@@ -4033,6 +4070,8 @@ window.sfun = (function($, undefined) {
     loopIterLIMIT: 100,
     compareGTE: 1,
     compareLTE: -1,
+    bufferExecFIRST: 0,
+    bufferExecLAST: 1,
 
     /**
      * add a button to the header
