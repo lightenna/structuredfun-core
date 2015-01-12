@@ -77,20 +77,21 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 
 /* line 21, ../sass/structuredfun.scss */
 html {
+  font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
   background-color: #e8e8e8;
   color: #999999;
   height: 100%;
 }
-/* line 26, ../sass/structuredfun.scss */
+/* line 27, ../sass/structuredfun.scss */
 html body {
   height: 100%;
 }
 
-/* line 34, ../sass/structuredfun.scss */
+/* line 35, ../sass/structuredfun.scss */
 html.flexbox.flow-x {
   overflow-x: scroll;
 }
-/* line 39, ../sass/structuredfun.scss */
+/* line 40, ../sass/structuredfun.scss */
 html.flexbox.flow-x .sfun.flow, html.flexbox.flow-x .sfun .flow {
   display: -webkit-flex;
   -webkit-flex-flow: column wrap;
@@ -105,23 +106,22 @@ html.flexbox.flow-x .sfun.flow, html.flexbox.flow-x .sfun .flow {
   height: 100%;
 }
 
-/* line 56, ../sass/structuredfun.scss */
+/* line 57, ../sass/structuredfun.scss */
 html.flow-y, html.no-flexbox.flow-x {
   overflow-y: scroll;
 }
-/* line 61, ../sass/structuredfun.scss */
+/* line 62, ../sass/structuredfun.scss */
 html.flow-y .sfun li, html.no-flexbox.flow-x .sfun li {
   float: left;
 }
 
-/* line 69, ../sass/structuredfun.scss */
+/* line 70, ../sass/structuredfun.scss */
 html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-js .footer {
   display: none;
 }
 
-/* line 77, ../sass/structuredfun.scss */
+/* line 78, ../sass/structuredfun.scss */
 .page {
-  font-family: 'Gill Sans', 'Gill Sans MT', sans-serif;
   height: 100%;
 }
 /* line 82, ../sass/structuredfun.scss */
@@ -321,29 +321,31 @@ html.theme-dark.flow-1 .overlay-holder {
 
 /* line 309, ../sass/structuredfun.scss */
 #eventQueueVis {
+  color: #fff;
+  font-size: 0.8em;
   position: fixed;
   z-index: 1;
   top: 0;
   left: 100%;
   margin-left: -10em;
 }
-/* line 317, ../sass/structuredfun.scss */
+/* line 320, ../sass/structuredfun.scss */
 #eventQueueVis li {
   width: 10em;
-  height: 1.0em;
+  padding: 0.2em;
   background-color: #660000;
   border: 1px solid #000;
 }
-/* line 323, ../sass/structuredfun.scss */
+/* line 326, ../sass/structuredfun.scss */
 #eventQueueVis li.hash {
   background-color: #006600;
 }
-/* line 327, ../sass/structuredfun.scss */
+/* line 330, ../sass/structuredfun.scss */
 #eventQueueVis li.scroll {
   background-color: #000066;
 }
 
-/* line 336, ../sass/structuredfun.scss */
+/* line 339, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

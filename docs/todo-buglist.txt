@@ -1,4 +1,22 @@
 
+* click an image to fullscreen
+  + gets a wierd offseq
+    + only happens in some folders
+      + suspect related to cell aspect ratios
+--o--
+* changing breadth needs to zero offseq
+  + because we can end up with an offseq > 1 cell width
+    + which then locks the scroll
+  + cell count fullscreen is wrong
+    + cellmajor is about 1271
+* cell widths are wrong
+  + looks to me like the cell widths are wrong d=h&b=1
+    + should be able to see a bunch of images side-by-side
+      + I'm not entirely sure that's true
+      + may have been a design decision
+        + it would have to be a javascript thing to change the cell minors
+          + look for change code on resize
+
 * instrument event ordering
   + need to see what's happening with the different events
   + visualising the queue is neat
@@ -10,6 +28,24 @@
     + call a simple updateVis() function
       + compare critical section linked list with DOM?
   + can't see a reason to introduce another cache
+  + I think we're missing some scroll events
+    + I'm pretty sure they're getting processed
+      + but they don't show up in the event queue
+      + perhaps because they're resolved before then
+    + there's a lag
+      + it shows the previous event only when processing the next
+        + this is really interesting
+        + looks like we keep the first scroll and dump the last
+          + which is crazy
+          + because it's the more relevant
+  + make it look nicer (font)
+    + try to allow it to wrap
+      + because overflow looks a mess
+  + show re-keying
+    + little flash and change text
+    + not clear
+      + [green] hash:seq only showing up when seq=1
+      + I think all 'selected' keys should also have an associated hash:seq
 
 * separate re-resing from selecting
   + a slow re-res can mean that we're waiting ages for
@@ -41,15 +77,6 @@
 
 * flv video
   + just for fun
-
-* click an image to fullscreen
-  + gets a wierd offseq
-    + only happens in some folders
-      + suspect related to cell aspect ratios
---o--
-* changing breadth needs to zero offseq
-  + because we can end up with an offseq > 1 cell width
-    + which then locks the scroll
 
 * deploy
   + structuredfun-linux as submodule of drupal7
@@ -4140,4 +4167,18 @@ extension=fileinfo.so
   + need to set font size
     + so can't be a percentage of screen height
     + although could do in javascript
+
+* rewrite buffer function
+  + we're buffering wrong
+    + we're queuing events, then only executing the first one
+      + should be executing that last one
+  + do I need to buffer the drop function?
+    + not always (not now) but it is possible
+    + we don't make the decision about whether to drop or not
+      + until we receive the next event
+        + or timeout
+      + we only need to buffer it for one call
+        + if there are n events
+        + ev0 gets dropped when we call ev1
+        + evN gets executed
 
