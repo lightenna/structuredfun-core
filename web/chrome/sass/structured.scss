@@ -93,11 +93,6 @@
       @include calc(height, (100% / 8)+" - "+($alley));
     }
 
-    // empty placeholder for js-inserted (dynamic) major axis cell widths
-    &.flow-dynamic-major > .cell.resizeablecell {
-      // .cell.resizeablecell required to raise selector up stack over default
-    }
-
     /**
      * This section is not used, but kept for reference only
      *
@@ -126,6 +121,11 @@
     }
      * 
      */
+
+    // empty placeholder for js-inserted (dynamic) major axis cell widths
+    &.flow-x.flow-dynamic-major > .cell.resizeablecell {
+      // .cell.resizeablecell required to raise selector up stack over default
+    }
 
     > .cell {
       // centre
@@ -409,7 +409,7 @@
         label {
           display: none;
         }
-      }
+      } // .metadata-holder
 
       // directories with preview images
       .directory {
@@ -430,7 +430,7 @@
           z-index: 1;
         }
 
-      } // directory
+      } // .directory
 
       // title over directories
       .title {
@@ -472,6 +472,7 @@
       }
 
     } // .cell
+
   }
 }
 

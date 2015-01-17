@@ -1,46 +1,30 @@
 
-* click an image to fullscreen
-  + gets a wierd offseq
-    + only happens in some folders
-      + suspect related to cell aspect ratios
---o--
-* changing breadth needs to zero offseq
-  + because we can end up with an offseq > 1 cell width
-    + which then locks the scroll
-  + cell count fullscreen is wrong
-    + cellmajor is about 1271
-* cell widths are wrong
-  + looks to me like the cell widths are wrong d=h&b=1
-    + should be able to see a bunch of images side-by-side
-      + I'm not entirely sure that's true
-      + may have been a design decision
-        + it would have to be a javascript thing to change the cell minors
-          + look for change code on resize
+* show a sequence number on event vis
+  + helpful to tell events apart
+    + 3 digit with wraparound
+  = look up padding
 
-* instrument event ordering
-  + need to see what's happening with the different events
-  + visualising the queue is neat
-    + potentially useful for other projects
-  + visualisation as separate queue?
-    + one copy exists in DOM
-    + one copy exists in eventQueue as critical_section linked list
-  + API
-    + call a simple updateVis() function
-      + compare critical section linked list with DOM?
-  + can't see a reason to introduce another cache
-  + I think we're missing some scroll events
-    + I'm pretty sure they're getting processed
-      + but they don't show up in the event queue
-      + perhaps because they're resolved before then
-    + there's a lag
-      + it shows the previous event only when processing the next
-        + this is really interesting
-        + looks like we keep the first scroll and dump the last
-          + which is crazy
-          + because it's the more relevant
-  + make it look nicer (font)
-    + try to allow it to wrap
-      + because overflow looks a mess
+* dump the queue as a simple text string to console
+  + need a reference for each refresh
+  + queue string shows that there's all kinds of stuff going on
+    + need to make queue string make sense
+      + before we try and make the visualisation work
+
+* investigate multiple events for key presses
+  + start off by snapping the fade on old keys
+    + we don't want things showing at the same time that don't co-exist
+  + try 0 fade out
+    + it's the delay
+  + could tag outgoing with 'outgoing' class
+    + then if we encounter one that's outgoing
+    + we could just dump it immediately
+  + better
+    + we want to tell any thing we're adding to delete itself after 2000ms
+      + nope
+      + because we don't know that the event will have been resolved
+    + we only want to remove after we know it's been resolved
+
+* investigate missing vis events
   + show re-keying
     + little flash and change text
     + not clear
@@ -4181,4 +4165,66 @@ extension=fileinfo.so
         + if there are n events
         + ev0 gets dropped when we call ev1
         + evN gets executed
+
+* click an image to fullscreen
+  + gets a wierd offseq
+    + only happens in some folders
+      + suspect related to cell aspect ratios
+--o--
+* changing breadth needs to zero offseq
+  + because we can end up with an offseq > 1 cell width
+    + which then locks the scroll
+  + cell count fullscreen is wrong
+    + cellmajor is about 1271
+* cell widths are wrong
+  + looks to me like the cell widths are wrong d=h&b=1
+    + should be able to see a bunch of images side-by-side
+      + I'm not entirely sure that's true
+      + may have been a design decision
+        + it would have to be a javascript thing to change the cell minors
+          + look for change code on resize
+  + can probably break this apart
+    + try and take cell widths from real cell
+      + that way it won't matter if cell widths are being set or not
+    + nope, that's not going to work
+      + because we're guessing cell width ahead of a viewport change
+        + that means we need to work it out
+  + try to find references to image-ratio
+    + because we must use that for the cell resizing
+      + right, we are setting cell width
+      + but it's being lost in the CSS inheritance structure
+      = sorted
+  = now offseq seems to be correct too
+
+* up key doesn't do the same as left arrow
+
+* instrument event ordering
+  + need to see what's happening with the different events
+  + visualising the queue is neat
+    + potentially useful for other projects
+  + visualisation as separate queue?
+    + one copy exists in DOM
+    + one copy exists in eventQueue as critical_section linked list
+  + API
+    + call a simple updateVis() function
+      + compare critical section linked list with DOM?
+  + can't see a reason to introduce another cache
+  + I think we're missing some scroll events
+    + I'm pretty sure they're getting processed
+      + but they don't show up in the event queue
+      + perhaps because they're resolved before then
+    + there's a lag
+      + it shows the previous event only when processing the next
+        + this is really interesting
+        + looks like we keep the first scroll and dump the last
+          + which is crazy
+          + because it's the more relevant
+  + make it look nicer (font)
+    + try to allow it to wrap
+      + because overflow looks a mess
+
+* see if it's viable to animate arrow key image movements
+  + need to preserve the animate flag when parenting
+    + works
+    + animateable flag preserved in parent() call
 

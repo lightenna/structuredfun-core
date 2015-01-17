@@ -1347,7 +1347,7 @@ window.sfun = (function($, undefined) {
       console.log('ratio_mean['+ratio_mean+'] viewport_ratio['+viewport_ratio+'] cell_count['+cell_count+']');
     }
     // overwrite existing CSS selector
-    createCSSSelector('.sfun.flow-pc.flow-dynamic-major > .cell.resizeablecell', (direction == 'x' ? 'width' : 'height') + ': calc(' + cell_perc + '% - 8px);');
+    createCSSSelector('.sfun.flow-pc.flow-x.flow-dynamic-major > .cell.resizeablecell', (direction == 'x' ? 'width' : 'height') + ': calc(' + cell_perc + '% - 8px);');
   };
 
   /**
@@ -1530,7 +1530,7 @@ window.sfun = (function($, undefined) {
     }    
     // scroll to the target position
     // animate if we're using a relative offset
-    return fireScrollUpdate(target, eventContext, (typeof(eventContext.animate) != 'undefined' ? eventContext.animate : 0));
+    return fireScrollUpdate(target, eventContext, (typeof(eventContext.animateable) != 'undefined' ? eventContext.animateable : 0));
   };
 
   /**
@@ -1844,13 +1844,13 @@ window.sfun = (function($, undefined) {
     // work out how to centre image
     var viewport_ratio = getViewportWidth() / getViewportHeight();
     var ratio_mean = ratio_total / ratio_count;
-    // we're centring the image fullscreen, so can't use current width
+    // we're centring the image fullscreen (from b2/b4), so can't use current width
     var cell_count_fullscreen = (direction == 'x' ? 
       Math.max(1, viewport_ratio * 1 * 1 / ratio_mean) :
       Math.max(1, 1 / viewport_ratio * 1 * ratio_mean)
     );
     // work out what the cell width will be when fullscreen
-    var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight())
+    var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight());
     var viewport_midpoint = viewport_major / 2;
     var cell_major = viewport_major / cell_count_fullscreen;
     var cell_midpoint = cell_major / 2;
@@ -2567,6 +2567,7 @@ window.sfun = (function($, undefined) {
         'comment': '',
         // no id yet
         'idx': null
+        // 'animatable' not defined
       },
 
       // VARIABLES
@@ -2590,32 +2591,37 @@ window.sfun = (function($, undefined) {
        */
       'visualisationRefresh': function() {
         // find list if not cached
-        if (typeof(this.$list_static) == 'undefined') {
-          this.$list_static = $('#eventQueueVis');
+        if (typeof(this.visref_$list_static) == 'undefined') {
+          this.visref_$list_static = $('#eventQueueVis');
           // build list if not found
-          if (this.$list_static.length == 0) {
+          if (this.visref_$list_static.length == 0) {
             $html.append('<ol class="queue" id="eventQueueVis"></ol>');
-            this.$list_static = $('#eventQueueVis');
+            this.visref_$list_static = $('#eventQueueVis');
           }
         }
         // cache current list elements
-        var $listitems = this.$list_static.find('li');
-        var _localDelete = function($li) {
-          $li.delay(1000).animate( { width: '100%', opacity: 0.0 }, 300, function() { $(this).remove(); });
+        var $listitems = this.visref_$list_static.find('li');
+        var _localDelete = function($li, delay) {
+          $li.delay(delay).animate( { width: '100%', right: '200px', opacity: 0.0 }, 300, function() { $(this).remove(); });
         };
         // parse list
         var i = 0, current = this.critical_section;
+        var queue_string = '';
         for ( ; i<exp.loopIterLIMIT && current != null ; ++i, current = current.parent) {
+          var idx3dig = current.idx % 1000;
           var type = 'generic_event';
           var keypart = current.key.split(':');
           if (keypart.length) {
             type = keypart[0];
           }
-          var itemhtml = '<li class="'+type+'" data-key="'+current.key+'">'+current.key+'</li>';
+          // add current event to queue_string
+          queue_string += (queue_string.length == 0 ? '' : ' -> ')+ '['+idx3dig+']';
+          // build list item
+          var itemhtml = '<li class="'+type+'" data-key="'+current.key+'"><span class="dig3">'+idx3dig+'</span>'+current.key+'</li>';
           // see if there's anything left in the list
           if ($listitems.length-1 < i) {
             // just add item to the end of list
-            this.$list_static.append(itemhtml);
+            this.visref_$list_static.append(itemhtml);
           } else {
             var $listitem = $($listitems[i]);
             // test to see if this event is already in the list
@@ -2628,7 +2634,7 @@ window.sfun = (function($, undefined) {
                 // if it is then move it
               } else {
                 // if not, delete it
-                _localDelete($listitem);
+                _localDelete($listitem, 0);
               }
               // add new item
               $listitem.before(itemhtml);
@@ -2640,8 +2646,12 @@ window.sfun = (function($, undefined) {
         } else {
           // remove remaining items
           for (var j=i ; j < $listitems.length ; j++) {
-            _localDelete($($listitems[j]));
+            _localDelete($($listitems[j]), 2000);
           }
+        }
+        // output queue string for reconciling event queue visualisation with queue
+        if (debug && true) {
+          console.log('Queue string: '+queue_string);
         }
       },
 
@@ -3036,6 +3046,7 @@ window.sfun = (function($, undefined) {
         if (typeof(parentContext) != 'undefined' && parentContext) {
           // child inherits certain parental attributes
           obj.dumpable = parentContext.dumpable;
+          obj.animateable = parentContext.animateable;
           obj.replaceEvent = parentContext.replaceEvent;
           // attach to parent
           this.attachParent(obj, parentContext);
@@ -3599,6 +3610,11 @@ window.sfun = (function($, undefined) {
         if (event.altKey) {
           event.preventDefault();
           urlChangeUp();
+        } else {
+          event.preventDefault();
+          // advance to previous image
+          eventContext.animateable = 50;
+          return imageAdvanceBy(-1, eventContext);
         }
         break;
 
@@ -3607,14 +3623,16 @@ window.sfun = (function($, undefined) {
         if (!event.altKey) {
           event.preventDefault();
           // advance to previous image
+          eventContext.animateable = 50;
           return imageAdvanceBy(-1, eventContext);
         }
         break;
       case exp.KEY_ARROW_RIGHT:
       case exp.KEY_TAB:
       case exp.KEY_ARROW_DOWN:
-        // advance to next image
         event.preventDefault();
+        // advance to next image
+        eventContext.animateable = 50;
         return imageAdvanceBy(1, eventContext);
 
       // page-wise navigation
@@ -3626,7 +3644,7 @@ window.sfun = (function($, undefined) {
           var cellcount = getCellMajorCount(-1);
           var cellmajor = getCellMajor();
           // always animate
-          eventContext.animate = exp.implicitScrollDURATION;
+          eventContext.animateable = exp.implicitScrollDURATION;
           // apply position change as relative offset
           var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
           // envisionPos() using relative offset

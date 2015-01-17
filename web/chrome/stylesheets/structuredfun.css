@@ -344,8 +344,15 @@ html.theme-dark.flow-1 .overlay-holder {
 #eventQueueVis li.scroll {
   background-color: #000066;
 }
+/* line 334, ../sass/structuredfun.scss */
+#eventQueueVis li .dig3 {
+  font-size: 0.6em;
+  border: 1px solid #fff;
+  padding: 0.2em;
+  margin: 0.1em 0.4em 0.1em 0.1em;
+}
 
-/* line 339, ../sass/structuredfun.scss */
+/* line 346, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;
