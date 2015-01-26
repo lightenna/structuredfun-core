@@ -1,8 +1,7 @@
 
-* show a sequence number on event vis
-  + helpful to tell events apart
-    + 3 digit with wraparound
-  = look up padding
+* the visualisation is perfunctory
+  + think about dropping the vis work
+  + focus on getting the thing out
 
 * dump the queue as a simple text string to console
   + need a reference for each refresh
@@ -4227,4 +4226,9 @@ extension=fileinfo.so
   + need to preserve the animate flag when parenting
     + works
     + animateable flag preserved in parent() call
+
+* show a sequence number on event vis
+  + helpful to tell events apart
+    + 3 digit with wraparound
+  = look up padding
 
