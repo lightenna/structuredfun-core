@@ -2617,7 +2617,7 @@ window.sfun = (function($, undefined) {
           // add current event to queue_string
           queue_string += (queue_string.length == 0 ? '' : ' -> ')+ '['+idx3dig+']';
           // build list item
-          var itemhtml = '<li class="'+type+'" data-key="'+current.key+'"><span class="dig3">'+idx3dig+'</span>'+current.key+'</li>';
+          var itemhtml = '<li class="'+type+'" data-key="'+current.key+'"><span class="dig3">'+sfun.api_pad(idx3dig,3)+'</span>'+current.key+'</li>';
           // see if there's anything left in the list
           if ($listitems.length-1 < i) {
             // just add item to the end of list
@@ -4424,6 +4424,17 @@ window.sfun = (function($, undefined) {
       }
       var scalar = Math.pow(10, dp);
       return Math.round(k * scalar) / scalar;
+    },
+
+    /**
+     * @return {string} a number padding with leading zeros
+     */
+    'api_pad': function(num, size) {
+      var s = num + '';
+      while (s.length < size) {
+        s = '0' + s;
+      }
+      return s;
     },
 
     /** 
