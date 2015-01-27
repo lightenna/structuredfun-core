@@ -619,7 +619,7 @@ window.sfun = (function($, undefined) {
       // if we get a response, set the missing resolution data to the image
       $reresable.data('native-width', data.meta.original_width);
       $reresable.data('native-height', data.meta.original_height);
-      if (debug && true) {
+      if (debug && false) {
         console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
       }
       // set missing metadata fields to their DOM elements
@@ -1343,7 +1343,7 @@ window.sfun = (function($, undefined) {
     );
     var cell_perc = 100 / cell_count;
     // optional debugging
-    if (debug && true) {
+    if (debug && false) {
       console.log('ratio_mean['+ratio_mean+'] viewport_ratio['+viewport_ratio+'] cell_count['+cell_count+']');
     }
     // overwrite existing CSS selector
@@ -2588,8 +2588,14 @@ window.sfun = (function($, undefined) {
 
       /**
        * event queue visualisation
+       * @param [string] action
+       * @param [string] object [of action] identifier
        */
       'visualisationRefresh': function() {
+        var vised = [];
+        if (arguments.length >= 2) {
+          this.visualisationLog(arguments[0], arguments[1]);
+        }
         // find list if not cached
         if (typeof(this.visref_$list_static) == 'undefined') {
           this.visref_$list_static = $('#eventQueueVis');
@@ -2616,6 +2622,7 @@ window.sfun = (function($, undefined) {
           }
           // add current event to queue_string
           queue_string += (queue_string.length == 0 ? '' : ' -> ')+ '['+idx3dig+']';
+          vised[vised.length] = current.idx;
           // build list item
           var itemhtml = '<li class="'+type+'" data-key="'+current.key+'"><span class="dig3">'+sfun.api_pad(idx3dig,3)+'</span>'+current.key+'</li>';
           // see if there's anything left in the list
@@ -2627,7 +2634,10 @@ window.sfun = (function($, undefined) {
             // test to see if this event is already in the list
             var likey = $listitem.data('key');
             if ((likey != undefined) && (likey == current.key)) {
-              // no action
+              // event alread in list, highlight if critical section
+              if (current == this.critical_section) {
+                $listitem.addClass('critical');
+              }
             } else {
               // @todo see if this list item's key (likey) is still somewhere in the queue
               if (false) {
@@ -2651,7 +2661,25 @@ window.sfun = (function($, undefined) {
         }
         // output queue string for reconciling event queue visualisation with queue
         if (debug && true) {
-          console.log('Queue string: '+queue_string);
+          // spin through rest of events (from hash table) and list
+          var rest_string = '';
+          this.iterate(function(obj) {
+            if (vised.indexOf(obj.idx) == -1) {
+              rest_string += (rest_string == '' ? '' : ',') + (obj.idx % 1000)
+            }
+          })
+          console.log('event queue: ' + queue_string + (queue_string && rest_string ? ' + ' : '') + rest_string);
+        }
+      },
+
+      /**
+       * @param string action
+       * @param string object [of action] identifier
+       */
+      'visualisationLog': function(action, object) {
+        var action = action + '['+(object % 1000)+']';
+        if (debug && true) {
+          console.log(action);
         }
       },
 
@@ -2764,7 +2792,7 @@ window.sfun = (function($, undefined) {
           }, this.TIMEOUT_expireEVENT);
         }
         if (debug) {
-          this.visualisationRefresh();
+          this.visualisationRefresh('push', obj.idx);
         }
         // return the object (retreived or pushed)
         return obj;
@@ -2802,7 +2830,7 @@ window.sfun = (function($, undefined) {
           console.log('  - merged event context[' + this.render(peer) + '] into old context['+olddesc+'], unaffected q len now'+this.getSize());
         }
         if (debug) {
-          this.visualisationRefresh();
+          this.visualisationRefresh('pushOrMerge', peer.idx);
         }
         return peer;
       },
@@ -2827,7 +2855,7 @@ window.sfun = (function($, undefined) {
         // attach this obj as child to parent
         this.parent(obj, parent);
         if (debug) {
-          this.visualisationRefresh();
+          this.visualisationRefresh('pushOrParent', obj.idx);
         }
         return obj;
       },
@@ -2874,7 +2902,7 @@ window.sfun = (function($, undefined) {
           if (retrieved.comment) {
             retrieved.comment += ', instead of ' + partial.comment;
           }
-          if (debug && true) {
+          if (debug && false) {
             console.log('* handler caught fired event context[' + this.render(retrieved) + '], q'+this.getSize());
           }
         }
@@ -2966,6 +2994,9 @@ window.sfun = (function($, undefined) {
        * @return {object} jQuery deferred
        */
       'resolve': function(obj, returnValue) {
+        if (debug) {
+          this.visualisationLog('resolve', obj.idx);
+        }
         if (obj != null) {
           // remove this object from the eventQueue
           var ref = this.removeObj(obj);
@@ -2981,9 +3012,6 @@ window.sfun = (function($, undefined) {
             this.parentResolve(obj, obj.parent);
           }
         }
-        if (debug) {
-          this.visualisationRefresh();
-        }
         // always return a resolved deferred
         return getDeferred().resolve(returnValue);
       },
@@ -2994,6 +3022,9 @@ window.sfun = (function($, undefined) {
        * @return {object} jQuery deferred
        */
       'reject': function(obj, returnValue) {
+        if (debug) {
+          this.visualisationRefresh('reject', obj.idx);
+        }
         if (obj != null) {
           // remove this object from the eventQueue
           var ref = this.removeObj(obj);
@@ -3004,9 +3035,6 @@ window.sfun = (function($, undefined) {
           if (obj.deferred != null) {
             return obj.deferred.reject(returnValue);
           }
-        }
-        if (debug) {
-          this.visualisationRefresh();
         }
         // always return a rejected deferred
         return getDeferred().reject(returnValue);
@@ -3026,11 +3054,11 @@ window.sfun = (function($, undefined) {
           // attach to parent
           this.attachParent(obj, parentContext);
           // optional debugging
-          if (debug && true) {
+          if (debug && false) {
             console.log('  - delayed event context[' + this.render(obj.parent) + '] to follow resolution of context['+this.render(obj)+'], q len now '+this.getSize());
           }
           if (debug) {
-            this.visualisationRefresh();
+            this.visualisationRefresh('delay', obj.parent.idx);
           }
         }
         return obj;
@@ -3100,8 +3128,16 @@ window.sfun = (function($, undefined) {
           // if nothing else has swiped it already
           if (that.critical_section == eventContext) {
             that.last_critical_section = that.critical_section;
-            // flag that nothing is in its critical section
-            that.critical_section = null;
+            // used to flag that nothing is in its critical section
+            // that.critical_section = null;
+            // but that's not accurate
+            // because done() triggers something else to enter its section
+            // yet it never gets set
+            // so instead we just point at parent (which may be null)
+            that.critical_section = that.critical_section.parent;
+            if (debug) {
+              that.visualisationRefresh('done with criticalSection', that.last_critical_section.idx);
+            }
           }
         };
         // remember last critical section
@@ -3113,7 +3149,7 @@ window.sfun = (function($, undefined) {
           console.log('> entering critical section for '+this.render(this.critical_section));
         }
         if (debug) {
-          this.visualisationRefresh();
+          this.visualisationRefresh('setCriticalSection', eventContext.idx);
         }
         this.critical_section.deferred.done(scheduleCriticalReset);
       },
@@ -3356,7 +3392,7 @@ window.sfun = (function($, undefined) {
       'key': 'scroll:'+'x='+target.scrollLeft+'&y='+target.scrollTop,
       'comment': 'localContext for fire_scrollUpdate'
     }, eventContext);
-    if (debug && true) {
+    if (debug && false) {
       console.log('* fired scroll event '+eventQueue.render(localContext));
     }
     // fire event: change the scroll position

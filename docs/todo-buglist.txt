@@ -1,4 +1,67 @@
 
+* investigate things dropping off the event queue
+push[6]
+  event queue: [2] -> [3] -> [4] -> [5] + 6
+pushOrParent[6]
+  event queue: [2] -> [3] -> [4] -> [5] + 6
+setCriticalSection[0]
+  event queue: [0] + 2,3,4,5,6
+done with criticalSection[0]
+  event queue: 2,3,4,5,6
+resolve[0]
+
+* reverse the display order of the event queue
+  + I expect the current element to be at the top
+    + everything that's coming next should be beneath it
+  + the reason it comes out backwards
+    + is that the current critical section is the first li out
+
+* separate re-resing from selecting
+  + a slow re-res can mean that we're waiting ages for
+    + the select reflector to show an image is selected
+  + I suspect that's also the reason why we're slow to jump to the right place on the page
+--o--
+  + this is linked to a slow click
+    + we need to process the jump immediately
+  + check the split behaviour
+    + we seem to jump to the breadth immediately
+    + then follow up with a scroll much later
+      + is it the scroll event that's getting delayed?
+        + I think so
+  + this is tricky
+    + there's an array of preceding events
+      + that are all getting stacked up
+    + reordering events
+      + each event type gets a priority
+      + a high priority event jumps the queue
+  + solution isn't clear yet
+  + build instrumentation
+
+* deploy
+  + structuredfun-linux as submodule of drupal7
+    + put in top-level
+      + not inside /htdocs so that all config files aren't exposed
+    + vhost in /conf
+      + demo.structuredfun.com/file/wikimedia-gallery1
+
+* basic website
+  + plug the demo link into the demo menu item
+    + simple external link is fine
+
+* release a fresh copy of the code
+  + 0.9.2
+  + follow procedure in this file
+
+--- next release ---
+
+* manually compose sharing image
+  + use that javascript that was posted up online
+    + create it once
+  + transfer manually composed image from discus to demo.sfun
+  + put the correct metadata on the page accordingly
+
+--- first share ---
+
 * the visualisation is perfunctory
   + think about dropping the vis work
   + focus on getting the thing out
@@ -30,27 +93,6 @@
       + [green] hash:seq only showing up when seq=1
       + I think all 'selected' keys should also have an associated hash:seq
 
-* separate re-resing from selecting
-  + a slow re-res can mean that we're waiting ages for
-    + the select reflector to show an image is selected
-  + I suspect that's also the reason why we're slow to jump to the right place on the page
---o--
-  + this is linked to a slow click
-    + we need to process the jump immediately
-  + check the split behaviour
-    + we seem to jump to the breadth immediately
-    + then follow up with a scroll much later
-      + is it the scroll event that's getting delayed?
-        + I think so
-  + this is tricky
-    + there's an array of preceding events
-      + that are all getting stacked up
-    + reordering events
-      + each event type gets a priority
-      + a high priority event jumps the queue
-  + solution isn't clear yet
-  + build instrumentation
-
 * feature: show all metadata on first load
   + only if we've loaded metadata for all images
     + that's hard to tell
@@ -60,29 +102,6 @@
 
 * flv video
   + just for fun
-
-* deploy
-  + structuredfun-linux as submodule of drupal7
-    + put in top-level
-      + not inside /htdocs so that all config files aren't exposed
-    + vhost in /conf
-      + demo.structuredfun.com/file/wikimedia-gallery1
-
-* basic website
-  + plug the demo link into the demo menu item
-    + simple external link is fine
-
-* release a fresh copy of the code
-  + 0.9.2
-  + follow procedure in this file
-
---- next release ---
-
-* manually compose sharing image
-  + use that javascript that was posted up online
-    + create it once
-  + transfer manually composed image from discus to demo.sfun
-  + put the correct metadata on the page accordingly
 
 * install linux tool to read image metadata
   + xv or xview or something
@@ -4231,4 +4250,36 @@ extension=fileinfo.so
   + helpful to tell events apart
     + 3 digit with wraparound
   = look up padding
+
+* event visualisation not showing
+  + seems to be rendering
+    + but the cells aren't coloured
+  + it was there
+    + firefox window was just a little too wide
+    + it was off-screen
+
+* something funny in the ordering
+  + queue string console log shows an echo
+Queue string: [8] -> [10] -> [11] -> [12]
+Queue string: [10] -> [11] -> [12]
+Queue string: [10] -> [11] -> [12]        <- this duplicate is fine
+Queue string: [8]                         <= this is wierd
+Queue string: 
+  + 8's been off the queue for while
+    + but now it's popping in again
+  + console log where it comes from
+  + looks like resolve() is throwing in a couple of empty ones
+  + looks like setCriticalSection() is throwing in a random value
+    + numbers that aren't on the queue
+  + now there's a complication here
+    + not everything finds its way into the critical section queue
+    + we whack events on the event queue
+      + so they can be picked up and resolved once fired
+  + instrumentation making it all look much clearer
+    + it's a pretty complicated picture
+
+* check delay
+  + is it actually showing the right number
+    + because we seem to delay[1]
+      + but then queue [3] after it
 
