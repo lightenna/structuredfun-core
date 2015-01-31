@@ -1,4 +1,9 @@
 
+* mouse wheel scrolling stops working sometimes
+  + to do with offseq
+    + and cell width
+  + maybe something about
+
 * investigate things dropping off the event queue
 push[6]
   event queue: [2] -> [3] -> [4] -> [5] + 6
@@ -15,6 +20,18 @@ resolve[0]
     + everything that's coming next should be beneath it
   + the reason it comes out backwards
     + is that the current critical section is the first li out
+
+* changing between pages preserves offseq
+  + needs to be recalculated really
+    + otherwise images no longer appear centred
+      + because pages have different cell widths
+      + good to clear/recalc offseq everytime cell width changes
+
+* 0 assets
+  + doesn't mean 0 assets
+    + it means 0th folder of assets
+    + very misleading
+      + better just to show nothing
 
 * separate re-resing from selecting
   + a slow re-res can mean that we're waiting ages for
