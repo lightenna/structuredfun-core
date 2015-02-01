@@ -2587,6 +2587,17 @@ window.sfun = (function($, undefined) {
       // SUB OBJECT, FUNCTIONS
 
       /**
+       * @param string action
+       * @param string object [of action] identifier
+       */
+      'visualisationLog': function(action, object) {
+        var action = action + '['+(object % 1000)+']';
+        if (debug && true) {
+          console.log(action);
+        }
+      },
+
+      /**
        * event queue visualisation
        * @param [string] action
        * @param [string] object [of action] identifier
@@ -2669,17 +2680,6 @@ window.sfun = (function($, undefined) {
             }
           })
           console.log('event queue: ' + queue_string + (queue_string && rest_string ? ' + ' : '') + rest_string);
-        }
-      },
-
-      /**
-       * @param string action
-       * @param string object [of action] identifier
-       */
-      'visualisationLog': function(action, object) {
-        var action = action + '['+(object % 1000)+']';
-        if (debug && true) {
-          console.log(action);
         }
       },
 
@@ -2994,10 +2994,10 @@ window.sfun = (function($, undefined) {
        * @return {object} jQuery deferred
        */
       'resolve': function(obj, returnValue) {
-        if (debug) {
-          this.visualisationLog('resolve', obj.idx);
-        }
         if (obj != null) {
+          if (debug) {
+            this.visualisationLog('resolve', obj.idx);
+          }
           // remove this object from the eventQueue
           var ref = this.removeObj(obj);
           if (debug && false) {
