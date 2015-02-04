@@ -2603,7 +2603,7 @@ window.sfun = (function($, undefined) {
        * @param [string] object [of action] identifier
        */
       'visualisationRefresh': function() {
-        var vised = [];
+        // process optional arguments if set
         if (arguments.length >= 2) {
           this.visualisationLog(arguments[0], arguments[1]);
         }
@@ -2616,71 +2616,90 @@ window.sfun = (function($, undefined) {
             this.visref_$list_static = $('#eventQueueVis');
           }
         }
+        // lock list to other updates
+        if (this.visref_$list_static.hasClass('updating')) {
+          return;
+        }
+        this.visref_$list_static.addClass('updating');
+        // iterate from critical_section up to produce queued list
+        queued = [];
+        var j = 0, current = this.critical_section;
+        for ( ; j<exp.loopIterLIMIT && current != null ; ++j, current = current.parent) {
+          queued[queued.length] = current;
+        }
+        if (debug && true) {
+          console.log('queued');
+          console.log(queued);
+        }
+        // first show the queued list
+        vised = this.visualisationRefreshList(queued, { last_i: 0, arr:[] });
+        // then show everything else that's in there
+        rest = [];
+        this.iterate(function(obj) {
+          // if we haven't already vised it
+          if (vised.arr.indexOf(obj.idx) == -1) {
+            // show event as part of rest
+            rest[rest.length] = obj;
+          }
+        });
+        if (debug && true) {
+          console.log('rest');
+          console.log(rest);
+        }
+        // show rest, starting from where we left off
+        vised = this.visualisationRefreshList(rest, vised);
+        if (debug && true) {
+          console.log('vised');
+          console.log(vised.arr);
+        }
+        // release lock on vis
+        this.visref_$list_static.removeClass('updating');
+      },
+
+      'visualisationRefreshList': function(evlist, vised) {
+        var i = vised.last_i;
         // cache current list elements
         var $listitems = this.visref_$list_static.find('li');
+// START HERE
+// think about where delete figures
         var _localDelete = function($li, delay) {
-          $li.delay(delay).animate( { width: '100%', right: '200px', opacity: 0.0 }, 300, function() { $(this).remove(); });
+          $li.delay(delay).animate( { right: '200px', height: 0, opacity: 0.0 }, 300, function() { $(this).remove(); });
         };
-        // parse list
-        var i = 0, current = this.critical_section;
-        var queue_string = '';
-        for ( ; i<exp.loopIterLIMIT && current != null ; ++i, current = current.parent) {
+        // work through evlist
+        for (var j = 0 ; j<evlist.length ; ++j, ++i) {
+          var current = evlist[j];
+          // build list item
           var idx3dig = current.idx % 1000;
           var type = 'generic_event';
           var keypart = current.key.split(':');
           if (keypart.length) {
             type = keypart[0];
           }
-          // add current event to queue_string
-          queue_string += (queue_string.length == 0 ? '' : ' -> ')+ '['+idx3dig+']';
-          vised[vised.length] = current.idx;
-          // build list item
+          // build DOM element
           var itemhtml = '<li class="'+type+'" data-key="'+current.key+'"><span class="dig3">'+sfun.api_pad(idx3dig,3)+'</span>'+current.key+'</li>';
+          // insert into visualised (vised) list
+          vised.arr[vised.arr.length] = current.idx;
           // see if there's anything left in the list
           if ($listitems.length-1 < i) {
-            // just add item to the end of list
+            // if not, just append
             this.visref_$list_static.append(itemhtml);
           } else {
+            // see if this event is the next in the list
             var $listitem = $($listitems[i]);
-            // test to see if this event is already in the list
             var likey = $listitem.data('key');
             if ((likey != undefined) && (likey == current.key)) {
-              // event alread in list, highlight if critical section
-              if (current == this.critical_section) {
-                $listitem.addClass('critical');
-              }
+              // event already in correct place in list, ignore it
             } else {
-              // @todo see if this list item's key (likey) is still somewhere in the queue
-              if (false) {
-                // if it is then move it
-              } else {
-                // if not, delete it
-                _localDelete($listitem, 0);
-              }
-              // add new item
-              $listitem.before(itemhtml);
+              // delete this event if it's anywhere else in the list
+              this.visref_$list_static.find('li[data-key="'+current.key+'"]').remove();
+              // insert this event next into the list
+              $listitem.after(itemhtml);
             }
           }
         }
-        if (i == exp.loopIterLIMIT) {
-          console.log('Warning: hit loop iteration limit, suspect data structure flaw');
-        } else {
-          // remove remaining items
-          for (var j=i ; j < $listitems.length ; j++) {
-            _localDelete($($listitems[j]), 2000);
-          }
-        }
-        // output queue string for reconciling event queue visualisation with queue
-        if (debug && true) {
-          // spin through rest of events (from hash table) and list
-          var rest_string = '';
-          this.iterate(function(obj) {
-            if (vised.indexOf(obj.idx) == -1) {
-              rest_string += (rest_string == '' ? '' : ',') + (obj.idx % 1000)
-            }
-          })
-          console.log('event queue: ' + queue_string + (queue_string && rest_string ? ' + ' : '') + rest_string);
-        }
+        // @todo allow for added elements
+        vised.last_i = i;
+        return vised;
       },
 
       // PUBLIC FUNCTIONS

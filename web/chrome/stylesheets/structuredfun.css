@@ -327,7 +327,7 @@ html.theme-dark.flow-1 .overlay-holder {
   z-index: 1;
   top: 0;
   left: 100%;
-  margin-left: -10em;
+  margin-left: -11em;
 }
 /* line 320, ../sass/structuredfun.scss */
 #eventQueueVis li {
@@ -337,14 +337,23 @@ html.theme-dark.flow-1 .overlay-holder {
   border: 1px solid #000;
 }
 /* line 326, ../sass/structuredfun.scss */
+#eventQueueVis li.queued {
+  border-left-color: #ff0000;
+  border-right-color: #ff0000;
+}
+/* line 331, ../sass/structuredfun.scss */
+#eventQueueVis li.queued:last-child {
+  border-bottom-color: #ff0000;
+}
+/* line 335, ../sass/structuredfun.scss */
 #eventQueueVis li.hash {
   background-color: #006600;
 }
-/* line 330, ../sass/structuredfun.scss */
+/* line 339, ../sass/structuredfun.scss */
 #eventQueueVis li.scroll {
   background-color: #000066;
 }
-/* line 334, ../sass/structuredfun.scss */
+/* line 343, ../sass/structuredfun.scss */
 #eventQueueVis li .dig3 {
   font-size: 0.6em;
   border: 1px solid #fff;
@@ -352,7 +361,7 @@ html.theme-dark.flow-1 .overlay-holder {
   margin: 0.1em 0.4em 0.1em 0.1em;
 }
 
-/* line 346, ../sass/structuredfun.scss */
+/* line 355, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

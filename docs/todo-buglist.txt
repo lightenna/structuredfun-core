@@ -1,37 +1,30 @@
 
-* mouse wheel scrolling stops working sometimes
-  + to do with offseq
-    + and cell width
-  + maybe something about
-
-* investigate things dropping off the event queue
-push[6]
-  event queue: [2] -> [3] -> [4] -> [5] + 6
-pushOrParent[6]
-  event queue: [2] -> [3] -> [4] -> [5] + 6
-setCriticalSection[0]
-  event queue: [0] + 2,3,4,5,6
-done with criticalSection[0]
-  event queue: 2,3,4,5,6
-resolve[0]
-
-* reverse the display order of the event queue
-  + I expect the current element to be at the top
-    + everything that's coming next should be beneath it
-  + the reason it comes out backwards
-    + is that the current critical section is the first li out
-
-* changing between pages preserves offseq
-  + needs to be recalculated really
-    + otherwise images no longer appear centred
-      + because pages have different cell widths
-      + good to clear/recalc offseq everytime cell width changes
-
-* 0 assets
-  + doesn't mean 0 assets
-    + it means 0th folder of assets
-    + very misleading
-      + better just to show nothing
+* duplicating events in 'rest'
+  + key presses sorted
+    + but scroll still shows pairs
+  + worth sorting out
+    + because debugging relies on being able to read that queue reliably
+  + duplicate events don't seem to be in console output
+    + suspecting overlapping execution
+      + lock critical section of vis update
+  + list is getting confused
+    + queued events are chained off the critical section
+      + parents of the critical section
+    + they're a subset of all the events
+    + we want to show them at the top of the list
+    + all other events get inserted after
+      + which doesn't work
+      + because we're clearing and reinserting the same non-queued events
+    + time to split up the function
+  + thinking complete rewrite
+    + because we really want to show something of the event nesting
+      + that's true to the way events are actually stored (parents)
+    + this is complicated
+      + because we're trying to slow something down that happens really fast
+      + while preserving the relative ordering
+  + rewrite going well
+    + arrays much clearer
+    + just need to find a way to delete the things dropped from the list
 
 * separate re-resing from selecting
   + a slow re-res can mean that we're waiting ages for
@@ -53,6 +46,23 @@ resolve[0]
       + a high priority event jumps the queue
   + solution isn't clear yet
   + build instrumentation
+
+* mouse wheel scrolling stops working sometimes
+  + to do with offseq
+    + and cell width
+  + maybe something about
+
+* changing between pages preserves offseq
+  + needs to be recalculated really
+    + otherwise images no longer appear centred
+      + because pages have different cell widths
+      + good to clear/recalc offseq everytime cell width changes
+
+* 0 assets
+  + doesn't mean 0 assets
+    + it means 0th folder of assets
+    + very misleading
+      + better just to show nothing
 
 * deploy
   + structuredfun-linux as submodule of drupal7
@@ -4299,4 +4309,40 @@ Queue string:
   + is it actually showing the right number
     + because we seem to delay[1]
       + but then queue [3] after it
+
+* animate height to zero on vis event
+  + that way things move up
+--o--
+* put a border around the events in the critical section
+  + could just split the list into two ul
+
+* duplicating events in 'rest'
+  + use keypress to test
+
+* add separator
+  + makes no sense to me at all
+          // delete previous separator immediately
+          $('#eventQueueSeparator').remove();
+          // add separator
+          $($listitems[i]).after('<li id="eventQueueSeparator">------</li>');
+
+* investigate things dropping off the event queue
+push[6]
+  event queue: [2] -> [3] -> [4] -> [5] + 6
+pushOrParent[6]
+  event queue: [2] -> [3] -> [4] -> [5] + 6
+setCriticalSection[0]
+  event queue: [0] + 2,3,4,5,6
+done with criticalSection[0]
+  event queue: 2,3,4,5,6
+resolve[0]
+  = can't replicate now
+
+* reverse the display order of the event queue
+  + I expect the current element to be at the top
+    + everything that's coming next should be beneath it
+  + the reason it comes out backwards
+    + is that the current critical section is the first li out
+      + try simple after instead of before
+  = works because we pre-cache list of queue items
 
