@@ -315,13 +315,22 @@ html.theme-dark {
   top: 0;
   // stick to right-hand edge
   left: 100%;
-  margin-left: -10em;
+  margin-left: -11em;
 
   li {
     width: 10em;
     padding: 0.2em;
     background-color: #660000;
     border: 1px solid #000;
+
+    &.queued {
+      border-left-color: #ff0000; 
+      border-right-color: #ff0000; 
+    }
+
+    &.queued:last-child {
+      border-bottom-color: #ff0000; 
+    }
 
     &.hash {
       background-color: #006600;
