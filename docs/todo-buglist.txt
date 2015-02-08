@@ -26,6 +26,11 @@
     + arrays much clearer
     + just need to find a way to delete the things dropped from the list
 
+* create server mode
+  + disable access to all folders beginning .
+    + initially just remove from the directory listings
+    + then also explicitly deny access if requested
+
 * separate re-resing from selecting
   + a slow re-res can mean that we're waiting ages for
     + the select reflector to show an image is selected
@@ -4345,4 +4350,7 @@ resolve[0]
     + is that the current critical section is the first li out
       + try simple after instead of before
   = works because we pre-cache list of queue items
+
+* fix vhost error in d7 deploy
+  + turn off vhosts for checkouts
 
