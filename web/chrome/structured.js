@@ -2627,7 +2627,7 @@ window.sfun = (function($, undefined) {
         for ( ; j<exp.loopIterLIMIT && current != null ; ++j, current = current.parent) {
           queued[queued.length] = current;
         }
-        if (debug && true) {
+        if (debug && false) {
           console.log('queued');
           console.log(queued);
         }
@@ -2642,7 +2642,7 @@ window.sfun = (function($, undefined) {
             rest[rest.length] = obj;
           }
         });
-        if (debug && true) {
+        if (debug && false) {
           console.log('rest');
           console.log(rest);
         }
@@ -2652,19 +2652,29 @@ window.sfun = (function($, undefined) {
           console.log('vised');
           console.log(vised.arr);
         }
+        // delete everything after last entry
+        this.visualisationDumpList(vised);
         // release lock on vis
         this.visref_$list_static.removeClass('updating');
       },
 
-      'visualisationRefreshList': function(evlist, vised) {
-        var i = vised.last_i;
-        // cache current list elements
-        var $listitems = this.visref_$list_static.find('li');
-// START HERE
-// think about where delete figures
+      'visualisationDumpList': function(vised) {
         var _localDelete = function($li, delay) {
           $li.delay(delay).animate( { right: '200px', height: 0, opacity: 0.0 }, 300, function() { $(this).remove(); });
         };
+        // cache current list elements
+        var $listitems = this.visref_$list_static.find('li');
+        // work through list from last entry we looked at
+        for (var j = vised.last_i ; j < $listitems.length ; ++j) {
+          _localDelete($($listitems[j]), 2000);
+        }
+      },
+
+      'visualisationRefreshList': function(evlist, vised) {
+        var i = vised.last_i;
+        var noAdded = 0;
+        // cache current list elements
+        var $listitems = this.visref_$list_static.find('li');
         // work through evlist
         for (var j = 0 ; j<evlist.length ; ++j, ++i) {
           var current = evlist[j];
@@ -2683,6 +2693,7 @@ window.sfun = (function($, undefined) {
           if ($listitems.length-1 < i) {
             // if not, just append
             this.visref_$list_static.append(itemhtml);
+            noAdded += 1;
           } else {
             // see if this event is the next in the list
             var $listitem = $($listitems[i]);
@@ -2691,14 +2702,19 @@ window.sfun = (function($, undefined) {
               // event already in correct place in list, ignore it
             } else {
               // delete this event if it's anywhere else in the list
-              this.visref_$list_static.find('li[data-key="'+current.key+'"]').remove();
+              var $alreadyThere = this.visref_$list_static.find('li[data-key="'+current.key+'"]');
+              if ($alreadyThere.length > 0) {
+                $alreadyThere.remove();
+                noAdded -= 1;
+              }
               // insert this event next into the list
               $listitem.after(itemhtml);
+              noAdded += 1;
             }
           }
         }
-        // @todo allow for added elements
-        vised.last_i = i;
+        // allow for added elements
+        vised.last_i = i + noAdded;
         return vised;
       },
 
@@ -3014,9 +3030,6 @@ window.sfun = (function($, undefined) {
        */
       'resolve': function(obj, returnValue) {
         if (obj != null) {
-          if (debug) {
-            this.visualisationLog('resolve', obj.idx);
-          }
           // remove this object from the eventQueue
           var ref = this.removeObj(obj);
           if (debug && false) {
@@ -3029,6 +3042,9 @@ window.sfun = (function($, undefined) {
           // if object has a parent, update it
           if (obj.parent != null) {
             this.parentResolve(obj, obj.parent);
+          }
+          if (debug) {
+            this.visualisationRefresh('resolve', obj.idx);
           }
         }
         // always return a resolved deferred
