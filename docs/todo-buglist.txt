@@ -1,35 +1,14 @@
 
-* duplicating events in 'rest'
-  + key presses sorted
-    + but scroll still shows pairs
-  + worth sorting out
-    + because debugging relies on being able to read that queue reliably
-  + duplicate events don't seem to be in console output
-    + suspecting overlapping execution
-      + lock critical section of vis update
-  + list is getting confused
-    + queued events are chained off the critical section
-      + parents of the critical section
-    + they're a subset of all the events
-    + we want to show them at the top of the list
-    + all other events get inserted after
-      + which doesn't work
-      + because we're clearing and reinserting the same non-queued events
-    + time to split up the function
-  + thinking complete rewrite
-    + because we really want to show something of the event nesting
-      + that's true to the way events are actually stored (parents)
-    + this is complicated
-      + because we're trying to slow something down that happens really fast
-      + while preserving the relative ordering
-  + rewrite going well
-    + arrays much clearer
-    + just need to find a way to delete the things dropped from the list
-
 * create server mode
   + disable access to all folders beginning .
     + initially just remove from the directory listings
     + then also explicitly deny access if requested
+
+* make debug a url variable
+  + can't have it on all the time
+    + debug should add a class to <html>
+* when debug is on
+  + show test suite links
 
 * separate re-resing from selecting
   + a slow re-res can mean that we're waiting ages for
@@ -4353,4 +4332,39 @@ resolve[0]
 
 * fix vhost error in d7 deploy
   + turn off vhosts for checkouts
+
+* duplicating events in 'rest'
+  + key presses sorted
+    + but scroll still shows pairs
+  + worth sorting out
+    + because debugging relies on being able to read that queue reliably
+  + duplicate events don't seem to be in console output
+    + suspecting overlapping execution
+      + lock critical section of vis update
+  + list is getting confused
+    + queued events are chained off the critical section
+      + parents of the critical section
+    + they're a subset of all the events
+    + we want to show them at the top of the list
+    + all other events get inserted after
+      + which doesn't work
+      + because we're clearing and reinserting the same non-queued events
+    + time to split up the function
+  + thinking complete rewrite
+    + because we really want to show something of the event nesting
+      + that's true to the way events are actually stored (parents)
+    + this is complicated
+      + because we're trying to slow something down that happens really fast
+      + while preserving the relative ordering
+  + rewrite going well
+    + arrays much clearer
+    + just need to find a way to delete the things dropped from the list
+  + resolve needs to update list
+    + because we end up with (non-queued) items left on the list
+      + until the next update
+
+* the odd event is littering the vis
+  + for some reason the odd 'selected' event doesn't clear
+  + it's because in the resolve function call
+    + we call vis before doing the resolve
 
