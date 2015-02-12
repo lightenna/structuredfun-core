@@ -152,6 +152,8 @@
           });
           break;
       }
+      // hide image it's replacing
+      $img.hide();
     }
   }
 
