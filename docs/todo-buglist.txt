@@ -1,4 +1,12 @@
 
+* video disappearing when x-bound
+  + expanding from y-bound to x-bound
+    + makes it disappear
+    + pretty sure it's a layout problem
+  + need to ensure that the video is going into the exact same place
+    + as where the image was
+    + and that it has the same bounding classes on it
+
 * create server mode
   + disable access to all folders beginning .
     + initially just remove from the directory listings
