@@ -164,6 +164,10 @@
         border-color: $highlight;
       }
 
+      .video-container .selectreflector {
+        border: none;
+      }
+
       // CONTAINER
 
       .container {
@@ -218,6 +222,8 @@
           // position absolute to stick to bottom
           display: block;
           position: absolute;
+          // lift metadata above video
+          z-index: 1;
           // show metadata middle left
           left: 0;
           bottom: 50%;
@@ -229,6 +235,8 @@
           text-align: left;
           width: 100%;
           font-size: 0.8em;
+          // don't allow div to steal clicks
+          pointer-events: none;
 
           // don't show initially
           opacity: 0;
@@ -357,9 +365,18 @@
           position: absolute;
           top: 0;
           left: 0;
+          width: 100%;
+          height: 100%;
+          background: none;
         }
 
       } // a.container
+
+      &.video-playing {
+        .meta {
+          display: none;
+        }
+      }
 
       &.editing {
         .meta {
@@ -367,6 +384,12 @@
           opacity: 1;
           // animation for appearance
           transition: opacity 0.3s ease-in 0s;
+        }
+      }
+
+      &.video-ready {
+        .pre-vjs-button {
+          display: none;
         }
       }
 

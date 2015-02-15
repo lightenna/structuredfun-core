@@ -112,7 +112,7 @@ window.sfun = (function($, undefined) {
   var $sfun_yardy = $('#sfun-yardstick-y');
 
   // jQuery selector caching
-  var $img = function(seq) {
+  var $cell = function(seq) {
     // if we haven't yet cached the selector, or the last time it didn't exist
     if ($sfun_selectablecell_img[seq] == undefined || !$sfun_selectablecell_img[seq].length) {
       $sfun_selectablecell_img[seq] = $('#seq-'+seq);
@@ -229,7 +229,7 @@ window.sfun = (function($, undefined) {
       deferred.resolve();
     }
     for (var i = range.first_1 ; i<= range.last_n ; ++i) {
-      var $ent = $img(i);
+      var $ent = $cell(i);
       var $loadable = $ent.cachedFind('.loadable');
       if ($loadable.data('ratio') == undefined) {
         // wait for image to be loaded in order to get ratio
@@ -732,7 +732,7 @@ window.sfun = (function($, undefined) {
           // stage 3: refresh resolutions as a batch
           $set.each(function() {
             // get shared cached copy of cell
-            var $ent = $img($(this).data('seq'));
+            var $ent = $cell($(this).data('seq'));
             defs.push(refreshImageResolution($ent, true));
           });
           $.when.apply($, defs).always(function() {
@@ -894,7 +894,7 @@ window.sfun = (function($, undefined) {
       // work out image and viewports positions on major axis
       var direction = getDirection();
       var viewport_base = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
-      var image_pos = $img(seq).offset();
+      var image_pos = $cell(seq).offset();
       var image_base = (direction == 'x' ? image_pos.left : image_pos.top);
       // find current offset of image within viewport, to 0DP
       var offseq = exp.api_round(image_base - viewport_base, 0);
@@ -916,7 +916,7 @@ window.sfun = (function($, undefined) {
     // be very careful with code in here as :hover is a very frequent event
     $sfun.on('mousemove', '.selectablecell a.video-container', function(event) {
       // pull ent using shared cached copy
-      var $ent = $img($(this).parent().data('seq'));
+      var $ent = $cell($(this).parent().data('seq'));
       // work out image and cursor positions on x axis (always)
       var image_pos = $ent.offset();
       var cursor_pos = event.pageX - image_pos.left;
@@ -1233,7 +1233,7 @@ window.sfun = (function($, undefined) {
       if (seq < 0 && increment < 0) {
         seq = getTotalEntries()-1;
       }
-      if ($img(seq).length) {
+      if ($cell(seq).length) {
         return seq;
       }
     } while (seq != this.startingPointSeq);
@@ -1361,7 +1361,7 @@ window.sfun = (function($, undefined) {
       $sfun_selectedcell.removeClass('selected');
     }
     // select new image
-    $sfun_selectedcell = $img(seq);
+    $sfun_selectedcell = $cell(seq);
     $sfun_selectedcell.addClass('selected');
     return changed;
   };
@@ -1466,7 +1466,7 @@ window.sfun = (function($, undefined) {
    * @return {object} jQuery deferred
    */
   var envisionSeq = function(seq, offseq, eventContext) {
-    var $ent = $img(seq);
+    var $ent = $cell(seq);
     var direction = getDirection();
     if (offseq == undefined) {
       offseq = 0;
@@ -1564,7 +1564,7 @@ window.sfun = (function($, undefined) {
     vis.first = firstMatch.$ent.data('seq');
     // work backwards from spanning min boundary to include partials
     for (var i = vis.first ; i >= 0 ; --i) {
-      var $ent = $img(i);
+      var $ent = $cell(i);
       var position = $ent.offset();
       var posMajor = (direction == 'x' ? position.left + $ent.width() : position.top + $ent.height());
       if (posMajor > min) {
@@ -1587,7 +1587,7 @@ window.sfun = (function($, undefined) {
     vis.firstLastPartial = 99999;
     // check first visibles for partial visibility
     for (var i = vis.first ; i <= vis.last ; ++i) {
-      var $ent = $img(i);
+      var $ent = $cell(i);
       var position = $ent.offset();
       var posMajor = (direction == 'x' ? position.left : position.top);
       if (posMajor < min) {
@@ -1599,7 +1599,7 @@ window.sfun = (function($, undefined) {
     }
     // check last visibles for partial visibility
     for (var i = vis.last ; i >= vis.first ; i--) {
-      var $ent = $img(i);
+      var $ent = $cell(i);
       var position = $ent.offset();
       var posMajor = (direction == 'x' ? position.left + $ent.width() : position.top + $ent.height());
       if (posMajor > max) {
@@ -1634,7 +1634,7 @@ window.sfun = (function($, undefined) {
       var vis = getVisibleBoundaries();
       for (var i = vis.first ; i <= vis.last ; i++) {
         var vistype = ((i <= vis.lastFirstPartial || i >= vis.firstLastPartial) ? 'vispart' : 'visible');
-        setImageVisibilityClass($img(i), vistype);
+        setImageVisibilityClass($cell(i), vistype);
       }
       if (thenRefresh) {
         // now batch process all the visibles
@@ -1740,14 +1740,14 @@ window.sfun = (function($, undefined) {
     if (range.last_1 != vis.last) {
       // request visnear (after visibles), async
       for (var i = range.last_1 ; i <= range.last_n ; i++) {
-        setImageVisibilityClass($img(i), 'visnear');
+        setImageVisibilityClass($cell(i), 'visnear');
       }
     }
     // only do first visnear if there are some entries BEFORE visibles
     if (range.first_n != vis.first) {
       // request visnear (before visibles), async
       for (var i = range.first_1 ; i <= range.first_n ; i++) {
-        setImageVisibilityClass($img(i), 'visnear');
+        setImageVisibilityClass($cell(i), 'visnear');
       }
     }
     // now load visnears
@@ -2430,10 +2430,10 @@ window.sfun = (function($, undefined) {
       'updateRange': function(direction, range_start, range_finish) {
         var vt = this;
         // capture initial position of last cell in range (b) to calculate delta-b
-        var position_finish_pre = $img(range_finish).offset();
+        var position_finish_pre = $cell(range_finish).offset();
         // loop through cells from start to finish
         for (var i=range_start ; i<=range_finish ; ++i) {
-          var $ent = $img(i);
+          var $ent = $cell(i);
           var position = $ent.offset();
           var ref = $ent.data('seq');
           var obj = vt.select(ref);
@@ -2451,7 +2451,7 @@ window.sfun = (function($, undefined) {
           }
         }
         // calculate delta-b
-        var position_finish_post = $img(range_finish).offset();
+        var position_finish_post = $cell(range_finish).offset();
         var delta_b = (direction == 'x' ? position_finish_post.left - position_finish_pre.left : position_finish_post.top - position_finish_pre.top);
         // if there's been a shift effect
         if (delta_b != 0) {
@@ -4199,8 +4199,23 @@ window.sfun = (function($, undefined) {
      * @param {string} seq
      * @return {object} cached jQuery object
      */
-    'api_$img': function(seq) {
-      return $img(seq);
+    'api_$cell': function(seq) {
+      return $cell(seq);
+    },
+
+    /**
+     * @return {object} jQuery object for cell
+     */
+    'api_getCell': function(seq) {
+      return $cell(seq);
+    },
+
+    /**
+     * jQuery selector caching
+     * @return {object} cached jQuery object for sfun container entity
+     */
+    'api_get$sfun': function() {
+      return $sfun;
     },
 
     /**
@@ -4238,13 +4253,6 @@ window.sfun = (function($, undefined) {
         }
       }
       return context.deferred;
-    },
-
-    /**
-     * @return {object} jQuery object for cell
-     */
-    'api_getCell': function(seq) {
-      return $img(seq);
     },
 
     /**

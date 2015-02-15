@@ -62,7 +62,7 @@
     var subcellGroup = {};
     // iterate across visible and visnear cells
     for (var i = range.first_1 ; i <= range.last_n ; ++i) {
-      var $ent = sfun.api_$img(i);
+      var $ent = sfun.api_$cell(i);
       // only include resizeablecells in the bucket
       if (!$ent.hasClass('resizeablecell')) {
         continue;

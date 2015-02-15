@@ -199,6 +199,11 @@ class FileReader {
         unset($listing[$k]);
         continue;
       }
+      // ignore files or folders that begin '.'
+      if ($v[0] == '.') {
+        unset($listing[$k]);
+        continue;
+      }
       // convert from ISO-8859-1 to UTF8 (php 5 can't cope with illegal chars)
       $v_utf8 = iconv( "iso-8859-1", "utf-8", $v );
       // hunt for tell-tale 'PHP just gave up' signs
