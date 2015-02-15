@@ -199,8 +199,8 @@ class FileReader {
         unset($listing[$k]);
         continue;
       }
-      // ignore files or folders that begin '.'
-      if ($v[0] == '.') {
+      // ignore files or folders that begin '.' or the FOLDER_NAME ('structured') folder
+      if (($v[0] == '.') || ($v == FOLDER_NAME)) {
         unset($listing[$k]);
         continue;
       }
@@ -246,6 +246,9 @@ class FileReader {
         // test using filesystem
         if (is_dir($this->file_part . DIR_SEPARATOR . $v_utf8)) {
           $obj->{'type'} = 'directory';
+          $sublisting = scandir($this->file_part . DIR_SEPARATOR . $v_utf8);
+          // exclude . and .. from sublisting count
+          $obj->{'subfolder_count'} = count($sublisting)-2;
         }
       }
       // duplicate file ref incase we redirect

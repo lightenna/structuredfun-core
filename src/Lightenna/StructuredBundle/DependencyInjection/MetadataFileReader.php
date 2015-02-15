@@ -210,23 +210,15 @@ class MetadataFileReader extends FileReader {
     // if the listing said it was a generic file
     if ($obj->type == 'genfile') {
       // try and match specific-type based on extension
-      switch (strtolower($obj->{'ext'})) {
-        case 'png':
-        case 'jpeg':
-        case 'jpg':
-        case 'gif':
-          $obj->{'type'} = 'image';
-          break;
-        case 'mp4':
-        case 'm4v':
-        case 'avi':
-        case 'flv':
-        case 'wmv':
-          $obj->{'type'} = 'video';
-          break;
-        case 'zip':
-          $obj->{'type'} = 'directory';
-          break;
+      $extmatch = strtolower($obj->{'ext'});
+      if (in_array($extmatch, explode(',',FILETYPES_IMAGE))) {
+        $obj->{'type'} = 'image';
+      }
+      else if (in_array($extmatch, explode(',',FILETYPES_VIDEO))) {
+        $obj->{'type'} = 'video';
+      }
+      else if (in_array($extmatch, explode(',',FILETYPES_ZIP))) {
+        $obj->{'type'} = 'directory';
       }
     } else {
       // others already typed as directory

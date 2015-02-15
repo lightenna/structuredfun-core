@@ -1,11 +1,4 @@
 
-* create server mode
-  + disable access to all folders beginning .
-    + initially just remove from the directory listings
-    + then also explicitly deny access if requested
-    + doesn't need to just be applied to server mode
-      + . could be the marker for all hidden folders
-
 * make debug a url variable
   + can't have it on all the time
     + debug should add a class to <html>
@@ -43,12 +36,6 @@
     + otherwise images no longer appear centred
       + because pages have different cell widths
       + good to clear/recalc offseq everytime cell width changes
-
-* 0 assets
-  + doesn't mean 0 assets
-    + it means 0th folder of assets
-    + very misleading
-      + better just to show nothing
 
 * deploy
   + structuredfun-linux as submodule of drupal7
@@ -4409,4 +4396,24 @@ resolve[0]
 
 * video.js working well
   + player fading out controls nicely when mouse not moving
+
+* create server mode
+  + disable access to all folders beginning .
+    + initially just remove from the directory listings
+    + then also explicitly deny access if requested
+    + doesn't need to just be applied to server mode
+      + . could be the marker for all hidden folders
+  = dodged this for now
+    + because most the things we exclude for a server
+      + aren't particularly valuable in a home LAN setup either
+
+* 0 assets
+  + doesn't mean 0 assets
+    + it means 0th folder of assets
+    + very misleading
+      + better just to show nothing
+  + nice to show how many images there actually are in the directory
+$fi = new FilesystemIterator(__DIR__, FilesystemIterator::SKIP_DOTS);
+printf("There were %d Files", iterator_count($fi));
+  + just do a simple scandir
 
