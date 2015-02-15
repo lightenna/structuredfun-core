@@ -25,7 +25,7 @@
       <span class="meta">
         <span class="base">
           <span class="iptc iptc_headline">{{ file.alias|e }}</span>
-          <span class="iptc iptc_byline">{{ file.seq }} assets</span>
+          {% if file.subfolder_count is defined %}<span class="iptc iptc_byline">{{ file.subfolder_count }} assets</span>{% endif %}
         </span>
       </span>
     </a>

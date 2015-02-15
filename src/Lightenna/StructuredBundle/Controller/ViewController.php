@@ -15,6 +15,9 @@ define('ARG_SEPARATOR', '~args&');
 define('FILEARG_SEPARATOR', '~');
 define('SUB_REGEX', '/\[([0-9i]*)\]/');
 define('DEFAULT_TIMECODE', '00:00:10.0');
+define('FILETYPES_IMAGE', 'png,jpeg,jpg,gif');
+define('FILETYPES_VIDEO', 'mp4,m4v,avi,flv,wmv,mpg');
+define('FILETYPES_ZIP', 'zip');
 
 class ViewController extends Controller {
 
