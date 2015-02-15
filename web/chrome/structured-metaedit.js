@@ -83,7 +83,7 @@
    */
   var mde_receiverSubmit = function(event) {
     if (editing_metadata !== false) {
-      var $ent = sfun.api_$img(editing_metadata);
+      var $ent = sfun.api_$cell(editing_metadata);
       var $form = $('#metaform');
       var $reresable = $ent.cachedFind('.reresable');
       if ($reresable.length && $reresable.data('meta-src')) {
@@ -141,7 +141,7 @@
    * @param {int} seq image to edit
    */
   var _imageSetupEdit = function(seq) {
-    var $root = sfun.api_$img(seq).addClass('editing');
+    var $root = sfun.api_$cell(seq).addClass('editing');
     var $form = $('#metaform');
     // setup fields to edit
     var fields = sfun.api_getMetadataFieldNames();
@@ -181,7 +181,7 @@
    */
   var _imageTeardownEdit = function() {
     var seq = editing_metadata;
-    var $root = sfun.api_$img(seq).removeClass('editing');
+    var $root = sfun.api_$cell(seq).removeClass('editing');
     var $form = $('#metaform');
     // move form (don't clone) back to its invisible holder
     $('#metadata_form_sleeve').append($form);

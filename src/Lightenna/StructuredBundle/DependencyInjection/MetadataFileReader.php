@@ -207,23 +207,29 @@ class MetadataFileReader extends FileReader {
     if ($obj->{'name'}[0] == '.') {
       $obj->{'hidden'} = true;
     }
-    // type image based on extension
-    switch (strtolower($obj->{'ext'})) {
-      case 'png':
-      case 'jpeg':
-      case 'jpg':
-      case 'gif':
-        $obj->{'type'} = 'image';
-        break;
-      case 'mp4':
-      case 'm4v':
-      case 'avi':
-      case 'flv':
-        $obj->{'type'} = 'video';
-        break;
-      case 'zip':
-        $obj->{'type'} = 'directory';
-        break;
+    // if the listing said it was a generic file
+    if ($obj->type == 'genfile') {
+      // try and match specific-type based on extension
+      switch (strtolower($obj->{'ext'})) {
+        case 'png':
+        case 'jpeg':
+        case 'jpg':
+        case 'gif':
+          $obj->{'type'} = 'image';
+          break;
+        case 'mp4':
+        case 'm4v':
+        case 'avi':
+        case 'flv':
+        case 'wmv':
+          $obj->{'type'} = 'video';
+          break;
+        case 'zip':
+          $obj->{'type'} = 'directory';
+          break;
+      }
+    } else {
+      // others already typed as directory
     }
     return $obj;
   }

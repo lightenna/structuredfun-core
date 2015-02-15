@@ -1,16 +1,10 @@
 
-* video disappearing when x-bound
-  + expanding from y-bound to x-bound
-    + makes it disappear
-    + pretty sure it's a layout problem
-  + need to ensure that the video is going into the exact same place
-    + as where the image was
-    + and that it has the same bounding classes on it
-
 * create server mode
   + disable access to all folders beginning .
     + initially just remove from the directory listings
     + then also explicitly deny access if requested
+    + doesn't need to just be applied to server mode
+      + . could be the marker for all hidden folders
 
 * make debug a url variable
   + can't have it on all the time
@@ -81,36 +75,7 @@
 
 --- first share ---
 
-* the visualisation is perfunctory
-  + think about dropping the vis work
-  + focus on getting the thing out
-
-* dump the queue as a simple text string to console
-  + need a reference for each refresh
-  + queue string shows that there's all kinds of stuff going on
-    + need to make queue string make sense
-      + before we try and make the visualisation work
-
-* investigate multiple events for key presses
-  + start off by snapping the fade on old keys
-    + we don't want things showing at the same time that don't co-exist
-  + try 0 fade out
-    + it's the delay
-  + could tag outgoing with 'outgoing' class
-    + then if we encounter one that's outgoing
-    + we could just dump it immediately
-  + better
-    + we want to tell any thing we're adding to delete itself after 2000ms
-      + nope
-      + because we don't know that the event will have been resolved
-    + we only want to remove after we know it's been resolved
-
-* investigate missing vis events
-  + show re-keying
-    + little flash and change text
-    + not clear
-      + [green] hash:seq only showing up when seq=1
-      + I think all 'selected' keys should also have an associated hash:seq
+* video metadata isn't making it to the video
 
 * feature: show all metadata on first load
   + only if we've loaded metadata for all images
@@ -4375,4 +4340,73 @@ resolve[0]
   + for some reason the odd 'selected' event doesn't clear
   + it's because in the resolve function call
     + we call vis before doing the resolve
+
+* video disappearing when x-bound
+  + expanding from y-bound to x-bound
+    + makes it disappear
+    + pretty sure it's a layout problem
+  + need to ensure that the video is going into the exact same place
+    + as where the image was
+    + and that it has the same bounding classes on it
+
+* hover over playing video should still show metadata
+
+* clicking a video should select it
+
+* set video poster image to be the same as the video thumbnail
+  + that preceded it
+    = very nice
+
+* mouse over
+  + volume to 100%
+* mouse out
+  + volume to 20%
+
+* make video play button appear in same position and style
+  + before and after we video-ready the video
+
+* selector border can't be on videos
+  + because once they're played it's not (nicely) possible to put it there
+  + best to just remove for now
+    + no selectreflector for video-container
+
+* highlit sound is at odds with metadata hover
+  + pointer leads us on what we want to hear
+    + but the hover metadata makes that annoying
+  + only show metadata when paused
+    + add class to cell ($ent) to reflect playing/paused state
+
+* the visualisation is perfunctory
+  + think about dropping the vis work
+  + focus on getting the thing out
+
+* dump the queue as a simple text string to console
+  + need a reference for each refresh
+  + queue string shows that there's all kinds of stuff going on
+    + need to make queue string make sense
+      + before we try and make the visualisation work
+
+* investigate multiple events for key presses
+  + start off by snapping the fade on old keys
+    + we don't want things showing at the same time that don't co-exist
+  + try 0 fade out
+    + it's the delay
+  + could tag outgoing with 'outgoing' class
+    + then if we encounter one that's outgoing
+    + we could just dump it immediately
+  + better
+    + we want to tell any thing we're adding to delete itself after 2000ms
+      + nope
+      + because we don't know that the event will have been resolved
+    + we only want to remove after we know it's been resolved
+
+* investigate missing vis events
+  + show re-keying
+    + little flash and change text
+    + not clear
+      + [green] hash:seq only showing up when seq=1
+      + I think all 'selected' keys should also have an associated hash:seq
+
+* video.js working well
+  + player fading out controls nicely when mouse not moving
 
