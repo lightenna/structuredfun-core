@@ -27,6 +27,17 @@ html {
   body {
     height: 100%;
   }
+
+  // create debug-only document features
+  .debug-only {
+    display: none;
+  }
+
+  &.debug {
+    .debug-only {
+      display: block;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

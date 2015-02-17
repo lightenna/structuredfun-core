@@ -312,8 +312,13 @@
               padding: 0 0.2em 0 0.2em;
               white-space: nowrap;
               
-              .size, .perc {
+              .size {
                 display: none;
+              }
+
+              // show the perc all the time, for messaging
+              .perc {
+                // display: none;
               }
 
               &.super {

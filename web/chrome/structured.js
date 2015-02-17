@@ -74,8 +74,8 @@ window.sfun = (function($, undefined) {
   // and private variables
   // ---------
 
-  // debugging state
-  var debug = true;
+  // debugging state (assume off)
+  var debug = 0;
   // default values for view state
   var state_default = [];
   // the previous values for the view state (1 generation)
@@ -166,6 +166,7 @@ window.sfun = (function($, undefined) {
         state_previous['breadth'] = state_default['breadth'] = getBreadth();
         state_previous['seq'] = state_default['seq'] = 0;
         state_previous['offseq'] = state_default['offseq'] = 0;
+        state_previous['debug'] = state_default['debug'] = 0;
         // stick default timecode in here as a bit of a hack, until we use data-frame
         state_default['timecode'] = '00:00:10.0';
         // bind to page
@@ -490,8 +491,6 @@ window.sfun = (function($, undefined) {
     $ent.addClass('reresing');
     // [could] move the metric into position and show
     // refreshMetricPosition($ent);
-    var $metricperc = $ent.cachedFind('.imgmetric .perc');
-    $metricperc.html('Reresing...');
     // create local deferred and local wrapUp
     var deferred = getDeferred();
     var wrapUp = function() {
@@ -521,6 +520,8 @@ window.sfun = (function($, undefined) {
       }
       // test to see if we're displaying an image at more than 100%
       if (bigger && available) {
+        var $metricperc = $ent.cachedFind('.imgmetric .perc');
+        $metricperc.html('Reresing...');
         // only need to think about one dimension, because ratio of image is fixed
         var majorw = (imageContainerWidth >= imageContainerHeight);
         // but that dimension has to be the major dimension 
@@ -581,6 +582,9 @@ window.sfun = (function($, undefined) {
       // test to see if we have the metadata
       if (typeof($reresable.data('native-width')) == 'undefined' || typeof($reresable.data('native-height')) == 'undefined') {
         var deferred = getDeferred();
+        // flag that we're loading metadata
+        var $metricperc = $ent.cachedFind('.imgmetric .perc');
+        $metricperc.html('Loading metadata...');
         // fire ajax request
         $.ajax({
           url: $reresable.data('meta-src'),
@@ -892,12 +896,7 @@ window.sfun = (function($, undefined) {
       // be very careful with code in here as :hover is a very frequent event
       var seq = $(this).parent().data('seq');
       // work out image and viewports positions on major axis
-      var direction = getDirection();
-      var viewport_base = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
-      var image_pos = $cell(seq).offset();
-      var image_base = (direction == 'x' ? image_pos.left : image_pos.top);
-      // find current offset of image within viewport, to 0DP
-      var offseq = exp.api_round(image_base - viewport_base, 0);
+      var offseq = imageStillShiftOffseq(seq);
       // select image using hash update
       fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false);
       // optional debugging
@@ -1143,7 +1142,7 @@ window.sfun = (function($, undefined) {
    * @return {object} get URL default hash arguments
    */
   var getDefaults = function() {
-    return { 'theme': state_default['theme'], 'direction': state_default['direction'], 'breadth': state_default['breadth'], 'seq': state_default['seq'], 'offseq': state_default['offseq'] };
+    return { 'theme': state_default['theme'], 'direction': state_default['direction'], 'breadth': state_default['breadth'], 'seq': state_default['seq'], 'offseq': state_default['offseq'], 'debug': state_default['debug'] };
   }
 
   /**
@@ -1394,6 +1393,27 @@ window.sfun = (function($, undefined) {
   };
 
   /**
+   * @param {int} newd (non-zero equals true)
+   */
+  var setDebug = function(newd) {
+    var changed = (debug !== newd && debug !== undefined);
+    if (changed) {
+      debug = newd;
+      if (debug) {
+        // if debugging is now on
+        $html.addClass('debug');
+      } else {
+        // if debugging is now off
+        // hide event vis
+        eventQueue.visualisationDisplay(false);
+        // remove debug class to hide debugging controls
+        $html.removeClass('debug');
+      }    
+    }
+    return changed;
+  };
+
+  /**
    * set bounds for a cell
    * @param {object} $ent jQuery entity
    * @param {boolean} recurse true to recurse on subcells
@@ -1638,7 +1658,15 @@ window.sfun = (function($, undefined) {
       }
       if (thenRefresh) {
         // now batch process all the visibles
-        refreshVisibleImageSet().done(wrapUp);
+        // either synchronously or asynchronously
+        if (false) {
+          // sync, wait for the images to load first
+          refreshVisibleImageSet().done(wrapUp);          
+        } else {
+          // async, don't wait for the images to load
+          refreshVisibleImageSet();
+          wrapUp();          
+        }
       } else {
         wrapUp();
       }
@@ -1831,16 +1859,27 @@ window.sfun = (function($, undefined) {
    * @param {object} [eventContext] optional event context for decorating an existing deferred
    */
   var imageAdvanceTo = function(seq, eventContext) {
-    // @todo nicer alignment
+    var offseq, breadth = getBreadth();
+    // if we're in fullscreen mode
+    if (breadth == 1) {
+      // keep the selected image centred
+      offseq = imageCentreOffseq();
+    } else {
+      // only scroll if we need to
+      offseq = imageStillShiftOffseq(seq);
+    }
     // update using hash change
-    return fireHashUpdate( { 'seq': seq }, false, eventContext);
+    return fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false, eventContext);
   };
 
   /**
-   * @param {string} direction
+   * @param [string] direction
    * @return {int} viewport centre offset by half the width of a cell (for this view size)
    */
   var imageCentreOffseq = function(direction) {
+    if (direction == undefined) {
+      direction = getDirection();
+    }
     // work out how to centre image
     var viewport_ratio = getViewportWidth() / getViewportHeight();
     var ratio_mean = ratio_total / ratio_count;
@@ -1860,6 +1899,31 @@ window.sfun = (function($, undefined) {
       console.log('viewport_midpoint['+viewport_midpoint+'] cell_count_fullscreen['+cell_count_fullscreen+'] cell_midpoint['+cell_midpoint+'] offseq['+offseq+']');
     }
     return offseq;
+  }
+
+  /**
+   * @param {int} seq sequence number of image that's being selected
+   * @param {string} direction
+   * @return {int} offseq value to keep image exactly where it is in the current viewport
+   */
+  var imageStillShiftOffseq = function(seq, direction) {
+    if (direction == undefined) {
+      direction = getDirection();
+    }
+    var viewport_base = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
+    var image_pos = $cell(seq).offset();
+    var image_base = (direction == 'x' ? image_pos.left : image_pos.top);
+    // find current offset of image within viewport, to 0DP
+    var offseq = exp.api_round(image_base - viewport_base, 0);
+    // work out max offseq can be to keep selected image in view
+    var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight());
+    var cell_major = (direction == 'x' ? $cell(seq).width() : $cell(seq).height());
+    var border = getGutter();
+    var max_offseq = viewport_major - cell_major - border;
+    var min_offseq = 0 + border;
+    // crop offseq against window bounds allowing for image bounds
+    var cropped = Math.max(Math.min(offseq, max_offseq), min_offseq);
+    return cropped;
   }
 
   // ------------------
@@ -2592,8 +2656,35 @@ window.sfun = (function($, undefined) {
        */
       'visualisationLog': function(action, object) {
         var action = action + '['+(object % 1000)+']';
-        if (debug && true) {
+        if (debug && false) {
           console.log(action);
+        }
+      },
+
+      /**
+       * @param boolean show true to display (default), false to hide
+       */
+      'visualisationDisplay': function(show) {
+        if (show == undefined) {
+          show = true;
+        }
+        // find list if not cached
+        if (typeof(this.visref_$list_static) == 'undefined') {
+          // if it doesn't exist and we're displaying it
+          if (show) {
+            this.visref_$list_static = $('#eventQueueVis');
+            // build list if not found
+            if (this.visref_$list_static.length == 0) {
+              $html.append('<ol class="queue" id="eventQueueVis"></ol>');
+              this.visref_$list_static = $('#eventQueueVis');
+            }            
+          }
+        } else {
+          // if it does exist and we're hiding it
+          if (!show) {
+            this.visref_$list_static.remove();
+            this.visref_$list_static = undefined;
+          }
         }
       },
 
@@ -2607,15 +2698,8 @@ window.sfun = (function($, undefined) {
         if (arguments.length >= 2) {
           this.visualisationLog(arguments[0], arguments[1]);
         }
-        // find list if not cached
-        if (typeof(this.visref_$list_static) == 'undefined') {
-          this.visref_$list_static = $('#eventQueueVis');
-          // build list if not found
-          if (this.visref_$list_static.length == 0) {
-            $html.append('<ol class="queue" id="eventQueueVis"></ol>');
-            this.visref_$list_static = $('#eventQueueVis');
-          }
-        }
+        // make sure list is visible
+        this.visualisationDisplay(true);
         // lock list to other updates
         if (this.visref_$list_static.hasClass('updating')) {
           return;
@@ -2648,7 +2732,7 @@ window.sfun = (function($, undefined) {
         }
         // show rest, starting from where we left off
         vised = this.visualisationRefreshList(rest, vised);
-        if (debug && true) {
+        if (debug && false) {
           console.log('vised');
           console.log(vised.arr);
         }
@@ -3515,7 +3599,7 @@ window.sfun = (function($, undefined) {
     }
     merge(obj, fromHash);
     // update previous values if changed
-    var cdirection = getDirection(), cbreadth = getBreadth(), cseq = getSeq(), coffseq = getOffseq(), ctheme = getTheme();
+    var cdirection = getDirection(), cbreadth = getBreadth(), cseq = getSeq(), coffseq = getOffseq(), ctheme = getTheme(), cdebug = debug;
     if (cdirection != obj.direction) {
       state_previous['direction'] = cdirection;
     }
@@ -3531,6 +3615,9 @@ window.sfun = (function($, undefined) {
     if (ctheme != obj.theme) {
       state_previous['theme'] = ctheme;
     }
+    if (cdebug != obj.debug) {
+      state_previous['debug'] = cdebug;
+    }
     // optional debugging
     if (debug && false) {
       console.log('caught hashChanged event ['+hash+']');
@@ -3544,8 +3631,10 @@ window.sfun = (function($, undefined) {
     var seqChanged = setSeq(obj.seq);
     // seqoffset changes at most only affect the images being viewed
     var offseqChanged = setOffseq(obj.offseq);
-    // theme changes should affect no images
+    // theme changes should affect no images (no affect)
     var themeChanged = setTheme(obj.theme);
+    // debug changed (no affect)
+    setDebug(obj.debug);
     // updates based on certain types of change
     if (breadthChanged || directionChanged || offseqChanged || forceChange) {
       refreshDynamicMajors(getBreadth(), getDirection());

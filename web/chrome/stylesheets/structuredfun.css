@@ -86,12 +86,20 @@ html {
 html body {
   height: 100%;
 }
+/* line 32, ../sass/structuredfun.scss */
+html .debug-only {
+  display: none;
+}
+/* line 37, ../sass/structuredfun.scss */
+html.debug .debug-only {
+  display: block;
+}
 
-/* line 35, ../sass/structuredfun.scss */
+/* line 46, ../sass/structuredfun.scss */
 html.flexbox.flow-x {
   overflow-x: scroll;
 }
-/* line 40, ../sass/structuredfun.scss */
+/* line 51, ../sass/structuredfun.scss */
 html.flexbox.flow-x .sfun.flow, html.flexbox.flow-x .sfun .flow {
   display: -webkit-flex;
   -webkit-flex-flow: column wrap;
@@ -106,25 +114,25 @@ html.flexbox.flow-x .sfun.flow, html.flexbox.flow-x .sfun .flow {
   height: 100%;
 }
 
-/* line 57, ../sass/structuredfun.scss */
+/* line 68, ../sass/structuredfun.scss */
 html.flow-y, html.no-flexbox.flow-x {
   overflow-y: scroll;
 }
-/* line 62, ../sass/structuredfun.scss */
+/* line 73, ../sass/structuredfun.scss */
 html.flow-y .sfun li, html.no-flexbox.flow-x .sfun li {
   float: left;
 }
 
-/* line 70, ../sass/structuredfun.scss */
+/* line 81, ../sass/structuredfun.scss */
 html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-js .footer {
   display: none;
 }
 
-/* line 78, ../sass/structuredfun.scss */
+/* line 89, ../sass/structuredfun.scss */
 .page {
   height: 100%;
 }
-/* line 82, ../sass/structuredfun.scss */
+/* line 93, ../sass/structuredfun.scss */
 .page .header, .page .footer {
   clear: both;
   height: 3em;
@@ -152,32 +160,32 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#96c2ff', endColorstr='#ffffff',GradientType=0 );
   /* IE6-9 */
 }
-/* line 103, ../sass/structuredfun.scss */
+/* line 114, ../sass/structuredfun.scss */
 .page .header p, .page .header li, .page .footer p, .page .footer li {
   float: left;
   height: 100%;
   padding-left: 3em;
   padding-top: 1em;
 }
-/* line 109, ../sass/structuredfun.scss */
+/* line 120, ../sass/structuredfun.scss */
 .page .header p a, .page .header li a, .page .footer p a, .page .footer li a {
   text-decoration: none;
   color: black;
 }
-/* line 114, ../sass/structuredfun.scss */
+/* line 125, ../sass/structuredfun.scss */
 .page .header p.menu.icon, .page .header li.menu.icon, .page .footer p.menu.icon, .page .footer li.menu.icon {
   padding: 0 0 0 0.1em;
   font-size: 3.0em;
 }
-/* line 131, ../sass/structuredfun.scss */
+/* line 142, ../sass/structuredfun.scss */
 .page .header {
   top: 0;
 }
-/* line 136, ../sass/structuredfun.scss */
+/* line 147, ../sass/structuredfun.scss */
 .page .footer {
   bottom: 0;
 }
-/* line 140, ../sass/structuredfun.scss */
+/* line 151, ../sass/structuredfun.scss */
 .page .content {
   height: 100%;
   -webkit-touch-callout: none;
@@ -188,20 +196,20 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   user-select: none;
 }
 
-/* line 168, ../sass/structuredfun.scss */
+/* line 179, ../sass/structuredfun.scss */
 html.flow-1 .page .content {
   height: 100%;
   margin: 0;
 }
-/* line 171, ../sass/structuredfun.scss */
+/* line 182, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun {
   margin: 0;
 }
-/* line 175, ../sass/structuredfun.scss */
+/* line 186, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun .media-container .selectreflector {
   border: none;
 }
-/* line 181, ../sass/structuredfun.scss */
+/* line 192, ../sass/structuredfun.scss */
 html.flow-1 .overlay-holder {
   position: fixed;
   height: 100%;
@@ -226,16 +234,16 @@ html.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 204, ../sass/structuredfun.scss */
+/* line 215, ../sass/structuredfun.scss */
 .sfun {
   margin-top: -4px;
 }
 
-/* line 212, ../sass/structuredfun.scss */
+/* line 223, ../sass/structuredfun.scss */
 html.theme-dark {
   background-color: #171717;
 }
-/* line 216, ../sass/structuredfun.scss */
+/* line 227, ../sass/structuredfun.scss */
 html.theme-dark .page .header {
   color: white;
   background: #000000;
@@ -255,53 +263,53 @@ html.theme-dark .page .header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222',GradientType=0 );
   /* IE6-9 */
 }
-/* line 230, ../sass/structuredfun.scss */
+/* line 241, ../sass/structuredfun.scss */
 html.theme-dark .page .header p a, html.theme-dark .page .header li a {
   color: white;
 }
-/* line 233, ../sass/structuredfun.scss */
+/* line 244, ../sass/structuredfun.scss */
 html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu-icon {
   background-image: url("/chrome/images/fullres/menu-icon-64x64-white.png");
 }
-/* line 241, ../sass/structuredfun.scss */
+/* line 252, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell {
   background-color: black;
 }
-/* line 245, ../sass/structuredfun.scss */
+/* line 256, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell:not(.selected) .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 251, ../sass/structuredfun.scss */
+/* line 262, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta {
   color: #ffffff;
 }
-/* line 254, ../sass/structuredfun.scss */
+/* line 265, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta .base {
   background-image: linear-gradient(rgba(23, 23, 23, 0.4), rgba(23, 23, 23, 0.8));
 }
-/* line 257, ../sass/structuredfun.scss */
+/* line 268, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_caption, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_keywords, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_copyright, html.theme-dark .page .content .sfun > .cell a .meta .base .iptc_source {
   color: #aaaaaa;
 }
-/* line 264, ../sass/structuredfun.scss */
+/* line 275, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #171717;
   color: #ffffff;
 }
-/* line 272, ../sass/structuredfun.scss */
+/* line 283, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text], html.theme-dark .page .content .sfun > .cell .metaform-holder textarea {
   color: white;
 }
-/* line 274, ../sass/structuredfun.scss */
+/* line 285, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text]:focus, html.theme-dark .page .content .sfun > .cell .metaform-holder textarea:focus {
   border: 1px solid #aaaaaa;
   background-image: linear-gradient(rgba(23, 23, 23, 0.5), rgba(23, 23, 23, 0.8));
 }
-/* line 285, ../sass/structuredfun.scss */
+/* line 296, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 293, ../sass/structuredfun.scss */
+/* line 304, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -319,7 +327,7 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 309, ../sass/structuredfun.scss */
+/* line 320, ../sass/structuredfun.scss */
 #eventQueueVis {
   color: #fff;
   font-size: 0.8em;
@@ -329,31 +337,31 @@ html.theme-dark.flow-1 .overlay-holder {
   left: 100%;
   margin-left: -11em;
 }
-/* line 320, ../sass/structuredfun.scss */
+/* line 331, ../sass/structuredfun.scss */
 #eventQueueVis li {
   width: 10em;
   padding: 0.2em;
   background-color: #660000;
   border: 1px solid #000;
 }
-/* line 326, ../sass/structuredfun.scss */
+/* line 337, ../sass/structuredfun.scss */
 #eventQueueVis li.queued {
   border-left-color: #ff0000;
   border-right-color: #ff0000;
 }
-/* line 331, ../sass/structuredfun.scss */
+/* line 342, ../sass/structuredfun.scss */
 #eventQueueVis li.queued:last-child {
   border-bottom-color: #ff0000;
 }
-/* line 335, ../sass/structuredfun.scss */
+/* line 346, ../sass/structuredfun.scss */
 #eventQueueVis li.hash {
   background-color: #006600;
 }
-/* line 339, ../sass/structuredfun.scss */
+/* line 350, ../sass/structuredfun.scss */
 #eventQueueVis li.scroll {
   background-color: #000066;
 }
-/* line 343, ../sass/structuredfun.scss */
+/* line 354, ../sass/structuredfun.scss */
 #eventQueueVis li .dig3 {
   font-size: 0.6em;
   border: 1px solid #fff;
@@ -361,7 +369,7 @@ html.theme-dark.flow-1 .overlay-holder {
   margin: 0.1em 0.4em 0.1em 0.1em;
 }
 
-/* line 355, ../sass/structuredfun.scss */
+/* line 366, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

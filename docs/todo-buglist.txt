@@ -1,52 +1,29 @@
 
-* make debug a url variable
-  + can't have it on all the time
-    + debug should add a class to <html>
-* when debug is on
-  + show test suite links
-
-* separate re-resing from selecting
-  + a slow re-res can mean that we're waiting ages for
-    + the select reflector to show an image is selected
-  + I suspect that's also the reason why we're slow to jump to the right place on the page
---o--
-  + this is linked to a slow click
-    + we need to process the jump immediately
-  + check the split behaviour
-    + we seem to jump to the breadth immediately
-    + then follow up with a scroll much later
-      + is it the scroll event that's getting delayed?
-        + I think so
-  + this is tricky
-    + there's an array of preceding events
-      + that are all getting stacked up
-    + reordering events
-      + each event type gets a priority
-      + a high priority event jumps the queue
-  + solution isn't clear yet
-  + build instrumentation
-
 * mouse wheel scrolling stops working sometimes
   + to do with offseq
     + and cell width
-  + maybe something about
+--o--
+* offseq clipping
+  + we need to cover the case where a link viewed in one browser
+    + is transferred to another of a different size
+    + or the same resized
+  + this is probably the solution to scrolling blocking
+  = done I think
+    + needs testing but I reckon it's close
 
 * changing between pages preserves offseq
   + needs to be recalculated really
     + otherwise images no longer appear centred
       + because pages have different cell widths
       + good to clear/recalc offseq everytime cell width changes
-
-* deploy
-  + structuredfun-linux as submodule of drupal7
-    + put in top-level
-      + not inside /htdocs so that all config files aren't exposed
-    + vhost in /conf
-      + demo.structuredfun.com/file/wikimedia-gallery1
+  + browse around in many-foldered image set
+    + see what the experience is like
 
 * basic website
   + plug the demo link into the demo menu item
     + simple external link is fine
+  + try and take :8097 out of demo.structuredfun.com link
+    + drupal7 vhost should allow simple config
 
 * release a fresh copy of the code
   + 0.9.2
@@ -4416,4 +4393,89 @@ resolve[0]
 $fi = new FilesystemIterator(__DIR__, FilesystemIterator::SKIP_DOTS);
 printf("There were %d Files", iterator_count($fi));
   + just do a simple scandir
+
+* make debug a url variable
+  + can't have it on all the time
+    + debug should add a class to <html>
+
+* when debug is on
+  + show test suite links using class
+    + but hide them using same class
+
+* debug variable isn't being updated to 0
+  + for some reason we carry on showing console.log statements
+  = it's cool
+    + it's just a weird Firebug artefact
+      + that makes it look like we're sending console.log statements
+
+* update image metric
+  + before metadata loads
+  + before thumb loads
+  + change out xX% for 'Initialising'
+  = that's really nice
+    + much clearer
+
+* separate re-resing from selecting
+  + a slow re-res can mean that we're waiting ages for
+    + the select reflector to show an image is selected
+  + I suspect that's also the reason why we're slow to jump to the right place on the page
+--o--
+  + this is linked to a slow click
+    + we need to process the jump immediately
+  + check the split behaviour
+    + we seem to jump to the breadth immediately
+    + then follow up with a scroll much later
+      + is it the scroll event that's getting delayed?
+        + I think so
+  + this is tricky
+    + there's an array of preceding events
+      + that are all getting stacked up
+    + reordering events
+      + each event type gets a priority
+      + a high priority event jumps the queue
+  + solution isn't clear yet
+  + build instrumentation
+  + we could split the seq change from the image load
+    + either dump all image loads into a separate queue
+    + or make a single event
+    + seq event
+      + does stuff
+      + farms new event
+      + deschedules itself
+    + from a test point of view it's good for seq event to wait until image loaded
+      + but not really from a user point of view
+    + could put a flag on each event
+      + that controls whether it waits to return (sync)
+      + or returns even when there are contingent actions to come (async)
+        + sync/async flag is neat
+          + could also create a new event in the queue for the image load
+          + but probably don't add to critical path
+            + because it's an event that mustn't block others
+              + e.g. keypresses
+    + async works well
+      + need to find a way for test suite to treat it as sync
+        + turns out the test suite runs sync and async
+
+* deploy
+  + structuredfun-linux as submodule of drupal7
+    + put in top-level
+      + not inside /htdocs so that all config files aren't exposed
+    + vhost in /conf
+      + demo.structuredfun.com/file/wikimedia-gallery1
+
+* selecting visible images
+  + don't really want to be scrolling when it's not necessary
+    + that's true of video clicks (select + play)
+      + and arrow keypresses
+  + offseq is a good solution
+    + for a bunch of reasons
+  + on a select
+    + if it's visible
+      + read back offseq
+      + reading back is the challenge
+        + the time to do it is when firing the select event
+        + seq=x&offseq= calc
+      + stumbled back across bindToHover
+        + which does exactly that!
+        = broke out into nice imageStillShiftOffseq function
 
