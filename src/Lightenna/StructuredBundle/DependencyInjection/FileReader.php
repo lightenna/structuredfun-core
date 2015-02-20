@@ -1,6 +1,9 @@
 <?php
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
+
+use Lightenna\StructuredBundle\Entity\GenericEntry;
+
 class FileReader {
 
   // parts of filename
@@ -74,9 +77,9 @@ class FileReader {
       if ($this->zip_part_leaf == '') {
         return true;
       }
-      foreach ($this->listing as $k => $item) {
+      foreach ($this->listing as $k => $obj) {
         // we've already stripped the zip_part_path from the listing
-        if ($this->zip_part_leaf == $item->name) {
+        if ($this->zip_part_leaf == $obj->getName()) {
           return true;
         }
       }
@@ -213,46 +216,46 @@ class FileReader {
         // var_dump(file_exists($this->file_part_path.'/'.$v));
         // exit;
       }
-      // create an object (stdClass is outside of namespace)
-      $obj = new \stdClass();
-      $obj->{'name'} = rtrim($v_utf8, '/');
-      $obj->{'alias'} = $obj->{'name'};
+      // create an object
+      $obj = new GenericEntry();
+      $obj->setName(rtrim($v_utf8, '/'));
+      $obj->setAlias($obj->getName());
       // if listing just a file
       if ($this->file_part_leaf !== null) {
-        $obj->{'path'} = $this->file_part_path;
-        $obj->{'file'} = $this->file_part_path . DIR_SEPARATOR . $obj->{'name'};
+        $obj->setPath($this->file_part_path);
+        $obj->setFile($this->file_part_path . DIR_SEPARATOR . $obj->getName());
       }
       // if listing a directory/zip
       else if ($this->file_part !== null) {
         // capture file part
-        $obj->{'path'} = $this->file_part;
-        $obj->{'file'} = $this->file_part;
+        $obj->setPath($this->file_part);
+        $obj->setFile($this->file_part);
         // if we cropped a zip path
         if (($this->zip_part_path !== null) && ($len = strlen($this->zip_part_path)) > 0) {
           // store cropped bit
-          $obj->{'zip_path'} = $this->zip_part_path;
+          $obj->setZipPath($this->zip_part_path);
         }
       }
       // assume it's a generic file
-      $obj->{'type'} = 'genfile';
-      $obj->{'hidden'} = false;
+      $obj->setType('genfile');
+      $obj->setHidden(false);
       if ($this->inZip()) {
         // crude test for zip folders (trailing slash)
         if (substr($v_utf8, -1) == '/') {
-          $obj->{'type'} = 'directory';
+          $obj->setType('directory');
         }
       }
       else {
         // test using filesystem
         if (is_dir($this->file_part . DIR_SEPARATOR . $v_utf8)) {
-          $obj->{'type'} = 'directory';
+          $obj->setType('directory');
           $sublisting = scandir($this->file_part . DIR_SEPARATOR . $v_utf8);
           // exclude . and .. from sublisting count
-          $obj->{'subfolder_count'} = count($sublisting)-2;
+          $obj->setSubfolderCount(count($sublisting)-2);
         }
       }
       // duplicate file ref incase we redirect
-      $obj->{'file_original'} = $obj->{'file'};
+      $obj->setFileOriginal($obj->getFile());
       // replace this entry in the array with the object we've just made
       $listing[$k] = $obj;
     }
@@ -307,17 +310,15 @@ class FileReader {
    */
   public function getFullname($obj) {
     // if obj contains a zip path
-    if (isset($obj->{'zip_path'}) && ($obj->zip_path)) {
-      $fullname = $obj->file . ZIP_SEPARATOR . $obj->zip_path;
+    if ($obj->isZip()) {
+      $fullname = $obj->getFile() . ZIP_SEPARATOR . $obj->getZipPath();
     } else {
-      $fullname = $obj->file;
+      $fullname = $obj->getFile();
     }
     // if it's a directory or a zip file, append leaf from entry ($obj/stats)
     if ($this->isDirectory() || $this->inZip()) {
       // if obj contains a leaf name, append it
-      if (isset($obj->{'name'}) && ($obj->name)) {
-        $fullname .= DIR_SEPARATOR . $obj->name;
-      }
+      $fullname .= DIR_SEPARATOR . $obj->getName();
     }
     return $fullname;
   }

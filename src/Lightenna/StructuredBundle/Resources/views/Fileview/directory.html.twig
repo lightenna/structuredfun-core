@@ -34,7 +34,7 @@
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type
   " data-seq="{{ file.seq }}">
     <a class="container media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
-      <img class="loadable reresable boundable {{ file.orientation }}-bound selectreflector"
+      <img class="loadable reresable boundable {{ file.meta.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            {# metadata source #}
            data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
@@ -55,7 +55,7 @@
 #}
            data-loaded="false"
            data-seq="{{ file.seq }}" />
-      <noscript><img class="{{ file.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.OriginalWidth is defined %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is defined %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}{% if file.meta.LoadedWidth is defined %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is defined %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}{% if file.meta.Ratio is defined %}data-ratio="{{ file.meta.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
+      <noscript><img class="{{ file.meta.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.OriginalWidth is defined %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is defined %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}{% if file.meta.LoadedWidth is defined %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is defined %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}{% if file.meta.Ratio is defined %}data-ratio="{{ file.meta.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
       <span class="meta">
         <span class="base">
           <span class="imgmetric super"><span class="size"><span class="width">{% if file.meta.LoadedWidth is defined %}{{ file.meta.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.LoadedHeight is defined %}{{ file.meta.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>

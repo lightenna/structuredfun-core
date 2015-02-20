@@ -41,10 +41,10 @@ class ViewController extends Controller {
           $localmfr = new MetadataFileReader($confdirname, $this);
           $listing = $localmfr->getListing();
           // parse each .ini file
-          foreach ($listing as $entry) {
-            if (strtolower($entry->ext) == 'ini') {
+          foreach ($listing as $obj) {
+            if (strtolower($obj->getExt()) == 'ini') {
               // add to settings
-              $subsets = parse_ini_file($confdirname . DIR_SEPARATOR . $entry->name, true);
+              $subsets = parse_ini_file($confdirname . DIR_SEPARATOR . $obj->getName(), true);
               $this->settings = array_merge_recursive($this->settings, $subsets);
             }
           }
@@ -254,11 +254,11 @@ class ViewController extends Controller {
     // parse listing to match $match
     $entry_counter = 0;
     $type_counter = array();
-    foreach ($listing as $entry) {
-      $enttype = $entry->type;
+    foreach ($listing as $obj) {
+      $enttype = $obj->getType();
       // videos are shown as image thumbnails
       if ($enttype == 'video') $enttype = 'image';
-      // update counters (making first entry = 1)
+      // update counters (making first obj = 1)
       $entry_counter++;
       if (!isset($type_counter[$enttype])) {
         $type_counter[$enttype] = 0;
@@ -268,11 +268,11 @@ class ViewController extends Controller {
       if ($match_type == 'counter') {
         // by default, match against counter
         if ($match == $entry_counter) {
-          return $entry->name;
+          return $obj->getName();
         }
       } else if ($match_type == $enttype) {
         if ($match == $type_counter[$enttype]) {
-          return $entry->name;
+          return $obj->getName();
         }
       }
     }
@@ -287,6 +287,8 @@ class ViewController extends Controller {
   public function convertRawToFilename($name) {
     // convert utf8 to iso-8859-1
     $name = iconv( "utf-8", "iso-8859-1//ignore", $name );
+    // swap out URL reverse-slash notation
+    $name = str_replace('\\', '/', $name);
     // strip trailing slash
     $name = rtrim($name, DIR_SEPARATOR);
     // return composite path to real root (back up out of symfony)

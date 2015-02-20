@@ -35,9 +35,9 @@ class CachedMetadataFileReader extends MetadataFileReader {
       }
     }
     if (!$this->isDirectory()) {
-      $this->stats->cachekey = null;
+      $this->stats->setCacheKey(null);
       if (!is_null($filename)) {
-        $this->stats->cachekey = $this->getKey();
+        $this->stats->setCacheKey($this->getKey());
       }
     }
   }
@@ -57,7 +57,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return boolean True if cache is enabled
    */
   public function cacheIsEnabled() {
-    if (isset($this->settings['general']['nocache']) || isset($this->args->{'nocache'}) || is_null($this->stats->cachekey)) {
+    if (isset($this->settings['general']['nocache']) || isset($this->args->{'nocache'}) || !$this->stats->hasCacheKey()) {
       return false;
     }
     return true;
@@ -65,7 +65,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function existsInCache($filename = null) {
     if (is_null($filename)) {
-      $filename = $this->stats->file;
+      $filename = $this->stats->getFile();
     }
     // if the image file exists in the (enabled) cache, return it
     return $this->cacheIsEnabled() && file_exists($filename);
@@ -73,12 +73,12 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function isCached() {
     // if the image file is cached at the requested size, return it
-    return !is_null($this->stats->{'cachekey'}) && $this->existsInCache($this->getFilename($this->stats->cachekey));
+    return $this->stats->hasCacheKey() && $this->existsInCache($this->getFilename($this->stats->getCacheKey()));
   }
   
   public function cacheKeyUpdateable() {
     // if the cachekey is set (not a directory) and set with a value (not a null filename)
-    return isset($this->stats->{'cachekey'}) && !is_null($this->stats->{'cachekey'});
+    return $this->stats->hasCacheKey();
   }
 
   /**
@@ -96,7 +96,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
       // either way update the metadata object with image's current stats
       $this->metadata->filterStats($this->stats);
       // derive full filename from cachekey
-      $filename = $this->getFilename($this->stats->cachekey);
+      $filename = $this->getFilename($this->stats->getCacheKey());
       // only cache the file if it's not already in the cache
       if (!$this->existsInCache($filename)) {
         // write out file
@@ -125,7 +125,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return true if this type of file can hold IPTC metadata in it
    */
   public function fileCanHoldMetadata() {
-    switch ($this->stats->ext) {
+    switch (strtolower($this->stats->getExt())) {
       case 'jpeg' :
       case 'jpg' :
       default :
@@ -159,8 +159,8 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
 
   public function getFilename($key = false) {
-    if ($key === true && isset($this->stats->cachekey)) {
-      $key = $this->stats->cachekey;
+    if ($key === true && $this->stats->hasCacheKey()) {
+      $key = $this->stats->getCacheKey();
     }
     // if we don't have a cachekey, are reading a directory, or pulling a directory from a zip
     if ($key === false || $this->isDirectory() || ($this->inZip() && $this->zip_part_leaf == null)) {
@@ -193,7 +193,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
   public function get() {
     if ($this->isCached()) {
       // redirect to use file from cache, but don't change cache key
-      $this->rewrite($this->getFilename($this->stats->cachekey), false);
+      $this->rewrite($this->getFilename($this->stats->getCacheKey()), false);
     }
     $imgdata = parent::get();
     return $imgdata;
@@ -206,7 +206,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
   public function getOnlyIfCached() {
     if ($this->isCached()) {
       // not calling parent::get() because want to read cache
-      $filename = $this->getFilename($this->stats->cachekey);
+      $filename = $this->getFilename($this->stats->getCacheKey());
       $imgdata = file_get_contents($filename);
       if ($this->fileCanHoldMetadata()) {
         // pull metadata manually for cached image
@@ -215,7 +215,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
         // pull from cached .meta file
         $metaname = $this->getMetaFilename($filename);
         if (file_exists($metaname)) {
-          $this->stats->{'meta'} = unserialize(file_get_contents($metaname));
+          $this->stats->setMeta(unserialize(file_get_contents($metaname)));
         }
       }
       return $imgdata;
@@ -241,7 +241,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
     parent::rewrite($newname);
     // only update cache key if we're not rewriting from the cache
     if ($updateCacheKey) {
-      $this->stats->cachekey = $this->getKey();    
+      $this->stats->setCacheKey($this->getKey());
     }
     return $newname;
   }
@@ -254,7 +254,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
     parent::setArgs($args);
     if ($this->cacheKeyUpdateable()) {
       // update cachekey after messing with args
-      $this->stats->cachekey = $this->getKey();
+      $this->stats->setCacheKey($this->getKey());
     }
   }
   
@@ -267,7 +267,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
     parent::injectArgs($args);
     if ($this->cacheKeyUpdateable()) {
       // update cachekey after messing with args
-      $this->stats->cachekey = $this->getKey();
+      $this->stats->setCacheKey($this->getKey());
     }
   }
   
