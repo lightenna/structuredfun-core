@@ -2,6 +2,7 @@
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
 
+use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 
@@ -17,10 +18,11 @@ class MetadataFileReader extends FileReader {
   public function __construct($filename, $con) {
     parent::__construct($filename);
     $this->controller = $con;
-    $this->stats = new \stdClass();
+    $this->stats = new GenericEntry();
     $this->setArgs($this->controller->getArgs());
     $this->settings = $this->controller->getSettings();
     if (!is_null($filename)) {
+      // @refactor ; think we can remove this getListing call
       $this->getListing();
       $this->stats = $this->getStats();
     }
@@ -70,7 +72,8 @@ class MetadataFileReader extends FileReader {
    */
   public function readImageMetadata($imgdata) {
     // store metadata block in stats for controller
-    $this->stats->{'meta'} = $this->metadata = $this->dumbreadImageMetadata($imgdata);
+    $this->metadata = $this->dumbreadImageMetadata($imgdata);
+    $this->stats->setMeta($this->metadata);
     // return object
     return $this->metadata;
   }
@@ -109,25 +112,24 @@ class MetadataFileReader extends FileReader {
     if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)])) {
       $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)];
       foreach ($shares as $k => &$sh) {
-        $newentry = new \stdClass();
-        $newentry->{'name'} = $sh['name'];
-        $newentry->{'alias'} = (isset($sh['alias']) ? $sh['alias'] : $sh['name']);
-        $newentry->{'type'} = 'directory';
-        $newentry->{'orientation'} = 'x';
-        $newentry->{'hidden'} = '';
-        $newentry->{'ext'} = '';
-        $newentry->{'path'} = $newentry->{'file'} = $newentry->{'file_original'} = $sh['path'];
-        $listing[] = $newentry;
+        $obj = new GenericEntry();
+        $obj->setName($sh['name']);
+        $obj->setAlias(isset($sh['alias']) ? $sh['alias'] : $sh['name']);
+        $obj->setType('directory');
+        $obj->setPath($sh['path']);
+        $obj->setFile($sh['path']);
+        $obj->setFileOriginal($sh['path']);
+        $listing[] = $obj;
       }
     }
     if ($this->isDirectory()) {
       // sort directory based on entry type
       usort($listing, function($a, $b) {
         $typeorder = array('image', 'directory', 'genfile');
-        $refa = array_search($a->type, $typeorder);
-        $refb = array_search($b->type, $typeorder);
+        $refa = array_search($a->getType(), $typeorder);
+        $refb = array_search($b->getType(), $typeorder);
         if ($refa == $refb) {
-          return ($a->name < $b->name) ? -1 : 1;
+          return ($a->getName() < $b->getName()) ? -1 : 1;
         }
         return ($refa < $refb) ? -1 : 1;
       });
@@ -135,10 +137,47 @@ class MetadataFileReader extends FileReader {
       $seq = 0;
       foreach ($listing as $obj) {
         // add sequence number (zero-based; dense, not sparse; includes non-images)
-        $obj->{'seq'} = $seq++;
+        $obj->setSeq($seq++);
       }
     }
     return $listing;
+  }
+
+  /**
+   * Overriden getListing function that adds metadata to the elements
+   * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
+   */
+  public function skimListing($listing) {
+    // dump protected or irrelevant fields
+    array_walk($listing, function(&$item, $key) {
+      // $dumpList = ['mfr', 'path','file','file_original'];
+      // foreach($dumpList as &$dump) {
+      //   unset($item->{$dump});
+      // }
+    });
+    return $listing;
+  }  
+
+  /**
+   * Add metadata fields to directory entries
+   * @param Object $obj Listing object
+   */
+
+  public function parseDirectoryEntry($obj) {
+    switch ($obj->getType()) {
+      case 'image':
+        // get the image metadata by reading (cached-only) file
+        // fast enough (110ms for 91 images)
+        $this->getDirectoryEntryMetadata($obj);
+        break;
+      case 'video':
+        // get the video metadata by reading (cached-only) file
+        $this->getDirectoryEntryMetadata($obj);
+        break;
+      default:
+        break;
+    }
+    return $obj;
   }
 
   /**
@@ -149,32 +188,33 @@ class MetadataFileReader extends FileReader {
   public function getDirectoryEntryMetadata($obj = null) {
     if (is_null($obj)) {
       $imgdata = $this->get();
-      $obj = new \stdClass();
+      $obj = new GenericEntry();
+      $localmeta = $obj->getMeta();
     }
     else {
       $imgdata = null;
       $filename = $this->getFullname($obj);
-      $localmfr = new CachedMetadataFileReader($filename, $this->controller);
       // local reader needs to use this reader's args (to get correctly size-cached thumbnails) 
+      $localmfr = new CachedMetadataFileReader($filename, $this->controller);
       $localmfr->setArgs($this->args);
+      $obj->setMetadataFileReader($localmfr);
+      // pull out mfr's metadata
+      $localmeta = $localmfr->getMetadata();
+      $obj->setMeta($localmeta);
+      // pull out image data
       $imgdata = $localmfr->getOnlyIfCached();
       // @todo this print_r exposes that we're calling it twice
       $localstats = $localmfr->getStats();
       // transfer metadata from cached copy to this directory entry
       if (isset($localstats->{'cachekey'})) {
-        $obj->cachekey = $localstats->{'cachekey'};
-      }
-      if (isset($localstats->{'meta'})) {
-        $obj->meta = $localstats->meta;
+        $obj->setCachekey($localstats->{'cachekey'});
       }
     }
     // try and use metadata first
-    if (isset($obj->meta->orientation)) {
-      $obj->orientation = $obj->meta->orientation;
+    if ($localmeta->hasRatio()) {
       return;
     }
-    // assume landscape if there's a problem reading
-    $obj->orientation = 'x';
+    // if we don't have the metadata, try and pull from image
     if ($imgdata == null)
       return;
     if (!self::checkImageDatastream($imgdata))
@@ -182,8 +222,9 @@ class MetadataFileReader extends FileReader {
     // create an image, then read out the width and height
     $img = @imagecreatefromstring($imgdata);
     if ($img) {
-      if (imagesx($img) < imagesy($img))
-        $obj->orientation = 'y';
+      $localmeta->setLoadedWidth(imagesx($img));
+      $localmeta->setLoadedHeight(imagesy($img));
+      $localmeta->calcRatio();
     }
     return $obj;
   }
@@ -202,49 +243,27 @@ class MetadataFileReader extends FileReader {
    */
 
   public function parseObject($obj) {
-    $obj->{'ext'} = self::getExtension($obj->{'name'});
+    $name = $obj->getName();
+    $obj->setExt(self::getExtension($name));
     // catch hidden files
-    if ($obj->{'name'}[0] == '.') {
-      $obj->{'hidden'} = true;
+    if ($name[0] == '.') {
+      $obj->setHidden(true);
     }
     // if the listing said it was a generic file
-    if ($obj->type == 'genfile') {
+    if ($obj->getType() == 'genfile') {
       // try and match specific-type based on extension
-      $extmatch = strtolower($obj->{'ext'});
+      $extmatch = strtolower($obj->getExt());
       if (in_array($extmatch, explode(',',FILETYPES_IMAGE))) {
-        $obj->{'type'} = 'image';
+        $obj->setType('image');
       }
       else if (in_array($extmatch, explode(',',FILETYPES_VIDEO))) {
-        $obj->{'type'} = 'video';
+        $obj->setType('video');
       }
       else if (in_array($extmatch, explode(',',FILETYPES_ZIP))) {
-        $obj->{'type'} = 'directory';
+        $obj->setType('directory');
       }
     } else {
       // others already typed as directory
-    }
-    return $obj;
-  }
-
-  /**
-   * Add metadata fields to directory entries
-   * @param Object $obj Listing object
-   */
-
-  public function parseDirectoryEntry($obj) {
-    switch ($obj->{'type'}) {
-      case 'image':
-        // get the image metadata by reading (cached-only) file
-        // fast enough (110ms for 91 images)
-        $this->getDirectoryEntryMetadata($obj);
-        break;
-      case 'video':
-        // get the video metadata by reading (cached-only) file
-        $this->getDirectoryEntryMetadata($obj);
-        break;
-      default:
-        $obj->orientation = 'x';
-        break;
     }
     return $obj;
   }
@@ -273,7 +292,7 @@ class MetadataFileReader extends FileReader {
   
   public function rewrite($newname) {
     parent::rewrite($newname);
-    $this->stats->file = $newname;
+    $this->stats->setFile($newname);
     // don't rewrite its extension because we don't use that for file access, only for type detection
     // $this->stats->ext = self::getExtension($this->stats->file);
     return $newname;

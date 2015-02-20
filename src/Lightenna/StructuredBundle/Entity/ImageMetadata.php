@@ -83,12 +83,13 @@ class ImageMetadata {
    * ratio of width:height, orientation (x || y)
    * @ORM\Column(type="decimal", scale=2)
    */
-  protected $ratio;
+  protected $ratio = null;
 
   /**
+   * image dimension orientation (portrait, x, default)
    * @ORM\Column(type="string", length=1)
    */
-  protected $orientation;
+  protected $orientation = 'x';
 
   /**
    * @ORM\Column(type="text")
@@ -148,19 +149,6 @@ class ImageMetadata {
   }
 
   /**
-   * recalculate image aspect ratio
-   */
-  public function recalcRatio() {
-    // round to 5DP (0.1px for a 10k image)
-    $this->ratio = round($this->loaded_width / $this->loaded_height, 5);
-    // orientation
-    $this->orientation = 'x';
-    if ($this->loaded_width < $this->loaded_height) {
-      $this->orientation = 'y';
-    }
-  }
-
-  /**
    * @return array default values
    */
   static function getDefaults() {
@@ -199,7 +187,7 @@ class ImageMetadata {
     if (isset($in->{'newwidth'})) {
       $this->loaded_width = $in->newwidth;
       $this->loaded_height = $in->newheight;
-      $this->recalcRatio();
+      $this->calcRatio();
     }
     return $this;
   }
@@ -283,7 +271,7 @@ class ImageMetadata {
   /**
    * @return object public-field object for inclusion in JSON output
    */
-  public function getJSONObject() {
+  public function retrieveJSONObject() {
     $obj = new \stdClass();
     foreach($this as $key => $value) {
       $obj->{$key} = $value;
@@ -330,7 +318,7 @@ class ImageMetadata {
 
   //
   // ACCESSOR & MUTATOR methods
-  // used by form api
+  // used by form api and JSON serializer
   //
 
   public function getIptcHeadline() {
@@ -379,8 +367,29 @@ class ImageMetadata {
     return $this->ratio;
   }
 
+  public function hasRatio() {
+    return ($this->ratio !== null);
+  }
+
+  /**
+   * recalculate image aspect ratio
+   */
+  public function calcRatio() {
+    // round to 5DP (0.1px for a 10k image)
+    $this->ratio = round($this->loaded_width / $this->loaded_height, 5);
+    // orientation
+    $this->orientation = 'x';
+    if ($this->loaded_width < $this->loaded_height) {
+      $this->orientation = 'y';
+    }
+  }
+
   public function getOrientation() {
     return $this->orientation;
+  }
+  public function setOrientation($o) {
+    // only used extremely rarely (for things that can't recalculate ratio)
+    $this->orientation = $o;
   }
 
   public function getEditable() {
@@ -390,8 +399,17 @@ class ImageMetadata {
   public function getLoadedWidth() {
     return $this->loaded_width;
   }
+
+  public function setLoadedWidth($w) {
+    $this->loaded_width = $w;
+  }
+
   public function getLoadedHeight() {
     return $this->loaded_height;
+  }
+
+  public function setLoadedHeight($h) {
+    $this->loaded_height = $h;
   }
 
   public function getOriginalSource() {
@@ -411,6 +429,17 @@ class ImageMetadata {
   }
   public function getOriginalHeight() {
     return $this->original_height;
+  }
+
+  //
+  // STATIC methods
+  //
+
+  /**
+   * @return array list of fields (with getters/setters) that shouldn't be serialized
+   */
+  static function getIgnoredAttributes() {
+    return array('defaults', 'originalSource', 'originalSourceFilename', 'ignoredAttributes');
   }
 
 }

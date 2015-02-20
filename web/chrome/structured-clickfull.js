@@ -62,7 +62,11 @@
     sfun.api_get$sfun().on('mouseover', '.selectablecell a.video-container', function(event) {
       var seq = $(this).parent().data('seq');
       var $ent = sfun.api_$cell(seq);
+      // attempt to load player
       var player = $ent.cachedGet('player');
+      if (player == undefined) {
+        return;
+      }
       // if player is playing
       if (player.paused() == false) {
         // push player volume up to 100% when mouse enters
@@ -74,7 +78,11 @@
     sfun.api_get$sfun().on('mouseout', '.selectablecell a.video-container', function(event) {
       var seq = $(this).parent().data('seq');
       var $ent = sfun.api_$cell(seq);
+      // attempt to load player
       var player = $ent.cachedGet('player');
+      if (player == undefined) {
+        return;
+      }
       // if player is playing
       if (player.paused() == false) {
         // push player volume up to 100% when mouse enters
@@ -157,8 +165,10 @@
         break;
       case 'video':
         _toggleVideo(seq, eventContext, $ent);
-        // @todo there's a complex offseq calculation to do in here
-        return sfun.api_fireHashUpdate( { 'seq': seq }, false, eventContext);
+        // work out cell and viewport's positions on major axis
+        var offseq = sfun.api_imageStillShiftOffseq(seq);
+        // select video using hash update
+        return sfun.api_fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false, eventContext);
         break;
     }
     return sfun.api_getEventQueue().resolve(eventContext);

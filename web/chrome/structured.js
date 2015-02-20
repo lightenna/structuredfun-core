@@ -895,7 +895,7 @@ window.sfun = (function($, undefined) {
     $sfun.on('mouseenter', '.selectablecell a.container', function(event) {
       // be very careful with code in here as :hover is a very frequent event
       var seq = $(this).parent().data('seq');
-      // work out image and viewports positions on major axis
+      // work out image and viewport's positions on major axis
       var offseq = imageStillShiftOffseq(seq);
       // select image using hash update
       fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false);
@@ -4571,6 +4571,15 @@ window.sfun = (function($, undefined) {
      */
     'api_imageCentreOffseq': function(direction) {
       return imageCentreOffseq(direction);
+    },
+
+    /**
+     * @param {int} seq sequence number of image that's being selected
+     * @param {string} direction
+     * @return {int} offseq value to keep image exactly where it is in the current viewport
+     */
+    'api_imageStillShiftOffseq': function(seq, direction) {
+      return imageStillShiftOffseq(seq, direction);
     },
 
     /**

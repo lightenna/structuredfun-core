@@ -1,4 +1,44 @@
 
+* missing metadata in gallery view
+  + for some reason it's not showing the actual metadata
+    + suspect it's the javascript receiver
+  + no data-native-width/height being set by HTML
+    + implies that file.meta.OriginalWidth is missing
+--o--
+  + not showing metadata in layout view
+    + I'm not entirely sure it's supposed to be there
+      + I don't think we need it
+      + but I'd like to establish why it's not there
+  + the two seem to be linked
+
++ export metadata list as json
+  + this is going to be the basis for the layout json
+    + has required moving all informal classes (stdClass)
+    + into formal classes (GenericEntry)
+  + change out $this->stats
+    + for $this->entry
+    + and use GenericEntry
+
+* debug flow jitter
+  + it seems like it can't decide between flow and grid
+
+* faster image delivery
+  + can we use an alternative character in the URL to replace /
+    + not \ because can't use it in files
+      + . maybe
+        + that's a bit of a pain on windows
+        + seems to work ok
+      + but too easily confused with extension
+    + actually maybe \ is perfect precisely because we can't use it in files
+      + that means we'll have to rewrite for cache
+
+more fun
+---- 
+release focus
+
+* hover over icons isn't working
+  + important for showing metadata
+
 * mouse wheel scrolling stops working sometimes
   + to do with offseq
     + and cell width
@@ -4478,4 +4518,30 @@ printf("There were %d Files", iterator_count($fi));
       + stumbled back across bindToHover
         + which does exactly that!
         = broke out into nice imageStillShiftOffseq function
+
+* push forward with layout today
+  + important for BAL next step
+    + ideally I'd like to get a zoomy version working
+      + but I think that's too far out
+    + instead a basic layout service
+      + returns JSON layout file
+
+* layout service end point
+  + reads all files in a directory
+    + collects metadata
+      + eventually can put that into the local sqlite DB
+    + produces JSON layout file
+  + do this first
+    + because we may decide to pull flow server-side
+
+* refactor orientation into meta
+  + try and add width and height first
+    + see if they persist
+  + moved orientation
+    + now thinking it should really go into ImageMetadata object
+
+* note
+318 removed if isset
+assuming everything has a name
+  + don't think it matter, just loggin
 

@@ -145,7 +145,7 @@ class VideoMetadata extends ImageMetadata {
     }
     // post process
     if (isset($this->{'loaded_width'})) {
-      $this->recalcRatio();
+      $this->calcRatio();
     }
     $this->dv_framecount = $this->{'video_duration_ts'};
     // fallback to always get framerate

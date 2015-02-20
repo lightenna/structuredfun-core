@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\Entity\VideoMetadata;
+use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
@@ -20,7 +21,7 @@ class ImageviewController extends ViewController {
     // initialise stats because may use/test class before indexAction() call
     $this->args = new \stdClass();
     $this->mfr = new CachedMetadataFileReader(null, $this);
-    $this->stats = new \stdClass();
+    $this->stats = new GenericEntry();
   }
 
   public function indexAction($rawname, $output = true) {
@@ -55,7 +56,7 @@ class ImageviewController extends ViewController {
     // get metadata object (comes with metadata from file)
     $md = $this->mfr->getMetadata();
     // embed metadata within stats object
-    $this->stats->{'meta'} = $md->getJSONObject();
+    $this->stats->setMeta($md);
     // see if we have form data to process
     $form = $md->getForm($this);
     $form->handleRequest($request);
@@ -66,6 +67,7 @@ class ImageviewController extends ViewController {
       $md->updateOriginal();
       // @todo leave dirty cached copies for now
     }
+var_dump($this->stats->serialise());
     // return metadata for this object, encoded as json
     print(json_encode($this->stats));
     exit;
@@ -108,10 +110,10 @@ class ImageviewController extends ViewController {
    */
   public function fetchImage() {
     // generate image based on media type
-    switch ($this->stats->type) {
+    switch ($this->stats->getType()) {
       case 'video':
         // override the extension to return an image
-        $this->stats->ext = 'jpg';
+        $this->stats->setExt('jpg');
         $imgdata = $this->fetchVideoFrame();
         return $this->filterImage($imgdata);
         break;
@@ -128,7 +130,7 @@ class ImageviewController extends ViewController {
       $this->args->{'timecode'} = DEFAULT_TIMECODE;
     }
     // prepend the cache location
-    $key = CachedMetadataFileReader::hash($this->stats->file.FILEARG_SEPARATOR.$this->args->timecode) . '_videofullres' . '.' . 'dat';
+    $key = CachedMetadataFileReader::hash($this->stats->getFile() . FILEARG_SEPARATOR . $this->args->timecode) . '_videofullres' . '.' . 'dat';
     // create mfr in two stages, because we need to point at the image file in the cache
     $localmfr = new CachedMetadataFileReader(null, $this);
     $localmfr->rewrite($localmfr->getFilename($key));
@@ -165,7 +167,7 @@ class ImageviewController extends ViewController {
   public function takeSnapshot($time, $outputname) {
     $path_ffmpeg = $this->settings['general']['path_ffmpeg'];
     // escape arguments (minus flags)
-    $shell_filename = escapeshellarg($this->stats->file_original);
+    $shell_filename = escapeshellarg($this->stats->getFileOriginal());
     $shell_output = escapeshellarg($outputname);
     $shell_time = escapeshellarg(ltrim($time, 'f'));
     // remove output file if it exists already
@@ -210,7 +212,7 @@ class ImageviewController extends ViewController {
    */
   public function returnImage($imgdata) {
     if (!headers_sent()) {
-      header("Content-Type: image/" . $this->stats->{'ext'});
+      header("Content-Type: image/" . $this->stats->getExt());
       header("Content-Length: " . strlen($imgdata));
     }
     echo $imgdata;
@@ -253,7 +255,7 @@ class ImageviewController extends ViewController {
         $oldimg = $img;
       }
       // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
-      $imgdata = self::getImageData($oldimg, isset($this->stats->{'ext'}) ? $this->stats->{'ext'} : 'jpg');
+      $imgdata = self::getImageData($oldimg, $this->stats->hasExt() ? $this->stats->getExt() : 'jpg');
       // cache derived image, but don't reread the metadata as 
       //   original metadata is lost by imagecreatefromstring() call
       $this->mfr->cache($imgdata, false);
@@ -269,7 +271,7 @@ class ImageviewController extends ViewController {
         $oldimg = $img;
       }
       // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
-      $imgdata = self::getImageData($oldimg, isset($this->stats->{'ext'}) ? $this->stats->{'ext'} : 'jpg');
+      $imgdata = self::getImageData($oldimg, $this->stats->hasExt() ? $this->stats->getExt() : 'jpg');
       // after we've extracted the image as a string, destroy redundant image resource
       imagedestroy($oldimg);
     }
@@ -330,7 +332,7 @@ class ImageviewController extends ViewController {
   public function resizeImage(&$img) {
     // create a new image the correct shape and size
     $newimg = imagecreatetruecolor($this->stats->{'newwidth'}, $this->stats->{'newheight'});
-    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->stats->{'newwidth'}, $this->stats->{'newheight'}, $this->stats->{'width'}, $this->stats->{'height'});
+    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->stats->{'newwidth'}, $this->stats->{'newheight'}, $this->stats->getMeta()->getLoadedWidth(), $this->stats->getMeta()->getLoadedHeight());
     // clean up old image
     imagedestroy($img);
     return $newimg;
@@ -366,11 +368,12 @@ class ImageviewController extends ViewController {
     // clear old calculations
     unset($this->stats->{'newwidth'});
     unset($this->stats->{'newheight'});
-    // find image orientation
-    $this->stats->{'width'} = imagesx($img);
-    $this->stats->{'height'} = imagesy($img);
+    // find image dimensions and derive portrait/landscape
+    // @refactor ; use $this->stats->getMeta()->getOrientation()
+    $width = imagesx($img);
+    $height = imagesy($img);
     $portrait = false;
-    if ($this->stats->{'height'} > $this->stats->{'width'}) {
+    if ($height > $width) {
       $portrait = true;
     }
     // resize based on longest edge and args
@@ -416,24 +419,24 @@ class ImageviewController extends ViewController {
     }
     // don't allow image to exceed original at 200%
     $factor = 2;
-    if (isset($this->stats->{'newwidth'}) && $this->stats->{'newwidth'} > $factor * $this->stats->{'width'}) {
-      $this->stats->{'newwidth'} = round($factor * $this->stats->{'height'},1);
+    if (isset($this->stats->{'newwidth'}) && $this->stats->{'newwidth'} > $factor * $width) {
+      $this->stats->{'newwidth'} = round($factor * $height,1);
     }
-    if (isset($this->stats->{'newheight'}) && $this->stats->{'newheight'} > $factor * $this->stats->{'width'}) {
-      $this->stats->{'newheight'} = round($factor * $this->stats->{'height'},1);
+    if (isset($this->stats->{'newheight'}) && $this->stats->{'newheight'} > $factor * $width) {
+      $this->stats->{'newheight'} = round($factor * $height,1);
     }
     // catch case where we haven't restricted either dimension
     if (!isset($this->stats->{'newwidth'}) && !isset($this->stats->{'newheight'})) {
-      $this->stats->{'newwidth'} = $this->stats->{'width'};
-      $this->stats->{'newheight'} = $this->stats->{'height'};
+      $this->stats->{'newwidth'} = $width;
+      $this->stats->{'newheight'} = $height;
     }
     else {
       // derive unset dimension using restricted one
       if (!isset($this->stats->{'newwidth'})) {
-        $this->stats->{'newwidth'} = round($this->stats->{'newheight'} * $this->stats->{'width'} / $this->stats->{'height'},1);
+        $this->stats->{'newwidth'} = round($this->stats->{'newheight'} * $width / $height,1);
       }
       if (!isset($this->stats->{'newheight'})) {
-        $this->stats->{'newheight'} = round($this->stats->{'newwidth'} * $this->stats->{'height'} / $this->stats->{'width'},1);
+        $this->stats->{'newheight'} = round($this->stats->{'newwidth'} * $height / $width,1);
       }
     }
   }
