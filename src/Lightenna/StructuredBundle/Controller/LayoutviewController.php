@@ -33,14 +33,18 @@ class LayoutviewController extends ViewController {
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
         $dirmeta = $this->mfr->skimListing($this->mfr->getListing());
-        // return new JsonResponse($this->serialise($dirmeta));
-        echo($this->serialise($dirmeta));
+        $this->layoutListing($dirmeta);
+        print($this->serialise($dirmeta));
         exit;
       }
     } else {
       // implied else
       return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
     }
+  }
+
+  private function layoutListing($listing) {
+    
   }
 
   private function serialise($dirmeta) {

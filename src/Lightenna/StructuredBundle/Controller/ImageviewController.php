@@ -11,6 +11,7 @@ use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
 
 class ImageviewController extends ViewController {
   // @param Array image metadata array, shared object reference with MetadataFileReader
@@ -34,7 +35,7 @@ class ImageviewController extends ViewController {
     }
     if ($imgdata !== null) {
       // print image to output stream
-      self::returnImage($imgdata);
+      $this->returnImage($imgdata);
     }
     else {
       // implied else
@@ -63,13 +64,12 @@ class ImageviewController extends ViewController {
     if ($form->isValid()) {
       // $form data already in $md object
       $md->updateDB();
-      // @todo update metadata in original file
+      // update metadata in original file
       $md->updateOriginal();
-      // @todo leave dirty cached copies for now
+      // @todo remove/update dirty cached copies
     }
-var_dump($this->stats->serialise());
     // return metadata for this object, encoded as json
-    print(json_encode($this->stats));
+    print($this->stats->serialise());
     exit;
   }
 
@@ -91,10 +91,10 @@ var_dump($this->stats->serialise());
     $this->args = self::getArgsFromPath($name);
     // get file reader object
     $this->mfr = new CachedMetadataFileReader($filename, $this);
+    $this->mfr->processDebugSettings();
     // read metadata
     $listing = $this->mfr->getListing();
-    // file is first element in returned listing array
-    $this->stats = reset($listing);
+    $this->stats = $this->mfr->getStats();
   }
   
   /**
@@ -114,17 +114,25 @@ var_dump($this->stats->serialise());
       case 'video':
         // override the extension to return an image
         $this->stats->setExt('jpg');
-        $imgdata = $this->fetchVideoFrame();
-        return $this->filterImage($imgdata);
+        $imgdata = $this->loadVideoFrame();
         break;
       default:
       case 'image':
-        return $this->loadAndFilterImage();
+        $imgdata = $this->loadImage();
         break;
     }
+    // filter based on arguments
+    if (ImageTransform::shouldFilterImage($this->args)) {
+      $it = new ImageTransform($this->args, $imgdata, $this->mfr->getStats());
+      $it->applyFilter();
+      $imgdata = $it->getImgdata();
+      // cache transformed image
+      $this->mfr->cache($imgdata, false);
+    }
+    return $imgdata;
   }
 
-  private function fetchVideoFrame() {
+  private function loadVideoFrame() {
     // calculate position in video
     if (!isset($this->args->{'timecode'})) {
       $this->args->{'timecode'} = DEFAULT_TIMECODE;
@@ -210,7 +218,7 @@ var_dump($this->stats->serialise());
    * Output an image with correct headers
    * @param string $imgdata Raw image data as a string
    */
-  public function returnImage($imgdata) {
+  private function returnImage($imgdata) {
     if (!headers_sent()) {
       header("Content-Type: image/" . $this->stats->getExt());
       header("Content-Length: " . strlen($imgdata));
@@ -220,93 +228,10 @@ var_dump($this->stats->serialise());
   }
 
   /**
-   * print out an image based on an array of its metadata
-   */
-  public function loadAndFilterImage() {
-    // load image into buffer
-    $imgdata = $this->loadImage();
-    // filter based on arguments
-    if ($this->argsSayFilterImage()) {
-      $imgdata = $this->filterImage($imgdata);
-    }
-    return $imgdata;
-  }
-
-  /**
-   * filter image based on its arguments
-   * @param $imgdata image data as a string
-   */
-  public function filterImage(&$imgdata) {
-    if ($this->argsSayFilterImage()) {
-      // test image datastream size before trying to process
-      if (!FileReader::checkImageDatastream($imgdata)) {
-        // destroy massive imgdata string as can't load
-        $imgdata = null;
-        // return 'not found' image
-        $imgdata = $this->loadErrorImage();
-      }
-      // always calculate new image size (at least reads width & height from img)
-      $oldimg = imagecreatefromstring($imgdata);
-      $this->imageCalcNewSize($oldimg);
-      // first [optionally] resize
-      if ($this->argsSayResizeImage()) {
-        $img = $this->resizeImage($oldimg);
-        // store image in oldimg for process symmetry
-        $oldimg = $img;
-      }
-      // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
-      $imgdata = self::getImageData($oldimg, $this->stats->hasExt() ? $this->stats->getExt() : 'jpg');
-      // cache derived image, but don't reread the metadata as 
-      //   original metadata is lost by imagecreatefromstring() call
-      $this->mfr->cache($imgdata, false);
-      // then [optionally] clip
-      if ($this->argsSayClipImage()) {
-        if ($oldimg === null) {
-          $oldimg = imagecreatefromstring($imgdata);
-        }
-        $this->stats->{'newwidth'} = $this->args->{'clipwidth'};
-        $this->stats->{'newheight'} = $this->args->{'clipheight'};
-        $img = $this->clipImage($oldimg);
-        // store image in oldimg for process symmetry
-        $oldimg = $img;
-      }
-      // fetch new imgdata (covering case where we haven't set the ext, e.g. tests)
-      $imgdata = self::getImageData($oldimg, $this->stats->hasExt() ? $this->stats->getExt() : 'jpg');
-      // after we've extracted the image as a string, destroy redundant image resource
-      imagedestroy($oldimg);
-    }
-    return $imgdata;
-  }
-
-  /**
-   * decide if we're going to need to filter the image
-   * @return boolean true if filtering required
-   */
-  public function argsSayFilterImage() {
-    return ($this->argsSayResizeImage() || $this->argsSayClipImage());
-  }
-
-  /**
-   * decide if we're going to need to resize the image
-   * @return boolean true if resize required
-   */
-  public function argsSayResizeImage() {
-    return (isset($this->args->{'maxwidth'}) || isset($this->args->{'maxheight'}) || isset($this->args->{'maxlongest'}) || isset($this->args->{'maxshortest'}));
-  }
-
-  /**
-   * decide if we're going to need to clip the image
-   * @return boolean true if clipping required
-   */
-  public function argsSayClipImage() {
-    return (isset($this->args->{'clipwidth'}) || isset($this->args->{'clipheight'}));
-  }
-
-  /**
    * load image into a buffer
    * @return string image as a string
    **/
-  public function loadImage() {
+  private function loadImage() {
     return $this->mfr->get();
   }
 
@@ -322,143 +247,4 @@ var_dump($this->stats->serialise());
     return file_get_contents($this->convertRawToInternalFilename('htdocs/web/chrome/images/fullres/missing_image.jpg'));
   }
 
-  /**
-   * resize image to width/height or both based on args
-   * Note: this destroys the old image to avoid memory leaks
-   * @param resource $img The image
-   * @return resource 
-   */
-
-  public function resizeImage(&$img) {
-    // create a new image the correct shape and size
-    $newimg = imagecreatetruecolor($this->stats->{'newwidth'}, $this->stats->{'newheight'});
-    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->stats->{'newwidth'}, $this->stats->{'newheight'}, $this->stats->getMeta()->getLoadedWidth(), $this->stats->getMeta()->getLoadedHeight());
-    // clean up old image
-    imagedestroy($img);
-    return $newimg;
-  }
-
-  /**
-   * clip image to width/height or both based on args
-   * Note: this destroys the old image to avoid memory leaks
-   * @param resource $img The image
-   * @return resource 
-   */
-
-  public function clipImage(&$img) {
-    // create a new image the correct shape and size
-    $newimg = imagecreatetruecolor($this->stats->{'newwidth'}, $this->stats->{'newheight'});
-    $sx = imagesx($img) / 2 - $this->stats->{'newwidth'} / 2;
-    $sy = imagesy($img) / 2 - $this->stats->{'newheight'} / 2;
-    imagecopy($newimg, $img, 0, 0, $sx, $sy, $this->stats->{'newwidth'}, $this->stats->{'newheight'});
-    // clean up old image
-    imagedestroy($img);
-    return $newimg;
-  }
-
-  /**
-   * use original image and args to decide new image size
-   * max(width|height) - set the maximum width & height but constrain proportions
-   * maxlongest - set the maximum longest edge and work out shortest
-   * maxshortest - set the maximum shortest edge and work out longest
-   * clip(width|height) - clip image independently of max(width|height|longest|shortest) settings
-   */
-
-  public function imageCalcNewSize(&$img) {
-    // clear old calculations
-    unset($this->stats->{'newwidth'});
-    unset($this->stats->{'newheight'});
-    // find image dimensions and derive portrait/landscape
-    // @refactor ; use $this->stats->getMeta()->getOrientation()
-    $width = imagesx($img);
-    $height = imagesy($img);
-    $portrait = false;
-    if ($height > $width) {
-      $portrait = true;
-    }
-    // resize based on longest edge and args
-    // exactly 1 restriction is always set
-    if ($portrait) {
-      // use either max(width|height) as determinant, but don't set both (hence else if)
-      if (isset($this->args->{'maxheight'})) {
-        $this->stats->{'newheight'} = $this->args->{'maxheight'};
-      }
-      else if (isset($this->args->{'maxlongest'})) {
-        // set the height to be maxlongest
-        // allow newwidth to be derived
-        $this->stats->{'newheight'} = $this->args->{'maxlongest'};
-      }
-      else if (isset($this->args->{'maxshortest'})) {
-        // set the width to be maxshortest
-        // allow newheight to be derived
-        $this->stats->{'newwidth'} = $this->args->{'maxshortest'};
-      }
-      else if (isset($this->args->{'maxwidth'})) {
-        // cover odd portrait case where only width is restricted (maxwidth defined, but maxheight unset)
-        $this->stats->{'newwidth'} = $this->args->{'maxwidth'};
-      }
-    }
-    else {
-      if (isset($this->args->{'maxwidth'})) {
-        $this->stats->{'newwidth'} = $this->args->{'maxwidth'};
-      }
-      else if (isset($this->args->{'maxlongest'})) {
-        // set the width to be maxlongest
-        // allow newheight to be derived
-        $this->stats->{'newwidth'} = $this->args->{'maxlongest'};
-      }
-      else if (isset($this->args->{'maxshortest'})) {
-        // set the height to be maxshortest
-        // allow newwidth to be derived
-        $this->stats->{'newheight'} = $this->args->{'maxshortest'};
-      }
-      else if (isset($this->args->{'maxheight'})) {
-        // cover odd landscape case where only height is restricted (maxheight defined, but maxwidth unset)
-        $this->stats->{'newheight'} = $this->args->{'maxheight'};
-      }
-    }
-    // don't allow image to exceed original at 200%
-    $factor = 2;
-    if (isset($this->stats->{'newwidth'}) && $this->stats->{'newwidth'} > $factor * $width) {
-      $this->stats->{'newwidth'} = round($factor * $height,1);
-    }
-    if (isset($this->stats->{'newheight'}) && $this->stats->{'newheight'} > $factor * $width) {
-      $this->stats->{'newheight'} = round($factor * $height,1);
-    }
-    // catch case where we haven't restricted either dimension
-    if (!isset($this->stats->{'newwidth'}) && !isset($this->stats->{'newheight'})) {
-      $this->stats->{'newwidth'} = $width;
-      $this->stats->{'newheight'} = $height;
-    }
-    else {
-      // derive unset dimension using restricted one
-      if (!isset($this->stats->{'newwidth'})) {
-        $this->stats->{'newwidth'} = round($this->stats->{'newheight'} * $width / $height,1);
-      }
-      if (!isset($this->stats->{'newheight'})) {
-        $this->stats->{'newheight'} = round($this->stats->{'newwidth'} * $height / $width,1);
-      }
-    }
-  }
-
-  /**
-   * Nasty function to get the image data from an image resource
-   */
-
-  static function getImageData(&$img, $type = 'jpg') {
-    ob_start();
-    switch(strtolower($type)) {
-      case 'jpeg' :
-      case 'jpg' :
-        imagejpeg($img);
-        break;
-      case 'png' :
-        imagepng($img);
-        break;
-      case 'gif' :
-        imagegif($img);
-        break;
-    }
-    return ob_get_clean();
-  }
 }
