@@ -1,7 +1,7 @@
 
-* problem
-  + we're generating bad images
-    + they've all got crazy zoom
+* subfolder_count bug
+
+* bring PHP test suite back to life
 
 * implement canvas thinking into layout
 
@@ -62,6 +62,9 @@ release focus
     + not form an array of candidates (as currently)
   + solution may be to eval those candidate arrays
     + and take the last value
+
+* bug #1101: shouldn't write loaded_width = 200 to original file
+  + need to change out/unset those values before updateOriginal() call
 
 * manually compose sharing image
   + use that javascript that was posted up online
@@ -4561,4 +4564,40 @@ assuming everything has a name
 * test layout service at scale
   + works fast up to 1000 images
     + 500ms where there's nothing in the cache
+
+* chopped
+    // always update resolution/resolution_loaded
+    if (isset($obj->{'width'})) {
+      $this->original_width = $obj->width;
+      $this->original_height = $obj->height;
+    }
+    if (isset($obj->{'newwidth'})) {
+      $this->loaded_width = $obj->newwidth;
+      $this->loaded_height = $obj->newheight;
+      $this->calcRatio();
+    }
+  + because we not longer store these widths in obj (GenericEntry)
+
+* problem
+  + we're generating bad images
+    + they've all got crazy zoom
+  + it's to do with getting original_width into metadata
+  + shouldn't hold on to metadata references
+    + instead read out of stats
+      + because reloading metadata changes the object
+  + problem is when we serialise the data back to the original image
+    + it's wrong
+    + it still contains that loaded_width = 200
+      + but for the original image
+        + the loaded_width = original_width
+  + several problem persist
+    + data-native-width missing again
+
+* problem is writing native-width into HTML
+  + when we don't know what it is
+    + shouldn't write if null
+  = first load fine now
+
+* second load has diddy thumbnails
+  + suspect it's a problem with the cache lookup
 

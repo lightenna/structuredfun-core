@@ -1,4 +1,4 @@
-/* line 17, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 17, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -20,45 +20,45 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
-/* line 22, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 22, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html {
   line-height: 1;
 }
 
-/* line 24, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 24, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 ol, ul {
   list-style: none;
 }
 
-/* line 26, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 26, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-/* line 28, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 28, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 caption, th, td {
   text-align: left;
   font-weight: normal;
   vertical-align: middle;
 }
 
-/* line 30, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 30, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q, blockquote {
   quotes: none;
 }
-/* line 103, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 103, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 q:before, q:after, blockquote:before, blockquote:after {
   content: "";
   content: none;
 }
 
-/* line 32, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 32, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 a img {
   border: none;
 }
 
-/* line 116, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 116, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
 }
@@ -243,7 +243,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin-left: 1px;
 }
 /* line 197, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container.directory-container.directory-outer > .meta .base .iptc_headline {
+.sfun.flow-pc > .cell .container.directory-container.directory-outer > .meta .base .iptcHeadline {
   font-weight: normal;
   font-size: 2.0em;
 }
@@ -295,13 +295,13 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   overflow: hidden;
 }
 /* line 267, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.iptc_headline {
+.sfun.flow-pc > .cell .container .meta .base .iptc.iptcHeadline {
   font-weight: bold;
   display: block;
   margin-right: 0.5em;
 }
 /* line 274, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.iptc_caption, .sfun.flow-pc > .cell .container .meta .base .iptc.iptc_keywords, .sfun.flow-pc > .cell .container .meta .base .iptc.iptc_copyright, .sfun.flow-pc > .cell .container .meta .base .iptc.iptc_source {
+.sfun.flow-pc > .cell .container .meta .base .iptc.iptcCaption, .sfun.flow-pc > .cell .container .meta .base .iptc.iptcKeywords, .sfun.flow-pc > .cell .container .meta .base .iptc.iptcCopyright, .sfun.flow-pc > .cell .container .meta .base .iptc.iptcSource {
   color: #555555;
   display: inline;
   margin-left: 0;
@@ -318,7 +318,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   color: red;
 }
 /* line 292, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.iptc_byline {
+.sfun.flow-pc > .cell .container .meta .base .iptc.iptcByline {
   display: inline;
 }
 /* line 297, ../sass/structured.scss */
@@ -419,7 +419,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   border: 1px solid #555555;
 }
 /* line 431, ../sass/structured.scss */
-.sfun.flow-pc > .cell .metaform-holder input[type=text].iptc_headline, .sfun.flow-pc > .cell .metaform-holder textarea.iptc_headline {
+.sfun.flow-pc > .cell .metaform-holder input[type=text].iptcHeadline, .sfun.flow-pc > .cell .metaform-holder textarea.iptcHeadline {
   font-weight: bold;
 }
 /* line 437, ../sass/structured.scss */

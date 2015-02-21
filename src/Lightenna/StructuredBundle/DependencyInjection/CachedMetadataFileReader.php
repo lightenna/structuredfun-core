@@ -94,7 +94,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
         $this->readImageMetadata($imgdata);
       }
       // either way update the metadata object with image's current stats
-      $this->metadata->filterStats($this->stats);
+      $this->metadata->ingestStats($this->stats);
       // derive full filename from cachekey
       $filename = $this->getFilename($this->stats->getCacheKey());
       // only cache the file if it's not already in the cache
