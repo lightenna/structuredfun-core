@@ -44,8 +44,8 @@ class GenericEntry {
   protected $mfr = null;
 
   // to sort out in future (temporary fields for now)
-  // newwidth
-  // newheight
+  public $newwidth;
+  public $newheight;
 
   //
   // Methods
@@ -196,7 +196,7 @@ class GenericEntry {
   public function serialise() {
     $encoders = array(new XmlEncoder(), new JsonEncoder());
     $normalizers = array(new GetSetMethodNormalizer());
-    $igFields = self::getIgnoredAttributes();
+    $igFields = array_merge(self::getIgnoredAttributes(), ImageMetadata::getIgnoredAttributes());
     $normalizers[0]->setIgnoredAttributes($igFields);
     $serializer = new Serializer($normalizers, $encoders);
     $jsonContent = $serializer->serialize($this, 'json');

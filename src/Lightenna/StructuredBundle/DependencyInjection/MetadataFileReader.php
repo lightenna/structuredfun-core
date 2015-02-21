@@ -198,11 +198,11 @@ class MetadataFileReader extends FileReader {
       $localmfr = new CachedMetadataFileReader($filename, $this->controller);
       $localmfr->setArgs($this->args);
       $obj->setMetadataFileReader($localmfr);
+      // pull out image data
+      $imgdata = $localmfr->getOnlyIfCached();
       // pull out mfr's metadata
       $localmeta = $localmfr->getMetadata();
       $obj->setMeta($localmeta);
-      // pull out image data
-      $imgdata = $localmfr->getOnlyIfCached();
       // @todo this print_r exposes that we're calling it twice
       $localstats = $localmfr->getStats();
       // transfer metadata from cached copy to this directory entry

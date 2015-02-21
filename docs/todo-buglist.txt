@@ -1,23 +1,9 @@
 
-* missing metadata in gallery view
-  + for some reason it's not showing the actual metadata
-    + suspect it's the javascript receiver
-  + no data-native-width/height being set by HTML
-    + implies that file.meta.OriginalWidth is missing
---o--
-  + not showing metadata in layout view
-    + I'm not entirely sure it's supposed to be there
-      + I don't think we need it
-      + but I'd like to establish why it's not there
-  + the two seem to be linked
+* problem
+  + we're generating bad images
+    + they've all got crazy zoom
 
-+ export metadata list as json
-  + this is going to be the basis for the layout json
-    + has required moving all informal classes (stdClass)
-    + into formal classes (GenericEntry)
-  + change out $this->stats
-    + for $this->entry
-    + and use GenericEntry
+* implement canvas thinking into layout
 
 * debug flow jitter
   + it seems like it can't decide between flow and grid
@@ -70,6 +56,12 @@ release focus
   + follow procedure in this file
 
 --- next release ---
+
+* bug: if values are redefined in later .ini
+  + make sure they overwrite the predecessors
+    + not form an array of candidates (as currently)
+  + solution may be to eval those candidate arrays
+    + and take the last value
 
 * manually compose sharing image
   + use that javascript that was posted up online
@@ -4544,4 +4536,29 @@ printf("There were %d Files", iterator_count($fi));
 318 removed if isset
 assuming everything has a name
   + don't think it matter, just loggin
+
+* not showing metadata in layout view
+    + I'm not entirely sure it's supposed to be there
+      + I don't think we need it
+      + but I'd like to establish why it's not there
+  + the two seem to be linked
+    + they're not the same bug
+
+* missing metadata in gallery view
+  + for some reason it's not showing the actual metadata
+    + suspect it's the javascript receiver
+  + no data-native-width/height being set by HTML
+    + implies that file.meta.OriginalWidth is missing
+
++ export metadata list as json
+  + this is going to be the basis for the layout json
+    + has required moving all informal classes (stdClass)
+    + into formal classes (GenericEntry)
+  + change out $this->stats
+    + for $this->entry
+    + and use GenericEntry
+
+* test layout service at scale
+  + works fast up to 1000 images
+    + 500ms where there's nothing in the cache
 
