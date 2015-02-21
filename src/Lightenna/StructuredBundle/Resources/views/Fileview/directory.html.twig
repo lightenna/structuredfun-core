@@ -25,7 +25,7 @@
       <span class="meta">
         <span class="base">
           <span class="iptc iptc_headline">{{ file.alias|e }}</span>
-          {% if file.subfolder_count is defined %}<span class="iptc iptc_byline">{{ file.subfolder_count }} assets</span>{% endif %}
+          {% if file.subfolder_count is not null %}<span class="iptc iptc_byline">{{ file.subfolder_count }} assets</span>{% endif %}
         </span>
       </span>
     </a>
@@ -47,28 +47,28 @@
            data-video-src="/file{{ linkpath }}{{ file.name }}"
            data-video-type="{{ file.ext }}"
       {% endif %}
-           {% if file.meta.Ratio is defined %}data-ratio="{{ file.meta.Ratio }}" {% endif %}
-           {% if file.meta.OriginalWidth is defined %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is defined %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}
+           {% if file.meta.Ratio is not null %}data-ratio="{{ file.meta.Ratio }}" {% endif %}
+           {% if file.meta.OriginalWidth is not null %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is not null %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}
 {#
            do not send the loaded-width and height, because we need to use the loaded event to trigger cell resize and image reres
-           {% if file.meta.LoadedWidth is defined %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is defined %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}
+           {% if file.meta.LoadedWidth is not null %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is not null %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}
 #}
            data-loaded="false"
            data-seq="{{ file.seq }}" />
-      <noscript><img class="{{ file.meta.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.OriginalWidth is defined %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is defined %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}{% if file.meta.LoadedWidth is defined %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is defined %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}{% if file.meta.Ratio is defined %}data-ratio="{{ file.meta.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
+      <noscript><img class="{{ file.meta.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.OriginalWidth is not null %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is not null %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}{% if file.meta.LoadedWidth is not null %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is not null %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}{% if file.meta.Ratio is not null %}data-ratio="{{ file.meta.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
       <span class="meta">
         <span class="base">
-          <span class="imgmetric super"><span class="size"><span class="width">{% if file.meta.LoadedWidth is defined %}{{ file.meta.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.LoadedHeight is defined %}{{ file.meta.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
+          <span class="imgmetric super"><span class="size"><span class="width">{% if file.meta.LoadedWidth is not null %}{{ file.meta.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.LoadedHeight is not null %}{{ file.meta.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
           {# Always show headline; if not set use file.alias #}
-          <span class="iptc iptc_headline">{{ file.meta is defined and file.meta.IptcHeadline != defaults.iptc_headline ? file.meta.IptcHeadline : file.alias }}</span>
+          <span class="iptc iptcHeadline">{{ file.meta is not null and file.meta.IptcHeadline != defaults.iptc_headline ? file.meta.IptcHeadline : file.alias }}</span>
           {# Only show other metadata if it's not the default #}
-          <span class="iptc iptc_byline {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is defined and file.meta.IptcByline == defaults.iptc_byline ? 'iptc_default' }}">{{ file.meta is defined ? file.meta.IptcByline : defaults.iptc_byline }}</span>
-          <span class="iptc iptc_copyright {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is defined and file.meta.IptcCopyright == defaults.iptc_copyright ? 'iptc_default' }}" title="{{ file.meta is defined ? file.meta.IptcCopyright : '' }}">&copy;</span>
-          <span class="iptc iptc_source icon ion-home {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is defined and file.meta.IptcSource == defaults.iptc_source ? 'iptc_default' }}" title="{{ file.meta is defined ? file.meta.IptcSource : '' }}"></span>
-          <span class="iptc iptc_caption icon ion-document-text {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is defined and file.meta.IptcCaption == defaults.iptc_caption ? 'iptc_default' }}" title="{{ file.meta is defined ? file.meta.IptcCaption : '' }}"></span>
-          <span class="iptc iptc_keywords icon ion-pricetags {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is defined and file.meta.IptcKeywords == defaults.iptc_keywords ? 'iptc_default' }}" title="{{ file.meta is defined ? file.meta.IptcKeywords : '' }}"></span>
+          <span class="iptc iptcByline {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcByline == defaults.iptc_byline ? 'iptc_default' }}">{{ file.meta is not null ? file.meta.IptcByline : defaults.iptc_byline }}</span>
+          <span class="iptc iptcCopyright {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCopyright == defaults.iptc_copyright ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCopyright : '' }}">&copy;</span>
+          <span class="iptc iptcSource icon ion-home {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcSource == defaults.iptc_source ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcSource : '' }}"></span>
+          <span class="iptc iptcCaption icon ion-document-text {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCaption == defaults.iptc_caption ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCaption : '' }}"></span>
+          <span class="iptc iptcKeywords icon ion-pricetags {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcKeywords == defaults.iptc_keywords ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcKeywords : '' }}"></span>
           {# Show edit icon if we have edit permissions #}
-          <span class="iptc editable icon ion-compose" style="{{ file.meta is defined and file.meta.Editable ? '' : 'display: none;' }}"></span>
+          <span class="iptc editable icon ion-compose" style="{{ file.meta is not null and file.meta.Editable ? '' : 'display: none;' }}"></span>
         </span>
       </span>
       {% if (file.type == 'video') %}

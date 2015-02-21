@@ -27,8 +27,16 @@ class ImageviewController extends ViewController {
 
   public function indexAction($rawname, $output = true) {
     $this->populate($rawname);
-    // get image and return
-    $imgdata = $this->fetchImage();
+    // try and pull image from cache
+    $imgdata = $this->mfr->getOnlyIfCached();
+    if ($imgdata) {
+      // found cached image
+      // @todo try and do this without touching the PHP
+      // to get down from 100ms to 5ms
+    } else {
+      // get image and transform
+      $imgdata = $this->fetchImage();      
+    }
     // catch test case
     if (!$output) {
       return $imgdata;

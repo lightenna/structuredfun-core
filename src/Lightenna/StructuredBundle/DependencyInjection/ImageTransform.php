@@ -10,17 +10,19 @@ class ImageTransform {
   protected $output_width = null;
   protected $output_height = null;
   protected $output_ext = null;
-  protected $metadata = null;
+  protected $stats = null;
   protected $imgdata = null;
 
   public function __construct($args, &$imgdata, $stats) {
     $this->args = $args;
     $this->imgdata = $imgdata;
+    // hold on to stats reference in favour of metadata reference
+    // because the latter changes after deserialisation
+    $this->stats = $stats;
     // assume no transform, in case getImageData is called before filtering
     $this->output_width = $stats->getMeta()->getLoadedWidth();
     $this->output_height = $stats->getMeta()->getLoadedHeight();
     $this->output_ext = ($stats->hasExt() ? $stats->getExt() : 'jpg');
-    $this->metadata = $stats->getMeta();
   }
 
   /**
@@ -97,11 +99,8 @@ class ImageTransform {
   private function resizeImage(&$img) {
     // create a new image the correct shape and size
     $newimg = imagecreatetruecolor($this->output_width, $this->output_height);
-// START HERE
-// this is wrong
-print $this->metadata->getLoadedWidth();
-exit;
-    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $this->metadata->getLoadedWidth(), $this->metadata->getLoadedHeight());
+    // @todo replace getOriginalWidth with getLoadedWidth once Bug#1101 solved
+    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $this->stats->getMeta()->getOriginalWidth(), $this->stats->getMeta()->getOriginalHeight());
     // clean up old image
     imagedestroy($img);
     return $newimg;

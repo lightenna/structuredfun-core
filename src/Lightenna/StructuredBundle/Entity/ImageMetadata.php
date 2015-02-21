@@ -35,7 +35,7 @@ class ImageMetadata {
    * @ORM\Id
    * @ORM\GeneratedValue(strategy="AUTO")
    */
-  protected $id;
+  protected $id = null;
 
   /**
    * version number used to verify ours/not-ours
@@ -47,37 +47,37 @@ class ImageMetadata {
    * location of the remote originator
    * @ORM\Column(type="text")
    */
-  protected $original_source;
+  protected $original_source = null;
 
   /**
    * width of original file
    * @ORM\Column(type="decimal", scale=2)
    */
-  protected $original_width;
+  protected $original_width = null;
 
   /**
    * height of original file
    * @ORM\Column(type="decimal", scale=2)
    */
-  protected $original_height;
+  protected $original_height = null;
 
   /**
    * location of this loaded file
    * @ORM\Column(type="text")
    */
-  protected $loaded_source;
+  protected $loaded_source = null;
 
   /**
    * width of loaded file
    * @ORM\Column(type="decimal", scale=2)
    */
-  protected $loaded_width;
+  protected $loaded_width = null;
 
   /**
    * height of loaded file
    * @ORM\Column(type="decimal", scale=2)
    */
-  protected $loaded_height;
+  protected $loaded_height = null;
 
   /**
    * ratio of width:height, orientation (x || y)
@@ -133,13 +133,13 @@ class ImageMetadata {
 
   /**
    * @param object $mfr Metadata File Reader (parent)
-   * @param object $in stats
+   * @param object $in stats, directory entry
    */
-  public function __construct($mfr = null, $in = null) {
+  public function __construct($mfr = null, $entry = null) {
     // cannot store parent here without serialising it to all files
     // $this->parent = $mfr;
-    if ($in !== null) {
-      $this->filterStats($in);
+    if ($entry !== null) {
+      $this->ingestStats($entry);
     }
     if ($mfr !== null) {
       // metadata editability is dependent on settings
@@ -149,6 +149,7 @@ class ImageMetadata {
   }
 
   /**
+   * Defaults must take the same form (_ not camel) as the class attributes
    * @return array default values
    */
   static function getDefaults() {
@@ -164,31 +165,21 @@ class ImageMetadata {
 
   /**
    * Select and rename a few of the stats fields for storing as image metadata
-   * @param object $in
+   * @param object $obj
    * @return object filtered and renamed metadata (this object)
    */
-  public function filterStats($in) {
+  public function ingestStats($obj) {
     // setup defaults (hopefully overwrite later)
     $values = self::getDefaults();
     // pull source filename
-    if (isset($in->{'file_original'})) {
-      $this->original_source = 'file://'.$in->file_original;
+    if (isset($obj->{'file_original'})) {
+      $this->original_source = 'file://'.$obj->file_original;
     }
     // use alias to set headline (if unset, hence imbue)
-    if (isset($in->{'alias'})) {
-      $values['iptc_headline'] = str_replace('_', ' ', FileReader::stripExtension($in->alias));
+    if (isset($obj->{'alias'})) {
+      $values['iptc_headline'] = str_replace('_', ' ', FileReader::stripExtension($obj->alias));
     }
     $this->imbue($values);
-    // always update resolution/resolution_loaded
-    if (isset($in->{'width'})) {
-      $this->original_width = $in->width;
-      $this->original_height = $in->height;
-    }
-    if (isset($in->{'newwidth'})) {
-      $this->loaded_width = $in->newwidth;
-      $this->loaded_height = $in->newheight;
-      $this->calcRatio();
-    }
     return $this;
   }
 
@@ -313,6 +304,10 @@ class ImageMetadata {
    * write metadata back to original image
    */
   public function updateOriginal() {
+    // @todo Bug#1101: shouldn't just serialise this object
+    // because some things change for the original
+    //   loaded_width
+    //   loaded_height
     $this->write($this->getOriginalSourceFilename());
   }
 

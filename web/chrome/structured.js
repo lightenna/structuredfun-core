@@ -85,7 +85,7 @@ window.sfun = (function($, undefined) {
   // default selector used to select top-level container
   var container_selector = '#sfun';
   // list of metadata fields supported
-  var metadata_fields = ['iptc_caption', 'iptc_byline', 'iptc_headline', 'iptc_keywords', 'iptc_copyright', 'iptc_source'];
+  var metadata_fields = ['iptcCaption', 'iptcByline', 'iptcHeadline', 'iptcKeywords', 'iptcCopyright', 'iptcSource'];
   var metadata_flags = ['editable'];
   // last image maxlongest, to shortcut reres using thumb size
   var last_longest = null;
@@ -621,8 +621,8 @@ window.sfun = (function($, undefined) {
     var $reresable = $ent.cachedFind('.reresable');
     if (typeof(data.meta) != 'undefined') {
       // if we get a response, set the missing resolution data to the image
-      $reresable.data('native-width', data.meta.original_width);
-      $reresable.data('native-height', data.meta.original_height);
+      $reresable.data('native-width', data.meta.originalWidth);
+      $reresable.data('native-height', data.meta.originalHeight);
       if (debug && false) {
         console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
       }
@@ -632,14 +632,14 @@ window.sfun = (function($, undefined) {
         var value = data.meta[fields[i]];
         var $field = $ent.cachedFind('.' + fields[i]);
         switch (fields[i]) {
-          case 'iptc_headline':
-          case 'iptc_byline':
+          case 'iptcHeadline':
+          case 'iptcByline':
             $field.html(value);
             break;
-          case 'iptc_caption':
-          case 'iptc_copyright':
-          case 'iptc_keywords':
-          case 'iptc_source':
+          case 'iptcCaption':
+          case 'iptcCopyright':
+          case 'iptcKeywords':
+          case 'iptcSource':
             $field.attr('title', value);
             break;
           case 'editable':

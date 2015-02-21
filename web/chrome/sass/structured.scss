@@ -194,7 +194,7 @@
             .base {
               // move base over so it doesn't overlap border
               margin-left: 1px;
-              .iptc_headline {
+              .iptcHeadline {
                 font-weight: normal;
                 font-size: 2.0em;
               }
@@ -264,14 +264,14 @@
               // text-overflow: ellipsis;
 
               // make headline and summary icons appear on one line
-              &.iptc_headline {
+              &.iptcHeadline {
                 font-weight: bold;
                 display: block;
                 margin-right: 0.5em;
               }
 
               // summary icons in off-colour
-              &.iptc_caption, &.iptc_keywords, &.iptc_copyright, &.iptc_source {
+              &.iptcCaption, &.iptcKeywords, &.iptcCopyright, &.iptcSource {
                 color: $text_icon_light;
                 display: inline;
                 margin-left: 0;
@@ -289,7 +289,7 @@
                 }
               }
 
-              &.iptc_byline {
+              &.iptcByline {
                 display: inline;
               }
 
@@ -428,7 +428,7 @@
             border: 1px solid $text_icon_light;
           }
           // headline should keep its bold during editing
-          &.iptc_headline {
+          &.iptcHeadline {
             font-weight: bold;
           }
         }
