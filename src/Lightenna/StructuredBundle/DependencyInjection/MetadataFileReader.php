@@ -19,6 +19,7 @@ class MetadataFileReader extends FileReader {
     parent::__construct($filename);
     $this->controller = $con;
     $this->stats = new GenericEntry();
+    $this->stats->setRawname($this->controller->getRawname());
     $this->setArgs($this->controller->getArgs());
     $this->settings = $this->controller->getSettings();
     if (!is_null($filename)) {
@@ -61,7 +62,7 @@ class MetadataFileReader extends FileReader {
       print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
     }
     $md = new ImageMetadata($this);
-    $md = $md->read($info);
+    $md = $md->read($mdata, $info);
     return $md;
   }
 

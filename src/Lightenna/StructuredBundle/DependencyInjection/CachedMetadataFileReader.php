@@ -142,7 +142,10 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
 
   private function getKey() {
-    $cachestring = $this->getFullname();
+    $cachestring = $this->stats->getUrlKey();
+// DELETE ME
+print('******');
+var_dump($this->stats);
     $argstring = self::flattenKeyArgs($this->args);
     if ($argstring != '') {
       $cachestring .= ARG_SEPARATOR . $argstring;
@@ -278,7 +281,9 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return string hashed string
    */
   static function hash($key) {
-    return md5($key);
+    return str_replace(str_split('\\/:*?"<>|'), '_', $key);
+    // used to use md5, experimenting with readable alternative
+    // return md5($key);
   }
 
   /**

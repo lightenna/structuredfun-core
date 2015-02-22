@@ -26,6 +26,7 @@ class GenericEntry {
   // Fields
   //
 
+  protected $rawname = null;
   protected $name = null;
   protected $alias = null;
   protected $type = null;
@@ -65,6 +66,22 @@ class GenericEntry {
   public function isZip() {
     return ($this->zip_path !== null);
   }
+
+  //
+  // GETTERs and SETTERs
+  //
+
+  // public function getUrlBase() {
+  //   return $this->url_base;
+  // }
+
+  // public function setUrlBase($ub) {
+  //   $this->url_base = $ub;
+  // }
+
+  // public function getUrlName() {
+  //   return $this->url_base . $this->name;
+  // }
 
   public function getName() {
     return $this->name;
@@ -148,6 +165,19 @@ class GenericEntry {
 
   public function setSeq($s) {
     $this->seq = $s;
+  }
+
+  public function getRawname() {
+    return $this->rawname;
+  }
+
+  public function setRawname($rn) {
+    $this->rawname = $rn;
+  }
+
+  public function getUrlKey() {
+    // @todo return rawname without args
+    return $this->rawname;
   }
 
   public function hasCacheKey() {

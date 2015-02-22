@@ -80,6 +80,24 @@ class ImageMetadata {
   protected $loaded_height = null;
 
   /**
+   * image mode (rgb or cmyk)
+   * @ORM\Column(type="string", length=8)
+   */
+  protected $mode = 'rbg';
+
+  /**
+   * number of bits to store each colour channel
+   * @ORM\Column(type="decimal", scale=2)
+   */
+  protected $bits_per_pixel = null;
+
+  /**
+   * mime type
+   * @ORM\Column(type="string", length=16)
+   */
+  protected $mime = null;
+
+  /**
    * ratio of width:height, orientation (x || y)
    * @ORM\Column(type="decimal", scale=2)
    */
@@ -185,33 +203,55 @@ class ImageMetadata {
 
   /**
    * Process raw output from getimagesize()
-   * @param array $info
+   * see http://php.net/manual/en/function.getimagesize.php
+   * @param array $mdata basic metadata about the image
+   * @param array $info IPTC metadata array in APP13
    */
-  public function read($info) {
+  public function read($mdata, $info) {
+    // start off by assuming we're updating this instance of ImageMetadata
+    $meta = $this;
     // if metadata has IPTC fields
     if (isset($info['APP13'])) {
       $iptc = new IptcWriter();
       $iptc->prime(iptcparse($info['APP13']));
       // pull entire meta block if set, silence warning incase not
       $iptc_special = $iptc->get(IPTC_SPECIAL_INSTRUCTIONS);
-      $meta = @unserialize($iptc_special);
-      if (isset($meta->{'sfun_version'})) {
+      $candidate_meta = @unserialize($iptc_special);
+      if (isset($candidate_meta->{'sfun_version'})) {
         // sfun image so use serialized object version of metadata
-        return $meta;
+        $meta = $candidate_meta;
+      } else {
+        // unable to read metadata object whole, so read field-by-field
+        $candidate = array(
+          'iptc_headline' => $iptc->get(IPTC_HEADLINE),
+          'iptc_caption' => $iptc->get(IPTC_CAPTION),
+          'iptc_byline' => $iptc->get(IPTC_BYLINE),
+          'iptc_keywords' => $iptc->get(IPTC_KEYWORDS),
+          'iptc_copyright' => $iptc->get(IPTC_COPYRIGHT_STRING),
+          'iptc_source' => $iptc->get(IPTC_SOURCE),
+        );
+        // if we retreived any of the above fields, use them to overwrite defaults
+        $this->imbue($candidate, true);        
       }
-      // unable to read metadata object whole, so read field-by-field
-      $candidate = array(
-        'iptc_headline' => $iptc->get(IPTC_HEADLINE),
-        'iptc_caption' => $iptc->get(IPTC_CAPTION),
-        'iptc_byline' => $iptc->get(IPTC_BYLINE),
-        'iptc_keywords' => $iptc->get(IPTC_KEYWORDS),
-        'iptc_copyright' => $iptc->get(IPTC_COPYRIGHT_STRING),
-        'iptc_source' => $iptc->get(IPTC_SOURCE),
-      );
-      // if we retreived any of the above fields, use them to overwrite defaults
-      $this->imbue($candidate, true);
     }
-    return $this;
+    // if we have basic metadata
+    if (is_array($mdata)) {
+      // use it to overwrite none/deserialized/candidate metadata
+      if (isset($mdata[1])) {
+        $meta->setLoadedWidth($mdata[0]);
+        $meta->setLoadedHeight($mdata[1]);
+      }
+      if (isset($mdata['mime'])) {
+        $meta->setMime($mdata['mime']);
+      }
+      if (isset($mdata['bits'])) {
+        $meta->setBitsPerPixel($mdata['bits']);
+      }
+      if (isset($mdata['channels']) && $mdata['channels'] == 4) {
+        $meta->setMode('cmyk');
+      }
+    }
+    return $meta;
   }
 
   /**
@@ -377,6 +417,30 @@ class ImageMetadata {
     if ($this->loaded_width < $this->loaded_height) {
       $this->orientation = 'y';
     }
+  }
+
+  public function getMime() {
+    return $this->mime;
+  }
+
+  public function setMime($m) {
+    $this->mime = $m;
+  }
+
+  public function getBitsPerPixel() {
+    return $this->bits_per_pixel;
+  }
+
+  public function setBitsPerPixel($bpp) {
+    $this->bits_per_pixel = $bpp;
+  }
+
+  public function getMode() {
+    return $this->mode;
+  }
+
+  public function setMode($m) {
+    $this->mode = $m;
   }
 
   public function getOrientation() {
