@@ -16,6 +16,7 @@ use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
 class ImageviewController extends ViewController {
   // @param Array image metadata array, shared object reference with MetadataFileReader
   private $stats = null;
+  private $rawname = null;
 
   public function __construct() {
     parent::__construct();
@@ -26,12 +27,15 @@ class ImageviewController extends ViewController {
   }
 
   public function indexAction($rawname, $output = true) {
-    $this->populate($rawname);
+    // store rawname being indexed
+    $this->rawname = $rawname;
+    // populate vars based on rawname
+    $this->populate();
     // try and pull image from cache
     $imgdata = $this->mfr->getOnlyIfCached();
     if ($imgdata) {
       // found cached image
-      // @todo try and do this without touching the PHP
+      // @todo try and do this without touching PHP
       // to get down from 100ms to 5ms
     } else {
       // get image and transform
@@ -52,7 +56,10 @@ class ImageviewController extends ViewController {
   }
 
   public function metaAction($rawname, Request $request) {
-    $this->populate($rawname);
+    // store rawname being indexed
+    $this->rawname = $rawname;
+    // populate vars based on rawname
+    $this->populate();
     // request image from cache (including metadata)
     $imgdata = $this->mfr->getOnlyIfCached();
     // if image not in cache
@@ -83,18 +90,17 @@ class ImageviewController extends ViewController {
 
   /**
    * Process input and setup local objects
-   * @param string $rawname Raw input from URL routing
    */
-  public function populate($rawname) {
+  public function populate() {
     try {
       // convert rawname to urlname and filename
-      $filename = $this->convertRawToFilename($rawname);
+      $filename = $this->convertRawToFilename($this->rawname);
     } catch (\Exception $e) {
       // if there was a problem, return a small transparent image
-      $rawname = '/chrome/images/fullres/transparent.png';
-      $filename = $this->convertRawToInternalFilename('htdocs/web'.$rawname);
+      $this->rawname = '/chrome/images/fullres/transparent.png';
+      $filename = $this->convertRawToInternalFilename('htdocs/web'.$this->rawname);
     }
-    $name = self::convertRawToUrl($rawname);
+    $name = self::convertRawToUrl($this->rawname);
     // pull arguments from URL
     $this->args = self::getArgsFromPath($name);
     // get file reader object
@@ -103,8 +109,16 @@ class ImageviewController extends ViewController {
     // read metadata
     $listing = $this->mfr->getListing();
     $this->stats = $this->mfr->getStats();
+// DELETE ME
+print('yyyyyyy');
+var_dump($this->stats);
+exit;
   }
   
+  public function getRawname() {
+    return $this->rawname;
+  }
+
   /**
    * @return array stats (metadata) array
    */

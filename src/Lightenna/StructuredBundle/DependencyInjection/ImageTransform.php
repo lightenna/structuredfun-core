@@ -99,8 +99,7 @@ class ImageTransform {
   private function resizeImage(&$img) {
     // create a new image the correct shape and size
     $newimg = imagecreatetruecolor($this->output_width, $this->output_height);
-    // @todo replace getOriginalWidth with getLoadedWidth once Bug#1101 solved
-    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $this->stats->getMeta()->getOriginalWidth(), $this->stats->getMeta()->getOriginalHeight());
+    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $this->stats->getMeta()->getLoadedWidth(), $this->stats->getMeta()->getLoadedHeight());
     // clean up old image
     imagedestroy($img);
     return $newimg;

@@ -126,13 +126,14 @@ class FileReader {
    * Crops and strips the zip_part from the listing items
    * @return array Processed listing
    */
-
   public function getListing() {
     // return listing if we've already generated it
     if (is_array($this->listing)) {
       return $this->listing;
     }
-    // get listing either using file system directly, or parsing zip
+    //
+    // Part 1: get listing either using file system directly, or parsing zip
+    // 
     if ($this->inZip()) {
       $zip = zip_open($this->file_part);
       $listing = array();
@@ -196,6 +197,9 @@ class FileReader {
         );
       }
     }
+    //
+    // Part 2: process listing into array of GenericEntries
+    //
     foreach ($listing as $k => $v) {
       // ignore directory references or empty file names
       if ($v == '.' || $v == '..' || $v == '') {

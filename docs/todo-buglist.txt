@@ -1,5 +1,27 @@
 
-* subfolder_count bug
+* have a crack at changing the way filenames are encoded in the cache
+  + will help identify which entries in cache are which files
+    + useful for next bug
+  + compute cacheString differently
+    + tweak GenericEntry to maintain URL-to-here, then add leaf
+      + need to feed original URL through to FileReaders somehow
+
+* playspace not displaying correctly
+  + suspect it's a share bug
+  + could be something like no OriginalWidth set
+    + because the images have never been edited before
+  + improved
+    + it's now showing images
+      + but we're not getting reres
+      + I think it's to do with the metadata returned to js
+        + looking for originalWidth
+          + search for
+refreshMetadataApplyToFields function
+      + suspect we're not writing originalWidth and height into cached files
+
+
+* test BAL 10k folder
+  + see how layout performs
 
 * bring PHP test suite back to life
 
@@ -4601,3 +4623,5 @@ assuming everything has a name
 * second load has diddy thumbnails
   + suspect it's a problem with the cache lookup
 
+* subfolder_count bug
+  = renamed subfolderCount
