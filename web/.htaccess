@@ -39,6 +39,14 @@ DirectoryIndex app.php
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule .? - [L]
 
+    # Rewrite URLs for mediacache hits
+    #RewriteRule ^([^\/:*?]*)[\/:*?]([^\/:*?]*[\/:*?].*) $1_$2 [N]
+    #RewriteRule ^([^\/:*?]*)[\/:*?]([^\/:*?]*)$ /$1_$2 [L,R=302]
+
+    # Dump, reference only
+    #RewriteRule ^([^_]*)_([^_]*_.*) $1-$2 [N]
+    #RewriteRule ^([^_]*)_([^_]*)$ /$1-$2 [L,R=302]
+
     # Rewrite all other queries to the front controller.
     RewriteRule .? %{ENV:BASE}/app.php [L]
     # RewriteRule .? %{ENV:BASE}/app_dev.php [L]
