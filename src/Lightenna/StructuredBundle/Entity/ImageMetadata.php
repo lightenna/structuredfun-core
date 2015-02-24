@@ -240,6 +240,10 @@ class ImageMetadata {
       if (isset($mdata[1])) {
         $meta->setLoadedWidth($mdata[0]);
         $meta->setLoadedHeight($mdata[1]);
+        if (!$meta->hasOriginalWidth()) {
+          $meta->setOriginalWidth($mdata[0]);
+          $meta->setOriginalHeight($mdata[1]);
+        }
       }
       if (isset($mdata['mime'])) {
         $meta->setMime($mdata['mime']);
@@ -315,12 +319,12 @@ class ImageMetadata {
    */
   public function getForm($controller) {
     $form = $controller->createFormBuilder($this)
-      ->add('iptc_headline', 'text', array('required' => false, 'attr' => array('class' => 'iptc_headline')))
-      ->add('iptc_byline', 'text', array('required' => false))
-      ->add('iptc_caption', 'text', array('required' => false))
-      ->add('iptc_keywords', 'text', array('required' => false))
-      ->add('iptc_copyright', 'text', array('required' => false))
-      ->add('iptc_source', 'text', array('required' => false))
+      ->add('iptcHeadline', 'text', array('required' => false, 'attr' => array('class' => 'iptcHeadline')))
+      ->add('iptcByline', 'text', array('required' => false))
+      ->add('iptcCaption', 'text', array('required' => false))
+      ->add('iptcKeywords', 'text', array('required' => false))
+      ->add('iptcCopyright', 'text', array('required' => false))
+      ->add('iptcSource', 'text', array('required' => false))
       ->add('save', 'submit', array('label' => 'Update Metadata'))
       ->getForm();
     return $form;
@@ -483,11 +487,21 @@ class ImageMetadata {
     }
     return $s;
   }
+
+  public function hasOriginalWidth() {
+    return ($this->original_width !== null);
+  }
   public function getOriginalWidth() {
     return $this->original_width;
   }
+  public function setOriginalWidth($ow) {
+    $this->original_width = $ow;
+  }
   public function getOriginalHeight() {
     return $this->original_height;
+  }
+  public function setOriginalHeight($oh) {
+    $this->original_height = $oh;
   }
 
   //

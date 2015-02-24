@@ -1,51 +1,6 @@
 
-* have a crack at changing the way filenames are encoded in the cache
-  + will help identify which entries in cache are which files
-    + useful for next bug
-  + compute cacheString differently
-    + tweak GenericEntry to maintain URL-to-here, then add leaf
-      + need to feed original URL through to FileReaders somehow
-
-* playspace not displaying correctly
-  + suspect it's a share bug
-  + could be something like no OriginalWidth set
-    + because the images have never been edited before
-  + improved
-    + it's now showing images
-      + but we're not getting reres
-      + I think it's to do with the metadata returned to js
-        + looking for originalWidth
-          + search for
-refreshMetadataApplyToFields function
-      + suspect we're not writing originalWidth and height into cached files
-
-
-* test BAL 10k folder
-  + see how layout performs
-
-* bring PHP test suite back to life
-
-* implement canvas thinking into layout
-
-* debug flow jitter
-  + it seems like it can't decide between flow and grid
-
 * faster image delivery
-  + can we use an alternative character in the URL to replace /
-    + not \ because can't use it in files
-      + . maybe
-        + that's a bit of a pain on windows
-        + seems to work ok
-      + but too easily confused with extension
-    + actually maybe \ is perfect precisely because we can't use it in files
-      + that means we'll have to rewrite for cache
-
-more fun
----- 
-release focus
-
-* hover over icons isn't working
-  + important for showing metadata
+  + write .htaccess lookup for cached image files
 
 * mouse wheel scrolling stops working sometimes
   + to do with offseq
@@ -78,6 +33,15 @@ release focus
   + follow procedure in this file
 
 --- next release ---
+
+* implement canvas thinking into layout
+
+* debug flow jitter
+  + after developing layout
+  + it seems like it can't decide between flow and grid
+
+* test BAL 10k folder
+  + see how layout performs
 
 * bug: if values are redefined in later .ini
   + make sure they overwrite the predecessors
@@ -4625,3 +4589,63 @@ assuming everything has a name
 
 * subfolder_count bug
   = renamed subfolderCount
+
+* have a crack at changing the way filenames are encoded in the cache
+  + will help identify which entries in cache are which files
+    + useful for next bug
+  + compute cacheString differently
+    + tweak GenericEntry to maintain URL-to-here, then add leaf
+      + need to feed original URL through to FileReaders somehow
+
+* playspace not displaying correctly
+  + suspect it's a share bug
+  + could be something like no OriginalWidth set
+    + because the images have never been edited before
+  + improved
+    + it's now showing images
+      + but we're not getting reres
+      + I think it's to do with the metadata returned to js
+        + looking for originalWidth
+          + search for
+refreshMetadataApplyToFields function
+      + suspect we're not writing originalWidth and height into cached files
+    + that's resurfaced in wm images
+      + chase down missing originalWidth
+
+* faster image delivery
+  + can we use an alternative character in the URL to replace /
+    + not \ because can't use it in files
+      + . maybe
+        + that's a bit of a pain on windows
+        + seems to work ok
+      + but too easily confused with extension
+    + actually maybe \ is perfect precisely because we can't use it in files
+      + that means we'll have to rewrite for cache
+
+* missing IPTC
+  + showing 'Untitled' for some images
+    + when read from IPTC section rather than from unserialize
+  = this could just be the image files I've got stored locally
+    + ignore for now
+
+* hover over icons isn't working
+  + important for showing metadata
+    + was pointer-events
+  + edit metadata click not being picked up
+
+* dump urlKey for now
+
+* bring PHP test suite back to life
+  + start by commenting all the failing tests
+    + get a sense of the scale of the problem
+  + it's not too bad
+    + only a handful of tests fail
+    + it's a good thing to do
+      + we need it when refactoring
+  + only two tests still commented
+    + just the imageTransform tests
+      + really close
+      + on we go
+  + 1 to go!
+  = all green
+

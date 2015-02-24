@@ -67,8 +67,8 @@
           <span class="iptc iptcSource icon ion-home {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcSource == defaults.iptc_source ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcSource : '' }}"></span>
           <span class="iptc iptcCaption icon ion-document-text {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCaption == defaults.iptc_caption ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCaption : '' }}"></span>
           <span class="iptc iptcKeywords icon ion-pricetags {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcKeywords == defaults.iptc_keywords ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcKeywords : '' }}"></span>
-          {# Show edit icon if we have edit permissions #}
-          <span class="iptc editable icon ion-compose" style="{{ file.meta is not null and file.meta.Editable ? '' : 'display: none;' }}"></span>
+          {# Show edit icon if we have edit permissions ; editable class first for selector #}
+          <span class="editable iptc icon ion-compose" style="{{ file.meta is not null and file.meta.Editable ? '' : 'display: none;' }}"></span>
         </span>
       </span>
       {% if (file.type == 'video') %}

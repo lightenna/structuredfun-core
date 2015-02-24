@@ -16,7 +16,6 @@ use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
 class ImageviewController extends ViewController {
   // @param Array image metadata array, shared object reference with MetadataFileReader
   private $stats = null;
-  private $rawname = null;
 
   public function __construct() {
     parent::__construct();
@@ -109,14 +108,6 @@ class ImageviewController extends ViewController {
     // read metadata
     $listing = $this->mfr->getListing();
     $this->stats = $this->mfr->getStats();
-// DELETE ME
-print('yyyyyyy');
-var_dump($this->stats);
-exit;
-  }
-  
-  public function getRawname() {
-    return $this->rawname;
   }
 
   /**
@@ -142,6 +133,11 @@ exit;
       case 'image':
         $imgdata = $this->loadImage();
         break;
+    }
+    // check image data
+    if (!FileReader::checkImageDatastream($imgdata)) {
+      // substitute in error image
+      $imgdata = $this->loadErrorImage();
     }
     // filter based on arguments
     if (ImageTransform::shouldFilterImage($this->args)) {

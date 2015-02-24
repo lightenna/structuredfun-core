@@ -142,14 +142,14 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
 
   private function getKey() {
-    $cachestring = $this->stats->getUrlKey();
-// DELETE ME
-print('******');
-var_dump($this->stats);
-    $argstring = self::flattenKeyArgs($this->args);
-    if ($argstring != '') {
-      $cachestring .= ARG_SEPARATOR . $argstring;
+    $cachestring = $this->stats->getRawname();
+    if ($cachestring == null) {
+      $cachestring = $this->getFullname();
     }
+    // $argstring = self::flattenKeyArgs($this->args);
+    // if ($argstring != '') {
+    //   $cachestring .= ARG_SEPARATOR . $argstring;
+    // }
     // var_dump($cachestring);
     $key = self::hash($cachestring) . '.' . 'dat';
     return $key;
@@ -218,7 +218,8 @@ var_dump($this->stats);
         // pull from cached .meta file
         $metaname = $this->getMetaFilename($filename);
         if (file_exists($metaname)) {
-          $this->stats->setMeta(unserialize(file_get_contents($metaname)));
+          $md = unserialize(file_get_contents($metaname));
+          $this->stats->setMeta($md);
         }
       }
       return $imgdata;
