@@ -175,11 +175,6 @@ class GenericEntry {
     $this->rawname = $rn;
   }
 
-  public function getUrlKey() {
-    // @todo return rawname without args
-    return $this->rawname;
-  }
-
   public function hasCacheKey() {
     return ($this->cachekey !== null);
   }

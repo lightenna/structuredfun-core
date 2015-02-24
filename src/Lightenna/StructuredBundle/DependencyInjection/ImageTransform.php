@@ -13,16 +13,18 @@ class ImageTransform {
   protected $stats = null;
   protected $imgdata = null;
 
-  public function __construct($args, &$imgdata, $stats) {
+  public function __construct($args, &$imgdata, $stats = null) {
     $this->args = $args;
     $this->imgdata = $imgdata;
-    // hold on to stats reference in favour of metadata reference
-    // because the latter changes after deserialisation
-    $this->stats = $stats;
-    // assume no transform, in case getImageData is called before filtering
-    $this->output_width = $stats->getMeta()->getLoadedWidth();
-    $this->output_height = $stats->getMeta()->getLoadedHeight();
-    $this->output_ext = ($stats->hasExt() ? $stats->getExt() : 'jpg');
+    if ($stats !== null) {
+      // hold on to stats reference in favour of metadata reference
+      // because the latter changes after deserialisation
+      $this->stats = $stats;
+      // assume no transform, in case getImageData is called before filtering
+      $this->output_width = $stats->getMeta()->getLoadedWidth();
+      $this->output_height = $stats->getMeta()->getLoadedHeight();
+      $this->output_ext = ($stats->hasExt() ? $stats->getExt() : 'jpg');
+    }
   }
 
   /**
@@ -30,6 +32,14 @@ class ImageTransform {
    */
   public function getImgdata() {
     return $this->imgdata;
+  }
+
+  public function getOutputWidth() {
+    return $this->output_width;
+  }
+
+  public function getOutputHeight() {
+    return $this->output_height;
   }
 
   /**
@@ -41,13 +51,6 @@ class ImageTransform {
     $imgdata = $this->imgdata;
     // only filter if there are applicable filters to apply
     if (self::shouldFilterImage($this->args)) {
-      // test image datastream size before trying to process
-      if (!FileReader::checkImageDatastream($imgdata)) {
-        // destroy massive imgdata string as can't load
-        $imgdata = null;
-        // return 'not found' image
-        $imgdata = $this->loadErrorImage();
-      }
       // always calculate new image size (at least reads width & height from img)
       $oldimg = imagecreatefromstring($imgdata);
       $this->imageCalcNewSize($oldimg);
@@ -63,7 +66,7 @@ class ImageTransform {
       //   original metadata is lost by imagecreatefromstring() call
       // $this->cacheInterim($imgdata);
       // then [optionally] clip
-      if ($this->shouldClipImage()) {
+      if ($this->shouldClipImage($this->args)) {
         if ($oldimg === null) {
           $oldimg = imagecreatefromstring($imgdata);
         }
@@ -128,12 +131,11 @@ class ImageTransform {
    * maxlongest - set the maximum longest edge and work out shortest
    * maxshortest - set the maximum shortest edge and work out longest
    * clip(width|height) - clip image independently of max(width|height|longest|shortest) settings
+   * public for test suite
    */
-
-  private function imageCalcNewSize(&$img) {
+  public function imageCalcNewSize(&$img) {
     // clear old calculations
-    unset($this->output_width);
-    unset($this->output_height);
+    $this->output_width = $this->output_height = null;
     // find image dimensions and derive portrait/landscape
     // @refactor ; use $this->stats->getMeta()->getOrientation()
     $width = imagesx($img);
@@ -207,6 +209,10 @@ class ImageTransform {
     }
   }
 
+  //
+  // STATIC functions
+  //
+
   /**
    * Nasty function to get the image data from an image resource
    */
@@ -226,10 +232,6 @@ class ImageTransform {
     }
     return ob_get_clean();
   }
-
-  //
-  // STATIC functions
-  //
 
   /**
    * decide if we're going to need to filter the image
@@ -254,7 +256,7 @@ class ImageTransform {
    * @param  array $args list of filter arguments
    * @return boolean true if clipping required
    */
-  static function shouldClipImage() {
+  static function shouldClipImage($args) {
     return (isset($args->{'clipwidth'}) || isset($args->{'clipheight'}));
   }
 

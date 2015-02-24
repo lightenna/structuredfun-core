@@ -150,14 +150,14 @@
       var key = fields[i];
       var value;
       switch (key) {
-        case 'iptc_headline':
-        case 'iptc_byline':
+        case 'iptcHeadline':
+        case 'iptcByline':
           value = $root.cachedFind('.'+key).html();
           break;
-        case 'iptc_caption':
-        case 'iptc_copyright':
-        case 'iptc_keywords':
-        case 'iptc_source':
+        case 'iptcCaption':
+        case 'iptcCopyright':
+        case 'iptcKeywords':
+        case 'iptcSource':
           value = $root.cachedFind('.'+key).attr('title');
           break;
         }
@@ -171,7 +171,7 @@
     // move form (don't clone) because it's full of #ids
     $root.append($form);
     // put the caret in the headline box
-    _fieldPutCursorAtEnd($form.cachedFind('.iptc_headline'));
+    _fieldPutCursorAtEnd($form.cachedFind('.iptcHeadline'));
     // flag that we're editing
     editing_metadata = seq;
   };

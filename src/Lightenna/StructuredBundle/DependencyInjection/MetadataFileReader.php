@@ -4,29 +4,31 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 
 use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
-use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
+// use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 
 class MetadataFileReader extends FileReader {
 
-  protected $stats;
-  protected $args;
-  protected $settings;
-  protected $controller;
-  protected $metadata;
+  protected $stats = null;
+  protected $args = null;
+  protected $settings = null;
+  protected $controller = null;
+  protected $metadata = null;
   protected $name = null;
 
   public function __construct($filename, $con) {
     parent::__construct($filename);
     $this->controller = $con;
-    $this->stats = new GenericEntry();
-    $this->stats->setRawname($this->controller->getRawname());
-    $this->setArgs($this->controller->getArgs());
-    $this->settings = $this->controller->getSettings();
     if (!is_null($filename)) {
       // @refactor ; think we can remove this getListing call
       $this->getListing();
       $this->stats = $this->getStats();
     }
+    if (!is_object($this->stats)) {
+      $this->stats = new GenericEntry();
+    }
+    $this->stats->setRawname($this->controller->getRawname());
+    $this->setArgs($this->controller->getArgs());
+    $this->settings = $this->controller->getSettings();
     // assume we're dealing simple Metadata for now (e.g. not Video)
     $this->metadata = new ImageMetadata($this, $this->stats);
   }

@@ -263,6 +263,7 @@
               // needs fixed width
               // text-overflow: ellipsis;
 
+
               // make headline and summary icons appear on one line
               &.iptcHeadline {
                 font-weight: bold;
@@ -272,6 +273,8 @@
 
               // summary icons in off-colour
               &.iptcCaption, &.iptcKeywords, &.iptcCopyright, &.iptcSource {
+                // iptc elements need pointer events for hover/click
+                pointer-events: auto;
                 color: $text_icon_light;
                 display: inline;
                 margin-left: 0;
@@ -280,6 +283,7 @@
 
               // edit icon to stand out
               &.editable {
+                pointer-events: auto;
                 display: inline;
                 margin-left: 0;
                 margin-right: 0;

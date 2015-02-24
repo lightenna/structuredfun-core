@@ -26,6 +26,8 @@ class ViewController extends Controller {
   protected $args;
   // @param FileReader object
   protected $mfr;
+  // @param string URL requested
+  protected $rawname = null;
 
   public function __construct() {
     $settings_file = $this->convertRawToInternalFilename('conf/structured.ini');
@@ -88,6 +90,18 @@ class ViewController extends Controller {
     return $this->args;
   }
 
+  public function getRawname() {
+    return $this->rawname;
+  }
+
+  /**
+   * @return array Settings
+   */
+
+  public function getSettings() {
+    return $this->settings;
+  }
+
   /**
    * Process settings array for actions
    */
@@ -121,14 +135,6 @@ class ViewController extends Controller {
     if (!isset($this->settings['general']['path_ffmpeg'])) {
       $this->settings['general']['path_ffmpeg'] = self::convertRawToInternalFilename('vendor/ffmpeg/bin') . '/';
     }
-  }
-
-  /**
-   * @return array Settings
-   */
-
-  public function getSettings() {
-    return $this->settings;
   }
 
   /**
