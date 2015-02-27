@@ -1,26 +1,7 @@
 
-* faster image delivery
-  + write .htaccess lookup for cached image files
-
-* mouse wheel scrolling stops working sometimes
-  + to do with offseq
-    + and cell width
---o--
-* offseq clipping
-  + we need to cover the case where a link viewed in one browser
-    + is transferred to another of a different size
-    + or the same resized
-  + this is probably the solution to scrolling blocking
-  = done I think
-    + needs testing but I reckon it's close
-
-* changing between pages preserves offseq
-  + needs to be recalculated really
-    + otherwise images no longer appear centred
-      + because pages have different cell widths
-      + good to clear/recalc offseq everytime cell width changes
-  + browse around in many-foldered image set
-    + see what the experience is like
+* update offseq when page is scrolled
+  + could be mouseWheeled / paged
+  + or scrollbar dragged
 
 * basic website
   + plug the demo link into the demo menu item
@@ -34,6 +15,19 @@
 
 --- next release ---
 
+* changing between pages preserves offseq
+  + needs to be recalculated really
+    + otherwise images no longer appear centred
+      + because pages have different cell widths
+      + good to clear/recalc offseq everytime cell width changes
+  + browse around in many-foldered image set
+    + see what the experience is like
+  + there aren't any pages in the demo at the moment
+    + so it can definitely wait until next release
+
+* faster image delivery
+  + write .htaccess lookup for cached image files
+
 * implement canvas thinking into layout
 
 * debug flow jitter
@@ -42,6 +36,9 @@
 
 * test BAL 10k folder
   + see how layout performs
+
+* bug: scrolling from left or right leaves 1-up images stuck to left edge [minor]
+  + they ought to get centred again
 
 * bug: if values are redefined in later .ini
   + make sure they overwrite the predecessors
@@ -4648,4 +4645,18 @@ refreshMetadataApplyToFields function
       + on we go
   + 1 to go!
   = all green
+
+* mouse wheel scrolling stops working sometimes
+  + to do with offseq
+    + and cell width
+    + once offseq is greater than cell width
+      + it doesn't scroll
+--o--
+* offseq clipping
+  + we need to cover the case where a link viewed in one browser
+    + is transferred to another of a different size
+    + or the same resized
+  + this is probably the solution to scrolling blocking
+  = done I think
+    + needs testing but I reckon it's close
 

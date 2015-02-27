@@ -3881,17 +3881,11 @@ window.sfun = (function($, undefined) {
     if (imagesnap) {
       // calculate how many minor axis cells
       var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
-      // find first spanning min boundary
+      // cell at left hand edge, i.e. find first spanning min boundary
       var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
       // compute next_ref but don't allow wrap around
       var next_ref = Math.min(current_ref + advance_by, visTableMajor.getSize()-1);
       next_pos = visTableMajor.key(next_ref);
-      // increment next_pos by existing offseq
-      var offseq = getOffseq();
-      if (debug && true) {
-        console.log(next_pos + ' + ' + offseq + ' = ' + (next_pos+offseq));        
-      }
-      next_pos -= offseq;
       // put into target object then crop against viewport
       var target = {};
       target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
