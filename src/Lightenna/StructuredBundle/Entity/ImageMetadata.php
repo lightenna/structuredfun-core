@@ -41,7 +41,7 @@ class ImageMetadata {
    * version number used to verify ours/not-ours
    * @ORM\Column(type="string", length=100)
    */
-  protected $sfun_version = '0.9.2';
+  protected $sfun_version = '0.9.3';
 
   /**
    * location of the remote originator
