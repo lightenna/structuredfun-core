@@ -1,19 +1,28 @@
 
-* update offseq when page is scrolled
-  + could be mouseWheeled / paged
-  + or scrollbar dragged
-
-* basic website
-  + plug the demo link into the demo menu item
-    + simple external link is fine
-  + try and take :8097 out of demo.structuredfun.com link
-    + drupal7 vhost should allow simple config
-
 * release a fresh copy of the code
-  + 0.9.2
+  + 0.9.3
   + follow procedure in this file
 
 --- next release ---
+
+* bigger-smaller bug
+  + cells start out a certain width
+    + then pop down to a smaller width
+      + maybe associated with reaching end (Ctrl+End)
+      + maybe associated with 
+
+* default metadata not being filtered
+  + I think it's javascript
+    + stripping the iptc_default
+
+* event litter
+  + some events aren't getting resolved neatly
+    + and they're littering the event queue
+    + where they collide with real events
+  + watch for stuff that's only getting cleared out by the 'expires'
+    + seems to be the selected:seq=X events
+      + could be that we're orphaning a context in refreshSelected()
+  + good news is that the only litter is created by the offseq push
 
 * changing between pages preserves offseq
   + needs to be recalculated really
@@ -4659,4 +4668,24 @@ refreshMetadataApplyToFields function
   + this is probably the solution to scrolling blocking
   = done I think
     + needs testing but I reckon it's close
+
+* mark this release as 0.9.3
+
+* update offseq when page is scrolled
+  + could be mouseWheeled / paged
+  + or scrollbar dragged
+    = this works, but it's exposed another bug
+
+* introduce ticker on event queue
+  + update every 2 seconds while there are _any_ events on it
+    + only in debug mode of course
+  + do as 2 second timeout
+    + that gets cancelled if we're called within that 2s
+    + gets rescheduled everytime until there are no events left
+
+* basic website
+  + plug the demo link into the demo menu item
+    + simple external link is fine
+  + try and take :8097 out of demo.structuredfun.com link
+    + drupal7 vhost should allow simple config
 

@@ -456,7 +456,7 @@ window.sfun = (function($, undefined) {
         $ent = $(container_selector+' .selectablecell.vispart:'+(scrolldir > 0 ? 'first' : 'last'));
       }
       if ($ent.length) {
-        // create and resolve a local context to allow us to numb listener
+        // create a local context to allow us to numb listener
         var localContext = eventQueue.push({
           'key': 'selected:seq='+$ent.data('seq'),
           'comment': 'localContext for refreshSelected (image-'+$ent.data('seq')+')',
@@ -466,6 +466,25 @@ window.sfun = (function($, undefined) {
         return imageAdvanceTo($ent.data('seq'), localContext);
       } else {
         // if no visible/vispart images, don't try to select anything
+      }
+    } else {
+      // the curent selection is still visible, offseq may need updating
+      var seq = $ent.data('seq');
+      // work out image and viewport's positions on major axis
+      var offseq = imageStillShiftOffseq(seq);
+      // compare with current offseq to see if we need to refresh hash
+      var coffseq = getOffseq();
+      if (offseq != coffseq) {
+        // // create a local context to allow us to numb listener
+        // var localContext = eventQueue.push({
+        //   'key': 'seqset:offseq='+offseq,
+        //   'comment': 'localContext for refreshSelected-nochange (image-'+seq+' offseq-'+offseq+')',
+        //   'replaceEvent': true
+        // });
+        // // select image using hash update
+        // return fireHashUpdate( { 'seq': seq, 'offseq': offseq }, localContext).done(function() {
+        //   eventQueue.resolve(localContext);
+        // });
       }
     }
     return getDeferred().resolve();
@@ -2738,8 +2757,26 @@ window.sfun = (function($, undefined) {
         }
         // delete everything after last entry
         this.visualisationDumpList(vised);
+        // if that are entries in the list, schedule/re-schedule next update
+        this.visualisationScheduleUpdate();
         // release lock on vis
         this.visref_$list_static.removeClass('updating');
+      },
+
+      'visualisationScheduleUpdate': function() {
+        var $listitem = this.visref_$list_static.find('li');
+        // cancel if already scheduled
+        if (this.vissched_timeout_static !== null) {
+          clearTimeout(this.vissched_timeout_static);
+        }
+        // if we have a list, reschedule
+        if ($listitem.length) {
+          var that = this;
+          this.vissched_timeout_static = setTimeout(function() {
+            that.visualisationRefresh();
+          }, 2000);
+        }
+        
       },
 
       'visualisationDumpList': function(vised) {
