@@ -1,9 +1,9 @@
 
-* release a fresh copy of the code
-  + 0.9.3
-  + follow procedure in this file
+* look for .shareable.jpg
+  + setup HEAD og: tag if there is
+  + test twitter/facebook card
 
---- next release ---
+* tweet first image gallery
 
 * bigger-smaller bug
   + cells start out a certain width
@@ -3257,14 +3257,21 @@ let's do it on a filename level
     - not consistent
   = not frequently occuring enough to block release
 
-* package instructions
+* outdated
   + disable debug in javascript
-  + check opcache refresh is at 60s, not 2s for debugging
+
+* package instructions
+  + check release number e.g. 0.9.3
   + do a clean clone of git repo
     + or update packaging-only repo
+      + need to do a submodule update too
   + copy folder
+  + check opcache settings at bottom of file
+    + refresh is at 60s, not 2s for debugging
+opcache.revalidate_freq=60
   + clean unnecessary files
     + clean zips
+\structuredfun-pc-v0p9p3\structured\vendor\zips
     + clean .gitignore, .gitmodules
     + clean .git
     + clean LICENSE
@@ -4688,4 +4695,8 @@ refreshMetadataApplyToFields function
     + simple external link is fine
   + try and take :8097 out of demo.structuredfun.com link
     + drupal7 vhost should allow simple config
+
+* release a fresh copy of the code
+  + 0.9.3
+  + follow procedure in this file
 
