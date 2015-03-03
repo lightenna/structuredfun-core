@@ -147,8 +147,8 @@ class MetadataFileReader extends FileReader {
   }
 
   /**
-   * Overriden getListing function that adds metadata to the elements
-   * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::getListing()
+   * skim function
+   * @return array $listing without named fields
    */
   public function skimListing($listing) {
     // dump protected or irrelevant fields
@@ -199,6 +199,11 @@ class MetadataFileReader extends FileReader {
       $filename = $this->getFullname($obj);
       // local reader needs to use this reader's args (to get correctly size-cached thumbnails) 
       $localmfr = new CachedMetadataFileReader($filename, $this->controller);
+      // tweak rawname using path from controller but leaf from obj, and args as if first query
+      $flat_args = self::flattenKeyArgs($this->args);
+      $child_name = $this->controller->getRawname() . DIR_SEPARATOR . $obj->getName() . ARG_SEPARATOR . 'thumb=true&' . $flat_args . '&';
+      $localmfr->getStats()->setRawname($child_name);
+      // setup local reader
       $localmfr->setArgs($this->args);
       $obj->setMetadataFileReader($localmfr);
       // pull out image data
@@ -209,8 +214,8 @@ class MetadataFileReader extends FileReader {
       // @todo this print_r exposes that we're calling it twice
       $localstats = $localmfr->getStats();
       // transfer metadata from cached copy to this directory entry
-      if (isset($localstats->{'cachekey'})) {
-        $obj->setCachekey($localstats->{'cachekey'});
+      if ($localstats->hasCacheKey()) {
+        $obj->setCachekey($localstats->getCacheKey());
       }
     }
     // try and use metadata first
@@ -299,6 +304,31 @@ class MetadataFileReader extends FileReader {
     // don't rewrite its extension because we don't use that for file access, only for type detection
     // $this->stats->ext = self::getExtension($this->stats->file);
     return $newname;
+  }
+
+  /**
+   * Create a string to uniquely identify these image arguments
+   * @param object $args URL arguments
+   * @return string arguments as a string
+   */
+  static function flattenKeyArgs($args) {
+    $output = '';
+    // if there are no args, they flatten to an empty string
+    if (is_null($args))
+      return '';
+    // only certain args should be used in the cache key
+    $keys = array(
+      'maxwidth',
+      'maxheight',
+      'maxlongest',
+      'maxshortest',
+    );
+    foreach ($keys as $key) {
+      if (isset($args->{$key})) {
+        $output .= $key . '=' . $args->{$key};
+      }
+    }
+    return $output;
   }
 
 }

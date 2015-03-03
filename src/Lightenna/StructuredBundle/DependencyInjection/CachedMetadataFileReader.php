@@ -287,32 +287,6 @@ class CachedMetadataFileReader extends MetadataFileReader {
     // return md5($key);
   }
 
-  /**
-   * Create a string to uniquely identify these image arguments
-   * @param object $args URL arguments
-   * @return string arguments as a string
-   */
-
-  static function flattenKeyArgs($args) {
-    $output = '';
-    // if there are no args, they flatten to an empty string
-    if (is_null($args))
-      return '';
-    // only certain args should be used in the cache key
-    $keys = array(
-      'maxwidth',
-      'maxheight',
-      'maxlongest',
-      'maxshortest',
-    );
-    foreach ($keys as $key) {
-      if (isset($args->{$key})) {
-        $output .= $key . '=' . $args->{$key};
-      }
-    }
-    return $output;
-  }
-
   static function scrubDirectoryContents($dir) {
     // get directory listing
     $listing = scandir($dir);

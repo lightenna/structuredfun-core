@@ -60,13 +60,13 @@
         <span class="base">
           <span class="imgmetric super"><span class="size"><span class="width">{% if file.meta.LoadedWidth is not null %}{{ file.meta.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.LoadedHeight is not null %}{{ file.meta.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
           {# Always show headline; if not set use file.alias #}
-          <span class="iptc iptcHeadline">{{ file.meta is not null and file.meta.IptcHeadline != defaults.iptc_headline ? file.meta.IptcHeadline : file.alias }}</span>
+          <span class="iptc iptcHeadline">{{ file.meta is not null and file.meta.IptcHeadline != defaults.iptcHeadline ? file.meta.IptcHeadline : file.alias }}</span>
           {# Only show other metadata if it's not the default #}
-          <span class="iptc iptcByline {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcByline == defaults.iptc_byline ? 'iptc_default' }}">{{ file.meta is not null ? file.meta.IptcByline : defaults.iptc_byline }}</span>
-          <span class="iptc iptcCopyright {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCopyright == defaults.iptc_copyright ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCopyright : '' }}">&copy;</span>
-          <span class="iptc iptcSource icon ion-home {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcSource == defaults.iptc_source ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcSource : '' }}"></span>
-          <span class="iptc iptcCaption icon ion-document-text {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCaption == defaults.iptc_caption ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCaption : '' }}"></span>
-          <span class="iptc iptcKeywords icon ion-pricetags {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcKeywords == defaults.iptc_keywords ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcKeywords : '' }}"></span>
+          <span class="iptc iptcByline {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcByline == defaults.iptcByline ? 'iptc_default' }}">{{ file.meta is not null ? file.meta.IptcByline : defaults.iptcByline }}</span>
+          <span class="iptc iptcCopyright {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCopyright == defaults.iptcCopyright ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCopyright : '' }}">&copy;</span>
+          <span class="iptc iptcSource icon ion-home {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcSource == defaults.iptcSource ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcSource : '' }}"></span>
+          <span class="iptc iptcCaption icon ion-document-text {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCaption == defaults.iptcCaption ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCaption : '' }}"></span>
+          <span class="iptc iptcKeywords icon ion-pricetags {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcKeywords == defaults.iptcKeywords ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcKeywords : '' }}"></span>
           {# Show edit icon if we have edit permissions ; editable class first for selector #}
           <span class="editable iptc icon ion-compose" style="{{ file.meta is not null and file.meta.Editable ? '' : 'display: none;' }}"></span>
         </span>
