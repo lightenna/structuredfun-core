@@ -46,10 +46,13 @@ class LayoutviewController extends ViewController {
   }
 
   private function layoutListing($listing, $breadth) {
-    $breadthSeq = 0;
     $listlen = count($listing);
+    // sequence number within each breadth group
+    $breadthSeq = 0;
+    // last major axis coordinate
+    $lastmajor = 0;
     for ($i = 0 ; $i < $listlen ; ++$i) {
-      
+
     }
   }
 
