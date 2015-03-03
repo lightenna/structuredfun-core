@@ -35,7 +35,7 @@ class FileviewController extends ViewController {
               'dirname' => $name,
               'direction' => 'y',
               'celltype' => 'pc',
-              'breadth' => 2,
+              'breadth' => DEFAULT_LAYOUT_BREADTH,
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
               // @todo try this without [redundant?] thumb variable
               // 'argsbase' => ARG_SEPARATOR,
