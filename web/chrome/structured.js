@@ -650,31 +650,45 @@ window.sfun = (function($, undefined) {
       for (var i=0 ; i<fields.length ; ++i) {
         var value = data.meta[fields[i]];
         var $field = $ent.cachedFind('.' + fields[i]);
-        switch (fields[i]) {
-          case 'iptcHeadline':
-          case 'iptcByline':
-            $field.html(value);
-            break;
-          case 'iptcCaption':
-          case 'iptcCopyright':
-          case 'iptcKeywords':
-          case 'iptcSource':
-            $field.attr('title', value);
-            break;
-          case 'editable':
-            if (value) {
-              $field.show();
-            } else {
-              $field.hide();
-            }
-            break;
-        }
+        // test to see if this metadata field is the default
         if (value == state_default[fields[i]]) {
           if (debug && false) {
             console.log('v['+value+'] default['+state_default[fields[i]]+'] is default');
           }
-          $field.addClass('iptc_default');
+          // tag most as defaults (which tends to hide them)
+          switch (fields[i]) {
+            case 'iptcHeadline':
+              break;
+            case 'iptcByline':
+            case 'iptcCaption':
+            case 'iptcCopyright':
+            case 'iptcKeywords':
+            case 'iptcSource':
+            default:
+              $field.addClass('iptc_default');
+              break;
+          }
         } else {
+          // if the values a non-default, show them
+          switch (fields[i]) {
+            case 'iptcHeadline':
+            case 'iptcByline':
+              $field.html(value);
+              break;
+            case 'iptcCaption':
+            case 'iptcCopyright':
+            case 'iptcKeywords':
+            case 'iptcSource':
+              $field.attr('title', value);
+              break;
+            case 'editable':
+              if (value) {
+                $field.show();
+              } else {
+                $field.hide();
+              }
+              break;
+          }
           $field.removeClass('iptc_default');
         }
         $field.removeClass('iptc_undefined');
@@ -1361,7 +1375,7 @@ window.sfun = (function($, undefined) {
     );
     var cell_perc = 100 / cell_count;
     // optional debugging
-    if (debug && false) {
+    if (debug && true) {
       console.log('ratio_mean['+ratio_mean+'] viewport_ratio['+viewport_ratio+'] cell_count['+cell_count+']');
     }
     // overwrite existing CSS selector

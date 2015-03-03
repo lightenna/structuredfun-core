@@ -170,14 +170,14 @@ class ImageMetadata {
    * Defaults must take the same form (_ not camel) as the class attributes
    * @return array default values
    */
-  static function getDefaults() {
+  static function getDefaults($underscore = false) {
     return array(
-      'iptc_headline' => 'Untitled',
-      'iptc_caption' => 'Caption pending',
-      'iptc_byline' => 'Author pending',
-      'iptc_keywords' => 'structured;fun',
-      'iptc_copyright' => 'Copyright remains with author, image transformation licence granted to StructuredFun',
-      'iptc_source' => 'Source pending',
+      ($underscore ? 'iptc_headline' : 'iptcHeadline') => 'Untitled',
+      ($underscore ? 'iptc_caption' : 'iptcCaption') => 'Caption pending',
+      ($underscore ? 'iptc_byline' : 'iptcByline') => 'Author pending',
+      ($underscore ? 'iptc_keywords' : 'iptcKeywords') => 'structured;fun',
+      ($underscore ? 'iptc_copyright' : 'iptcCopyright') => 'Copyright remains with author, image transformation licence granted to StructuredFun',
+      ($underscore ? 'iptc_source' : 'iptcSource') => 'Source pending',
     );
   }
 
@@ -188,7 +188,7 @@ class ImageMetadata {
    */
   public function ingestStats($obj) {
     // setup defaults (hopefully overwrite later)
-    $values = self::getDefaults();
+    $values = self::getDefaults(true);
     // pull source filename
     if (isset($obj->{'file_original'})) {
       $this->original_source = 'file://'.$obj->file_original;

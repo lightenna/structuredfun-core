@@ -1,4 +1,43 @@
 
+* debug flow jitter
+  + after developing layout
+    + or not
+    + pulled forward because of potential of demo
+  + it seems like it can't decide between flow and grid
+  + seems to be do with rolling ratio_ variables
+    + found @todo to suggest stripping it out
+  + doing this in HTML makes the most sense
+    + each image can be tagged with its normalised position
+      + if the entire image set is laid out at this breadth
+      + where would this image fit
+        + depends a lot on the viewport height (vh)
+          + but I wonder if we could solve in terms of vh
+            + wow that's interesting
+      + put ratio on each image
+        + then combine in 2/4/8
+        + put ratio on combined
+          + data-ratio="3/2" data-ratio-2="3/4" data-ratio-4="3/8"
+        + then sum the ratios additively
+          + data-ratio-sum="" data-ratio-2-sum=""
+        + so that to get position
+          + we just mux data-ratio-sum by viewport height
+      + this is really good for a bunch of reasons
+        + don't worry too much about the first layout case
+          + solve for nth, then work backwards
+
+* error images are doing strange things
+  + on lappy they're way too small
+
+* implement canvas thinking into layout
+
+--- prep for BaTi sfun demo
+
+* GA on sfun
+  + use _gaq track to push events
+
+* GA add hooks
+  + add track->event() call to key points across codebase
+
 * look for .shareable.jpg
   + setup HEAD og: tag if there is
   + test twitter/facebook card
@@ -10,10 +49,6 @@
     + then pop down to a smaller width
       + maybe associated with reaching end (Ctrl+End)
       + maybe associated with 
-
-* default metadata not being filtered
-  + I think it's javascript
-    + stripping the iptc_default
 
 * event litter
   + some events aren't getting resolved neatly
@@ -36,12 +71,9 @@
 
 * faster image delivery
   + write .htaccess lookup for cached image files
-
-* implement canvas thinking into layout
-
-* debug flow jitter
-  + after developing layout
-  + it seems like it can't decide between flow and grid
+wget -qO- $url &> /dev/null
+wget -qO- http://localhost:8097/fish &> /dev/null
+  + identify command that will show forwarding
 
 * test BAL 10k folder
   + see how layout performs
@@ -4699,4 +4731,38 @@ refreshMetadataApplyToFields function
 * release a fresh copy of the code
   + 0.9.3
   + follow procedure in this file
+
+* default metadata not being filtered
+  + I think it's javascript
+    + stripping the iptc_default
+    + defaults should not have _
+      + because they're compared to real names in the javascript
+    + don't override filename if no metadata value set
+      + currently overriding to 'Untitled' then not showing that
+        + it's happening in the javascript
+  + implemented a clever filtering thing
+    + splits out the logic better
+      + might move some of it to css in the future
+        + but it's marginal now
+
+* get loaded width and height into layout
+--o--
+* see if layout is different from directory
+  + use var_dump
+  + looks like we're not getting imgdata
+    + even though the images are cached
+  + getCacheKey is returning a superfluous value
+    + a full filepath
+  + got to setRawname on all directory entries
+    + they all need to do meaningful cache lookups
+      + go to where we create MetadataFileReaders for each dir entry
+    + setting rawname in FileviewController and LayoutviewController too now
+    + now we need the standard args on the end
+      + consistent with the 200px image request
+    + try and share standard args using source controller
+      + currently replicating
+        + it's all the same data
+        + so better to store it
+          + should be able to pull it out of the mfr
+            + because it's injected
 

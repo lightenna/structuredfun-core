@@ -91,7 +91,7 @@ class ViewController extends Controller {
   }
 
   public function getRawname() {
-    return $this->rawname;
+    return rtrim($this->rawname, DIR_SEPARATOR);
   }
 
   /**

@@ -12,9 +12,11 @@ use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 class FileviewController extends ViewController {
 
   public function indexAction($rawname, $format = 'html') {
+    // store rawname being indexed
+    $this->rawname = $rawname;
     // convert rawname to urlname and filename
-    $filename = $this->convertRawToFilename($rawname);
-    $name = self::convertRawToUrl($rawname);
+    $filename = $this->convertRawToFilename($this->rawname);
+    $name = self::convertRawToUrl($this->rawname);
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
     $this->mfr = new CachedMetadataFileReader(null, $this);
     $this->mfr->rewrite($filename);
@@ -35,6 +37,8 @@ class FileviewController extends ViewController {
               'celltype' => 'pc',
               'breadth' => 2,
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
+              // @todo try this without [redundant?] thumb variable
+              // 'argsbase' => ARG_SEPARATOR,
               'argsbase' => ARG_SEPARATOR . 'thumb=true&',
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
               'dirlisting' => $dirlisting,
@@ -61,3 +65,5 @@ class FileviewController extends ViewController {
   }
 
 }
+
+

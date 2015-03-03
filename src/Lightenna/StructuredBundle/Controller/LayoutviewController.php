@@ -18,9 +18,11 @@ use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 class LayoutviewController extends ViewController {
 
   public function indexAction($rawname, $format = 'html') {
+    // store rawname being indexed
+    $this->rawname = $rawname;
     // convert rawname to urlname and filename
-    $filename = $this->convertRawToFilename($rawname);
-    $name = self::convertRawToUrl($rawname);
+    $filename = $this->convertRawToFilename($this->rawname);
+    $name = self::convertRawToUrl($this->rawname);
     // create a file reader object to get directory/zip/directory-nested-in-zip listing
     $this->mfr = new CachedMetadataFileReader(null, $this);
     $this->mfr->rewrite($filename);
