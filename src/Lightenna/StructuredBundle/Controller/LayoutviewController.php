@@ -35,7 +35,7 @@ class LayoutviewController extends ViewController {
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
         $dirmeta = $this->mfr->skimListing($this->mfr->getListing());
-        $this->layoutListing($dirmeta);
+        $this->layoutListing($dirmeta, DEFAULT_LAYOUT_BREADTH);
         print($this->serialise($dirmeta));
         exit;
       }
@@ -45,8 +45,12 @@ class LayoutviewController extends ViewController {
     }
   }
 
-  private function layoutListing($listing) {
-    
+  private function layoutListing($listing, $breadth) {
+    $breadthSeq = 0;
+    $listlen = count($listing);
+    for ($i = 0 ; $i < $listlen ; ++$i) {
+      
+    }
   }
 
   private function serialise($dirmeta) {
