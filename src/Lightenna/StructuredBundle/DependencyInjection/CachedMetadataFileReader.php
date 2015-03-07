@@ -203,6 +203,13 @@ class CachedMetadataFileReader extends MetadataFileReader {
   }
 
   /**
+   * get all the images in this directory
+   */
+  public function getAll() {
+// START HERE
+  }
+
+  /**
    * Get the contents of a file only if it's in the cache
    * @return string Contents of file, or FALSE on failure
    */

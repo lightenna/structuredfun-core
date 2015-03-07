@@ -24,6 +24,19 @@
       + this is really good for a bunch of reasons
         + don't worry too much about the first layout case
           + solve for nth, then work backwards
+  + how to handle errors
+    + if we can't process an image
+      + replace with the error image
+        + and use the error image ratio
+    + error images are part of the layout too
+  + run a single test class or file
+phpunit -c app src\Lightenna\StructuredBundle\Tests\Controller\LayoutviewControllerTest.php
+  + ratio is null
+    + because we're not get()ing the images from the cache
+    + layout controller might need some kind of cache all call
+      + that could be slow
+      + useful for the test suite
+        + perhaps not in real use
 
 * error images are doing strange things
   + on lappy they're way too small
@@ -37,6 +50,10 @@
 
 * GA add hooks
   + add track->event() call to key points across codebase
+
+* proper 404/500 error page
+  + at the moment we show the Symfony error page
+    + which is a security risk
 
 * look for .shareable.jpg
   + setup HEAD og: tag if there is
@@ -4765,4 +4782,6 @@ refreshMetadataApplyToFields function
         + so better to store it
           + should be able to pull it out of the mfr
             + because it's injected
+
+* make horizontal default scroll
 

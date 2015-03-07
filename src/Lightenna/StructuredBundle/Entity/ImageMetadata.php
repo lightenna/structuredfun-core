@@ -146,6 +146,23 @@ class ImageMetadata {
   protected $editable = null;
 
   //
+  // Fields Derived
+  // (not stored in database)
+  //
+
+  /**
+   * image width normalised within bucket of key
+   * e.g. [1] => 1, [2] => 0.6, [3] => 0.32
+   */
+  protected $normal_width = array();
+
+  /**
+   * image height normalised within bucket of key
+   */
+  protected $normal_height = array();
+
+
+  //
   // Methods
   //
 
@@ -421,6 +438,22 @@ class ImageMetadata {
     if ($this->loaded_width < $this->loaded_height) {
       $this->orientation = 'y';
     }
+  }
+
+  public function getNormalWidth($breadth) {
+    return $normal_width[$breadth];
+  }
+
+  public function setNormalWidth($breadth, $n) {
+    $normal_width[$breadth] = $n;
+  }
+
+  public function getNormalHeight($breadth) {
+    return $normal_height[$breadth];
+  }
+
+  public function setNormalHeight($breadth, $n) {
+    $normal_height[$breadth] = $n;
   }
 
   public function getMime() {
