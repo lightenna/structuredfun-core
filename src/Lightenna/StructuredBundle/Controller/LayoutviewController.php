@@ -45,14 +45,87 @@ class LayoutviewController extends ViewController {
     }
   }
 
-  private function layoutListing($listing, $breadth) {
-    $listlen = count($listing);
-    // sequence number within each breadth group
-    $breadthSeq = 0;
-    // last major axis coordinate
-    $lastmajor = 0;
-    for ($i = 0 ; $i < $listlen ; ++$i) {
+  /**
+   * build a layout for a listing
+   */
+  public function layoutListing($listing, $breadth, $direction) {
+    $buckets = $this->bucketListing($listing, $breadth);
+    foreach ($buckets as &$bucket) {
+      $this->calcMinorAxesSizes($bucket, 1.0, $direction);
+    }
+  }
 
+  /**
+   * break a listing up into buckets
+   * @param  array &$listing
+   * @param  int $bucket_size
+   * @return array of arrays, i.e. array of buckets
+   */
+  public function bucketListing(&$listing, $bucket_size) {
+    $listing_length = count($listing);
+    $buckets = array();
+    $current_bucket = null;
+    // loop through listing creating buckets
+    for ($i = 0 ; $i < $listing_length ; ++$i) {
+      $bucketRef = ($i % $bucket_size);
+      // if this loop iteration is on a bucket boundary
+      if ($bucketRef == 0) {
+        // if we've got a bucket
+        if ($current_bucket != null) {
+          // add last bucket to buckets array without copying it
+          $buckets[] = $current_bucket;
+        }
+        // create a new bucket
+        $current_bucket = array();
+      }
+      // always add entry to current bucket
+      $current_bucket[] = $listing[$i];
+    }
+    return $buckets;
+  }
+
+  /**
+   * calculate minor axes sizes, which sum to total
+   * @param array $bucket array of cells as GenericEntrys
+   * @param float $total that this minor should sum to
+   */
+  private function calcMinorAxesSizes(&$bucket, $total, $direction) {
+    $bucket_length = count($bucket);
+    $minor_total = 0;
+    // sum minor axes to get total
+    for ($i = 0 ; $i < $bucket_length ; ++$i) {
+      $imgMetadata = $bucket[$i]->getMeta();
+      $ratio = $imgMetadata->getRatio();
+// delete me
+var_dump($ratio);
+exit;
+// problem: ratio is NULL
+// because we're pulling this from test data, not cache
+      // calculate the minor-axis size based on image ratio alone
+      $minor_by_ratio = ($direction == 'x' ? 1 / $ratio : 1 * ratio);
+      // sum to total
+      $minor_total += $minor_by_ratio;
+      // also set n=1 while we've got the references
+      if ($direction == 'x') {
+        $imgMetadata->setNormalHeight(1, $minor_by_ratio);
+      } else {
+        $imgMetadata->setNormalWidth(1, $minor_by_ratio);
+      }
+    }
+    // normalise by dividing by total
+    $ratio_factor = $minor_total / $total;
+    // store normalised minors back
+    for ($i = 0 ; $i < $bucket_length ; ++$i) {
+      $imgMetadata = $bucket[$i]->getMeta();
+      $ratio = $imgMetadata->getRatio();
+      // calculate the minor-axis size based on image ratio alone
+      $minor_by_ratio = ($direction == 'x' ? 1 / $ratio : 1 * ratio);
+      // if the major axis is x, minors are heights
+      if ($direction == 'x') {
+        $imgMetadata->setNormalHeight($bucket_length, $minor_by_ratio * $ratio_factor);
+      } else {
+        $imgMetadata->setNormalWidth($bucket_length, $minor_by_ratio * $ratio_factor);
+      }
     }
   }
 
