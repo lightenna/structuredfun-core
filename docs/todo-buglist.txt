@@ -1,4 +1,7 @@
 
+* store normal_width|heights with both breadth and direction
+  + because they'll be different
+
 * debug flow jitter
   + after developing layout
     + or not
@@ -37,6 +40,9 @@ phpunit -c app src\Lightenna\StructuredBundle\Tests\Controller\LayoutviewControl
       + that could be slow
       + useful for the test suite
         + perhaps not in real use
+      + missing args
+        + normal_width|height not showing
+          + being lost in serialise
 
 * error images are doing strange things
   + on lappy they're way too small
@@ -4784,4 +4790,12 @@ refreshMetadataApplyToFields function
             + because it's injected
 
 * make horizontal default scroll
+
+* might need to handle case where the metadata saved in the file is sfun
+  + but older than the current metadata
+    + nice to have a single calc() method
+      + that derived all derived fields
+  + also like to define a mergeold function
+    + that mapped older schema to the current one
+  + hasn't cropped up yet
 

@@ -204,9 +204,14 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   /**
    * get all the images in this directory
+   * @param  array $listing list of directory entries
+   * warning: this will be slow if most of the images aren't cached
    */
-  public function getAll() {
-// START HERE
+  public function getAll($listing) {
+    foreach ($listing as &$entry) {
+      // force an image load to get image dimensions
+      $this->getDirectoryEntryMetadata($entry, true);
+    }
   }
 
   /**
