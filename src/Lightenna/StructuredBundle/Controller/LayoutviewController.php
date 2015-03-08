@@ -34,9 +34,12 @@ class LayoutviewController extends ViewController {
     $this->mfr->injectArgs($thumbargs);
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
-        $dirmeta = $this->mfr->skimListing($this->mfr->getListing());
-        $this->layoutListing($dirmeta, DEFAULT_LAYOUT_BREADTH);
-        print($this->serialise($dirmeta));
+        // get directory metadata (whole), skimming handled in serialise
+        $listing = $this->mfr->getListing();
+        // ensure that we're reading all the metadata (cached and uncached files)
+        $this->mfr->getAll($listing);
+        $this->layoutListing($listing, DEFAULT_LAYOUT_BREADTH, DEFAULT_LAYOUT_DIRECTION);
+        print($this->serialise($listing));
         exit;
       }
     } else {
@@ -96,11 +99,6 @@ class LayoutviewController extends ViewController {
     for ($i = 0 ; $i < $bucket_length ; ++$i) {
       $imgMetadata = $bucket[$i]->getMeta();
       $ratio = $imgMetadata->getRatio();
-// delete me
-var_dump($ratio);
-exit;
-// problem: ratio is NULL
-// because we're pulling this from test data, not cache
       // calculate the minor-axis size based on image ratio alone
       $minor_by_ratio = ($direction == 'x' ? 1 / $ratio : 1 * ratio);
       // sum to total
@@ -129,13 +127,13 @@ exit;
     }
   }
 
-  private function serialise($dirmeta) {
+  private function serialise($listing) {
     $encoders = array(new XmlEncoder(), new JsonEncoder());
     $normalizers = array(new GetSetMethodNormalizer());
     $igFields = array_merge(ImageMetadata::getIgnoredAttributes(), GenericEntry::getIgnoredAttributes());
     $normalizers[0]->setIgnoredAttributes($igFields);
     $serializer = new Serializer($normalizers, $encoders);
-    $jsonContent = $serializer->serialize($dirmeta, 'json');
+    $jsonContent = $serializer->serialize($listing, 'json');
     return $jsonContent;
   }
 

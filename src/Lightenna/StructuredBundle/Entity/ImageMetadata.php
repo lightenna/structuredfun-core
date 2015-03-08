@@ -24,6 +24,9 @@ class ImageMetadata {
    *   scope: only fields defined here get unserialised back from files
    *   loaded: the actual locally-cached image file that this data is about
    *   original: the remote originator, from which this image was derived
+   *
+   * 0.9.4
+   *   added normal_width|height arrays for normalised 
    */
 
   //
@@ -41,7 +44,7 @@ class ImageMetadata {
    * version number used to verify ours/not-ours
    * @ORM\Column(type="string", length=100)
    */
-  protected $sfun_version = '0.9.3';
+  protected $sfun_version = '0.9.4';
 
   /**
    * location of the remote originator
@@ -441,19 +444,27 @@ class ImageMetadata {
   }
 
   public function getNormalWidth($breadth) {
-    return $normal_width[$breadth];
+    return $this->normal_width[$breadth];
+  }
+
+  public function getNormalWidths() {
+    return $this->normal_width;
   }
 
   public function setNormalWidth($breadth, $n) {
-    $normal_width[$breadth] = $n;
+    $this->normal_width[$breadth] = $n;
   }
 
   public function getNormalHeight($breadth) {
-    return $normal_height[$breadth];
+    return $this->normal_height[$breadth];
+  }
+
+  public function getNormalHeights() {
+    return $this->normal_height;
   }
 
   public function setNormalHeight($breadth, $n) {
-    $normal_height[$breadth] = $n;
+    $this->normal_height[$breadth] = $n;
   }
 
   public function getMime() {

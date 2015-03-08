@@ -14,9 +14,13 @@ class LayoutviewControllerTest extends WebTestCase {
     // read first entry in standard folder
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/20-image_folder'), $t);
     // need to make sure all images are in the cache
-    $mfr->getAll();
     $listing = $mfr->getListing();
+    $mfr->getAll($listing);
+    // build several layouts
     $t->layoutListing($listing, 2, 'x');
+    $t->layoutListing($listing, 4, 'x');
+    // START HERE
+    // write check for normal_width|height values in listing
   }
 
   public function testBucketListing() {

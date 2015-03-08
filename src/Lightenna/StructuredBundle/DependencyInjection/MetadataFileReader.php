@@ -185,16 +185,21 @@ class MetadataFileReader extends FileReader {
 
   /**
    * Work out the orientation of the current or a named image
-   * @param object $obj to update with orientation (x|y)
+   * @param object $obj GenericEntry
+   * @param boolean $forceGet true to always load image
    * @return object $obj only used for testing
    */
-  public function getDirectoryEntryMetadata($obj = null) {
+  public function getDirectoryEntryMetadata($obj = null, $forceGet = false) {
     if (is_null($obj)) {
       $imgdata = $this->get();
       $obj = new GenericEntry();
       $localmeta = $obj->getMeta();
     }
     else {
+      // check to see if we've already got metadata for this entry
+      if ($obj->getMeta()->hasRatio()) {
+        return;
+      }
       $imgdata = null;
       $filename = $this->getFullname($obj);
       // local reader needs to use this reader's args (to get correctly size-cached thumbnails) 
@@ -207,7 +212,7 @@ class MetadataFileReader extends FileReader {
       $localmfr->setArgs($this->args);
       $obj->setMetadataFileReader($localmfr);
       // pull out image data
-      $imgdata = $localmfr->getOnlyIfCached();
+      $imgdata = ($forceGet ? $localmfr->get() : $localmfr->getOnlyIfCached());
       // pull out mfr's metadata
       $localmeta = $localmfr->getMetadata();
       $obj->setMeta($localmeta);
