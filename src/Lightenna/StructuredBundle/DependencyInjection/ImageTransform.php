@@ -21,8 +21,8 @@ class ImageTransform {
       // because the latter changes after deserialisation
       $this->stats = $stats;
       // assume no transform, in case getImageData is called before filtering
-      $this->output_width = $stats->getMeta()->getLoadedWidth();
-      $this->output_height = $stats->getMeta()->getLoadedHeight();
+      $this->output_width = $stats->getMetadata()->getLoadedWidth();
+      $this->output_height = $stats->getMetadata()->getLoadedHeight();
       $this->output_ext = ($stats->hasExt() ? $stats->getExt() : 'jpg');
     }
   }
@@ -102,7 +102,7 @@ class ImageTransform {
   private function resizeImage(&$img) {
     // create a new image the correct shape and size
     $newimg = imagecreatetruecolor($this->output_width, $this->output_height);
-    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $this->stats->getMeta()->getLoadedWidth(), $this->stats->getMeta()->getLoadedHeight());
+    imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $this->stats->getMetadata()->getLoadedWidth(), $this->stats->getMetadata()->getLoadedHeight());
     // clean up old image
     imagedestroy($img);
     return $newimg;
@@ -137,7 +137,7 @@ class ImageTransform {
     // clear old calculations
     $this->output_width = $this->output_height = null;
     // find image dimensions and derive portrait/landscape
-    // @refactor ; use $this->stats->getMeta()->getOrientation()
+    // @refactor ; use $this->stats->getMetadata()->getOrientation()
     $width = imagesx($img);
     $height = imagesy($img);
     $portrait = false;

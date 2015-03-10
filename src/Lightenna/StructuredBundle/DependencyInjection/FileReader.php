@@ -223,6 +223,8 @@ class FileReader {
       // create an object
       $obj = new GenericEntry();
       $obj->setName(rtrim($v_utf8, '/'));
+      $obj->setNameOriginalCharset($v);
+      // $obj->setName(rtrim($v, '/'));
       $obj->setAlias($obj->getName());
       // if listing just a file
       if ($this->file_part_leaf !== null) {
@@ -322,7 +324,7 @@ class FileReader {
     // if it's a directory or a zip file, append leaf from entry ($obj/stats)
     if ($this->isDirectory() || $this->inZip()) {
       // if obj contains a leaf name, append it
-      $fullname .= DIR_SEPARATOR . $obj->getName();
+      $fullname .= DIR_SEPARATOR . $obj->getNameOriginalCharset();
     }
     return $fullname;
   }

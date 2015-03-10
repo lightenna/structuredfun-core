@@ -171,11 +171,25 @@ class MetadataFileReader extends FileReader {
       case 'image':
         // get the image metadata by reading (cached-only) file
         // fast enough (110ms for 91 images)
-        $this->getDirectoryEntryMetadata($obj);
+        $rentry = $this->getDirectoryEntryMetadata($obj);
+// delete me
+// this is a temporary fix
+// while we're sourcing the error upstream
+// it's actually making it worse
+//    because when the image isn't cached, we make it appear like it is
+        // if ($rentry === null) {
+        //   // failed to load image, substitute error image
+        //   $image_metadata = $obj->getMetadata();
+        //   if (!$image_metadata->hasRatio()) {
+        //     $image_metadata->setLoadedWidth(1340);
+        //     $image_metadata->setLoadedHeight(1080);
+        //     $image_metadata->calcRatio();
+        //   }
+        // }
         break;
       case 'video':
         // get the video metadata by reading (cached-only) file
-        $this->getDirectoryEntryMetadata($obj);
+        $rentry = $this->getDirectoryEntryMetadata($obj);
         break;
       default:
         break;
@@ -187,18 +201,18 @@ class MetadataFileReader extends FileReader {
    * Work out the orientation of the current or a named image
    * @param object $obj GenericEntry
    * @param boolean $forceGet true to always load image
-   * @return object $obj only used for testing
+   * @return object $obj only used for testing, or null on failure
    */
   public function getDirectoryEntryMetadata($obj = null, $forceGet = false) {
     if (is_null($obj)) {
       $imgdata = $this->get();
       $obj = new GenericEntry();
-      $localmeta = $obj->getMeta();
+      $localmeta = $obj->getMetadata();
     }
     else {
       // check to see if we've already got metadata for this entry
-      if ($obj->getMeta()->hasRatio()) {
-        return;
+      if ($obj->getMetadata()->hasRatio()) {
+        return $obj;
       }
       $imgdata = null;
       $filename = $this->getFullname($obj);
@@ -225,13 +239,13 @@ class MetadataFileReader extends FileReader {
     }
     // try and use metadata first
     if ($localmeta->hasRatio()) {
-      return;
+      return null;
     }
     // if we don't have the metadata, try and pull from image
     if ($imgdata == null)
-      return;
+      return null;
     if (!self::checkImageDatastream($imgdata))
-      return;
+      return null;
     // create an image, then read out the width and height
     $img = @imagecreatefromstring($imgdata);
     if ($img) {

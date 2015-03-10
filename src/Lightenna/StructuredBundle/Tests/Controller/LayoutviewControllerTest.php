@@ -16,11 +16,16 @@ class LayoutviewControllerTest extends WebTestCase {
     // need to make sure all images are in the cache
     $listing = $mfr->getListing();
     $mfr->getAll($listing);
-    // build several layouts
+    // build several layouts (fast)
     $t->layoutListing($listing, 2, 'x');
     $t->layoutListing($listing, 4, 'x');
-    // START HERE
-    // write check for normal_width|height values in listing
+    $t->layoutListing($listing, 8, 'x');
+    $t->layoutListing($listing, 2, 'y');
+    $t->layoutListing($listing, 4, 'y');
+    $t->layoutListing($listing, 8, 'y');
+    // check for normal_width|height values in listing
+    $this->assertEquals($listing[0]->getMetadata()->getNormalWidth(2,'y') > 0.0, true);
+    $this->assertEquals($listing[0]->getMetadata()->getNormalHeight(2,'x') > 0.0, true);
   }
 
   public function testBucketListing() {

@@ -28,6 +28,7 @@ class GenericEntry {
 
   protected $rawname = null;
   protected $name = null;
+  protected $name_original_charset = null;
   protected $alias = null;
   protected $type = null;
   protected $hidden = null;
@@ -89,6 +90,17 @@ class GenericEntry {
 
   public function setName($n) {
     $this->name = $n;
+  }
+
+  /**
+   * @return $string name in its original filesystem charset
+   */
+  public function getNameOriginalCharset() {
+    return $this->name_original_charset;
+  }
+
+  public function setNameOriginalCharset($n) {
+    $this->name_original_charset = $n;
   }
 
   public function getAlias() {
@@ -195,7 +207,7 @@ class GenericEntry {
     $this->subfolderCount = $c;
   }
 
-  public function getMeta() {
+  public function getMetadata() {
     return $this->meta;
   }
 

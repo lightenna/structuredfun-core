@@ -34,7 +34,7 @@
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type
   " data-seq="{{ file.seq }}">
     <a class="container media-container {{ file.type }}-container" href="/image{{ linkpath }}{{ file.name }}">
-      <img class="loadable reresable boundable {{ file.meta.orientation }}-bound selectreflector"
+      <img class="loadable reresable boundable {{ file.metadata.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            {# metadata source #}
            data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
@@ -47,28 +47,28 @@
            data-video-src="/file{{ linkpath }}{{ file.name }}"
            data-video-type="{{ file.ext }}"
       {% endif %}
-           {% if file.meta.Ratio is not null %}data-ratio="{{ file.meta.Ratio }}" {% endif %}
-           {% if file.meta.OriginalWidth is not null %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is not null %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}
+           {% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %}
+           {% if file.metadata.OriginalWidth is not null %}data-native-width="{{ file.metadata.OriginalWidth }}" {% endif %}{% if file.metadata.OriginalHeight is not null %}data-native-height="{{ file.metadata.OriginalHeight }}" {% endif %}
 {#
            do not send the loaded-width and height, because we need to use the loaded event to trigger cell resize and image reres
-           {% if file.meta.LoadedWidth is not null %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is not null %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}
+           {% if file.metadata.LoadedWidth is not null %}data-loaded-width="{{ file.metadata.LoadedWidth }}" {% endif %}{% if file.metadata.LoadedHeight is not null %}data-loaded-height="{{ file.metadata.LoadedHeight }}" {% endif %}
 #}
            data-loaded="false"
            data-seq="{{ file.seq }}" />
-      <noscript><img class="{{ file.meta.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.meta.OriginalWidth is not null %}data-native-width="{{ file.meta.OriginalWidth }}" {% endif %}{% if file.meta.OriginalHeight is not null %}data-native-height="{{ file.meta.OriginalHeight }}" {% endif %}{% if file.meta.LoadedWidth is not null %}data-loaded-width="{{ file.meta.LoadedWidth }}" {% endif %}{% if file.meta.LoadedHeight is not null %}data-loaded-height="{{ file.meta.LoadedHeight }}" {% endif %}{% if file.meta.Ratio is not null %}data-ratio="{{ file.meta.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
+      <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.metadata.OriginalWidth is not null %}data-native-width="{{ file.metadata.OriginalWidth }}" {% endif %}{% if file.metadata.OriginalHeight is not null %}data-native-height="{{ file.metadata.OriginalHeight }}" {% endif %}{% if file.metadata.LoadedWidth is not null %}data-loaded-width="{{ file.metadata.LoadedWidth }}" {% endif %}{% if file.metadata.LoadedHeight is not null %}data-loaded-height="{{ file.metadata.LoadedHeight }}" {% endif %}{% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
       <span class="meta">
         <span class="base">
-          <span class="imgmetric super"><span class="size"><span class="width">{% if file.meta.LoadedWidth is not null %}{{ file.meta.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.meta.LoadedHeight is not null %}{{ file.meta.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
+          <span class="imgmetric super"><span class="size"><span class="width">{% if file.metadata.LoadedWidth is not null %}{{ file.metadata.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.metadata.LoadedHeight is not null %}{{ file.metadata.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
           {# Always show headline; if not set use file.alias #}
-          <span class="iptc iptcHeadline">{{ file.meta is not null and file.meta.IptcHeadline != defaults.iptcHeadline ? file.meta.IptcHeadline : file.alias }}</span>
+          <span class="iptc iptcHeadline">{{ file.metadata is not null and file.metadata.IptcHeadline != defaults.iptcHeadline ? file.metadata.IptcHeadline : file.alias }}</span>
           {# Only show other metadata if it's not the default #}
-          <span class="iptc iptcByline {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcByline == defaults.iptcByline ? 'iptc_default' }}">{{ file.meta is not null ? file.meta.IptcByline : defaults.iptcByline }}</span>
-          <span class="iptc iptcCopyright {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCopyright == defaults.iptcCopyright ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCopyright : '' }}">&copy;</span>
-          <span class="iptc iptcSource icon ion-home {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcSource == defaults.iptcSource ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcSource : '' }}"></span>
-          <span class="iptc iptcCaption icon ion-document-text {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcCaption == defaults.iptcCaption ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcCaption : '' }}"></span>
-          <span class="iptc iptcKeywords icon ion-pricetags {{ file.meta is not defined ? 'iptc_undefined' }} {{ file.meta is not null and file.meta.IptcKeywords == defaults.iptcKeywords ? 'iptc_default' }}" title="{{ file.meta is not null ? file.meta.IptcKeywords : '' }}"></span>
+          <span class="iptc iptcByline {{ file.metadata is not defined ? 'iptc_undefined' }} {{ file.metadata is not null and file.metadata.IptcByline == defaults.iptcByline ? 'iptc_default' }}">{{ file.metadata is not null ? file.metadata.IptcByline : defaults.iptcByline }}</span>
+          <span class="iptc iptcCopyright {{ file.metadata is not defined ? 'iptc_undefined' }} {{ file.metadata is not null and file.metadata.IptcCopyright == defaults.iptcCopyright ? 'iptc_default' }}" title="{{ file.metadata is not null ? file.metadata.IptcCopyright : '' }}">&copy;</span>
+          <span class="iptc iptcSource icon ion-home {{ file.metadata is not defined ? 'iptc_undefined' }} {{ file.metadata is not null and file.metadata.IptcSource == defaults.iptcSource ? 'iptc_default' }}" title="{{ file.metadata is not null ? file.metadata.IptcSource : '' }}"></span>
+          <span class="iptc iptcCaption icon ion-document-text {{ file.metadata is not defined ? 'iptc_undefined' }} {{ file.metadata is not null and file.metadata.IptcCaption == defaults.iptcCaption ? 'iptc_default' }}" title="{{ file.metadata is not null ? file.metadata.IptcCaption : '' }}"></span>
+          <span class="iptc iptcKeywords icon ion-pricetags {{ file.metadata is not defined ? 'iptc_undefined' }} {{ file.metadata is not null and file.metadata.IptcKeywords == defaults.iptcKeywords ? 'iptc_default' }}" title="{{ file.metadata is not null ? file.metadata.IptcKeywords : '' }}"></span>
           {# Show edit icon if we have edit permissions ; editable class first for selector #}
-          <span class="editable iptc icon ion-compose" style="{{ file.meta is not null and file.meta.Editable ? '' : 'display: none;' }}"></span>
+          <span class="editable iptc icon ion-compose" style="{{ file.metadata is not null and file.metadata.Editable ? '' : 'display: none;' }}"></span>
         </span>
       </span>
       {% if (file.type == 'video') %}
