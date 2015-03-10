@@ -1,7 +1,7 @@
 
-* cache imagemeta too
+* make basic image caching work on linux version
 
-* remove mediacache from sfun-linux and sfun-pc
+* cache imagemeta too
 
 * good to understand what's fighting with flow
   + we're about to change out flow for flow2 (based on normals)
@@ -24,6 +24,11 @@
   + on lappy they're way too small
 
 --- prep for BaTi sfun demo
+
+* subfolder image Ніжний_ранковий_світло.jpg
+  + creates problems
+  + MetadataFileReader:66
+print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
 
 * fix 500s caused by Malformed UTF-8 characters
   + suspect this is to do with getNameOriginalCharset()
@@ -4948,4 +4953,6 @@ RewriteRule ^image/([^/]*)/([^/]*) http://%{HTTP_HOST}/mediacache/$1_$2.dat [L]
   + rewriting working nicely
     + now just need to fix the imagemeta mess
       = sorted
+
+* remove mediacache from sfun-linux and sfun-pc
 
