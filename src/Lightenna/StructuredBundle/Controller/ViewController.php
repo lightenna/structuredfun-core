@@ -20,6 +20,7 @@ define('DEFAULT_LAYOUT_BREADTH', 2);
 define('FILETYPES_IMAGE', 'png,jpeg,jpg,gif');
 define('FILETYPES_VIDEO', 'mp4,m4v,avi,flv,wmv,mpg');
 define('FILETYPES_ZIP', 'zip');
+define('IMAGE_STATUS_ERROR', -1);
 
 class ViewController extends Controller {
 

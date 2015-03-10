@@ -209,8 +209,21 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
   public function getAll($listing) {
     foreach ($listing as &$entry) {
+      // memory usage doesn't seem to increase
+      // var_dump(memory_get_usage());
       // force an image load to get image dimensions
-      $this->getDirectoryEntryMetadata($entry, true);
+      $rentry = $this->getDirectoryEntryMetadata($entry, true);
+      if ($rentry === null) {
+        // failed to load image, substitute error image
+        $image_metadata = $entry->getMetadata();
+        if (!$image_metadata->hasRatio()) {
+          $image_metadata->setStatus(IMAGE_STATUS_ERROR);
+          // assume error image
+          $image_metadata->setLoadedWidth(1340);
+          $image_metadata->setLoadedHeight(1080);
+          $image_metadata->calcRatio();
+        }
+      }
     }
   }
 

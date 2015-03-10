@@ -100,21 +100,21 @@ class MetadataFileReaderTest extends WebTestCase {
     $t = new ViewController();
     // check image is landscape
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/20-image_folder/00980001.JPG'), $t);
-    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMeta()->getOrientation(), 'x');
+    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMetadata()->getOrientation(), 'x');
     // check image is portrait
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/20-image_folder/00980003p.JPG'), $t);
-    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMeta()->getOrientation(), 'y');
+    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMetadata()->getOrientation(), 'y');
     // check image from zip is landscape
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/00980001.JPG'), $t);
-    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMeta()->getOrientation(), 'x');
+    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMetadata()->getOrientation(), 'x');
     // check image from zip is portrait
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/00980003p.JPG'), $t);
-    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMeta()->getOrientation(), 'y');
+    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMetadata()->getOrientation(), 'y');
     // check image nested within zip is landscape
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'), $t);
-    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMeta()->getOrientation(), 'x');
+    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMetadata()->getOrientation(), 'x');
     // check image nested within zip is portrait
     $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980008p.JPG'), $t);
-    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMeta()->getOrientation(), 'y');
+    $this->assertEquals($mfr->getDirectoryEntryMetadata()->getMetadata()->getOrientation(), 'y');
   }
 }

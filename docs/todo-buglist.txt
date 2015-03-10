@@ -1,53 +1,6 @@
 
-* store normal_width|heights with both breadth and direction
-  + because they'll be different
-
-* debug flow jitter
-  + after developing layout
-    + or not
-    + pulled forward because of potential of demo
-  + it seems like it can't decide between flow and grid
-  + seems to be do with rolling ratio_ variables
-    + found @todo to suggest stripping it out
-  + doing this in HTML makes the most sense
-    + each image can be tagged with its normalised position
-      + if the entire image set is laid out at this breadth
-      + where would this image fit
-        + depends a lot on the viewport height (vh)
-          + but I wonder if we could solve in terms of vh
-            + wow that's interesting
-      + put ratio on each image
-        + then combine in 2/4/8
-        + put ratio on combined
-          + data-ratio="3/2" data-ratio-2="3/4" data-ratio-4="3/8"
-        + then sum the ratios additively
-          + data-ratio-sum="" data-ratio-2-sum=""
-        + so that to get position
-          + we just mux data-ratio-sum by viewport height
-      + this is really good for a bunch of reasons
-        + don't worry too much about the first layout case
-          + solve for nth, then work backwards
-  + how to handle errors
-    + if we can't process an image
-      + replace with the error image
-        + and use the error image ratio
-    + error images are part of the layout too
-  + run a single test class or file
-phpunit -c app src\Lightenna\StructuredBundle\Tests\Controller\LayoutviewControllerTest.php
-  + ratio is null
-    + because we're not get()ing the images from the cache
-    + layout controller might need some kind of cache all call
-      + that could be slow
-      + useful for the test suite
-        + perhaps not in real use
-      + missing args
-        + normal_width|height not showing
-          + being lost in serialise
-
 * error images are doing strange things
   + on lappy they're way too small
-
-* implement canvas thinking into layout
 
 --- prep for BaTi sfun demo
 
@@ -4798,4 +4751,120 @@ refreshMetadataApplyToFields function
   + also like to define a mergeold function
     + that mapped older schema to the current one
   + hasn't cropped up yet
+
+* nulls slipping through in ratio
+  + probably error image
+    + verify
+  + needs correcting when loading the error image
+    + slightly complicated
+      + start by just checking that it works if we fix the ratio
+    + now it's correcting for all images
+      + it should be able to load some
+  + might be caused by a badly serialised ImageMetadata class
+    + stored in the original image
+      + I'm not sure we should do that
+        + back to migrate/updateold/mergeold
+    + hard to prove
+      + look at deserialised ImageMetadata
+    + this is really complicated
+      + it definitely something to do with old images (0.9.1)
+    + seems not to be able to read the imgdata
+      + even though it can pull the metadata from it
+  + restricted it to getAll()
+    + that's the only case where we fill the metadata in
+      + if it couldn't be read
+
+* images not being loaded in layout view
+  + more images fail in layout view than in directory view
+    + could be memory limit maybe?
+      + tried higher memory limits (< 10240M) and still get 5+ error images
+  + instrument with memory_get_usage()
+    + doesn't seem to be running out of memory
+  + best guess seems to be non-standard characters
+    + fix 1 manually and see if it loads
+    + /tmp/wiki... isn't the same folder
+      + fixed it
+  + need to handle names in the same robust way
+    + for XviewController and force getDirectoryEntryMetadata
+      + it's in 'name'
+    + find the code that handles name string conversion
+      + it's done in FileReader
+      + we convert it into utf-8
+        + which breaks when you put it back into a filename
+    + could reverse
+      + but doesn't seem to work cleanly
+    + could store original name ($v)
+      + that's probably cleanest
+      + having some problems using the right var at the right time
+$fullname .= DIR_SEPARATOR . $obj->getNameOriginalCharset();
+        + need to carefully use right name in a few key moments
+
+* check test suite following introduction of getNameOriginalCharset
+  + all green
+
+* layoutview doesn't seem to be pulling properly from the cache
+  + takes the same amount of time with/without a primed cache
+    + ok, better now
+    + because only using getNameOriginalCharset() in getFullname()
+
+* store normal_width|heights with both breadth and direction
+  + because they'll be different
+
+* debug flow jitter
+  + after developing layout
+    + or not
+    + pulled forward because of potential of demo
+  + it seems like it can't decide between flow and grid
+  + seems to be do with rolling ratio_ variables
+    + found @todo to suggest stripping it out
+  + doing this in HTML makes the most sense
+    + each image can be tagged with its normalised position
+      + if the entire image set is laid out at this breadth
+      + where would this image fit
+        + depends a lot on the viewport height (vh)
+          + but I wonder if we could solve in terms of vh
+            + wow that's interesting
+      + put ratio on each image
+        + then combine in 2/4/8
+        + put ratio on combined
+          + data-ratio="3/2" data-ratio-2="3/4" data-ratio-4="3/8"
+        + then sum the ratios additively
+          + data-ratio-sum="" data-ratio-2-sum=""
+        + so that to get position
+          + we just mux data-ratio-sum by viewport height
+      + this is really good for a bunch of reasons
+        + don't worry too much about the first layout case
+          + solve for nth, then work backwards
+  + how to handle errors
+    + if we can't process an image
+      + replace with the error image
+        + and use the error image ratio
+    + error images are part of the layout too
+  + run a single test class or file
+    + Windows
+phpunit -c app src\Lightenna\StructuredBundle\Tests\Controller\LayoutviewControllerTest.php
+    + Linux
+phpunit -c app/ src/Lightenna/StructuredBundle/Tests/Controller/LayoutviewControllerTest.php
+  + ratio is null
+    + because we're not get()ing the images from the cache
+    + layout controller might need some kind of cache all call
+      + that could be slow
+      + useful for the test suite
+        + perhaps not in real use
+      + missing args
+        + normal_width|height not showing
+          + being lost in serialise
+    + transpose javascript
+  ? all normals should be less than 1
+  + where a normal is > 1, it's wrong
+    + no no no
+  + normals can be bigger than 1
+    + but minor axis normals should sum to 1
+* work out normalised positions (normal_x and normal_y)
+  + done for x>1 || y>1
+  + do for x=y=1
+    + can't do n=1 the exact same way we did it for the other ones
+    + because it doesn't share a running_major|minor with n>1
+
+* implement canvas thinking into layout
 

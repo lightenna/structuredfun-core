@@ -154,6 +154,11 @@ class ImageMetadata {
   //
 
   /**
+   * state of this image
+   */
+  protected $status = 0;
+
+  /**
    * image width normalised within bucket of key
    * e.g. [1] => 1, [2] => 0.6, [3] => 0.32
    */
@@ -163,6 +168,16 @@ class ImageMetadata {
    * image height normalised within bucket of key
    */
   protected $normal_height = array();
+
+  /**
+   * image x position in canvas (in normalised units where minor axis = 1)
+   */
+  protected $normal_x = array();
+
+  /**
+   * image y position in canvas (in normalised units where minor axis = 1)
+   */
+  protected $normal_y = array();
 
 
   //
@@ -443,30 +458,6 @@ class ImageMetadata {
     }
   }
 
-  public function getNormalWidth($breadth) {
-    return $this->normal_width[$breadth];
-  }
-
-  public function getNormalWidths() {
-    return $this->normal_width;
-  }
-
-  public function setNormalWidth($breadth, $n) {
-    $this->normal_width[$breadth] = $n;
-  }
-
-  public function getNormalHeight($breadth) {
-    return $this->normal_height[$breadth];
-  }
-
-  public function getNormalHeights() {
-    return $this->normal_height;
-  }
-
-  public function setNormalHeight($breadth, $n) {
-    $this->normal_height[$breadth] = $n;
-  }
-
   public function getMime() {
     return $this->mime;
   }
@@ -546,6 +537,68 @@ class ImageMetadata {
   }
   public function setOriginalHeight($oh) {
     $this->original_height = $oh;
+  }
+
+  // Accessor methods for derived fields
+
+  public function getStatus() {
+    return $this->status;
+  }
+
+  public function setStatus($st) {
+    $this->status = $st;
+  }
+
+  public function hasError() {
+    return ($this->status < 0);
+  }
+
+  public function getNormalWidths() {
+    return $this->normal_width;
+  }
+
+  public function getNormalWidth($breadth, $direction) {
+    return $this->normal_width[$direction.$breadth];
+  }
+
+  public function setNormalWidth($breadth, $direction, $n) {
+    $this->normal_width[$direction.$breadth] = $n;
+  }
+
+  public function getNormalHeights() {
+    return $this->normal_height;
+  }
+
+  public function getNormalHeight($breadth, $direction) {
+    return $this->normal_height[$direction.$breadth];
+  }
+
+  public function setNormalHeight($breadth, $direction, $n) {
+    $this->normal_height[$direction.$breadth] = $n;
+  }
+
+  public function getNormalXs() {
+    return $this->normal_x;
+  }
+
+  public function getNormalX($breadth, $direction) {
+    return $this->normal_x[$direction.$breadth];
+  }
+
+  public function setNormalX($breadth, $direction, $n) {
+    $this->normal_x[$direction.$breadth] = $n;
+  }
+
+  public function getNormalYs() {
+    return $this->normal_y;
+  }
+
+  public function getNormalY($breadth, $direction) {
+    return $this->normal_y[$direction.$breadth];
+  }
+
+  public function setNormalY($breadth, $direction, $n) {
+    $this->normal_y[$direction.$breadth] = $n;
   }
 
   //
