@@ -55,16 +55,16 @@ class MetadataFileReader extends FileReader {
   public function dumbreadImageMetadata($imgdata) {
     // read metadata
     $info = array();
+    $md = new ImageMetadata($this);
     // test (fast) if imgdata length > 0
     if (isset($imgdata[1])) {
       // can't use getimagesizefromstring as php > 5.4.0, so redirect via file wrapper
       $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
       $mdata = getimagesize($uri, $info);
+      $md = $md->read($mdata, $info);
     } else {
       print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
     }
-    $md = new ImageMetadata($this);
-    $md = $md->read($mdata, $info);
     return $md;
   }
 
