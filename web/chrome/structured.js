@@ -638,17 +638,17 @@ window.sfun = (function($, undefined) {
    */
   var refreshMetadataApplyToFields = function($ent, data) {
     var $reresable = $ent.cachedFind('.reresable');
-    if (typeof(data.meta) != 'undefined') {
+    if (typeof(data.metadata) != 'undefined') {
       // if we get a response, set the missing resolution data to the image
-      $reresable.data('native-width', data.meta.originalWidth);
-      $reresable.data('native-height', data.meta.originalHeight);
+      $reresable.data('native-width', data.metadata.originalWidth);
+      $reresable.data('native-height', data.metadata.originalHeight);
       if (debug && false) {
         console.log('image-'+$ent.data('seq')+': received native width['+$reresable.data('native-width')+'] height['+$reresable.data('native-height')+']');
       }
       // set missing metadata fields to their DOM elements
       var fields = metadata_fields.concat(metadata_flags);
       for (var i=0 ; i<fields.length ; ++i) {
-        var value = data.meta[fields[i]];
+        var value = data.metadata[fields[i]];
         var $field = $ent.cachedFind('.' + fields[i]);
         // test to see if this metadata field is the default
         if (value == state_default[fields[i]]) {
@@ -694,7 +694,7 @@ window.sfun = (function($, undefined) {
         $field.removeClass('iptc_undefined');
       }
       // store the entire meta object in the cached jquery object
-      $ent.cachedSet('meta', data.meta);
+      $ent.cachedSet('metadata', data.metadata);
     }
   };
 
@@ -952,7 +952,7 @@ window.sfun = (function($, undefined) {
       // work out image and cursor positions on x axis (always)
       var image_pos = $ent.offset();
       var cursor_pos = event.pageX - image_pos.left;
-      var meta = $ent.cachedGet('meta');
+      var meta = $ent.cachedGet('metadata');
       if (meta != undefined) {
         // calculate frame to request (grouped by partitions)
         // var partitions = 20;
