@@ -1,4 +1,12 @@
 
+* make test suite work again
+
+* fix 500s caused by Malformed UTF-8 characters
+  + suspect this is to do with getNameOriginalCharset()
+
+* use layout data to display images
+  + push lots of layout data with directory if available
+
 * error images are doing strange things
   + on lappy they're way too small
 
@@ -4867,4 +4875,22 @@ phpunit -c app/ src/Lightenna/StructuredBundle/Tests/Controller/LayoutviewContro
     + because it doesn't share a running_major|minor with n>1
 
 * implement canvas thinking into layout
+
+* not reresing
+  + because we renamed .meta to .metadata
+  + had to tell js
+
+* disable flow
+
+* check what happens to layout if we haven't cached the images
+  + division by zero
+
+* protect layout against missing ratios
+  + just assumes they're error images
+    + which isn't unreasonable
+    + because we'll still show the actual image in that shaped cell
+
+* create layout class
+  + break code out of LayoutController
+    + because we want to also call from FileviewController
 

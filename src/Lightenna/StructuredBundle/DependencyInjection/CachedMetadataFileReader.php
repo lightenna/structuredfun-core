@@ -204,15 +204,16 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   /**
    * get all the images in this directory
-   * @param  array $listing list of directory entries
+   * @param array $listing list of directory entries
+   * @param boolean $force true to load all the images
    * warning: this will be slow if most of the images aren't cached
    */
-  public function getAll($listing) {
+  public function getAll($listing, $force = false) {
     foreach ($listing as &$entry) {
       // memory usage doesn't seem to increase
       // var_dump(memory_get_usage());
       // force an image load to get image dimensions
-      $rentry = $this->getDirectoryEntryMetadata($entry, true);
+      $rentry = $this->getDirectoryEntryMetadata($entry, $force);
       if ($rentry === null) {
         // failed to load image, substitute error image
         $image_metadata = $entry->getMetadata();
