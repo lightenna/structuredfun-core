@@ -1,16 +1,32 @@
 
+* try and write redirect
+  + fun to have cached images loading super-quickly
+
+* good to understand what's fighting with flow
+  + we're about to change out flow for flow2 (based on normals)
+  + before we do that
+    + good to pre-empt a confusing bug
+
+* do layout based on normals
+
+--- no grinding today
+
+* mouse wheel (PC) loses offseq centring
+  + yet arrow left/right/up/down works perfectly
+
 * make test suite work again
-
-* fix 500s caused by Malformed UTF-8 characters
-  + suspect this is to do with getNameOriginalCharset()
-
-* use layout data to display images
-  + push lots of layout data with directory if available
+  + whole thing seems to have only 1 error
+    + introduced by testLayoutListing
+    + which is a permission denied
 
 * error images are doing strange things
   + on lappy they're way too small
 
 --- prep for BaTi sfun demo
+
+* fix 500s caused by Malformed UTF-8 characters
+  + suspect this is to do with getNameOriginalCharset()
+    + don't seem to show up on wikimedia images
 
 * GA on sfun
   + use _gaq track to push events
@@ -4893,4 +4909,12 @@ phpunit -c app/ src/Lightenna/StructuredBundle/Tests/Controller/LayoutviewContro
 * create layout class
   + break code out of LayoutController
     + because we want to also call from FileviewController
+
+* use layout data to display images
+  + push lots of layout data with directory if available
+  + test case where we have no cached data
+    + everything assumes the error ratio
+      + which is correct currently
+
+* test how arrays show up in twig->HTML
 

@@ -601,6 +601,23 @@ class ImageMetadata {
     $this->normal_y[$direction.$breadth] = $n;
   }
 
+  public function getNormalsHTML() {
+    $html = null;
+    foreach ($this->normal_width as $k => $v) {
+      $html .= 'data-normal-width-'.$k.'="'.$v.'" ';
+    }
+    foreach ($this->normal_height as $k => $v) {
+      $html .= 'data-normal-height-'.$k.'="'.$v.'" ';
+    }
+    foreach ($this->normal_x as $k => $v) {
+      $html .= 'data-normal-x-'.$k.'="'.$v.'" ';
+    }
+    foreach ($this->normal_y as $k => $v) {
+      $html .= 'data-normal-y-'.$k.'="'.$v.'" ';
+    }
+    return $html;
+  }
+
   //
   // STATIC methods
   //
