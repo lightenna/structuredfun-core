@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
+use Lightenna\StructuredBundle\DependencyInjection\LayerOuter;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 
 class FileviewController extends ViewController {
@@ -23,12 +24,25 @@ class FileviewController extends ViewController {
     $this->mfr->injectShares($name);
     $this->mfr->processDebugSettings();
     $thumbargs = new \stdClass();
-    // don't need to include thumb=true in thumbargs because it's a non-key arg
     $thumbargs->{'maxlongest'} = 200;
     $this->mfr->injectArgs($thumbargs);
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
-        $dirlisting = $this->mfr->getListing();
+        // get the list of entries for this directory
+        $listing = $this->mfr->getListing();
+        // ensure that we're reading/making up all the metadata (cached and uncached files)
+        $this->mfr->getAll($listing, false);
+        // try and lay them out
+        $l = new LayerOuter($listing);
+        // calculate multiple layouts (fast)
+        $l->layout(1, 'x');
+        $l->layout(1, 'y');
+        $l->layout(2, 'x');
+        $l->layout(2, 'y');
+        $l->layout(4, 'x');
+        $l->layout(4, 'y');
+        $l->layout(8, 'x');
+        $l->layout(8, 'y');
         return $this
           ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
             array(
@@ -37,11 +51,9 @@ class FileviewController extends ViewController {
               'celltype' => 'pc',
               'breadth' => DEFAULT_LAYOUT_BREADTH,
               'linkpath' => rtrim($name, DIR_SEPARATOR) . DIR_SEPARATOR,
-              // @todo try this without [redundant?] thumb variable
-              // 'argsbase' => ARG_SEPARATOR,
-              'argsbase' => ARG_SEPARATOR . 'thumb=true&',
+              'argsbase' => ARG_SEPARATOR,
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
-              'dirlisting' => $dirlisting,
+              'dirlisting' => $listing,
               'metaform' => $this->mfr->getMetadata()->getForm($this)->createView(),
               'defaults' => ImageMetadata::getDefaults(),
             ));

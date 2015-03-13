@@ -48,6 +48,7 @@
            data-video-type="{{ file.ext }}"
       {% endif %}
            {% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %}
+           {% if file.metadata.NormalsHtml is not null %}{{ file.metadata.NormalsHtml|raw }}{% endif %}
            {% if file.metadata.OriginalWidth is not null %}data-native-width="{{ file.metadata.OriginalWidth }}" {% endif %}{% if file.metadata.OriginalHeight is not null %}data-native-height="{{ file.metadata.OriginalHeight }}" {% endif %}
 {#
            do not send the loaded-width and height, because we need to use the loaded event to trigger cell resize and image reres

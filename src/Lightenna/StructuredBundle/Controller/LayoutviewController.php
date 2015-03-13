@@ -38,7 +38,6 @@ class LayoutviewController extends ViewController {
     $this->mfr->injectShares($name);
     $this->mfr->processDebugSettings();
     $thumbargs = new \stdClass();
-    // don't need to include thumb=true in thumbargs because it's a non-key arg
     $thumbargs->{'maxlongest'} = 200;
     $this->mfr->injectArgs($thumbargs);
     if ($this->mfr->isExisting()) {
