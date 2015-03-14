@@ -1,6 +1,7 @@
 
-* try and write redirect
-  + fun to have cached images loading super-quickly
+* cache imagemeta too
+
+* remove mediacache from sfun-linux and sfun-pc
 
 * good to understand what's fighting with flow
   + we're about to change out flow for flow2 (based on normals)
@@ -4820,7 +4821,7 @@ refreshMetadataApplyToFields function
     + could store original name ($v)
       + that's probably cleanest
       + having some problems using the right var at the right time
-$fullname .= DIR_SEPARATOR . $obj->getNameOriginalCharset();
+$fullname .= DIR_SEPARATOR_URL . $obj->getNameOriginalCharset();
         + need to carefully use right name in a few key moments
 
 * check test suite following introduction of getNameOriginalCharset
@@ -4917,4 +4918,34 @@ phpunit -c app/ src/Lightenna/StructuredBundle/Tests/Controller/LayoutviewContro
       + which is correct currently
 
 * test how arrays show up in twig->HTML
+
+* reposition mediacache in core
+  + need to add to htdocs
+  + update config
+
+* try and write redirect
+  + fun to have cached images loading super-quickly
+    + URL testing
+curl -Ls -o /dev/null -w %{url_effective} 
+  + slashes are not that important
+    + we could use another character
+  + we'll have to use another character anyway for IIIF
+  + need to make mediacache web accessible
+    + at the moment it sits above htdocs
+  + rewritemaps are only exact matches
+  + tried simple listed rewriting
+    + close with this
+# matching exactly 2 slashes
+RewriteRule ^image/([^/]*)/([^/]*)/([^/]*) http://%{HTTP_HOST}/mediacache/$1_$2_$3.dat [L]
+# matching exactly 1 slash
+RewriteRule ^image/([^/]*)/([^/]*) http://%{HTTP_HOST}/mediacache/$1_$2.dat [L]
+      + but can't test if the file exists
+  + need to test if file exists first
+    + that's tricky with rewriting
+  + simplest way forward is to encode the filenames in PHP
+    + ask for an image that already has substituted _ into it
+    + also fits for IIIF later
+  + rewriting working nicely
+    + now just need to fix the imagemeta mess
+      = sorted
 

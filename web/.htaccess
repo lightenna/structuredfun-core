@@ -19,6 +19,13 @@ DirectoryIndex app.php
     RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
     RewriteRule ^(.*) - [E=BASE:%1]
 
+    # test to see if we're requesting an image or imagemeta
+    RewriteCond %{REQUEST_URI} ^/(image|imagemeta)/.*
+    # test to see if the file exists in mediacache
+    RewriteCond %{DOCUMENT_ROOT}/mediacache%{REQUEST_URI}\.dat -s
+    # if so rewrite to use cached copy
+    RewriteRule .* http://%{HTTP_HOST}/mediacache%{REQUEST_URI}\.dat [L]
+
     # Redirect to URI without front controller to prevent duplicate content
     # (with and without `/app.php`). Only do this redirect on the initial
     # rewrite by Apache and not on subsequent cycles. Otherwise we would get an
@@ -38,20 +45,6 @@ DirectoryIndex app.php
     # We only want to let Apache serve files and not directories.
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule .? - [L]
-
-    # Rewrite URLs for mediacache hits
-    #RewriteRule ^(.*)_(.*)$ $1-$2 [N,E=redirect:true]
-    #RewriteCond %{ENV:redirect} ^true$
-    #RewriteRule (.*) $1 [R=302]
-    # RewriteRule ^([^\/:*?]*)[\/:*?]([^\/:*?]*[\/:*?].*) $1_$2 [N]
-    # RewriteRule ^([^\/:*?]*)[\/:*?]([^\/:*?]*)$ /$1_$2 [L,R=302]
-
-    # Dump, reference only
-    #RewriteRule ^([^_]*)_([^_]*_.*) $1-$2 [N]
-    #RewriteRule ^([^_]*)_([^_]*)$ /$1-$2 [L,R=302]
-
-    #RewriteRule ^(.*)x(.*) $1$2 [L]
-    #RewriteRule ^(.*)\x+(.*) $1$2 [L]
 
     # Rewrite all other queries to the front controller.
     RewriteRule .? %{ENV:BASE}/app.php [L]

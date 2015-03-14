@@ -44,7 +44,7 @@ class FileReader {
     if (($zip_pos = self::detectZip($filename)) !== false) {
       $this->file_part = substr($filename, 0, $zip_pos);
       // store zip_part without preceding slash
-      $this->zip_part = ltrim(substr($filename, $zip_pos, $end - $zip_pos), DIR_SEPARATOR);
+      $this->zip_part = ltrim(substr($filename, $zip_pos, $end - $zip_pos), DIR_SEPARATOR_URL);
       list($this->zip_part_path, $this->zip_part_leaf) = $this->splitPathLeaf($this->zip_part);
     }
     else {
@@ -177,7 +177,7 @@ class FileReader {
       // crop downstream [child] zip subfolders, based on output from upstream crop & strip
       foreach ($listing as $k => $item) {
         // if this entry features a slash
-        if (($slash_pos = strpos($item, DIR_SEPARATOR)) !== false) {
+        if (($slash_pos = strpos($item, DIR_SEPARATOR_URL)) !== false) {
           // followed by a character (i.e. a filename, not just a slash terminated directory name)
           if (strlen($item) > ($slash_pos + 1)) {
             unset($listing[$k]);
@@ -229,7 +229,7 @@ class FileReader {
       // if listing just a file
       if ($this->file_part_leaf !== null) {
         $obj->setPath($this->file_part_path);
-        $obj->setFile($this->file_part_path . DIR_SEPARATOR . $obj->getName());
+        $obj->setFile($this->file_part_path . DIR_SEPARATOR_URL . $obj->getName());
       }
       // if listing a directory/zip
       else if ($this->file_part !== null) {
@@ -253,9 +253,9 @@ class FileReader {
       }
       else {
         // test using filesystem
-        if (is_dir($this->file_part . DIR_SEPARATOR . $v_utf8)) {
+        if (is_dir($this->file_part . DIR_SEPARATOR_URL . $v_utf8)) {
           $obj->setType('directory');
-          $sublisting = scandir($this->file_part . DIR_SEPARATOR . $v_utf8);
+          $sublisting = scandir($this->file_part . DIR_SEPARATOR_URL . $v_utf8);
           // exclude . and .. from sublisting count
           $obj->setSubfolderCount(count($sublisting)-2);
         }
@@ -324,7 +324,7 @@ class FileReader {
     // if it's a directory or a zip file, append leaf from entry ($obj/stats)
     if ($this->isDirectory() || $this->inZip()) {
       // if obj contains a leaf name, append it
-      $fullname .= DIR_SEPARATOR . $obj->getNameOriginalCharset();
+      $fullname .= DIR_SEPARATOR_URL . $obj->getNameOriginalCharset();
     }
     return $fullname;
   }
@@ -365,7 +365,7 @@ class FileReader {
     }
     $len = $end - $pos - 1;
     // strip trailing / if it came from a URL
-    if ($name[$pos + 1 + $len - 1] == DIR_SEPARATOR) {
+    if ($name[$pos + 1 + $len - 1] == DIR_SEPARATOR_URL) {
       $len--;
     }
     // pull out extension
@@ -413,7 +413,7 @@ class FileReader {
   public function splitPathLeaf($fullstr) {
     $path = $leaf = null;
     // detect the final slash
-    if (($slash_pos = strrpos(substr($fullstr, 0), DIR_SEPARATOR)) !== false) {
+    if (($slash_pos = strrpos(substr($fullstr, 0), DIR_SEPARATOR_URL)) !== false) {
       // then work out if there's a . in the last component
       if (($dot_pos = strrpos($fullstr, '.', $slash_pos)) !== false) {
         // if so split into path and leaf

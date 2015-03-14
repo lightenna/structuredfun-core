@@ -7,7 +7,8 @@ use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 
 /** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
-define('DIR_SEPARATOR', '/');
+define('DIR_SEPARATOR_URL', '/');
+define('DIR_SEPARATOR_ALIAS', '~dir~');
 define('FOLDER_NAME', 'structured');
 define('ZIP_EXTMATCH', 'zip');
 define('ZIP_SEPARATOR', '/');
@@ -49,7 +50,7 @@ class ViewController extends Controller {
           foreach ($listing as $obj) {
             if (strtolower($obj->getExt()) == 'ini') {
               // add to settings
-              $subsets = parse_ini_file($confdirname . DIR_SEPARATOR . $obj->getName(), true);
+              $subsets = parse_ini_file($confdirname . DIR_SEPARATOR_URL . $obj->getName(), true);
               $this->settings = array_merge_recursive($this->settings, $subsets);
             }
           }
@@ -94,7 +95,7 @@ class ViewController extends Controller {
   }
 
   public function getRawname() {
-    return rtrim($this->rawname, DIR_SEPARATOR);
+    return rtrim($this->rawname, DIR_SEPARATOR_URL);
   }
 
   /**
@@ -122,9 +123,9 @@ class ViewController extends Controller {
       // build array of attach points
       foreach ($this->settings['shares'] as $k => &$sh) {
         // trim first slash from attach point
-        $sh['attach'] = ltrim($sh['attach'], DIR_SEPARATOR);
+        $sh['attach'] = ltrim($sh['attach'], DIR_SEPARATOR_URL);
         // combine attach and name for matching later
-        $sh['attachname'] = ltrim($sh['attach'] . DIR_SEPARATOR . $sh['name'], DIR_SEPARATOR);
+        $sh['attachname'] = ltrim($sh['attach'] . DIR_SEPARATOR_URL . $sh['name'], DIR_SEPARATOR_URL);
         // define each unique attach point as an array
         if (!isset($attach[$sh['attach']])) {
           $attach[$sh['attach']] = array();
@@ -183,7 +184,7 @@ class ViewController extends Controller {
       foreach ($this->settings['shares'] as $k => $share) {
         if ($share['attachname'] == substr($name, 0, strlen($share['attachname']))) {
           // rewrite filename to use share path instead
-          $filename = rtrim($share['path'], DIR_SEPARATOR) . DIR_SEPARATOR . ltrim(substr($name, strlen($share['attachname'])), DIR_SEPARATOR);
+          $filename = rtrim($share['path'], DIR_SEPARATOR_URL) . DIR_SEPARATOR_URL . ltrim(substr($name, strlen($share['attachname'])), DIR_SEPARATOR_URL);
         }
       }
     }
@@ -214,7 +215,7 @@ class ViewController extends Controller {
         $subname .= $addition;
         // find file using that path
         // strip trailing slash because findFind works off either a directory/zip
-        $matched_leaf = $this->findFile(rtrim($subname, DIR_SEPARATOR), $match[0]);
+        $matched_leaf = $this->findFile(rtrim($subname, DIR_SEPARATOR_URL), $match[0]);
         // add found file to path
         if ($matched_leaf === false) {
           // fail, unable to find that file
@@ -229,7 +230,7 @@ class ViewController extends Controller {
       $addition = substr($filename, $lastpos, strlen($filename) - $lastpos);
       ;
       // but remainder may include a trailing slash
-      $subname .= rtrim($addition, DIR_SEPARATOR);
+      $subname .= rtrim($addition, DIR_SEPARATOR_URL);
     }
     return $subname;
   }
@@ -296,28 +297,28 @@ class ViewController extends Controller {
   public function convertRawToFilename($name) {
     // convert utf8 to iso-8859-1
     $name = iconv( "utf-8", "iso-8859-1//ignore", $name );
-    // swap out URL reverse-slash notation
-    $name = str_replace('\\', '/', $name);
+    // swap out slash alias notation
+    $name = str_replace(DIR_SEPARATOR_ALIAS, DIR_SEPARATOR_URL, $name);
     // strip trailing slash
-    $name = rtrim($name, DIR_SEPARATOR);
+    $name = rtrim($name, DIR_SEPARATOR_URL);
     // return composite path to real root (back up out of symfony)
-    $filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 3);
+    $filename = rtrim($_SERVER['DOCUMENT_ROOT'], DIR_SEPARATOR_URL) . str_repeat(DIR_SEPARATOR_URL . '..', 3);
     // catch case where command line execution means DOCUMENT_ROOT is empty
     if ($_SERVER['DOCUMENT_ROOT'] == '') {
       if (isset($_SERVER['PHPRC'])) {
         // use php conf directory, which should be consistent across both
-        $filename = rtrim($_SERVER['PHPRC'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 2);
+        $filename = rtrim($_SERVER['PHPRC'], DIR_SEPARATOR_URL) . str_repeat(DIR_SEPARATOR_URL . '..', 2);
       }
       else {
         if (isset($_SERVER['PWD'])) {
           // use php pwd
-          $filename = rtrim($_SERVER['PWD'], DIR_SEPARATOR) . str_repeat(DIR_SEPARATOR . '..', 2);
+          $filename = rtrim($_SERVER['PWD'], DIR_SEPARATOR_URL) . str_repeat(DIR_SEPARATOR_URL . '..', 2);
         }
       }
     }
-    $filename .= DIR_SEPARATOR . ltrim($name, DIR_SEPARATOR);
+    $filename .= DIR_SEPARATOR_URL . ltrim($name, DIR_SEPARATOR_URL);
     $sub = $this->performFilenameSubstitution($name, $filename);
-    return rtrim($sub, DIR_SEPARATOR);
+    return rtrim($sub, DIR_SEPARATOR_URL);
   }
 
   /**
@@ -325,7 +326,7 @@ class ViewController extends Controller {
    */
 
   public function convertRawToInternalFilename($name) {
-    return $this->convertRawToFilename(FOLDER_NAME . DIR_SEPARATOR . $name);
+    return $this->convertRawToFilename(FOLDER_NAME . DIR_SEPARATOR_URL . $name);
   }
 
   /**
@@ -333,7 +334,7 @@ class ViewController extends Controller {
    */
 
   static function convertRawToUrl($name) {
-    return DIR_SEPARATOR . trim($name, DIR_SEPARATOR);
+    return DIR_SEPARATOR_URL . trim($name, DIR_SEPARATOR_URL);
   }
 
   /**
