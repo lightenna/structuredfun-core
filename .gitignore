@@ -24,3 +24,6 @@ web/chrome/.sass-cache
 
 # Ignore installed composer instance
 composer.phar
+
+# Ignore mediacache files (now that the directory exists)
+web/mediacache/*
