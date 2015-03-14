@@ -112,8 +112,8 @@ class MetadataFileReader extends FileReader {
       }
     }
     // add in shares within this folder
-    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)])) {
-      $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR)];
+    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR_URL)])) {
+      $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR_URL)];
       foreach ($shares as $k => &$sh) {
         $obj = new GenericEntry();
         $obj->setName($sh['name']);
@@ -220,7 +220,7 @@ class MetadataFileReader extends FileReader {
       $localmfr = new CachedMetadataFileReader($filename, $this->controller);
       // tweak rawname using path from controller but leaf from obj, and args as if first query
       $flat_args = self::flattenKeyArgs($this->args);
-      $child_name = $this->controller->getRawname() . DIR_SEPARATOR . $obj->getName() . ARG_SEPARATOR . $flat_args . '&';
+      $child_name = $this->controller->getRawname() . DIR_SEPARATOR_URL . $obj->getName() . ARG_SEPARATOR . $flat_args . '&';
       $localmfr->getStats()->setRawname($child_name);
       // setup local reader
       $localmfr->setArgs($this->args);

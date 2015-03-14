@@ -33,9 +33,7 @@ class ImageviewController extends ViewController {
     // try and pull image from cache
     $imgdata = $this->mfr->getOnlyIfCached();
     if ($imgdata) {
-      // found cached image
-      // @todo try and do this without touching PHP
-      // to get down from 100ms to 5ms
+      // found cached image (probably without touching PHP, see .htaccess)
     } else {
       // get image and transform
       $imgdata = $this->fetchImage();      
@@ -82,8 +80,11 @@ class ImageviewController extends ViewController {
       $md->updateOriginal();
       // @todo remove/update dirty cached copies
     }
+    // serialise metadata to string
+    $metadata = $this->stats->serialise();
+    // cache metadata as we would an image
     // return metadata for this object, encoded as json
-    print($this->stats->serialise());
+    print($metadata);
     exit;
   }
 

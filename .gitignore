@@ -26,4 +26,4 @@ web/chrome/.sass-cache
 composer.phar
 
 # Ignore mediacache files (now that the directory exists)
-web/mediacache/*
+web/mediacache/image/*.dat

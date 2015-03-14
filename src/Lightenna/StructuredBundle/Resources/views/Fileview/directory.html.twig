@@ -14,9 +14,9 @@
         {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="subcell" data-seq="{{ file.seq }}-{{ img_prev_n }}">
         <span class="container directory-container directory-inner">
           <img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="loadable boundable reresable"
-               data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
-               data-desrc="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
-               data-template-src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
+               data-meta-src="/imagemeta/{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
+               data-desrc="/image/{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
+               data-template-src="/image/{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
                alt="directory preview thumbnail" />
           <noscript><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" /></noscript>
         </span>
@@ -37,11 +37,11 @@
       <img class="loadable reresable boundable {{ file.metadata.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            {# metadata source #}
-           data-meta-src="/imagemeta{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
+           data-meta-src="/imagemeta/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            {# thumbnail source when first loaded #}
-           data-desrc="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
+           data-desrc="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            {# thumbnail source for dynamic reresing #}
-           data-template-src="/image{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}{% if file.type == 'video' %}{% verbatim %}&timecode={{ timecode }}{% endverbatim %}{% endif %}"
+           data-template-src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}{% if file.type == 'video' %}{% verbatim %}&timecode={{ timecode }}{% endverbatim %}{% endif %}"
       {% if (file.type == 'video') %}
            {# video source #}
            data-video-src="/file{{ linkpath }}{{ file.name }}"

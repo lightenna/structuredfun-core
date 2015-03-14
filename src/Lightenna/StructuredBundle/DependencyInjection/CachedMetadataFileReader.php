@@ -24,7 +24,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function __construct($filename = null, $con) {
     parent::__construct($filename, $con);
-    $this->cachedir = $this->controller->convertRawToInternalFilename($this->settings['mediacache']['path']);
+    $this->cachedir = $this->controller->convertRawToInternalFilename('htdocs'.DIR_SEPARATOR_URL.'web'.DIR_SEPARATOR_URL.$this->settings['mediacache']['path'].DIR_SEPARATOR_URL.'image');
     // create cache directory if it's not already present
     if (!is_dir($this->cachedir)) {
       @mkdir($this->cachedir);
@@ -323,7 +323,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
         continue;
       }
       // delete the file
-      unlink($dir.DIR_SEPARATOR.$v);
+      unlink($dir.DIR_SEPARATOR_URL.$v);
     }
   }
 }
