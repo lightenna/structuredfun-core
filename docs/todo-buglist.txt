@@ -20,6 +20,16 @@ setVisibleAll() -> refreshVisibleImageSet() -> refreshAnImageSet() -> cellsResiz
         + could do a cellsResize after every image load
           + but only if we can tie it to just the first load
             + don't want to get caught up with a reres
+  + this doesn't just affect the first load
+    + if I whizz up to new images
+      + it'll load them
+        + without cellResizing afterwards
+      + I think it's because we made the image thumb load async
+    + it's probably calling cellsResize
+      + but early doors
+      + start by sticking a console log on cellsResize
+        + just make debug=1
+        = turns out it calls it 5 times!
 
 * cache imagemeta too
 
@@ -5071,4 +5081,9 @@ sudo chcon -R -t httpd_sys_content_t mediacache/
   + when coming from imagemeta
   + first load doesn't drop into flow
     + second load is fast
+
+* getting a black flash on flow refresh
+  + not sure why
+  + not dealing with it now
+    + comes and goes a bit
 
