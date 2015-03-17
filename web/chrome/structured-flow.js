@@ -27,9 +27,11 @@
       'key' : 'flow',
       'receiverRegistered' : flow_registered,
       'receiverLayoutResized' : flow_cellsResize,
+      'receiverLayoutCleared' : flow_cellsClear,
+      'receiverImageCentre' : flow_imageCentreOffseq,
     };
     // not sure of init order, so push async
-    // sfun.push('registerLayout', obj);
+    sfun.push('registerLayout', obj);
   };
 
   // Layout API
@@ -39,6 +41,14 @@
    */
   var flow_registered = function() {
     $('.resizeablecell').addClass('resizepending');
+  }
+
+  /**
+   * clear sizes on visible cell
+   */
+  var flow_cellsClear = function() {
+    // just whack them all
+    $('.cell-specific').css( { 'width':'', 'height':'' } ).removeClass('cell-specific').removeClass('visible vispart visnear');
   }
 
   /**
@@ -121,6 +131,49 @@
     _cellsResizeRealignMajor($selected, selectedMajorCoordabsInitial, true);
     // return a resolved deferred in case we wait to make any of this resync in the future
     return $.Deferred().resolve();
+  }
+
+  /**
+   * @param [string] direction
+   * @param int image sequence number
+   * @return {int} viewport centre offset by half the width of a cell (for this view size)
+   */
+  var flow_imageCentreOffseq = function(direction, seq) {
+    var vpw = sfun.api_getViewportWidth(), vph = sfun.api_getViewportHeight();
+    // work out how to centre image
+    var viewport_ratio = vpw / vph;
+    // pull image ratio from cell
+    var $ent = sfun.api_$cell(seq);
+    var $loadable = $ent.cachedFind('.loadable');
+    var image_ratio = $loadable.data('ratio');
+    if (image_ratio == undefined) {
+      // if we don't have the cell size, just left-align instead of centring
+      return 0;
+    }
+    // work out what the cell width will be when fullscreen
+    var viewport_major, viewport_minor, cell_major;
+    if (direction == 'x') {
+      viewport_major = vpw;
+      viewport_minor = vph;
+      cell_major = image_ratio * viewport_minor;
+    } else {
+      viewport_major = vph;
+      viewport_minor = vpw;
+      cell_major = 1 / image_ratio * viewport_minor;
+    }
+    var viewport_midpoint = viewport_major / 2;
+    var cell_midpoint = cell_major / 2;
+    var offseq = sfun.api_round(viewport_midpoint - cell_midpoint, 0);
+    // crop offseq against window bounds allowing for image bounds
+    var border = sfun.api_getGutter();
+    var max_offseq = viewport_major - cell_major - border;
+    var min_offseq = 0 + border;
+    var cropped = Math.max(Math.min(offseq, max_offseq), min_offseq);
+    // optional debugging
+    if (debug && false) {
+      console.log('viewport_midpoint['+viewport_midpoint+'] cell_midpoint['+cell_midpoint+'] offseq['+offseq+'] cropped['+cropped+']');
+    }
+    return cropped;
   }
 
   //

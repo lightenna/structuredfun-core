@@ -149,7 +149,7 @@
     var $ent = sfun.api_$cell(seq);
     switch (sfun.api_getType($ent)) {
       case 'image':
-        var offseq = sfun.api_imageCentreOffseq(sfun.api_getDirection());
+        var offseq = sfun.api_imageCentreOffseq(sfun.api_getDirection(), seq);
         // toggle using hash change
         if (sfun.api_getBreadth() == 1) {
           return sfun.api_fireHashUpdate( sfun.api_overwritePreviousState({ 'seq': seq }), false, eventContext);

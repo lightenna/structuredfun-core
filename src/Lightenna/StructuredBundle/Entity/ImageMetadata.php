@@ -626,7 +626,7 @@ class ImageMetadata {
    * @return array list of fields (with getters/setters) that shouldn't be serialized
    */
   static function getIgnoredAttributes() {
-    return array('defaults', 'originalSource', 'originalSourceFilename', 'ignoredAttributes');
+    return array('defaults', 'originalSource', 'originalSourceFilename', 'ignoredAttributes', 'normalsHTML');
   }
 
 }
