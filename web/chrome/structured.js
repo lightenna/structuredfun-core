@@ -150,15 +150,6 @@ window.sfun = (function($, undefined) {
           if (template != undefined) {
             Mustache.parse(template);
           }
-          // @todo could strip this out and calc in HTML
-          // include ratios if available in mean
-          var ratio = $(this).data('ratio');
-          if (ratio != undefined) {
-            ratio_total += ratio;
-            ratio_count += 1;
-          }
-          // apply cell tinting
-          var seq = $(this).data('seq');
         });
         // process state in page HTML next
         state_previous['theme'] = state_default['theme'] = getTheme();
@@ -198,7 +189,7 @@ window.sfun = (function($, undefined) {
             // update any parts of hash that are viewport-dependent
             if (hash.indexOf('offseq') != -1) {
               var fromHash = hashParse(hash);
-              fromHash.offseq = imageCentreOffseq(getDirection());
+              fromHash.offseq = imageCentreOffseq();
               hash = hashGenerate(fromHash);
               hashSetTo(hash, false);
             } else {
@@ -249,11 +240,14 @@ window.sfun = (function($, undefined) {
   var cellsResize = function() {
     var that = this;
     var deferred = getDeferred();
+    // get current visible boundaries
     var vis = getVisibleBoundaries();
+    // set range as visible cells including visnear
+    var range = calcVisnear(vis.first, vis.last);
     var wrapUp = function() {
       // when layoutManager completes a resize, capture cell boundaries for altered cells
       // and invalidate those after last_n because they may have changed
-      visTableMajor.updateRange(getDirection(), vis.first, vis.last);
+      visTableMajor.updateRange(getDirection(), range.first_1, range.last_n);
       // see if resize means that different images are visible
       var aftervis = getVisibleBoundaries();
       if (vis.first == aftervis.first && vis.last == aftervis.last) {
@@ -264,8 +258,6 @@ window.sfun = (function($, undefined) {
       }
       deferred.resolve();
     }
-    // set range as visible cells including visnear
-    var range = calcVisnear(vis.first, vis.last);
     // add selected to range
     range.selected = $sfun_selectedcell.data('seq');
     // set ratio for images within range
@@ -281,6 +273,9 @@ window.sfun = (function($, undefined) {
         wrapUp();
       }      
     });
+    if (debug && true) {
+      console.log('called cellsResize');
+    }
     // return our deferred either way
     return deferred;
   };
@@ -289,8 +284,21 @@ window.sfun = (function($, undefined) {
    * clear previously assigned cell-specific width and height
    */
   var cellsClear = function() {
-    // @todo call layout_cellsClear
-    $('.cell-specific').css( { 'width':'', 'height':'' } ).removeClass('cell-specific').removeClass('visible vispart visnear');
+    var deferred = getDeferred();
+    var wrapUp = function() {
+      deferred.resolve();
+    }    // get the current layoutManager, if we have one
+    var layout = layoutManager.select(0);
+    if (layout != null) {
+      // tell it that we've resized cells
+      var laid = layout.receiverLayoutCleared.call(layout.context);
+      // laid may be a deferred, but when can cope if it's not
+      $.when(laid).done(wrapUp);
+    } else {
+      wrapUp();
+    }
+    // return our deferred either way
+    return deferred;
   };
 
   // ---------------------
@@ -1056,10 +1064,10 @@ window.sfun = (function($, undefined) {
    */
   var getImageWatcher = function(im, $loadable, deferred) {
     return function() {
+      // set loaded dimensions
       $loadable.data('loaded-width', im.width);
       $loadable.data('loaded-height', im.height);
-      // never update the ratio, but set if unset
-      setRatioIfUnset($loadable, im.width / im.height);
+      $loadable.data('ratio', im.width / im.height);
       // if we've loaded the image for the first time, swap it in (fallback)
       if ($loadable.attr('src') == undefined) {
         $loadable.attr('src', im.src);
@@ -1354,35 +1362,6 @@ window.sfun = (function($, undefined) {
   };
 
   /**
-   * use rolling image mean and viewport dimensions to calculate optimal number of cells on major axis
-   */
-  var refreshDynamicMajors = function(breadth, direction) {
-    var ratio_mean = ratio_total / ratio_count;
-    // avoid division by zero
-    if (ratio_total == 0) {
-      ratio_mean = 1.5;
-    }
-    // set to DOM
-    $sfun.data('ratio-mean', ratio_mean);
-    // tell DOM that we're going to be setting up dynamic major axis cell widths
-    $sfun.addClass('flow-dynamic-major');
-    // get viewport ratio
-    var viewport_ratio = getViewportWidth() / getViewportHeight();
-    // calculate number of cells to show on the major axis (at least 1)
-    var cell_count = (direction == 'x' ? 
-      Math.max(1, viewport_ratio * breadth * 1 / ratio_mean) :
-      Math.max(1, 1 / viewport_ratio * breadth * ratio_mean)
-    );
-    var cell_perc = 100 / cell_count;
-    // optional debugging
-    if (debug && true) {
-      console.log('ratio_mean['+ratio_mean+'] viewport_ratio['+viewport_ratio+'] cell_count['+cell_count+']');
-    }
-    // overwrite existing CSS selector
-    createCSSSelector('.sfun.flow-pc.flow-x.flow-dynamic-major > .cell.resizeablecell', (direction == 'x' ? 'width' : 'height') + ': calc(' + cell_perc + '% - 8px);');
-  };
-
-  /**
    * @param int sequence number of image to make current
    */
   var setSeq = function(seq) {
@@ -1480,22 +1459,6 @@ window.sfun = (function($, undefined) {
         setBound($(this), false);
       });
     }
-  }
-
-  /**
-   * @param {object} $loadable jQuery image to set ratio for
-   * @param {float} ratio
-   * @return {boolean} true if the ratio was updated
-   */
-  var setRatioIfUnset = function($loadable, ratio) {
-    if ($loadable.data('ratio') == undefined) {
-      $loadable.data('ratio', ratio);
-      // increment the rolling mean
-      ratio_total += ratio;
-      ratio_count += 1;
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -1839,8 +1802,7 @@ window.sfun = (function($, undefined) {
         // store loaded width and height
         $reresable.data('loaded-width', this.width);
         $reresable.data('loaded-height', this.height);
-        // never update the ratio, but set if unset
-        setRatioIfUnset($reresable, this.width / this.height);
+        $reresable.data('ratio', this.width / this.height);
         // notify promise of resolution
         deferred.resolve();
         // process async actions
@@ -1896,7 +1858,7 @@ window.sfun = (function($, undefined) {
     // if we're in fullscreen mode
     if (breadth == 1) {
       // keep the selected image centred
-      offseq = imageCentreOffseq();
+      offseq = imageCentreOffseq(getDirection(), seq);
     } else {
       // only scroll if we need to
       offseq = imageStillShiftOffseq(seq);
@@ -1907,29 +1869,26 @@ window.sfun = (function($, undefined) {
 
   /**
    * @param [string] direction
+   * @param int image sequence number
    * @return {int} viewport centre offset by half the width of a cell (for this view size)
    */
-  var imageCentreOffseq = function(direction) {
+  var imageCentreOffseq = function(direction, seq) {
+    // pad out direction and seq if not set
     if (direction == undefined) {
       direction = getDirection();
     }
-    // work out how to centre image
-    var viewport_ratio = getViewportWidth() / getViewportHeight();
-    var ratio_mean = ratio_total / ratio_count;
-    // we're centring the image fullscreen (from b2/b4), so can't use current width
-    var cell_count_fullscreen = (direction == 'x' ? 
-      Math.max(1, viewport_ratio * 1 * 1 / ratio_mean) :
-      Math.max(1, 1 / viewport_ratio * 1 * ratio_mean)
-    );
-    // work out what the cell width will be when fullscreen
-    var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight());
-    var viewport_midpoint = viewport_major / 2;
-    var cell_major = viewport_major / cell_count_fullscreen;
-    var cell_midpoint = cell_major / 2;
-    var offseq = exp.api_round(viewport_midpoint - cell_midpoint, 0);
-    // optional debugging
-    if (debug && false) {
-      console.log('viewport_midpoint['+viewport_midpoint+'] cell_count_fullscreen['+cell_count_fullscreen+'] cell_midpoint['+cell_midpoint+'] offseq['+offseq+']');
+    if (seq == undefined) {
+      seq = getSeq();
+    }
+    // compute offseq value to centre the image
+    var offseq;
+    var layout = layoutManager.select(0);
+    if (layout != null) {
+      // use layout to compute centre
+      offseq = layout.receiverImageCentre.call(layout.context, direction, seq);
+    } else {
+      // default layout uses 100% cells, so cell edge is 0 (left) to centre image
+      offseq = 0;
     }
     return offseq;
   }
@@ -3687,10 +3646,10 @@ window.sfun = (function($, undefined) {
     // debug changed (no affect)
     setDebug(obj.debug);
     // updates based on certain types of change
-    if (breadthChanged || directionChanged || offseqChanged || forceChange) {
-      refreshDynamicMajors(getBreadth(), getDirection());
-      // clear cell-specific dimensions and read back positions
+    if (breadthChanged || directionChanged || forceChange) {
+      // force the cells back to their native (CSS) sizes
       cellsClear();
+      // refresh visTableMajor so we know there they actually are
       visTableMajor.updateAll(getDirection(), $sfun_selectablecell);
     }
     // find out if we should trigger other events based on this hash change
@@ -4613,9 +4572,10 @@ window.sfun = (function($, undefined) {
     /**
      * use offseq to centre the image
      * @param {string} direction axis to centre on
+     * @param {int} image sequence number
      */
-    'api_imageCentreOffseq': function(direction) {
-      return imageCentreOffseq(direction);
+    'api_imageCentreOffseq': function(direction, seq) {
+      return imageCentreOffseq(direction, seq);
     },
 
     /**

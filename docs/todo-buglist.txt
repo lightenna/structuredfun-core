@@ -1,16 +1,30 @@
 
-* make basic image caching work on linux version
+* trigger layout refresh (cellsResize) after image load
+  + introduce a check upon image load
+    + to see if all images in a minor (column/row) have loaded
+      + if they have, we want to do a refresh
+    + that refresh will invalidate last_n+1..n
+      + so calling out of order could be tricky
+  + the cost of re-executing isn't too bad
+    + maybe for now (flow1) we've just got to call
+      + cellsResize after every image load
+        + sort of happens already
+setVisibleAll() -> refreshVisibleImageSet() -> refreshAnImageSet() -> cellsResize()
+          + other than it doesn't happen on first page load uncached
+          + trace through handlerHashChanged to see if
+            + if we come close to some kind of setVisibleAll
+              + it's close
+              + we do a forced handlerHashChanged()
+                + but that's not really the right place
+                  + because it's very slow
+        + could do a cellsResize after every image load
+          + but only if we can tie it to just the first load
+            + don't want to get caught up with a reres
 
 * cache imagemeta too
 
-* good to understand what's fighting with flow
-  + we're about to change out flow for flow2 (based on normals)
-  + before we do that
-    + good to pre-empt a confusing bug
-
-* do layout based on normals
-
---- no grinding today
+* focus the light beam
+  + make it surround just the current cell
 
 * mouse wheel (PC) loses offseq centring
   + yet arrow left/right/up/down works perfectly
@@ -24,6 +38,11 @@
   + on lappy they're way too small
 
 --- prep for BaTi sfun demo
+
+* work on flow2
+  + the cellsResize() approach is the right call
+    + doing it in visible batches is the most efficient
+  + so we want to use the existing hooks
 
 * subfolder image Ніжний_ранковий_світло.jpg
   + creates problems
@@ -4955,4 +4974,101 @@ RewriteRule ^image/([^/]*)/([^/]*) http://%{HTTP_HOST}/mediacache/$1_$2.dat [L]
       = sorted
 
 * remove mediacache from sfun-linux and sfun-pc
+
+* make basic image caching work on linux version
+  + cache directory needs to be writeable
+    + and need selinux permissions too
+  + simple fix
+sudo chcon -R -t httpd_sys_content_t mediacache/
+
+* revive flow1
+  + like to understand how close it is
+  + flow1 and flow2 address two entirely different use cases
+    + flow1 for real-time image folder browsing
+    + flow2 for web-based gallery repeat viewing
+  + ratio is null for imagemeta
+    + probably related to cachekey
+      + which is used by existsInCache
+    + status:-1 even though mediacache directory full of images
+
+* exclude normalsHTML from JSON output
+  + imagemeta doesn't need it
+  + and quotes get escaped which looks messy
+
+* good to understand what's fighting with flow
+  + we're about to change out flow for flow2 (based on normals)
+  + before we do that
+    + good to pre-empt a confusing bug
+  + try to ignore it and let's see if it's a problem
+    + can't
+  + it was caused by clearCells
+    + but we do need clearCells sometimes
+  + this all need a pretty major overhaul
+
+* do layout based on normals
+  + at the moment don't worry about the realtime use case
+    + we just need to get a flow layout working reliably
+  + see if there's a way of getting the viewport height server side
+  + there are a few different ways of doing this
+    + and they're all slightly at odds
+  + simplest is to refresh all the cells in one go
+    + but there's a lot of redundancy
+      + and that's a big problem in the event of a large image set
+      + which is a sfun USP
+    + refreshing just a small set of images looks best
+      + that's most easily done using normalsX
+      + which means sticking with the current model
+    + could write out lots of css
+      + each image gets a width and height in px
+        + really nice to set a width in terms of percentage height
+        + I think I've got to do that in js for now
+    + judging by past experience
+      + best thing is always to pull it out and do it properly
+      + refactor refactor refactor
+  + do flow2
+    + but implement it based on visible image blocks
+
+* persist with flow1
+  + see if we can make it work
+    + it seems pretty close
+* make flow1 scroll work
+  + it's not detecting new images to the right (major positive)
+  + cellsResize needs to resize the currently visible images
+    + and a sufficient number of visnear
+      + so that future scrolls work
+    + maybe expand visnear
+  + this is a good plan because we're exposing problems in the core
+    + visible and visnear are wrong
+      + there are loads of visible images that are only flagged as visnear
+    + after a cellsResize we need to refresh the visible/visnear status
+  + solved a nice bug to do with refreshing visTable after refresh
+    + always always always refactor refactor refactor
+
+* changing between breadths
+  + need to trigger a resize
+    + try a cellsClear and resize
+  = seems ok
+
+* centre offseq is broken
+  + probably because we're no longer calculating the total ratio
+  + will need to rewrite without using ratio total
+  + close
+    + on selecting fullscreen
+      + we should use the image we're about to select
+        + not the image that's currently selected
+    + ultrawide images
+      + can send to negative offseq
+
+* cover off non-flow centreOffseq
+  + centre offseq should be layout independent
+    + move clever offseq out to flow
+      + need to work out how to get return values back from layout[] calls
+  + could make it just 0
+    + because when fullscreen
+      + the cell is 100% major
+
+* suspect ratio is not being set
+  + when coming from imagemeta
+  + first load doesn't drop into flow
+    + second load is fast
 

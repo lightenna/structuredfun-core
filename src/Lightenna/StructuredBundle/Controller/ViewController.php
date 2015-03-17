@@ -298,7 +298,7 @@ class ViewController extends Controller {
     // convert utf8 to iso-8859-1
     $name = iconv( "utf-8", "iso-8859-1//ignore", $name );
     // swap out slash alias notation
-    $name = str_replace(DIR_SEPARATOR_ALIAS, DIR_SEPARATOR_URL, $name);
+    $name = CachedMetadataFileReader::reverse_hash($name);
     // strip trailing slash
     $name = rtrim($name, DIR_SEPARATOR_URL);
     // return composite path to real root (back up out of symfony)

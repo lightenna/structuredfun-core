@@ -308,9 +308,19 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return string hashed string
    */
   static function hash($key) {
-    return str_replace(str_split('\\/:*?"<>|'), '_', $key);
+    // return str_replace(str_split('\\/:*?"<>|'), DIR_SEPARATOR_ALIAS, $key);
+    return str_replace(DIR_SEPARATOR_URL, DIR_SEPARATOR_ALIAS, $key);
     // used to use md5, experimenting with readable alternative
     // return md5($key);
+  }
+
+  /**
+   * Maintain symmetric functions
+   * hash() used by cache
+   * reverse_hash() used by view controller when receiving URLs
+   */
+  static function reverse_hash($key) {
+    return str_replace(DIR_SEPARATOR_ALIAS, DIR_SEPARATOR_URL, $key);
   }
 
   static function scrubDirectoryContents($dir) {
