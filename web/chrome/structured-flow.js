@@ -16,6 +16,7 @@
 
   var debug = true;
   var $document = $(document);
+  var cell_marker = 'cell-flow-specific';
 
   // ---------
   // FUNCTIONS
@@ -28,6 +29,7 @@
       'receiverRegistered' : flow_registered,
       'receiverLayoutResized' : flow_cellsResize,
       'receiverLayoutCleared' : flow_cellsClear,
+      'receiverLayoutCellRatioChange' : flow_cellsCheckMinor,
       'receiverImageCentre' : flow_imageCentreOffseq,
     };
     // not sure of init order, so push async
@@ -48,7 +50,7 @@
    */
   var flow_cellsClear = function() {
     // just whack them all
-    $('.cell-specific').css( { 'width':'', 'height':'' } ).removeClass('cell-specific').removeClass('visible vispart visnear');
+    $('.'+cell_marker).css( { 'width':'', 'height':'' } ).removeClass(cell_marker).removeClass('visible vispart visnear');
   }
 
   /**
@@ -59,13 +61,13 @@
   var flow_cellsResize = function(range) {
     var that = this;
     var direction = sfun.api_getDirection();
-    var $selected = sfun.api_getCell(range.selected);
-    if (!$selected.length) {
+    var $anchorpost = sfun.api_getCell(range.selected);
+    if (!$anchorpost.length) {
       // if we can't find the selected image, just use the first
-      $selected = sfun.api_getCell(range.first_1);
+      $anchorpost = sfun.api_getCell(range.first_1);
     }
     // record the initial absolute coord of the image
-    var selectedMajorCoordabsInitial = (direction == 'x' ? $selected.offset().left : $selected.offset().top);
+    var selectedMajorCoordabsInitial = (direction == 'x' ? $anchorpost.offset().left : $anchorpost.offset().top);
     // fetch visible cells and group by major axis value
     var cellGroup = {};
     // also pull cells that contain nested cells
@@ -125,10 +127,10 @@
       if (debug && false) {
         console.log('cellsResize processing bucket at['+coordabs+'] of len['+cellGroup[coordabs].length+']');
       }
-      _processBucket(cellGroup[coordabs], viewportBounds, $selected, selectedMajorCoordabsInitial);
+      _processBucket(cellGroup[coordabs], viewportBounds, $anchorpost, selectedMajorCoordabsInitial);
     }
     // now that all cells resized, realign using scrollbar instead of container position
-    _cellsResizeRealignMajor($selected, selectedMajorCoordabsInitial, true);
+    _cellsResizeRealignMajor($anchorpost, selectedMajorCoordabsInitial, true);
     // return a resolved deferred in case we wait to make any of this resync in the future
     return $.Deferred().resolve();
   }
@@ -174,6 +176,43 @@
       console.log('viewport_midpoint['+viewport_midpoint+'] cell_midpoint['+cell_midpoint+'] offseq['+offseq+'] cropped['+cropped+']');
     }
     return cropped;
+  }
+
+  /**
+   * check to see if we have ratios for all cells in minor, but haven't resized
+   * @param {int} minor number (e.g. column number if direction x)
+   * @return {object|boolean} range to update, or false for no update required
+   */
+  var flow_cellsCheckMinor = function(minor) {
+    var breadth = sfun.api_getBreadth();
+    var base = minor * breadth;
+    var pre_marked = 0;
+    // loop through all cells in this minor
+    for (var i=base ; i<base + breadth ; ++i) {
+      var $ent = sfun.api_$cell(i);
+      // test to see if we've already set a specific minor to this cell
+      if ($ent.hasClass(cell_marker)) {
+        pre_marked++;
+        continue;
+      }
+      var $loadable = $ent.cachedFind('> .container > .loadable');
+      var ratio = $loadable.data('ratio');
+      var status = $loadable.data('status');
+      // if we discover an image hasn't been loaded yet
+      if (status == sfun.imageStatusMISSING || status == sfun.imageStatusPENDING) {
+        // bail out of the entire function
+        return false;
+      }
+    }
+    // all ratios loaded, check for un-sized cells
+    if (pre_marked != breadth) {
+      if (debug && true) {
+        console.log('flow; flow_cellsCheckMinor can resize column['+minor+'] '+base+'-'+(base+breadth));
+      }
+      return { 'first_1': base, 'last_n': base + breadth -1 };
+    }
+    // otherwise flag that there were no changes
+    return false;
   }
 
   //
@@ -340,7 +379,7 @@
     for (var i = 0 ; i<bucket.length ; ++i) {
       var $ent = bucket[i];
       $ent.css((direction == 'x' ? 'width': 'height'), (false ? absolute+'px' : proportion +'%'));
-      $ent.addClass('cell-specific');
+      $ent.addClass(cell_marker);
       if (debug && false) {
         console.log('cellResizeBucketMajor-'+$ent.data('seq')+' major['+proportion+'%]');
       }

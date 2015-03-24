@@ -21,7 +21,11 @@ define('DEFAULT_LAYOUT_BREADTH', 2);
 define('FILETYPES_IMAGE', 'png,jpeg,jpg,gif');
 define('FILETYPES_VIDEO', 'mp4,m4v,avi,flv,wmv,mpg');
 define('FILETYPES_ZIP', 'zip');
-define('IMAGE_STATUS_ERROR', -1);
+define('IMAGE_STATUS_ERROR', -2); // unable to open image at all
+define('IMAGE_STATUS_MISSING', -1); // cached image not found
+define('IMAGE_STATUS_PENDING', 0);
+define('IMAGE_STATUS_LOADED', 1); // image thumbnail loaded
+define('IMAGE_STATUS_RERESED', 2); // image loaded and re-resed
 
 class ViewController extends Controller {
 

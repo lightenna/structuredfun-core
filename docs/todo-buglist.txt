@@ -1,40 +1,11 @@
 
-* trigger layout refresh (cellsResize) after image load
-  + introduce a check upon image load
-    + to see if all images in a minor (column/row) have loaded
-      + if they have, we want to do a refresh
-    + that refresh will invalidate last_n+1..n
-      + so calling out of order could be tricky
-  + the cost of re-executing isn't too bad
-    + maybe for now (flow1) we've just got to call
-      + cellsResize after every image load
-        + sort of happens already
-setVisibleAll() -> refreshVisibleImageSet() -> refreshAnImageSet() -> cellsResize()
-          + other than it doesn't happen on first page load uncached
-          + trace through handlerHashChanged to see if
-            + if we come close to some kind of setVisibleAll
-              + it's close
-              + we do a forced handlerHashChanged()
-                + but that's not really the right place
-                  + because it's very slow
-        + could do a cellsResize after every image load
-          + but only if we can tie it to just the first load
-            + don't want to get caught up with a reres
-  + this doesn't just affect the first load
-    + if I whizz up to new images
-      + it'll load them
-        + without cellResizing afterwards
-      + I think it's because we made the image thumb load async
-    + it's probably calling cellsResize
-      + but early doors
-      + start by sticking a console log on cellsResize
-        + just make debug=1
-        = turns out it calls it 5 times!
+* chase down empty events
+  + generated reliably doing a refresh
+    + on a breadth=1 imageset
+  + clicking event queue could expose more information
+  + might be able to catch them with a breakpoint
 
-* cache imagemeta too
-
-* focus the light beam
-  + make it surround just the current cell
+* maybe revive cellsResize debate
 
 * mouse wheel (PC) loses offseq centring
   + yet arrow left/right/up/down works perfectly
@@ -49,6 +20,15 @@ setVisibleAll() -> refreshVisibleImageSet() -> refreshAnImageSet() -> cellsResiz
 
 --- prep for BaTi sfun demo
 
+* GA on sfun
+  + use _gaq track to push events
+
+* GA add hooks
+  + add track->event() call to key points across codebase
+
+* feature: focus the light beam
+  + make it surround just the current cell
+
 * work on flow2
   + the cellsResize() approach is the right call
     + doing it in visible batches is the most efficient
@@ -62,12 +42,6 @@ print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdat
 * fix 500s caused by Malformed UTF-8 characters
   + suspect this is to do with getNameOriginalCharset()
     + don't seem to show up on wikimedia images
-
-* GA on sfun
-  + use _gaq track to push events
-
-* GA add hooks
-  + add track->event() call to key points across codebase
 
 * proper 404/500 error page
   + at the moment we show the Symfony error page
@@ -5086,4 +5060,170 @@ sudo chcon -R -t httpd_sys_content_t mediacache/
   + not sure why
   + not dealing with it now
     + comes and goes a bit
+
+* cache imagemeta too
+  + not important enough now
+
+* page down jump
+  + the event sequence seems to go something like
+    + keypress
+    + scroll
+    + selected
+    + scroll
+  + disable animation and see if it's still visible
+    + it's not!
+  + double event is caused by animation
+    + need to ignore scroll events until we get to the final one
+  + need to cover the case where
+    + scroll doesn't end up exactly where it thought it would
+      + in which case
+      + should just use last buffered
+    + try extending the buffer timeout
+      + not viable
+        + because the old scrolls still get buffered
+          + not clear on whether they get executed or not
+          + but there is a visible delay in the animation
+    + interestingly it's the midder event that gets executed
+      + scrolling to x=0
+        + executes x=55
+      + scrolling to x=1164
+        + executes x=1082
+    + looks like we never get the actual last scroll event
+      + there's no x=0 or x=1164
+        + the handler does actually get called
+        + but that x=0 or x=1164 event is already in the queue
+          + and it swipes it
+      + we just need to detect that queued scroll event
+        + and consider it the first buffered event
+          + so that we dump all the following ones
+          + could do that with a call to buffer
+          buffer('handlerScrolled_event', ...);
+        + not quite as simple as queuing the first one
+          + it's more that when we receive the handlerScrolled call
+            + for the last one
+          + we need to buffer it
+            + so that the preceding call doesn't get executed
+      + has the peripheral benefit
+        + of allowing us a mechanism to delay the post-scroll calls
+          + that means the high-load JS activity
+          + can be delayed until after the animation has finished
+      = that is absolutely lovely!
+
+* trigger layout refresh (cellsResize) after image load
+  + introduce a check upon image load
+    + to see if all images in a minor (column/row) have loaded
+      + if they have, we want to do a refresh
+    + that refresh will invalidate last_n+1..n
+      + so calling out of order could be tricky
+  + the cost of re-executing isn't too bad
+    + maybe for now (flow1) we've just got to call
+      + cellsResize after every image load
+        + sort of happens already
+setVisibleAll() -> refreshVisibleImageSet() -> refreshAnImageSet() -> cellsResize()
+          + other than it doesn't happen on first page load uncached
+          + trace through handlerHashChanged to see if
+            + if we come close to some kind of setVisibleAll
+              + it's close
+              + we do a forced handlerHashChanged()
+                + but that's not really the right place
+                  + because it's very slow
+        + could do a cellsResize after every image load
+          + but only if we can tie it to just the first load
+            + don't want to get caught up with a reres
+  + this doesn't just affect the first load
+    + if I whizz up to new images
+      + it'll load them
+        + without cellResizing afterwards
+      + I think it's because we made the image thumb load async
+    + it's probably calling cellsResize
+      + but early doors
+      + start by sticking a console log on cellsResize
+        + just make debug=1
+        + turns out it calls it 5 times!
+          + but not after the metadata is loaded
+  + every time an image loads for the first time
+    + we want to see if it completes a minor (column/row)
+      + then call cellsResize just on that minor
+    + this should be keyed upon the actual image load
+      + which we normally do async
+        + image load should continue to be async
+        + but we'll add in this check
+          + sync upon image load
+
+* working on cellsCheckMinor
+  + need to be able to differentiate
+    + cells that have an error ratio set and
+    + cells that have a real ratio set
+  + at the moment we're giving cells a "cell-flow-specific" width
+    + when they shouldn't have one
+  + either split data-ratio
+    + into data-ratio-layout and data-ratio-cell or
+    + introduce a new field to flag status
+      + suggest status
+        + consistent with layout
+      + share status codes between JS and PHP
+    + use status codes in JS
+  + status codes made cellsResize work
+    + now it's resizing correctly on first load
+
+* thinking about an optimisation cycle
+  + things are a little jerky
+    + can't put my finger on it
+    + but I feel uneasy using it
+
+* disable flow to see how long black screen persists
+  + is black a flow artefact?
+  = yes
+    + without flow there is no black stage
+
+* long black screen on loading
+--o--
+* try using minor-based resize
+  + without using cellsResize on refreshAnImageSet
+    + we stay with a black screen
+  + I suspect the blackness is caused by something waiting
+    + triggered by cellsResize
+  + works well
+
+* not updating quite wide enough
+  + scrolling up the directory doesn't load images
+    + suspect we're not resizing far enough up
+  + looks like we're not refreshing the visTableMajor at all
+    + better to escalate cellsResize call back up to main
+      + if it happens entirely within flow
+      + we never update the vis table
+  + could return range {} obj back to cellsCheckMinor call
+    + doesn't really work with deferred
+      + can live without deferred
+  + interaction with cellsResize is tricky
+    + we want to call cellsResize (main) because
+      + its wrapUp() function handles updating the visTable
+
+* some events need to trigger a complete cellsResize()
+  + events
+    + breadth change
+    + direction change
+    + window resize
+  + not easy to get these
+    + actually not that bad
+    + because the dep is that the cells have ratios
+      + not that they've been loaded
+    + so could just resize before updating vistable
+  + doesn't behave quite right
+    + stripped out
+    + now searching for a partial resize way of handling these events
+  + let's try a cellsResize after envisionSeq
+    + not quite right either
+  + cellsClear play?
+    + when clearing cells
+      + also reset image status?
+    + we want to periodically invalidate the cell-specific widths/heights
+      + cellsClear is the place
+      + then ensure that the next image load triggers minor (column) resizes
+        + the next image won't always be loading
+        + sometimes we'll have loaded it already
+          + falling back to do a cellsResize on refreshAnImageSet
+    + it's not perfect
+      + but it'll probably do at this stage
+        + until we validate with users
 
