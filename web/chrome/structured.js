@@ -199,7 +199,7 @@ window.sfun = (function($, undefined) {
           // },
           // // do nothing if dumped
           // function(){},
-          // 50); // 50ms
+          // exp.implicitScrollBUFFER); // 50ms
         });
       });
     }
@@ -223,7 +223,8 @@ window.sfun = (function($, undefined) {
     for (var i = range.first_1 ; i<= range.last_n ; ++i) {
       var $ent = $cell(i);
       var $loadable = $ent.cachedFind('.loadable');
-      if ($loadable.data('ratio') == undefined) {
+      var status = $loadable.data('status');
+      if (status == exp.imageStatusMISSING || status == exp.imageStatusPENDING) {
         // wait for image to be loaded in order to get ratio
         defs[defs.length] = waitLoadedGetResolution($ent, true).done(function() {
           setBound($ent, true);
@@ -235,15 +236,19 @@ window.sfun = (function($, undefined) {
   };
 
   /** 
+   * @param [object] optional range object
    * @return {object} jQuery deferred
    */
-  var cellsResize = function() {
+  var cellsResize = function(range) {
     var that = this;
     var deferred = getDeferred();
     // get current visible boundaries
     var vis = getVisibleBoundaries();
-    // set range as visible cells including visnear
-    var range = calcVisnear(vis.first, vis.last);
+    if (range == undefined) {
+      // set range as visible cells including visnear
+      range = calcVisnear(vis.first, vis.last);
+    }
+    // create wrapUp function to manage visibility (table and status)
     var wrapUp = function() {
       // when layoutManager completes a resize, capture cell boundaries for altered cells
       // and invalidate those after last_n because they may have changed
@@ -260,6 +265,7 @@ window.sfun = (function($, undefined) {
     }
     // add selected to range
     range.selected = $sfun_selectedcell.data('seq');
+    // @todo maybe drop checkRatios() call
     // set ratio for images within range
     checkRatios(range).done(function() {
       // get the current layoutManager, if we have one
@@ -273,9 +279,6 @@ window.sfun = (function($, undefined) {
         wrapUp();
       }      
     });
-    if (debug && true) {
-      console.log('called cellsResize');
-    }
     // return our deferred either way
     return deferred;
   };
@@ -300,6 +303,33 @@ window.sfun = (function($, undefined) {
     // return our deferred either way
     return deferred;
   };
+
+  /**
+   * check to see if we have ratios for all cells in minor, but haven't resized
+   * @param {int} minor number (e.g. column number if direction x)
+   */
+  var cellsCheckMinor = function(minor) {
+    var deferred = getDeferred();
+    var wrapUp = function() {
+      deferred.resolve();
+    }    // get the current layoutManager, if we have one
+    var layout = layoutManager.select(0);
+    if (layout != null) {
+      // tell it that we've resized cells
+      var range = layout.receiverLayoutCellRatioChange.call(layout.context, minor);
+      var laid = null;
+      // if we get back a range, resize those cells (dump local deferred)
+      if (range !== false) {
+        return cellsResize(range);
+      }
+      // laid may be a deferred, but when can cope if it's not
+      $.when(laid).done(wrapUp);
+    } else {
+      wrapUp();
+    }
+    // return our deferred either way
+    return deferred;
+  }
 
   // ---------------------
   // FUNCTIONS: thumbnails
@@ -352,6 +382,8 @@ window.sfun = (function($, undefined) {
         return waitLoadedGetResolution($ent, true).done(function() {
           // 2a. once we've got the loaded- dimensions, check bounds
           setBound($ent, true);
+          // 3. once we know the ratio is set, check minor (column/cell) for resize
+          cellsCheckMinor(Math.floor($ent.data('seq') / getBreadth()));
         });
       } else {
         // 2b. as we've already got the loaded- dimensions, check bounds
@@ -766,7 +798,7 @@ window.sfun = (function($, undefined) {
         var $ent = $(this);
         defs.push(loadThumbRefreshBounds($ent));
       });
-      // stage 1b: refresh cell dimensions
+      // stage 1b: refresh cell sizes
       defs.push(cellsResize());
       $.when.apply($, defs).always(function() {
         // stage 2: if we're reresing the images
@@ -1030,6 +1062,7 @@ window.sfun = (function($, undefined) {
         $loadable.removeClass('loadable');
         // prime loadable to reload
         $loadable.data('ratio', undefined);
+        $loadable.data('status', imageStatusERROR);
         $loadable.removeAttr('src');
         // reset the image
         eim = new Image();
@@ -1068,6 +1101,7 @@ window.sfun = (function($, undefined) {
       $loadable.data('loaded-width', im.width);
       $loadable.data('loaded-height', im.height);
       $loadable.data('ratio', im.width / im.height);
+      $loadable.data('status', exp.imageStatusLOADED);
       // if we've loaded the image for the first time, swap it in (fallback)
       if ($loadable.attr('src') == undefined) {
         $loadable.attr('src', im.src);
@@ -1803,6 +1837,7 @@ window.sfun = (function($, undefined) {
         $reresable.data('loaded-width', this.width);
         $reresable.data('loaded-height', this.height);
         $reresable.data('ratio', this.width / this.height);
+        $reresable.data('status', exp.imageStatusRERESED);
         // notify promise of resolution
         deferred.resolve();
         // process async actions
@@ -1869,7 +1904,7 @@ window.sfun = (function($, undefined) {
 
   /**
    * @param [string] direction
-   * @param int image sequence number
+   * @param [int] image sequence number
    * @return {int} viewport centre offset by half the width of a cell (for this view size)
    */
   var imageCentreOffseq = function(direction, seq) {
@@ -3525,7 +3560,7 @@ window.sfun = (function($, undefined) {
       console.log('* fired scroll event '+eventQueue.render(localContext));
     }
     // fire event: change the scroll position
-    fireScrollBuffered(target, animate);
+    fireScrollActual(target, animate);
     // if we've yet to setup an event handler
     if (this.bindToScroll_static == undefined) {
       // manually call handler
@@ -3546,7 +3581,7 @@ window.sfun = (function($, undefined) {
    * @param  {object} target {...} multiple properties to animate
    * @param  {int} animate duration of animation, or zero to pop
    */
-  var fireScrollBuffered = function(target, animate) {
+  var fireScrollActual = function(target, animate) {
     if (animate > 0) {
       // for some reason can't cache this selector
       $('html, body').finish().animate(target, animate);      
@@ -3585,7 +3620,7 @@ window.sfun = (function($, undefined) {
    * apply hash state (+current values for those unset) to page
    * downstream of: EVENT hash change
    * @param {string} hash that's been updated
-   * @param {boolean} forceChange true to force the handler to reapply the hash state to the DOM [default: false]
+   * @param [boolean] forceChange true to force the handler to reapply the hash state to the DOM [default: false]
    * @return {object} jQuery Deferred
    */
   var handlerHashChanged = function(hash, forceChange) {
@@ -3657,7 +3692,12 @@ window.sfun = (function($, undefined) {
       // update images based on what changed
       if (seqChanged || offseqChanged || breadthChanged || directionChanged || forceChange) {
         // scroll to the selected image, which triggers refresh on all .visible images
-        return envisionSeq(obj.seq, obj.offseq, eventContext);
+        return envisionSeq(obj.seq, obj.offseq, eventContext).done(function() {
+          // @todo this doesn't cover it
+          // if (breadthChanged || directionChanged || forceChange) {
+          //   cellsResize();
+          // }
+        });
       }
     });
   }
@@ -3694,12 +3734,22 @@ window.sfun = (function($, undefined) {
       // drop function to execute if we're dumping this event
       function(){
         // nothing to do
-      }, 50);
+      }, exp.implicitScrollBUFFER);
     } else {
-      // process this event if we're meant to as we originated it
-      return eventQueue.actOnContext(eventContext, function() {
-        return handlerScrolled_eventProcess(event, sx, sy);
-      });
+      // still buffer to ensure we drop the previous event and delay slightly for animation
+      buffer('handlerScrolled_event',
+        // success function to delay the processing just slightly (helps animation)
+        function() {
+          // process this event if we're meant to as we originated it
+          return eventQueue.actOnContext(eventContext, function() {
+            return handlerScrolled_eventProcess(event, sx, sy);
+          });
+        },
+        // no drop function, as normal
+        function() {
+          // nothing to do
+        },
+      exp.implicitScrollBUFFER);
     }
   }
 
@@ -3783,7 +3833,7 @@ window.sfun = (function($, undefined) {
         } else {
           event.preventDefault();
           // advance to previous image
-          eventContext.animateable = 50;
+          eventContext.animateable = exp.implicitScrollDURATION;
           return imageAdvanceBy(-1, eventContext);
         }
         break;
@@ -3793,7 +3843,7 @@ window.sfun = (function($, undefined) {
         if (!event.altKey) {
           event.preventDefault();
           // advance to previous image
-          eventContext.animateable = 50;
+          eventContext.animateable = exp.implicitScrollDURATION;
           return imageAdvanceBy(-1, eventContext);
         }
         break;
@@ -3802,7 +3852,7 @@ window.sfun = (function($, undefined) {
       case exp.KEY_ARROW_DOWN:
         event.preventDefault();
         // advance to next image
-        eventContext.animateable = 50;
+        eventContext.animateable = exp.implicitScrollDURATION;
         return imageAdvanceBy(1, eventContext);
 
       // page-wise navigation
@@ -3899,14 +3949,14 @@ window.sfun = (function($, undefined) {
       // put into target object then crop against viewport
       var target = {};
       target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
-      fireScrollBuffered(cropScrollPositionAgainstViewport(target), exp.implicitScrollDURATION);
+      fireScrollActual(cropScrollPositionAgainstViewport(target), exp.implicitScrollDURATION);
       event.preventDefault();
     } else {
       // if not snapping to images
       if (direction == 'x') {
         // use both axes to scroll along X
         next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
-        fireScrollBuffered( { 'scrollLeft': next_pos }, (likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
+        fireScrollActual( { 'scrollLeft': next_pos }, (likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
         event.preventDefault();
       }
     }
@@ -4249,11 +4299,17 @@ window.sfun = (function($, undefined) {
     stringHASHBANG: '#!',
     visnearBreadthMULTIPLIER: 4,
     implicitScrollDURATION: 100,
+    implicitScrollBUFFER: 50,
     loopIterLIMIT: 100,
     compareGTE: 1,
     compareLTE: -1,
     bufferExecFIRST: 0,
     bufferExecLAST: 1,
+    imageStatusERROR: -2,
+    imageStatusMISSING: -1,
+    imageStatusPENDING: 0,
+    imageStatusLOADED:  1,
+    imageStatusRERESED:  2,
 
     /**
      * add a button to the header

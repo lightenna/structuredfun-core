@@ -218,7 +218,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
         // failed to load image, substitute error image
         $image_metadata = $entry->getMetadata();
         if (!$image_metadata->hasRatio()) {
-          $image_metadata->setStatus(IMAGE_STATUS_ERROR);
+          $image_metadata->setStatus(IMAGE_STATUS_MISSING);
           // assume error image
           $image_metadata->setLoadedWidth(1340);
           $image_metadata->setLoadedHeight(1080);

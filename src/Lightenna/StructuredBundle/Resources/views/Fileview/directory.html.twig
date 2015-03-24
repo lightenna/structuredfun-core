@@ -47,6 +47,7 @@
            data-video-src="/file/{{ linkpath }}{{ file.name }}"
            data-video-type="{{ file.ext }}"
       {% endif %}
+           {% if file.metadata.Status is defined %}data-status="{{ file.metadata.Status }}" {% endif %}
            {% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %}
            {% if file.metadata.NormalsHtml is not null %}{{ file.metadata.NormalsHtml|raw }}{% endif %}
            {% if file.metadata.OriginalWidth is not null %}data-native-width="{{ file.metadata.OriginalWidth }}" {% endif %}{% if file.metadata.OriginalHeight is not null %}data-native-height="{{ file.metadata.OriginalHeight }}" {% endif %}
@@ -56,7 +57,7 @@
 #}
            data-loaded="false"
            data-seq="{{ file.seq }}" />
-      <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.metadata.OriginalWidth is not null %}data-native-width="{{ file.metadata.OriginalWidth }}" {% endif %}{% if file.metadata.OriginalHeight is not null %}data-native-height="{{ file.metadata.OriginalHeight }}" {% endif %}{% if file.metadata.LoadedWidth is not null %}data-loaded-width="{{ file.metadata.LoadedWidth }}" {% endif %}{% if file.metadata.LoadedHeight is not null %}data-loaded-height="{{ file.metadata.LoadedHeight }}" {% endif %}{% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
+      <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" {% if file.metadata.OriginalWidth is not null %}data-native-width="{{ file.metadata.OriginalWidth }}" {% endif %}{% if file.metadata.OriginalHeight is not null %}data-native-height="{{ file.metadata.OriginalHeight }}" {% endif %}{% if file.metadata.LoadedWidth is not null %}data-loaded-width="{{ file.metadata.LoadedWidth }}" {% endif %}{% if file.metadata.LoadedHeight is not null %}data-loaded-height="{{ file.metadata.LoadedHeight }}" {% endif %}{% if file.metadata.Status is defined %}data-status="{{ file.metadata.Status }}" {% endif %} {% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %} data-seq="{{ file.seq }}" /></noscript>
       <span class="meta">
         <span class="base">
           <span class="imgmetric super"><span class="size"><span class="width">{% if file.metadata.LoadedWidth is not null %}{{ file.metadata.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.metadata.LoadedHeight is not null %}{{ file.metadata.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
