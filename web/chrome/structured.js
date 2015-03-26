@@ -1068,7 +1068,7 @@ window.sfun = (function($, undefined) {
         $loadable.removeClass('loadable');
         // prime loadable to reload
         $loadable.data('ratio', undefined);
-        $loadable.data('status', imageStatusERROR);
+        $loadable.data('status', exp.imageStatusERROR);
         $loadable.removeAttr('src');
         // reset the image
         eim = new Image();
