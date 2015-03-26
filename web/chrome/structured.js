@@ -644,22 +644,28 @@ window.sfun = (function($, undefined) {
         // flag that we're loading metadata
         var $metricperc = $ent.cachedFind('.imgmetric .perc');
         $metricperc.html('Loading metadata...');
-        // fire ajax request
-        $.ajax({
-          url: $reresable.data('meta-src'),
-          dataType: 'json',
-        })
-        .done(function(data, textStatus, jqXHR) {
-          refreshMetadataApplyToFields($ent, data);
-          // resolve the context
-          deferred.resolve();
-        })
-        .fail(function(jqXHR, textStatus, errorThrown) {
-          // resolve the context (as a failure)
-          deferred.reject();
-        });
-        if (debug && false) {
-          console.log('image-'+$ent.data('seq')+': fired request for native width and height');
+        // only allow the request to fire once per image
+        if ($metricperc.data('loading') == undefined) {
+          $metricperc.data('loading', true);
+          // fire ajax request
+          $.ajax({
+            url: $reresable.data('meta-src'),
+            dataType: 'json',
+          })
+          .done(function(data, textStatus, jqXHR) {
+            refreshMetadataApplyToFields($ent, data);
+            // resolve the context
+            deferred.resolve();
+          })
+          .fail(function(jqXHR, textStatus, errorThrown) {
+            // resolve the context (as a failure)
+            deferred.reject();
+          });
+          if (debug && false) {
+            console.log('image-'+$ent.data('seq')+': fired request for native width and height');
+          }
+        } else {
+          deferred.fail();
         }
         return deferred;
       } else {
@@ -2704,6 +2710,7 @@ window.sfun = (function($, undefined) {
             if (this.visref_$list_static.length == 0) {
               $html.append('<ol class="queue" id="eventQueueVis"></ol>');
               this.visref_$list_static = $('#eventQueueVis');
+              this.visref_$list_static.click(this.visualisationClickHandler());
             }            
           }
         } else {
@@ -2713,6 +2720,24 @@ window.sfun = (function($, undefined) {
             this.visref_$list_static = undefined;
           }
         }
+      },
+
+      /**
+       * @return function click handler in this context
+       */
+      'visualisationClickHandler': function() {
+        var that = this;
+        return function(event) {
+          if (debug && true) {
+            console.log('Event queue current status:');
+          }
+          // iterate over entire event queue
+          that.iterate(function(obj) {
+            if (debug && true) {
+              console.log(obj);
+            }
+          });
+        };
       },
 
       /**
@@ -3551,9 +3576,10 @@ window.sfun = (function($, undefined) {
     if (animate == undefined) {
       animate = false;
     }
-    // create a context, but parent it only if eventContext is not undefined
+    var newkey = 'scroll:'+'x='+target.scrollLeft+'&y='+target.scrollTop;
+    // otherwise create a context, but parent it if eventContext is defined (and not identical)
     var localContext = eventQueue.pushOrParent({
-      'key': 'scroll:'+'x='+target.scrollLeft+'&y='+target.scrollTop,
+      'key': newkey,
       'comment': 'localContext for fire_scrollUpdate'
     }, eventContext);
     if (debug && false) {
@@ -3711,6 +3737,9 @@ window.sfun = (function($, undefined) {
     var that = this;
     var key = 'scroll:'+'x='+sx+'&y='+sy;
     var eventContext = eventQueue.get(key);
+    if (debug && false) {
+      console.log('handlerScrolled key['+key+']');
+    }
     // if this is a fresh event that we didn't fire
     if (eventContext == null) {
       // don't process scroll event every time, buffer unless there's a context
@@ -4606,15 +4635,27 @@ window.sfun = (function($, undefined) {
       if (numb == undefined) {
         numb = false;
       }
-      if (numb) {
-        // create a null context to numb the event listener
-        var localContext = eventQueue.push({
-          'replaceEvent': true,
-          'comment': 'localContext for api_triggerScroll, numb listener'
-        });
-        return envisionPos(pos, localContext);
+      // currently experimenting with direct scrolling (no sign of any event)
+      // setting this to true create numbing events
+      // which have to be expired manually
+      var prepareForEvent = false;
+      if (prepareForEvent) {
+        // create an event and then fire a scroll, then wait for expiries check
+        if (numb) {
+          // create a null context to numb the event listener
+          var localContext = eventQueue.push({
+            // key is cosmetic; envisionPos call will spawn an inheritted context
+            'key': 'api_triggerScroll:'+'x='+pos.scrollLeft+'&y='+pos.scrollTop,
+            'replaceEvent': true,
+            'comment': 'localContext for api_triggerScroll, numb listener'
+          });
+          return envisionPos(pos, localContext);
+        }
+        return envisionPos(pos);        
+      } else {
+        // crop the target position against reachable bounds, then scroll
+        fireScrollActual(cropScrollPositionAgainstViewport(pos), 0);
       }
-      return envisionPos(pos);
     },
  
     /**

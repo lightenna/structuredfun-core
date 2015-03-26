@@ -206,7 +206,7 @@
     }
     // all ratios loaded, check for un-sized cells
     if (pre_marked != breadth) {
-      if (debug && true) {
+      if (debug && false) {
         console.log('flow; flow_cellsCheckMinor can resize column['+minor+'] '+base+'-'+(base+breadth));
       }
       return { 'first_1': base, 'last_n': base + breadth -1 };
@@ -251,6 +251,9 @@
     var minorTotal = _cellsResizeTotalMinor(bucket);
     // resize minor axis
     var maxMajor = _cellsResizeBucketMinor(bucket, minorTotal, parent.minor);
+if (maxMajor > parent.major) {
+  console.log('gotcha');
+}
     // resize major axis
     _cellsResizeBucketMajor(bucket, maxMajor, parent.major);
     // tidy up afterwards
