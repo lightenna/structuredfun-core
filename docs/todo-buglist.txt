@@ -1,9 +1,29 @@
 
-* chase down empty events
-  + generated reliably doing a refresh
-    + on a breadth=1 imageset
-  + clicking event queue could expose more information
-  + might be able to catch them with a breakpoint
+* flow cells reaching more than 100%
+  + major and minor cannot exceed 100%
+  + use viewportBounds
+    + because it's exactly the right size
+
+* can't fullscreen a high seq image
+  + it doesn't go far enough right
+    + I suspect this is a viewport clip
+  + we're trying to scroll to a place that's north of possible
+    + it's only when the images go fullscreen (breadth 1)
+      + that it will be possible to get there
+  + see if this is caused by my changes to api_triggerScroll
+    + nope
+    + doesn't make any difference
+  + jumping into and out of fullscreen
+    + both problematic
+    + hash:seq=27... event looks fine
+      + but for some reason we get dumped somewhere else
+      + URL isn't updated
+    + interestingly it's ok until we're in a very widescreen browser
+      + firebug loaded OR just wide stumpy
+
+* chrome getting stuck behind an event
+  + not sure why
+  + only happens in chrome
 
 * maybe revive cellsResize debate
 
@@ -5226,4 +5246,59 @@ setVisibleAll() -> refreshVisibleImageSet() -> refreshAnImageSet() -> cellsResiz
     + it's not perfect
       + but it'll probably do at this stage
         + until we validate with users
+      + it works ok on a PC
+        + there are some roots showing
+          + but they're not a big problem now
+
+* chase down empty events
+  + generated reliably doing a refresh
+    + on a breadth=1 imageset
+  + clicking event queue could expose more information
+  + might be able to catch them with a breakpoint
+    + add a click handler
+    + then stick a breakpoint on the click handler
+  + caused by api_triggerScroll
+    + which creates a blank event
+      + to hold the replaceEvent: true flag
+      + to enable numbing
+    + filling it with a key is fine
+      + but creates duplicates
+    + filling it with the same key is fine
+      + but it reuses/sisters it
+      + and crashes horribly with an infinite loop!
+// crop the target position against reachable bounds
+target = cropScrollPositionAgainstViewport(pos);
+// create a null context to numb the event listener
+var localContext = eventQueue.push({
+  // key is cosmetic; envisionPos call will spawn an inheritted context
+  'key': 'scroll:'+'x='+target.scrollLeft+'&y='+target.scrollTop,
+        + but something in that vein maybe
+      + if we detect the same key
+        + we could reuse the existing event
+      + nope
+        + can't have 2 events with the same key
+          + it confuses it
+    + just create two events
+      + parented
+        + and parent resolution works fine
+    + looks like these trigger calls never actually generate scroll events
+      + so they don't get resolved until there's a 'checking expires'
+      + print scrollHandler log to check if we see them at all
+        + we don't
+      + check another browser for consistency
+    + just leave a @todo there for now
+    + actually implemented in api_triggerScroll
+
+* firing loads of imagemeta requests for dead images
+  + should protect to make sure we only ever have one call outstanding
+    + not entirely sure what that'll do to
+      + because the latter requests
+      + eventually get results
+  + could just avoid firing them for error images
+    + check HTML, look at status
+    + would need to properly set the status
+      + it's currently -1 (missing)
+        + those images need to be -2 (error)
+        + because we can't actually load the images (only on this setup)
+  + for now just protecting against multiple fires using 'data-loading'
 
