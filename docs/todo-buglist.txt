@@ -1,4 +1,31 @@
 
+* mouse wheel (PC) loses offseq centring
+  + yet arrow left/right/up/down works perfectly
+--o--
+* make handlerMouseWheeled recognise offseq
+  + needs to preserve offseq when set
+  + needs to introduce offseq when not set
+  + broadly handlerMouseWheeled should advance by 1 minor width
+    + e.g. 1 column width for dir=x
+    + when using imagesnap
+  + now do we key that off
+    + the image/minor in the centre of the screen, or
+    + the current selected cell
+  + selection is tricky
+    + because scroll doesn't necessarily update it
+      + unlike arrow left/right
+  + summary
+    + arrow keys are image-aligned
+    + page up/down is not image-aligned
+    + wheel up/down is image-aligned (in imagesnap mode)
+  + steps
+    + preserve offseq
+      + just use whatever value is set when we start the scrolling
+    + recalc offseq for the next image
+      + that's tricky because we're currently getting the next image
+  + just using same imageCentreOffseq trick
+    + getting stuck when b>1
+
 * flow cells reaching more than 100%
   + major and minor cannot exceed 100%
   + use viewportBounds
@@ -26,9 +53,6 @@
   + only happens in chrome
 
 * maybe revive cellsResize debate
-
-* mouse wheel (PC) loses offseq centring
-  + yet arrow left/right/up/down works perfectly
 
 * make test suite work again
   + whole thing seems to have only 1 error
