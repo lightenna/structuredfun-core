@@ -3974,8 +3974,13 @@ window.sfun = (function($, undefined) {
       var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
       // compute next_ref but don't allow wrap around
       var next_ref = Math.min(current_ref + advance_by, visTableMajor.getSize()-1);
-      // next_pos is next major offset by offseq to centre that image
-      next_pos = visTableMajor.key(next_ref) - imageCentreOffseq(direction, next_ref);
+      // next_pos is next major
+      if (breadth == 1) {
+        // offset by offseq to centre that image
+        next_pos = visTableMajor.key(next_ref) - imageCentreOffseq(direction, next_ref);
+      } else {
+        next_pos = visTableMajor.key(next_ref);        
+      }
       // put into target object
       var target = {};
       target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
