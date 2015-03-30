@@ -1397,6 +1397,9 @@ window.sfun = (function($, undefined) {
     // apply class to both sfun and page (for page-wise effects)
     $sfun_flow.addClass('flow-' + breadth);
     $html.addClass('flow-' + breadth);
+    // scrub cached yardsticks/balls affected by breadth
+    this.getGutter_static = undefined;
+    this.getAlley_static = undefined
     // return whether we actually changed it or not
     return changed;
   };
@@ -1532,7 +1535,8 @@ window.sfun = (function($, undefined) {
       // get the cell's position
       var position = $ent.offset();
       // work out the target position
-      var target = { 'scrollLeft': (direction == 'x' ? position.left - offseq : 0), 'scrollTop': (direction == 'x' ? 0 : position.top - offseq) };
+      var gutter = getGutter();
+      var target = { 'scrollLeft': (direction == 'x' ? position.left - offseq - gutter : 0), 'scrollTop': (direction == 'x' ? 0 : position.top - offseq - gutter) };
       // pass target to shared function
       return envisionPos(target, eventContext);
     }

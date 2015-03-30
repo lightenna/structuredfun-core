@@ -1,8 +1,17 @@
 
-* flow cells reaching more than 100%
-  + major and minor cannot exceed 100%
-  + use viewportBounds
-    + because it's exactly the right size
+* fullscreen images under flow
+  + 100% wide images missing right hand edge
+  + need to create a separation between
+    + actually viewport limits
+      + used for cropping
+    + the image 'window' limits
+      + used for scaling
+        + calculated percentages may be smaller
+      + probably need an extra param into
+        + _cellsResizeBucketMinor
+
+* fullscreen flow cell widths aren't quite right
+  + portrait image is too narrow
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -21,11 +30,15 @@
     + interestingly it's ok until we're in a very widescreen browser
       + firebug loaded OR just wide stumpy
 
+* 4px creep when doing arrow next/previous/next/previous
+  + it's because we're not reading out the gutter
+    + when we're calculating the next offseq
+
 * chrome getting stuck behind an event
   + not sure why
   + only happens in chrome
 
-* maybe revive cellsResize debate
+--- next demo release
 
 * make test suite work again
   + whole thing seems to have only 1 error
@@ -5333,4 +5346,41 @@ var localContext = eventQueue.push({
         + it needs to be lightning fast
     + simple hack to avoid doing anything clever where b>1
       + good enough for now
+
+* flow cells reaching more than 100%
+  + major and minor cannot exceed 100%
+  + use viewportBounds
+    + because it's exactly the right size
+  + we are now cropping to 100%
+    + but 100% exceeds the space available
+    + fix with border review
+
+* no js, make css fullscreen fill the screen
+  + 100%, not 100%-8px
+  + horizontal to vertical transition is seamless
+
+* horizontal to vertical transition
+  + at breadth=2
+    + or breadth=4
+    + because it's the same
+  + all b>1 jitter
+    + it's a minor border
+  + I think we can tune it with offseq
+    + basically offseq should always be +gutter
+      + default offseq = 0
+        + and it should be
+        + and default disappears from url
+      + but it should be bordered in
+
+* border review
+  + when there's no flow js
+
+* border review with flow
+  + breadth=2 particularly
+    = seems solid
+
+* border appears on bottom of b=1 flow
+  + because css says no border (flow-1)
+    + but javascript is subtracting 2x gutter
+  = done but created another issue
 
