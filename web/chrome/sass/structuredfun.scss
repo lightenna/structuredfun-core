@@ -7,12 +7,17 @@
 // ---------------------------------------------------------------------------
 // Layout
 
-// gutterball to pass sass variables back to js
+// gutterball to pass sass variable (gutter/page outer border) back to js
 #gutterball {
   width: $gutter;
   height: 0;
 }
-// alleyball to pass sass variables back to js
+// no gutter around fullscreen images
+// but normal alley between images
+html.flow-1 #gutterball {
+  width: 0;
+}
+// alleyball to pass sass variable (column gap) back to js
 #alleyball {
   width: $alley;
   height: 0;

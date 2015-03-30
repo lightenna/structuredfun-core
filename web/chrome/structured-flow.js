@@ -112,15 +112,20 @@
       // store the ratio on the boundable container (ul.directory)
       $parent.cachedFind('> .container > .boundable').data('ratio', subcellRatio);
     }
+    // allow for image alley and page gutter
+    var spacing = (sfun.api_getAlley() * (sfun.api_getBreadth() - 1)) + (2 * sfun.api_getGutter());
     // viewport is parent for defining percentages of
     var viewportBounds = {
       'minor': (
-        direction == 'x' ? 
+        direction == 'x' ?
         // trim minor axis because we lose some fillable space to margins
-        sfun.api_getViewportHeight() - (2 * sfun.api_getGutter() * sfun.api_getBreadth()) :
-        sfun.api_getViewportWidth()
+        sfun.api_getViewportHeight() - spacing :
+        sfun.api_getViewportWidth() - spacing
       ),
-      'major': (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight())
+      'major': (direction == 'x' ?
+        sfun.api_getViewportWidth() : 
+        sfun.api_getViewportHeight()
+      )
     };
     // work through all visible, top-level buckets
     for (var coordabs in cellGroup) {
@@ -249,13 +254,22 @@
   var _processBucket = function(bucket, parent, $selected, selectedMajorCoordabsInitial) {
     // get ratio and total
     var minorTotal = _cellsResizeTotalMinor(bucket);
-    // resize minor axis
-    var maxMajor = _cellsResizeBucketMinor(bucket, minorTotal, parent.minor);
-if (maxMajor > parent.major) {
-  console.log('gotcha');
-}
+    // resize minor axis and capture largest major axis size
+    var largest_major = _cellsResizeBucketMinor(bucket, minorTotal, parent.minor);
+    if (largest_major > parent.major) {
+      if (debug && true) {
+        console.log('before minor['+parent.minor+'] major['+largest_major+']');
+      }
+      // adjust minor limit proportionally according to major limit
+      parent.minor = parent.minor * (parent.major / largest_major);
+      // now resize minors again
+      largest_major = _cellsResizeBucketMinor(bucket, minorTotal, parent.minor);
+      if (debug && true) {
+        console.log(' after minor['+parent.minor+'] major['+largest_major+']');
+      }
+    }
     // resize major axis
-    _cellsResizeBucketMajor(bucket, maxMajor, parent.major);
+    _cellsResizeBucketMajor(bucket, largest_major, parent.major);
     // tidy up afterwards
     _cellsResizeBucketComplete(bucket);
     // find out if we need to realign
@@ -351,7 +365,7 @@ if (maxMajor > parent.major) {
       var propname = (direction == 'x' ? 'height': 'width');
       if (Modernizr.csscalc) {
         // set property using css calc to accommodate margins
-        $ent[0].style[propname] = 'calc('+proportion+'% - '+sfun.api_getAlley()+'px)';      
+        $ent[0].style[propname] = 'calc('+proportion+'% - '+(2 * sfun.api_getGutter())+'px)';      
       } else {
         $ent.css(propname, proportion +'%');        
       }
