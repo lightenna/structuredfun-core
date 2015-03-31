@@ -257,16 +257,11 @@
     // resize minor axis and capture largest major axis size
     var largest_major = _cellsResizeBucketMinor(bucket, minorTotal, parent.minor);
     if (largest_major > parent.major) {
-      if (debug && true) {
-        console.log('before minor['+parent.minor+'] major['+largest_major+']');
+      if (debug && false) {
+        console.log('minor['+parent.minor+'] major_before['+largest_major+'] major_after['+parent.major+']');
       }
-      // adjust minor limit proportionally according to major limit
-      parent.minor = parent.minor * (parent.major / largest_major);
-      // now resize minors again
-      largest_major = _cellsResizeBucketMinor(bucket, minorTotal, parent.minor);
-      if (debug && true) {
-        console.log(' after minor['+parent.minor+'] major['+largest_major+']');
-      }
+      // limit largest_major (using parent major) but don't change the minors
+      largest_major = parent.major;
     }
     // resize major axis
     _cellsResizeBucketMajor(bucket, largest_major, parent.major);
@@ -367,9 +362,8 @@
         // set property using css calc to accommodate margins
         $ent[0].style[propname] = 'calc('+proportion+'% - '+(2 * sfun.api_getGutter())+'px)';      
       } else {
-        $ent.css(propname, proportion +'%');        
-      }
-  
+        $ent.css(propname, proportion +'%');
+      }        
       // update bound if necessary
       sfun.api_setBound($ent);
       // calculate normal major, max
@@ -410,9 +404,9 @@
   var _cellsResizeBucketComplete = function(bucket) {
     for (var i = 0 ; i<bucket.length ; ++i) {
       var $ent = bucket[i];
-      // make all images y-bound, as it's a simpler alignment than
-      var $boundable = $ent.cachedFind('> .container > .boundable');
-      $boundable.removeClass('x-bound').addClass('y-bound');
+      // // make all images y-bound, as it's a simpler alignment than
+      // var $boundable = $ent.cachedFind('> .container > .boundable');
+      // $boundable.removeClass('x-bound').addClass('y-bound');
       // also remove any 'pending resize' flags
       $ent.removeClass('resizepending');
     }
