@@ -1,17 +1,6 @@
 
-* fullscreen images under flow
-  + 100% wide images missing right hand edge
-  + need to create a separation between
-    + actually viewport limits
-      + used for cropping
-    + the image 'window' limits
-      + used for scaling
-        + calculated percentages may be smaller
-      + probably need an extra param into
-        + _cellsResizeBucketMinor
-
-* fullscreen flow cell widths aren't quite right
-  + portrait image is too narrow
+* check commit
+  + because today's deploy didn't work the way I expected it to
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -29,6 +18,9 @@
       + URL isn't updated
     + interestingly it's ok until we're in a very widescreen browser
       + firebug loaded OR just wide stumpy
+  + works going to fullscreen for all images
+    + except final one
+      + I suspect it's an edge of screen issue
 
 * 4px creep when doing arrow next/previous/next/previous
   + it's because we're not reading out the gutter
@@ -5383,4 +5375,41 @@ var localContext = eventQueue.push({
   + because css says no border (flow-1)
     + but javascript is subtracting 2x gutter
   = done but created another issue
+
+* fullscreen images under flow
+  + 100% wide images missing right hand edge
+  + need to create a separation between
+    + actually viewport limits
+      + used for cropping
+    + the image 'window' limits
+      + used for scaling
+        + calculated percentages may be smaller
+      + probably need an extra param into
+        + _cellsResizeBucketMinor
+    + hmmm, maybe not
+      + we're not exceeding 100%
+        + which is good
+        + we just need to get the bounds right
+          + is there a setBound call after cellsResize
+            + hmmm, maybe not
+          + ideally we want to re-setBounds
+            + only if we change the size of the cell
+            + that's a good catch too for jitter
+          + ah ha we do call setBound
+            + from flow
+          + looks like there's two things happening
+            + first call correctly sets the bound
+            + then something clears it
+          + have taken out the universal y-bounding
+      + now displaying x-bound fullscreen images properly
+
+* fullscreen flow cell widths aren't quite right
+  + portrait image is too narrow
+    + I think this only appears after the big image
+      + possibly a leaky var there
+      + becoming global when it should be local
+  + sort of
+    + it was parent.minor
+    + parent is shared across many _processBucket calls
+      + so it affected all images after the widey
 
