@@ -1,6 +1,18 @@
 
-* check commit
-  + because today's deploy didn't work the way I expected it to
+* 4px creep when doing arrow next/previous/next/previous
+  + it's because we're not reading out the gutter
+    + when we're calculating the next offseq
+  + offseq is incrementing
+    + each read of position is true
+    + but each write has a + gutter on it
+      + solution is to subtract gutter from read
+    + confirmed that it's caused by flow.js
+      + but I'm not sure it's imageCentreOffseq
+        + because we're not actually trying to centre the image
+    + could be imageStillShiftOffseq
+      + but addition of + gutter I think is done in flow.js
+        + ha it's not
+        + it's in envisionSeq
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -21,10 +33,6 @@
   + works going to fullscreen for all images
     + except final one
       + I suspect it's an edge of screen issue
-
-* 4px creep when doing arrow next/previous/next/previous
-  + it's because we're not reading out the gutter
-    + when we're calculating the next offseq
 
 * chrome getting stuck behind an event
   + not sure why
@@ -5412,4 +5420,13 @@ var localContext = eventQueue.push({
     + it was parent.minor
     + parent is shared across many _processBucket calls
       + so it affected all images after the widey
+
+* check commit
+  + because today's deploy didn't work the way I expected it to
+
+* jitter was solved by stopping flow forcing all cells to y-bound
+  + because the follwing setBound call
+    + would then reset to x-bound for some images
+  + then it would get reset back to y-bound
+    + again (hence jitter)
 
