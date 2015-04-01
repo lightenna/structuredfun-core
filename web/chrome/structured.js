@@ -2969,7 +2969,7 @@ window.sfun = (function($, undefined) {
             obj.comment += ', now peered with sister [' + partial.comment + ']';
           }
           // optional debugging message
-          if (debug && true) {
+          if (debug && false) {
             console.log('+ not-pushed, found sister event context[' + this.render(obj) + '], qlen now '+(this.getSize()));
           }          
         }
