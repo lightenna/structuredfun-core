@@ -32,17 +32,6 @@ class FileviewController extends ViewController {
         $listing = $this->mfr->getListing();
         // ensure that we're reading/making up all the metadata (cached and uncached files)
         $this->mfr->getAll($listing, false);
-        // try and lay them out
-        $l = new LayerOuter($listing);
-        // calculate multiple layouts (fast)
-        $l->layout(1, 'x');
-        $l->layout(1, 'y');
-        $l->layout(2, 'x');
-        $l->layout(2, 'y');
-        $l->layout(4, 'x');
-        $l->layout(4, 'y');
-        $l->layout(8, 'x');
-        $l->layout(8, 'y');
         return $this
           ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
             array(
