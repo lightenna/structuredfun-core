@@ -24,9 +24,3 @@ lightenna_structured_imagemeta:
     requirements:
         rawname:  ".*"
 
-lightenna_structured_layoutview:
-    path:      /layout/{rawname}
-    defaults:  { _controller: LightennaStructuredBundle:Layoutview:index }
-    requirements:
-        rawname:  ".*"
-
