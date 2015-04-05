@@ -19,6 +19,9 @@
 .project
 .settings/
 
+# Ignore Add-ons if installed
+src/Lightenna/StructuredAddonBundle
+
 # Ignore Compass/Sass cache
 web/chrome/.sass-cache
 

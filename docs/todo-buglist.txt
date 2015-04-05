@@ -34,6 +34,11 @@
     + except final one
       + I suspect it's an edge of screen issue
 
+* wheeling through narrow images on widescreen display
+  + can get stuck
+    + I think it's to do with offseq
+    + perhaps offseq > last image width
+
 * chrome getting stuck behind an event
   + not sure why
   + only happens in chrome
