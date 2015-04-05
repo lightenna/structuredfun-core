@@ -1,4 +1,7 @@
 
+* get PHP test suite running again
+  + with layout in AddonBundle
+
 * 4px creep when doing arrow next/previous/next/previous
   + it's because we're not reading out the gutter
     + when we're calculating the next offseq
