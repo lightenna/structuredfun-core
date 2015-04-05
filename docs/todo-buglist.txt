@@ -5435,3 +5435,16 @@ var localContext = eventQueue.push({
   + then it would get reset back to y-bound
     + again (hence jitter)
 
+* strip layout from core
+        // try and lay them out
+        $l = new LayerOuter($listing);
+        // calculate multiple layouts (fast)
+        $l->layout(1, 'x');
+        $l->layout(1, 'y');
+        $l->layout(2, 'x');
+        $l->layout(2, 'y');
+        $l->layout(4, 'x');
+        $l->layout(4, 'y');
+        $l->layout(8, 'x');
+        $l->layout(8, 'y');
+
