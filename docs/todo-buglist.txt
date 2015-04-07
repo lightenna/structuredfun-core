@@ -1,14 +1,17 @@
 
-* fix two broken images
-  + expand memory_limit
-  + drop subfolder
+* GA track event generating a few too many scroll events
+  + it's including the ones that we generate
 
-* chrome getting stuck behind an event
-  + not sure why
-  + only happens in chrome
+* GA track event add menu items
+  + not seeing header_8 events
 
-* get PHP test suite running again
-  + with layout in AddonBundle
+* GA on sfun
+  + use _gaq track to push events
+
+* check that we haven't knocked sfun_version out of ImageMetadata
+  + it's a definition
+    + but I'm not sure we're picking it up from ViewController
+  + worth checking
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -26,9 +29,24 @@
       + URL isn't updated
     + interestingly it's ok until we're in a very widescreen browser
       + firebug loaded OR just wide stumpy
-  + works going to fullscreen for all images
+  + works going to fullscreen for all=pimages
     + except final one
       + I suspect it's an edge of screen issue
+  + it's flow related
+    + without flow we don't get the jump back
+      + which must be cells resize
+  + it's viewport height dependent
+    + can get to penultimate one when full-height
+      + but can't get to penultimate when firebug loaded
+
+* chrome getting stuck behind an event
+  + not sure why
+  + only happens in chrome
+    + happens when seq > 0
+    + so can do a fast base load of blank URL
+  + seems to be getting stuck behind a scroll event
+    + could be to do with the latent scroll event
+      + where the browser injects a scroll event for its last position
 
 * wheeling through narrow images on widescreen display
   + can get stuck
@@ -44,14 +62,6 @@
 
 * error images are doing strange things
   + on lappy they're way too small
-
---- prep for BaTi sfun demo
-
-* GA on sfun
-  + use _gaq track to push events
-
-* GA add hooks
-  + add track->event() call to key points across codebase
 
 * feature: focus the light beam
   + make it surround just the current cell
@@ -5465,4 +5475,60 @@ var localContext = eventQueue.push({
   + constant border allocation is causing unevenness
   + even though it's a small total (16px)
     + it still needs to be allocated according to the cells
+
+* fix two broken images
+  + expand memory_limit
+  + drop unused text file
+
+* get PHP test suite running again
+  + with layout in AddonBundle
+  = it is running
+    + there's a silent error in there about reading 0 bytes
+    + but it's good enough
+
+* jump back from fullscreen isn't quite right
+  + even without flow
+  + it jumps further back than it should
+  + trick is reading offseq ahead of the breadth change
+    + the existing URL is probably out of date
+      + unless we happen to fullscreen the current (selected) image
+    + but we can readback a new offseq
+
+* make right arrow advance by a column
+  + because up/down should take you up and down
+  + but left/right should travel
+    + always, not only when wrapping around a column (minor)
+  + only when going horizontal
+
+* push settings into javascript
+  + generically
+  + start with GA js
+
+* stick version number from ImageMetadata
+  + as sfun_version
+  + push into settings->client
+
+* v=undefined
+  + not getting version number yet
+
+* GA add hooks
+  + add track->event() call to key points across codebase
+  + event (action), category, label
+  + could categorise using current state
+    b=1, d=x
+    + breadth
+    + direction
+    - not
+      - offseq (too transitory)
+  + possibly label = seq
+    + might be interesting to track where the events take place
+      + will almost certainly generalise
+      + stuff other parameters in there
+        + because label is searchable
+        + GA filters are quite good
+  + we want to be able to differentiate
+    + scroll events that we originate
+    + from those that are genuinely fired by a scroll
+
+* GA track event add image clicks
 
