@@ -1947,17 +1947,17 @@ window.sfun = (function($, undefined) {
     if (direction == undefined) {
       direction = getDirection();
     }
+    var gutter = getGutter();
     var viewport_base = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
     var image_pos = $cell(seq).offset();
-    var image_base = (direction == 'x' ? image_pos.left : image_pos.top);
+    var image_base = (direction == 'x' ? image_pos.left : image_pos.top) - gutter;
     // find current offset of image within viewport, to 0DP
     var offseq = exp.api_round(image_base - viewport_base, 0);
     // work out max offseq can be to keep selected image in view
     var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight());
     var cell_major = (direction == 'x' ? $cell(seq).width() : $cell(seq).height());
-    var border = getGutter();
-    var max_offseq = viewport_major - cell_major - border;
-    var min_offseq = 0 + border;
+    var max_offseq = viewport_major - cell_major - gutter;
+    var min_offseq = 0 + gutter;
     // crop offseq against window bounds allowing for image bounds
     var cropped = Math.max(Math.min(offseq, max_offseq), min_offseq);
     return cropped;
