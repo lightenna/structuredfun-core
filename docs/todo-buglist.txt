@@ -1,21 +1,14 @@
 
+* fix two broken images
+  + expand memory_limit
+  + drop subfolder
+
+* chrome getting stuck behind an event
+  + not sure why
+  + only happens in chrome
+
 * get PHP test suite running again
   + with layout in AddonBundle
-
-* 4px creep when doing arrow next/previous/next/previous
-  + it's because we're not reading out the gutter
-    + when we're calculating the next offseq
-  + offseq is incrementing
-    + each read of position is true
-    + but each write has a + gutter on it
-      + solution is to subtract gutter from read
-    + confirmed that it's caused by flow.js
-      + but I'm not sure it's imageCentreOffseq
-        + because we're not actually trying to centre the image
-    + could be imageStillShiftOffseq
-      + but addition of + gutter I think is done in flow.js
-        + ha it's not
-        + it's in envisionSeq
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -41,10 +34,6 @@
   + can get stuck
     + I think it's to do with offseq
     + perhaps offseq > last image width
-
-* chrome getting stuck behind an event
-  + not sure why
-  + only happens in chrome
 
 --- next demo release
 
@@ -5450,4 +5439,30 @@ var localContext = eventQueue.push({
         $l->layout(4, 'y');
         $l->layout(8, 'x');
         $l->layout(8, 'y');
+
+* 4px creep when doing arrow next/previous/next/previous
+  + it's because we're not reading out the gutter
+    + when we're calculating the next offseq
+  + offseq is incrementing
+    + each read of position is true
+    + but each write has a + gutter on it
+      + solution is to subtract gutter from read
+    + confirmed that it's caused by flow.js
+      + but I'm not sure it's imageCentreOffseq
+        + because we're not actually trying to centre the image
+    + could be imageStillShiftOffseq
+      + but addition of + gutter I think is done in flow.js
+        + ha it's not
+        + it's in envisionSeq
+      + it's the offseq calculation that's wrong
+        + because it's incrementing
+        + so that's the place to subtract it from
+
+* remove data- attributes from noscript
+  + contradiction
+
+* variable width cells
+  + constant border allocation is causing unevenness
+  + even though it's a small total (16px)
+    + it still needs to be allocated according to the cells
 

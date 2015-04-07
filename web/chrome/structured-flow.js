@@ -337,8 +337,11 @@
    */
   var _cellsResizeBucketMinor = function(bucket, minorTotal, parentMinor) {
     var direction = sfun.api_getDirection();
+    // calculate the total gutter+alley for all images
+    var gutter_total = 2 * sfun.api_getGutter() * bucket.length;
     // change the cell minor according to proportion of total
-    var proportionTotal = 0;
+    var proportion_sofar = 0;
+    var gutter_proportional_sofar = 0;
     var maxMajor = 0;
     for (var i = 0 ; i<bucket.length ; ++i) {
       var $ent = bucket[i];
@@ -347,20 +350,23 @@
       var ratio = $boundable.data('ratio');
       var normalMinor = (direction == 'x' ? $ent.width() / ratio : $ent.height() * ratio);
       // calculate proportion as a percentage, round to 1 DP
-      var proportion = sfun.api_round( normalMinor * 100 / minorTotal, 1);
+      var proportion = sfun.api_round( 100 * normalMinor / minorTotal, 1);
+      var gutter_proportional = sfun.api_round( gutter_total * normalMinor / minorTotal, 1);
       var absolute = sfun.api_round( normalMinor * parentMinor / minorTotal, 1);
       // if this is the last cell in the bucket, fill to 100%
       if (i == bucket.length-1) {
-        proportion = 100 - proportionTotal;
+        proportion = 100 - proportion_sofar;
+        gutter_proportional = gutter_total - gutter_proportional_sofar;
       } else {
         // otherwise tot up proportions so far
-        proportionTotal += proportion;
+        proportion_sofar += proportion;
+        gutter_proportional_sofar += gutter_proportional;
       }
       // apply percentage to cell minor
       var propname = (direction == 'x' ? 'height': 'width');
       if (Modernizr.csscalc) {
         // set property using css calc to accommodate margins
-        $ent[0].style[propname] = 'calc('+proportion+'% - '+(2 * sfun.api_getGutter())+'px)';      
+        $ent[0].style[propname] = 'calc('+proportion+'% - '+gutter_proportional+'px)';
       } else {
         $ent.css(propname, proportion +'%');
       }        
