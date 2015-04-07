@@ -874,36 +874,44 @@ window.sfun = (function($, undefined) {
     });
     // horizontal or vertical layout
     $('#flow-x').click(function(event) {
+      fireTrackEvent('header_x');
       fireHashUpdate( { 'direction': 'x' }, false);
       event.preventDefault();
     });
     $('#flow-y').click(function(event) {
+      fireTrackEvent('header_y');
       fireHashUpdate( { 'direction': 'y' }, false);
       event.preventDefault();
     });
     // light or dark theme
     $('#theme-light').click(function(event) {
+      fireTrackEvent('header_light');
       fireHashUpdate( { 'theme': 'theme-light' }, false);
       event.preventDefault();
     });
     $('#theme-dark').click(function(event) {
+      fireTrackEvent('header_dark');
       fireHashUpdate( { 'theme': 'theme-dark' }, false);
       event.preventDefault();
     });
     // 1x, 2x, 4x, or 8x
     $('#flow-1').click(function(event) {
+      fireTrackEvent('header_1');
       fireHashUpdate( { 'breadth': 1 }, false);
       event.preventDefault();
     });
     $('#flow-2').click(function(event) {
+      fireTrackEvent('header_2');
       fireHashUpdate( { 'breadth': 2 }, false);
       event.preventDefault();
     });
     $('#flow-4').click(function(event) {
+      fireTrackEvent('header_4');
       fireHashUpdate( { 'breadth': 4 }, false);
       event.preventDefault();
     });
     $('#flow-8').click(function(event) {
+      fireTrackEvent('header_8');
       fireHashUpdate( { 'breadth': 8 }, false);
       event.preventDefault();
     });
@@ -3642,6 +3650,34 @@ window.sfun = (function($, undefined) {
     return localContext.deferred;
   };
 
+  /**
+   * send analytics event
+   * always called before we enact a keypress/click
+   */
+  var fireTrackEvent = function(event, category, label) {
+    if (exp.settings.ga_id != null) {
+      // don't overwrite category if set
+      if (category == undefined) {
+        // assemble category from view state
+        category = 'b='+getBreadth()+'&d='+getDirection();
+      }
+      // but always append image seq and software version
+      var label_additions = 'seq='+getSeq()+'&v='+exp.settings.sfun_version;
+      if (label == undefined) {
+        label = label_additions;
+      } else {
+        label += '&'+label_additions;
+      }
+    }
+    // buffer track event call slightly to avoid key-action or click-action latency
+    setTimeout(function() {
+      if (debug && true) {
+        console.log('send trackEvent('+category+', '+event+', '+label+')')
+      }
+      // send event to Google
+    }, 1000);
+  };
+
   // -------------------------
   // FUNCTIONS: event handlers
   // -------------------------
@@ -3739,7 +3775,8 @@ window.sfun = (function($, undefined) {
    */
   var handlerScrolled = function(event, sx, sy) {
     var that = this;
-    var key = 'scroll:'+'x='+sx+'&y='+sy;
+    var keyargs = 'x='+sx+'&y='+sy;
+    var key = 'scroll:'+keyargs;
     var eventContext = eventQueue.get(key);
     if (debug && false) {
       console.log('handlerScrolled key['+key+']');
@@ -3761,6 +3798,8 @@ window.sfun = (function($, undefined) {
         });
         // process this event if we're meant to
         return eventQueue.actOnContext(eventContext, function() {
+          // store context in event in case we need it when processing
+          event.eventContext = eventContext;
           return handlerScrolled_eventProcess(event, sx, sy);
         });
       },
@@ -3775,6 +3814,8 @@ window.sfun = (function($, undefined) {
         function() {
           // process this event if we're meant to as we originated it
           return eventQueue.actOnContext(eventContext, function() {
+            // store context in event in case we need it when processing
+            event.eventContext = eventContext;
             return handlerScrolled_eventProcess(event, sx, sy);
           });
         },
@@ -3792,6 +3833,14 @@ window.sfun = (function($, undefined) {
    * downstream of: EVENT scroll
    */
   var handlerScrolled_eventProcess = function(event, sx, sy) {
+    if (event.eventContext !== undefined) {
+      // can use 'dumpable' for now as a good proxy for 'invented'
+      if (event.eventContext.dumpable) {
+        // only track scroll events that we didn't invent
+        var keyargs = 'x='+sx+'&y='+sy;
+        fireTrackEvent('scroll', undefined, keyargs);
+      }
+    }
     // invert deltas to match scroll wheel
     if (this.scroll_lastX_static == undefined) {
       event.deltaX = 0 - sx;
@@ -3865,9 +3914,11 @@ window.sfun = (function($, undefined) {
           urlChangeUp();
         } else {
           event.preventDefault();
+          fireTrackEvent('key_arrow_up');
           // advance to previous image
           eventContext.animateable = exp.implicitScrollDURATION;
-          return imageAdvanceBy(-1, eventContext);
+          // or if direction is same as arrow, jump back by breadth
+          return imageAdvanceBy(getDirection() == 'y' ? -getBreadth() : -1, eventContext);
         }
         break;
 
@@ -3875,15 +3926,30 @@ window.sfun = (function($, undefined) {
       case exp.KEY_ARROW_LEFT:
         if (!event.altKey) {
           event.preventDefault();
+          fireTrackEvent('key_arrow_left');
           // advance to previous image
           eventContext.animateable = exp.implicitScrollDURATION;
-          return imageAdvanceBy(-1, eventContext);
+          // or if direction is same as arrow, jump back by breadth
+          return imageAdvanceBy(getDirection() == 'x' ? -getBreadth() : -1, eventContext);
         }
         break;
       case exp.KEY_ARROW_RIGHT:
-      case exp.KEY_TAB:
+        event.preventDefault();
+        fireTrackEvent('key_arrow_right');
+        // advance to previous image
+        eventContext.animateable = exp.implicitScrollDURATION;
+        // or if direction is same as arrow, jump forward by breadth
+        return imageAdvanceBy(getDirection() == 'x' ? getBreadth() : 1, eventContext);
       case exp.KEY_ARROW_DOWN:
         event.preventDefault();
+        fireTrackEvent('key_arrow_down');
+        // advance to next image
+        eventContext.animateable = exp.implicitScrollDURATION;
+        // or if direction is same as arrow, jump forward by breadth
+        return imageAdvanceBy(getDirection() == 'y' ? getBreadth() : 1, eventContext);
+      case exp.KEY_TAB:
+        event.preventDefault();
+        fireTrackEvent('key_tab');
         // advance to next image
         eventContext.animateable = exp.implicitScrollDURATION;
         return imageAdvanceBy(1, eventContext);
@@ -3900,6 +3966,8 @@ window.sfun = (function($, undefined) {
           eventContext.animateable = exp.implicitScrollDURATION;
           // apply position change as relative offset
           var pagedir = (event.which == exp.KEY_PAGE_DOWN ? +1 : -1);
+          // send track event
+          fireTrackEvent(event.which == exp.KEY_PAGE_DOWN ? 'key_page_down' : 'key_page_up');
           // envisionPos() using relative offset
           if (getDirection() == 'x') {
             return envisionPos( {'scrollLeft': pagedir * cellcount * cellmajor }, eventContext, true);
@@ -3911,44 +3979,54 @@ window.sfun = (function($, undefined) {
 
       case exp.KEY_HOME:
         event.preventDefault();
+        fireTrackEvent('key_home');
         return imageAdvanceTo(0, eventContext);
       case exp.KEY_END:
         event.preventDefault();
+        fireTrackEvent('key_end');
         return imageAdvanceTo(getTotalEntries()-1, eventContext);
 
       // change breadth
       case exp.KEY_NUMBER_1:
         event.preventDefault();
+        fireTrackEvent('key_1');
         return fireHashUpdate( { 'breadth': 1 }, false, eventContext);
       case exp.KEY_NUMBER_2:
         event.preventDefault();
+        fireTrackEvent('key_2');
         return fireHashUpdate( { 'breadth': 2 }, false, eventContext);
       case exp.KEY_NUMBER_4:
         event.preventDefault();
+        fireTrackEvent('key_4');
         return fireHashUpdate( { 'breadth': 4 }, false, eventContext);
       case exp.KEY_NUMBER_8:
         event.preventDefault();
+        fireTrackEvent('key_8');
         return fireHashUpdate( { 'breadth': 8 }, false, eventContext);
 
       // plus and minus effectively zoom in and out using breadth
       case exp.KEY_PLUS:
       case exp.KEY_EQUALS:
         event.preventDefault();
+        fireTrackEvent('key_plus');
         return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), -1) }, false, eventContext);
       case exp.KEY_MINUS:
       case exp.KEY_UNDERSCORE:
         event.preventDefault();
+        fireTrackEvent('key_minus');
         return fireHashUpdate( { 'breadth': getBreadthNext(getBreadth(), +1) }, false, eventContext);
 
       // change between horizontal and vertical
       case exp.KEY_H_UPPER:
       case exp.KEY_H_LOWER:
         event.preventDefault();
+        fireTrackEvent('key_h');
         var offseq = imageCentreOffseq('x');
         return fireHashUpdate( { 'direction': 'x', 'offseq': offseq }, false, eventContext);
       case exp.KEY_V_UPPER:
       case exp.KEY_V_LOWER:
         event.preventDefault();
+        fireTrackEvent('key_v');
         var offseq = imageCentreOffseq('y');
         return fireHashUpdate( { 'direction': 'y', 'offseq': offseq }, false, eventContext);
     }
@@ -4016,6 +4094,7 @@ window.sfun = (function($, undefined) {
     if (debug && false) {
       console.log('bindToImageLinks click event on selector['+selector+']');
     }
+    fireTrackEvent('image_clicked', undefined, 'click='+$ent.data('seq')+'&selector='+selector);
     // setup event to allow delegates to deactivate
     event.sfun_active = true;
     // delegate image click to tool receivers
@@ -4350,6 +4429,11 @@ window.sfun = (function($, undefined) {
     imageStatusPENDING: 0,
     imageStatusLOADED:  1,
     imageStatusRERESED:  2,
+    // settings (default settings)
+    settings: {
+      'ga_id': null,
+      'sfun_version': '0.0.1',
+    },
 
     /**
      * add a button to the header
@@ -4414,6 +4498,27 @@ window.sfun = (function($, undefined) {
     'api_setDefaults': function(list) {
       for (var key in list) {
         state_default[key] = list[key];
+      }
+    },
+
+    /**
+     * ingest settings
+     * @param {obj} list list of settings
+     */
+    'api_setSettings': function(list) {
+      for (var key in list) {
+        // if we've defined the setting, allow it to be set
+        if (this.settings[key] !== undefined) {
+          this.settings[key] = list[key];
+          // debug variable unpopulated at this stage, so just true|false
+          if (false) {
+            console.log('set setting '+key+'='+list[key]);
+          }
+        } else {
+          if (false) {
+            console.log('not setting '+key+'='+list[key]);
+          }
+        }
       }
     },
 
@@ -4579,6 +4684,15 @@ window.sfun = (function($, undefined) {
     },
 
     /**
+     * @param {int} offseq Set offseq to internal store
+     * This is usually set by URL (hash -> handlerHashChanged)
+     * but this api call is useful for history correction
+     */
+    'api_setOffseq': function(offseq) {
+      return setOffseq(offseq);
+    },
+
+    /**
      * @param {int} value to set for thumb's longest edge
      */
     'api_setLastLongest': function(llong) {
@@ -4688,7 +4802,7 @@ window.sfun = (function($, undefined) {
 
     /**
      * @param {int} seq sequence number of image that's being selected
-     * @param {string} direction
+     * @param {string} [optional] direction
      * @return {int} offseq value to keep image exactly where it is in the current viewport
      */
     'api_imageStillShiftOffseq': function(seq, direction) {

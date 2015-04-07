@@ -154,6 +154,10 @@
         if (sfun.api_getBreadth() == 1) {
           return sfun.api_fireHashUpdate( sfun.api_overwritePreviousState({ 'seq': seq }), false, eventContext);
         } else {
+          // update offseq (to what it should be already) before going fullscreen
+          var outgoing_offseq = sfun.api_imageStillShiftOffseq(seq);
+          sfun.api_setOffseq(outgoing_offseq);
+          // update URL to go to fullscreen (b=1)
           return sfun.api_fireHashUpdate( { 'breadth': 1, 'seq': seq, 'offseq': offseq }, false, eventContext);
         }
         break;
