@@ -63,7 +63,7 @@ class ViewController extends Controller {
       }
     }
     // add in server-generated client settings
-    if (!is_array($this->settings['client'])) {
+    if (!isset($this->settings['client']) || !is_array($this->settings['client'])) {
       $this->settings['client'] = array();
     }
     $this->settings['client']['sfun_version'] = SFUN_VERSION;
