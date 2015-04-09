@@ -1,4 +1,15 @@
 
+* folders are linking using ~dir~ aliases
+  + they don't need to
+    + and it looks weird in URL address bars
+  + can and should use / notation
+
+* 302s are going back to the browser
+  + we want to hide the fact that the URL is changing
+    + if at all possible
+  + there's no need for the browser to know
+    + that the image is being served from a cache
+
 * GA track event generating a few too many scroll events
   + it's including the ones that we generate
 
