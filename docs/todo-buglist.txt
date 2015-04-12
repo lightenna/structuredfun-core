@@ -1,24 +1,4 @@
 
-* folders are linking using ~dir~ aliases
-  + they don't need to
-    + and it looks weird in URL address bars
-  + can and should use / notation
-
-* 302s are going back to the browser
-  + we want to hide the fact that the URL is changing
-    + if at all possible
-  + there's no need for the browser to know
-    + that the image is being served from a cache
-
-* GA track event generating a few too many scroll events
-  + it's including the ones that we generate
-
-* GA track event add menu items
-  + not seeing header_8 events
-
-* GA on sfun
-  + use _gaq track to push events
-
 * check that we haven't knocked sfun_version out of ImageMetadata
   + it's a definition
     + but I'm not sure we're picking it up from ViewController
@@ -58,6 +38,26 @@
   + seems to be getting stuck behind a scroll event
     + could be to do with the latent scroll event
       + where the browser injects a scroll event for its last position
+
+* folders are linking using ~dir~ aliases
+  + they don't need to
+    + and it looks weird in URL address bars
+  + can and should use / notation
+
+* 302s are going back to the browser
+  + we want to hide the fact that the URL is changing
+    + if at all possible
+  + there's no need for the browser to know
+    + that the image is being served from a cache
+
+* GA track event generating a few too many scroll events
+  + it's including the ones that we generate
+
+* GA track event add menu items
+  + not seeing header_8 events
+
+* GA on sfun
+  + use _gaq track to push events
 
 * wheeling through narrow images on widescreen display
   + can get stuck
