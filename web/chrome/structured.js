@@ -2701,7 +2701,7 @@ window.sfun = (function($, undefined) {
        */
       'visualisationLog': function(action, object) {
         var action = action + '['+(object % 1000)+']';
-        if (debug && false) {
+        if (debug && true) {
           console.log(action);
         }
       },
@@ -3778,7 +3778,7 @@ window.sfun = (function($, undefined) {
     var keyargs = 'x='+sx+'&y='+sy;
     var key = 'scroll:'+keyargs;
     var eventContext = eventQueue.get(key);
-    if (debug && false) {
+    if (debug && true) {
       console.log('handlerScrolled key['+key+']');
     }
     // if this is a fresh event that we didn't fire
@@ -3806,6 +3806,9 @@ window.sfun = (function($, undefined) {
       // drop function to execute if we're dumping this event
       function(){
         // nothing to do
+        if (debug && true) {
+          console.log('dumped buffered scroll event, no context, key['+key+']');
+        }
       }, exp.implicitScrollBUFFER);
     } else {
       // still buffer to ensure we drop the previous event and delay slightly for animation
@@ -3822,6 +3825,9 @@ window.sfun = (function($, undefined) {
         // no drop function, as normal
         function() {
           // nothing to do
+          if (debug && true) {
+            console.log('dumped buffered scroll event, with context, key['+key+']');
+          }
         },
       exp.implicitScrollBUFFER);
     }
