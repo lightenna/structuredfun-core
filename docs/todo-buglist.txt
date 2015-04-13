@@ -1,8 +1,44 @@
 
+* chrome getting stuck behind an event
+  + not sure why
+  + only happens in chrome
+    + happens when seq > 0
+    + so can do a fast base load of blank URL
+  + seems to be getting stuck behind a scroll event
+    + could be to do with the latent scroll event
+      + where the browser injects a scroll event for its last position
+  + show event handler traffic
+    + event sequence
+0:hash seq
+    + fires scroll event
+  1:scroll 2106
+    + somehow another scroll event gets pushed
+  2:scroll 1182
+    + and delayed
+  + so 2 isn't being allowed to execute
+    + because 1's outstanding (child of 0)
+  + check expiries kills 0
+    + which allows 2 to execute
+  + couple of solutions
+    1 numb out the extraneous last-scroll-from-browser event
+      + not sure at this stage how reliably we can do that
+    2 unlock scroll so that we can't get into the position
+      + of waiting for a scroll event that doesn't come
+        + because it looks like it does come
+        + but doesn't get dealt with
+          + I guess because we dump it
+            + bingo
+      + we mustn't just dump it
+        + maybe we have to resolve it first
+
 * check that we haven't knocked sfun_version out of ImageMetadata
   + it's a definition
     + but I'm not sure we're picking it up from ViewController
   + worth checking
+  + write a simple PHP unit test
+    + just instantiate a new instance of ImageMetadata
+    + test version number is set
+      + strlen >= 3 is fine
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -29,15 +65,6 @@
   + it's viewport height dependent
     + can get to penultimate one when full-height
       + but can't get to penultimate when firebug loaded
-
-* chrome getting stuck behind an event
-  + not sure why
-  + only happens in chrome
-    + happens when seq > 0
-    + so can do a fast base load of blank URL
-  + seems to be getting stuck behind a scroll event
-    + could be to do with the latent scroll event
-      + where the browser injects a scroll event for its last position
 
 * folders are linking using ~dir~ aliases
   + they don't need to
