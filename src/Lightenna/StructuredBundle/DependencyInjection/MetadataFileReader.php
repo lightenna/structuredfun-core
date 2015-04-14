@@ -63,7 +63,8 @@ class MetadataFileReader extends FileReader {
       $mdata = getimagesize($uri, $info);
       $md = $md->read($mdata, $info);
     } else {
-      print('Error: problem reading '.$this->file_part_leaf.', length '.strlen($imgdata).' bytes'."<br />\r\n");
+      // debug_print_backtrace();
+      print('Error: problem reading '.$this->file_part.', length '.strlen($imgdata).' bytes'."<br />\r\n");
     }
     return $md;
   }

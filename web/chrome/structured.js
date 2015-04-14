@@ -2701,7 +2701,7 @@ window.sfun = (function($, undefined) {
        */
       'visualisationLog': function(action, object) {
         var action = action + '['+(object % 1000)+']';
-        if (debug && true) {
+        if (debug && false) {
           console.log(action);
         }
       },
@@ -3597,6 +3597,8 @@ window.sfun = (function($, undefined) {
     if (debug && false) {
       console.log('* fired scroll event '+eventQueue.render(localContext));
     }
+// delete me
+console.log('fireScroll', localContext);
     // fire event: change the scroll position
     fireScrollActual(target, animate);
     // if we've yet to setup an event handler
@@ -3778,7 +3780,7 @@ window.sfun = (function($, undefined) {
     var keyargs = 'x='+sx+'&y='+sy;
     var key = 'scroll:'+keyargs;
     var eventContext = eventQueue.get(key);
-    if (debug && true) {
+    if (debug && false) {
       console.log('handlerScrolled key['+key+']');
     }
     // if this is a fresh event that we didn't fire
@@ -3806,7 +3808,7 @@ window.sfun = (function($, undefined) {
       // drop function to execute if we're dumping this event
       function(){
         // nothing to do
-        if (debug && true) {
+        if (debug && false) {
           console.log('dumped buffered scroll event, no context, key['+key+']');
         }
       }, exp.implicitScrollBUFFER);
@@ -3824,9 +3826,11 @@ window.sfun = (function($, undefined) {
         },
         // no drop function, as normal
         function() {
+          // resolve dumped context, because other things may be dependent on it
+          eventQueue.resolve(eventContext);
           // nothing to do
-          if (debug && true) {
-            console.log('dumped buffered scroll event, with context, key['+key+']');
+          if (debug && false) {
+            console.log('resolved and dumped buffered scroll event, with context, key['+key+']');
           }
         },
       exp.implicitScrollBUFFER);
@@ -3845,6 +3849,7 @@ window.sfun = (function($, undefined) {
         // only track scroll events that we didn't invent
         var keyargs = 'x='+sx+'&y='+sy;
         fireTrackEvent('scroll', undefined, keyargs);
+        console.log(event.eventContext);
       }
     }
     // invert deltas to match scroll wheel

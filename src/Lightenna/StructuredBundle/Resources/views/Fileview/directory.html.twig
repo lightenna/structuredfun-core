@@ -14,11 +14,11 @@
         {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="subcell" data-seq="{{ file.seq }}-{{ img_prev_n }}">
         <span class="container directory-container directory-inner">
           <img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="loadable boundable reresable"
-               data-meta-src="/imagemeta/{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
-               data-desrc="/image/{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
-               data-template-src="/image/{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
+               data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
+               data-desrc="/image/{{ linkaliased }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{{ argsdefault }}"
+               data-template-src="/image/{{ linkaliased }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}"
                alt="directory preview thumbnail" />
-          <noscript><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image/{{ linkpath }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" /></noscript>
+          <noscript><img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="preview preview-{{ img_prev_n }}" src="/image/{{ linkaliased }}{{ file.name }}/[i{{ img_prev_n }}]{{ argsbase }}maxshortest=200&clipwidth=200&clipheight=150" alt="directory preview thumbnail" /></noscript>
         </span>
         </li>{% endfor %}
       </ul>
@@ -33,18 +33,18 @@
 {% elseif (file.type == 'image') or (file.type == 'video') %}
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type
   " data-seq="{{ file.seq }}">
-    <a class="container media-container {{ file.type }}-container" href="/image/{{ linkpath }}{{ file.name }}">
+    <a class="container media-container {{ file.type }}-container" href="/image/{{ linkaliased }}{{ file.name }}">
       <img class="loadable reresable boundable {{ file.metadata.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            {# metadata source #}
-           data-meta-src="/imagemeta/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
+           data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            {# thumbnail source when first loaded #}
-           data-desrc="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
+           data-desrc="/image/{{ linkaliased }}{{ file.name }}{{ argsbase }}{{ argsdefault }}"
            {# thumbnail source for dynamic reresing #}
-           data-template-src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}{% if file.type == 'video' %}{% verbatim %}&timecode={{ timecode }}{% endverbatim %}{% endif %}"
+           data-template-src="/image/{{ linkaliased }}{{ file.name }}{{ argsbase }}{% verbatim %}maxwidth={{ maxwidth }}&maxheight={{ maxheight }}{% endverbatim %}{% if file.type == 'video' %}{% verbatim %}&timecode={{ timecode }}{% endverbatim %}{% endif %}"
       {% if (file.type == 'video') %}
            {# video source #}
-           data-video-src="/file/{{ linkpath }}{{ file.name }}"
+           data-video-src="/file/{{ linkaliased }}{{ file.name }}"
            data-video-type="{{ file.ext }}"
       {% endif %}
            {% if file.metadata.Status is defined %}data-status="{{ file.metadata.Status }}" {% endif %}
@@ -57,7 +57,7 @@
 #}
            data-loaded="false"
            data-seq="{{ file.seq }}" />
-      <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image/{{ linkpath }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" /></noscript>
+      <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image/{{ linkaliased }}{{ file.name }}{{ argsbase }}{{ argsdefault }}" alt="image thumbnail for {{ file.alias}}" /></noscript>
       <span class="meta">
         <span class="base">
           <span class="imgmetric super"><span class="size"><span class="width">{% if file.metadata.LoadedWidth is not null %}{{ file.metadata.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.metadata.LoadedHeight is not null %}{{ file.metadata.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
