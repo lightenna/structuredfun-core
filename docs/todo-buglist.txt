@@ -1,44 +1,18 @@
 
-* chrome getting stuck behind an event
-  + not sure why
-  + only happens in chrome
-    + happens when seq > 0
-    + so can do a fast base load of blank URL
-  + seems to be getting stuck behind a scroll event
-    + could be to do with the latent scroll event
-      + where the browser injects a scroll event for its last position
-  + show event handler traffic
-    + event sequence
-0:hash seq
-    + fires scroll event
-  1:scroll 2106
-    + somehow another scroll event gets pushed
-  2:scroll 1182
-    + and delayed
-  + so 2 isn't being allowed to execute
-    + because 1's outstanding (child of 0)
-  + check expiries kills 0
-    + which allows 2 to execute
-  + couple of solutions
-    1 numb out the extraneous last-scroll-from-browser event
-      + not sure at this stage how reliably we can do that
-    2 unlock scroll so that we can't get into the position
-      + of waiting for a scroll event that doesn't come
-        + because it looks like it does come
-        + but doesn't get dealt with
-          + I guess because we dump it
-            + bingo
-      + we mustn't just dump it
-        + maybe we have to resolve it first
-
-* check that we haven't knocked sfun_version out of ImageMetadata
-  + it's a definition
-    + but I'm not sure we're picking it up from ViewController
-  + worth checking
-  + write a simple PHP unit test
-    + just instantiate a new instance of ImageMetadata
-    + test version number is set
-      + strlen >= 3 is fine
+* GA track event generating a few too many scroll events
+  + scroll events do settle
+    + they work nicely a lot of the time
+  + it's including the ones that we generate
+    + clicking an image fullscreen
+      + generates a scroll event
+      + look for a flag that holds whether we generated the event or not
+    + I suspect we're not pushing a context through
+      + it's probably just a scroll
+        + check?
+      + there quite a complex journey
+        + from hashChange to fireScroll to handlerScrolled
+      + fireScroll and handlerScrolled don't match up
+        + are they different events?
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -66,25 +40,17 @@
     + can get to penultimate one when full-height
       + but can't get to penultimate when firebug loaded
 
-* folders are linking using ~dir~ aliases
-  + they don't need to
-    + and it looks weird in URL address bars
-  + can and should use / notation
+* GA on sfun
+  + use _gaq track to push events
+
+* chrome shuffles towards 0
+  + when refreshing non-zero seq
 
 * 302s are going back to the browser
   + we want to hide the fact that the URL is changing
     + if at all possible
   + there's no need for the browser to know
     + that the image is being served from a cache
-
-* GA track event generating a few too many scroll events
-  + it's including the ones that we generate
-
-* GA track event add menu items
-  + not seeing header_8 events
-
-* GA on sfun
-  + use _gaq track to push events
 
 * wheeling through narrow images on widescreen display
   + can get stuck
@@ -5569,4 +5535,62 @@ var localContext = eventQueue.push({
     + from those that are genuinely fired by a scroll
 
 * GA track event add image clicks
+
+* chrome getting stuck behind an event
+  + not sure why
+  + only happens in chrome
+    + happens when seq > 0
+    + so can do a fast base load of blank URL
+  + seems to be getting stuck behind a scroll event
+    + could be to do with the latent scroll event
+      + where the browser injects a scroll event for its last position
+  + show event handler traffic
+    + event sequence
+0:hash seq
+    + fires scroll event
+  1:scroll 2106
+    + somehow another scroll event gets pushed
+  2:scroll 1182
+    + and delayed
+  + so 2 isn't being allowed to execute
+    + because 1's outstanding (child of 0)
+  + check expiries kills 0
+    + which allows 2 to execute
+  + couple of solutions
+    1 numb out the extraneous last-scroll-from-browser event
+      + not sure at this stage how reliably we can do that
+    2 unlock scroll so that we can't get into the position
+      + of waiting for a scroll event that doesn't come
+        + because it looks like it does come
+        + but doesn't get dealt with
+          + I guess because we dump it
+            + bingo
+      + we mustn't just dump it
+        + maybe we have to resolve it first
+
+* folders are linking using ~dir~ aliases
+  + they don't need to
+    + and it looks weird in URL address bars
+  + can and should use / notation
+
+* check that we haven't knocked sfun_version out of ImageMetadata
+  + it's a definition
+    + but I'm not sure we're picking it up from ViewController
+  + worth checking
+  + write a simple PHP unit test
+    + just instantiate a new instance of ImageMetadata
+    + test version number is set
+      + strlen >= 3 is fine
+
+* reading metadata on directory entries
+  + which causes errors
+    + print a trace
+    + print_debug_stacktrace kills the browser
+  + worked it out manually
+    + seems to go back to getDirectoryEntryMetadata
+      + to getAll()
+        + we force metadata reading without filtering for images
+
+* GA track event add menu items
+  + not seeing header_8 events
 

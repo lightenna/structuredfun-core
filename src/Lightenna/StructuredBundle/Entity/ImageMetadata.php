@@ -396,6 +396,9 @@ class ImageMetadata {
   // used by form api and JSON serializer
   //
 
+  public function getVersion() {
+    return $this->sfun_version;
+  }
   public function getIptcHeadline() {
     return $this->iptc_headline;
   }

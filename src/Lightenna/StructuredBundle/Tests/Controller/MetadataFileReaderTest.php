@@ -3,9 +3,16 @@
 namespace Lightenna\StructuredBundle\Tests\Controller;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Lightenna\StructuredBundle\Controller\ViewController;
+use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 
 class MetadataFileReaderTest extends WebTestCase {
+
+  public function testImageMetadata() {
+    $m = new ImageMetadata();
+    // check that version string has at least major.minor format (X.Y)
+    $this->assertEquals(strlen($m->getVersion()) >= 3, true);
+  }
 
   public function testGetListing() {
     $t = new ViewController();

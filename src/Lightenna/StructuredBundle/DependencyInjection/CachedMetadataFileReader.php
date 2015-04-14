@@ -210,6 +210,10 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
   public function getAll($listing, $force = false) {
     foreach ($listing as &$entry) {
+      // skip directories
+      if ($entry->getType() == 'directory') {
+        continue;
+      }
       // memory usage doesn't seem to increase
       // var_dump(memory_get_usage());
       // force an image load to get image dimensions
