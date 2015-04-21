@@ -234,19 +234,6 @@ class ImageviewController extends ViewController {
   }
 
   /**
-   * Output an image with correct headers
-   * @param string $imgdata Raw image data as a string
-   */
-  private function returnImage($imgdata) {
-    if (!headers_sent()) {
-      header("Content-Type: image/" . $this->stats->getExt());
-      header("Content-Length: " . strlen($imgdata));
-    }
-    echo $imgdata;
-    exit;
-  }
-
-  /**
    * load image into a buffer
    * @return string image as a string
    **/
