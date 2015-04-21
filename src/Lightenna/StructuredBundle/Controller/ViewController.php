@@ -340,6 +340,23 @@ class ViewController extends Controller {
   }
 
   /**
+   * Output an image with correct headers
+   * @param string $imgdata Raw image data as a string
+   */
+  protected function returnImage($imgdata) {
+    $ext = 'jpeg';
+    if (isset($this->{'stats'})) {
+      $ext = $this->stats->getExt();
+    }
+    if (!headers_sent()) {
+      header("Content-Type: image/" . $ext);
+      header("Content-Length: " . strlen($imgdata));
+    }
+    echo $imgdata;
+    exit;
+  }
+
+  /**
    * @return URL name without trailing slash
    */
 

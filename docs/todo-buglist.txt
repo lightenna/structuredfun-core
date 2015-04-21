@@ -1,18 +1,36 @@
 
-* GA track event generating a few too many scroll events
-  + scroll events do settle
-    + they work nicely a lot of the time
-  + it's including the ones that we generate
-    + clicking an image fullscreen
-      + generates a scroll event
-      + look for a flag that holds whether we generated the event or not
-    + I suspect we're not pushing a context through
-      + it's probably just a scroll
-        + check?
-      + there quite a complex journey
-        + from hashChange to fireScroll to handlerScrolled
-      + fireScroll and handlerScrolled don't match up
-        + are they different events?
+* dynamically add AddonBundle's routing.yml
+  + currently it's a static reference in app/routing.yml
+lightenna_structured_addon:
+    resource: "@LightennaStructuredAddonBundle/Resources/config/routing.yml"
+    prefix:   /
+    + which breaks if it's not present
+
+* look up how to get ? parameters using symfony routes
+  + canvas_width/height, tile_width/height
+  + not sure how to handle scale factor
+    + so that we can share code between getDyanmic and getDZI
+
+* check an individual image's metadata
+  + after a deserialise
+    + I think we're not pulling the fields in properly
+    + confirmed
+  = lookup a progressive deserialize
+    + there must be someone who's done it
+
+* create TileMaker class
+  + from existing nebula code
+  + check canvas size is coming out sensibly
+
+* make image tile
+  + setup as a generic service
+  + could be making a small tile (256x256) as part of a zoomable
+  + could be making a large collage (1600x800) for a social share
+  + cache
+    + should be able to share .htaccess code
+    + /image goes into the image folder
+      + so choose route that maps to a different folder
+      + e.g. /dyntile
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -42,22 +60,23 @@
 
 * GA on sfun
   + use _gaq track to push events
-
-* chrome shuffles towards 0
-  + when refreshing non-zero seq
+    = needs internet connection for reference
 
 * 302s are going back to the browser
   + we want to hide the fact that the URL is changing
     + if at all possible
   + there's no need for the browser to know
     + that the image is being served from a cache
+    = needs internet connection for reference
+
+* chrome shuffles towards 0
+  + when refreshing non-zero seq
+    + related to chrome's remembering 
 
 * wheeling through narrow images on widescreen display
   + can get stuck
     + I think it's to do with offseq
     + perhaps offseq > last image width
-
---- next demo release
 
 * make test suite work again
   + whole thing seems to have only 1 error
@@ -66,6 +85,28 @@
 
 * error images are doing strange things
   + on lappy they're way too small
+
+* minor bug: GA track event generating a few too many scroll events
+  + scroll events do settle
+    + they work nicely a lot of the time
+  + it's including the ones that we generate
+    + clicking an image fullscreen
+      + generates a scroll event
+      + look for a flag that holds whether we generated the event or not
+    + I suspect we're not pushing a context through
+      + it's probably just a scroll
+        + check?
+      + there quite a complex journey
+        + from hashChange to fireScroll to handlerScrolled
+      + fireScroll and handlerScrolled don't match up
+        + are they different events?
+--o--
+* image click generates scroll event
+  + fine but the event get tracked
+  + this is a very minor bug now
+    + not sure it's worth resolving now
+  + means that we have a few too many scroll events in the analytics
+    + but at the moment that's not the priority
 
 * feature: focus the light beam
   + make it surround just the current cell
@@ -5593,4 +5634,23 @@ var localContext = eventQueue.push({
 
 * GA track event add menu items
   + not seeing header_8 events
+
+* look up how to do a deserialise on json content
+  + we want to be able to use /layout route internally
+    + because it will handle caching
+    + and lends itself to service separation
+
+* try to get symfony to find AddonBundle routes
+  + works nicely
+
+* move AddonBundle out of the way
+  + try to make codebase behave without it
+  + haven't reached the conclusion of this
+    + need to manage app/routing.yml
+      + basically we can't reference AddonBundle's routing.yml
+        + because it may not exist
+
+* get codebase into a commitable state
+  + can't have static route inclusion
+  + need to find a way to add that back in
 

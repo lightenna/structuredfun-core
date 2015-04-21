@@ -19,6 +19,9 @@ class AppKernel extends Kernel
             // my bundles
             new Lightenna\StructuredBundle\LightennaStructuredBundle(),
         );
+        if (file_exists(__DIR__.'/../src/Lightenna/StructuredAddonBundle')) {
+            $bundles[] = new Lightenna\StructuredAddonBundle\LightennaStructuredAddonBundle();
+        }
 
         if (in_array($this->getEnvironment(), array('dev', 'test'))) {
             $bundles[] = new Symfony\Bundle\WebProfilerBundle\WebProfilerBundle();
