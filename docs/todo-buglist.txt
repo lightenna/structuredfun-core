@@ -1,10 +1,21 @@
 
+* /file/ route is broken
+Fatal error: Call to a member function setRawname() on boolean in C:\core\working\structuredfun-pc\structured\htdocs\src\Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader.php on line 225
+  + think we're just not covering off a case
+
+* send Jack a copy of the code
+  + Tic probably won't be interested
+
 * dynamically add AddonBundle's routing.yml
   + currently it's a static reference in app/routing.yml
 lightenna_structured_addon:
     resource: "@LightennaStructuredAddonBundle/Resources/config/routing.yml"
     prefix:   /
     + which breaks if it's not present
+
+* javascript error structured.js line 2554
+  + seems that position isn't always being set
+    + requesting a cell that's out of range?
 
 * look up how to get ? parameters using symfony routes
   + canvas_width/height, tile_width/height
