@@ -1,10 +1,18 @@
 
-* /file/ route is broken
-Fatal error: Call to a member function setRawname() on boolean in C:\core\working\structuredfun-pc\structured\htdocs\src\Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader.php on line 225
-  + think we're just not covering off a case
+* directories are not centring
+  + without flow
+    + the borders are unbalanced
+  + contrast with flow on
+    + spot the difference is hard
+      + it's not the outer
+  + looks like it's something to do with cell width
+    + very wide cells don't allocate the margin properly
 
-* send Jack a copy of the code
-  + Tic probably won't be interested
+* javascript error structured.js line 2554
+  + seems that position isn't always being set
+    + requesting a cell that's out of range?
+
+* failures in the PHP test suite
 
 * dynamically add AddonBundle's routing.yml
   + currently it's a static reference in app/routing.yml
@@ -12,10 +20,6 @@ lightenna_structured_addon:
     resource: "@LightennaStructuredAddonBundle/Resources/config/routing.yml"
     prefix:   /
     + which breaks if it's not present
-
-* javascript error structured.js line 2554
-  + seems that position isn't always being set
-    + requesting a cell that's out of range?
 
 * look up how to get ? parameters using symfony routes
   + canvas_width/height, tile_width/height
@@ -5664,4 +5668,15 @@ var localContext = eventQueue.push({
 * get codebase into a commitable state
   + can't have static route inclusion
   + need to find a way to add that back in
+
+* /file/ route is broken
+Fatal error: Call to a member function setRawname() on boolean in C:\core\working\structuredfun-pc\structured\htdocs\src\Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader.php on line 225
+  + think we're just not covering off a case
+  + it's caused by missing stats
+    + when we're trying to read a text file with no extension (LICENSE)
+  + sorted out weird getStats() calls
+
+* file//dir is breaking paths
+  + it's confined to '/'
+    + solved with a root case
 

@@ -273,7 +273,7 @@ class FileReader {
   /**
    * @return File entry for first item in listing (if directory) or only item (file)
    */
-  public function getStats() {
+  public function getStatsFromListingHead() {
     if ($this->listing === null) {
       $this->getListing();
     }
