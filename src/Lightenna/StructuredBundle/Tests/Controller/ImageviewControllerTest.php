@@ -86,7 +86,7 @@ class ImageviewControllerTest extends WebTestCase {
         'clipheight' => $restricted
       ));
     $wide_data_copy = ImageTransform::getImageData($wide);
-    $it = new ImageTransform($t->getArgs(), $wide_data_copy, $t->getStats());
+    $it = new ImageTransform($t->getArgs(), $wide_data_copy, $t->getStatsFromListingHead());
     $it->applyFilter();
     $this->assertEquals($it->getOutputWidth() == $restricted, true);
     $this->assertEquals($it->getOutputHeight() == $restricted, true);
@@ -96,7 +96,7 @@ class ImageviewControllerTest extends WebTestCase {
         'clipheight' => 2 * $long
       ));
     $data_copy = ImageTransform::getImageData($wide);
-    $it = new ImageTransform($t->getArgs(), $data_copy, $t->getStats());
+    $it = new ImageTransform($t->getArgs(), $data_copy, $t->getStatsFromListingHead());
     $it->applyFilter();
     $this->assertEquals($it->getOutputWidth() == $restricted, true);
     $this->assertEquals($it->getOutputHeight() == 2 * $long, true);
@@ -107,7 +107,7 @@ class ImageviewControllerTest extends WebTestCase {
         'clipheight' => $restricted
       ));
     $data_copy = ImageTransform::getImageData($tall);
-    $it = new ImageTransform($t->getArgs(), $data_copy, $t->getStats());
+    $it = new ImageTransform($t->getArgs(), $data_copy, $t->getStatsFromListingHead());
     $it->applyFilter();
     $this->assertEquals($it->getOutputWidth() == $restricted, true);
     $this->assertEquals($it->getOutputHeight() == $restricted, true);
@@ -130,7 +130,7 @@ class ImageviewControllerTest extends WebTestCase {
     $this->assertNotEquals($frame10s, $frame9s);
     // check that both snapshots are not the error image
     $rawerrorimg = $t->loadErrorImage();
-    $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getStats());
+    $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getStatsFromListingHead());
     $it->applyFilter();
     $errorimg = $it->getImgdata();
     $this->assertNotEquals($frame10s, $errorimg);
@@ -190,7 +190,7 @@ class ImageviewControllerTest extends WebTestCase {
     $img = $t->indexAction('structured/tests/data/50-fail_image_folder/[1]~args&maxlongest=200&', false);
     // load error image at same size (using $t's args from first call) and compare to massive image (error response)
     $rawerrorimg = $t->loadErrorImage();
-    $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getStats());
+    $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getStatsFromListingHead());
     $it->applyFilter();
     $errorimg = $it->getImgdata();
     $this->assertEquals($img, $errorimg);

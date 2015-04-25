@@ -39,7 +39,7 @@ class FileviewController extends ViewController {
               'direction' => DEFAULT_LAYOUT_DIRECTION,
               'celltype' => 'pc',
               'breadth' => DEFAULT_LAYOUT_BREADTH,
-              'linkpath' => trim($name, DIR_SEPARATOR_URL) . DIR_SEPARATOR_URL,
+              'linkpath' => $name == '/' ? '' : trim($name, DIR_SEPARATOR_URL) . DIR_SEPARATOR_URL,
               'linkaliased' => str_replace(DIR_SEPARATOR_URL, DIR_SEPARATOR_ALIAS, trim($name, DIR_SEPARATOR_URL)) .DIR_SEPARATOR_ALIAS,
               'argsbase' => ARG_SEPARATOR,
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',

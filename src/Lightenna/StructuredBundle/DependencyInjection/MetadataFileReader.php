@@ -21,7 +21,7 @@ class MetadataFileReader extends FileReader {
     if (!is_null($filename)) {
       // @refactor ; think we can remove this getListing call
       $this->getListing();
-      $this->stats = $this->getStats();
+      $this->stats = $this->getStatsFromListingHead();
     }
     if (!is_object($this->stats)) {
       $this->stats = new GenericEntry();
@@ -50,6 +50,13 @@ class MetadataFileReader extends FileReader {
    */
   public function getSettings() {
     return $this->settings;
+  }
+
+  /**
+   * @return object stats object
+   */
+  public function getStats() {
+    return $this->stats;
   }
 
   public function dumbreadImageMetadata($imgdata) {

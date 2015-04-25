@@ -108,13 +108,13 @@ class ImageviewController extends ViewController {
     $this->mfr->processDebugSettings();
     // read metadata
     $listing = $this->mfr->getListing();
-    $this->stats = $this->mfr->getStats();
+    $this->stats = $this->mfr->getStatsFromListingHead();
   }
 
   /**
    * @return array stats (metadata) array
    */
-  public function getStats() {
+  public function getStatsFromListingHead() {
     return $this->stats;
   }
 
@@ -142,7 +142,7 @@ class ImageviewController extends ViewController {
     }
     // filter based on arguments
     if (ImageTransform::shouldFilterImage($this->args)) {
-      $it = new ImageTransform($this->args, $imgdata, $this->mfr->getStats());
+      $it = new ImageTransform($this->args, $imgdata, $this->mfr->getStatsFromListingHead());
       $it->applyFilter();
       $imgdata = $it->getImgdata();
       // cache transformed image
