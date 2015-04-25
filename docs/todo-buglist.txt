@@ -14,6 +14,11 @@
 
 * failures in the PHP test suite
 
+* loading a directory view made up of folders
+  + doesn't trigger flow to execute
+    + so all the folders are the wrong width
+      + which currently exposes the directories-not-centring bug
+
 * dynamically add AddonBundle's routing.yml
   + currently it's a static reference in app/routing.yml
 lightenna_structured_addon:
@@ -5679,4 +5684,7 @@ Fatal error: Call to a member function setRawname() on boolean in C:\core\workin
 * file//dir is breaking paths
   + it's confined to '/'
     + solved with a root case
+
+* published version 0.9.4
+  + moved code to 0.9.5
 
