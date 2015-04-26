@@ -1,4 +1,19 @@
 
+* dynamically add AddonBundle's routing.yml
+  + currently it's a static reference in app/routing.yml
+lightenna_structured_addon:
+    resource: "@LightennaStructuredAddonBundle/Resources/config/routing.yml"
+    prefix:   /
+    + which breaks if it's not present
+--o--
+* shift routing.yml over to routing.php
+  + then add routes dynamically
+  = working, dropping out of router debug
+php app/console debug:router
+--o--
+* routing dev is working (from command line)
+  + routing prod isn't
+
 * javascript error structured.js line 2554
   + seems that position isn't always being set
     + requesting a cell that's out of range?
@@ -9,13 +24,6 @@
   + doesn't trigger flow to execute
     + so all the folders are the wrong width
       + which currently exposes the directories-not-centring bug
-
-* dynamically add AddonBundle's routing.yml
-  + currently it's a static reference in app/routing.yml
-lightenna_structured_addon:
-    resource: "@LightennaStructuredAddonBundle/Resources/config/routing.yml"
-    prefix:   /
-    + which breaks if it's not present
 
 * look up how to get ? parameters using symfony routes
   + canvas_width/height, tile_width/height

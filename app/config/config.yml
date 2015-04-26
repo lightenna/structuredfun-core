@@ -7,7 +7,7 @@ framework:
     #translator:      { fallback: %locale% }
     secret:          %secret%
     router:
-        resource: "%kernel.root_dir%/config/routing.yml"
+        resource: "%kernel.root_dir%/config/routing.php"
         strict_requirements: ~
     form:            ~
     csrf_protection: ~
