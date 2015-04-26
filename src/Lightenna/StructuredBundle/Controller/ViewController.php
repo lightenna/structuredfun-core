@@ -4,10 +4,10 @@ namespace Lightenna\StructuredBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 /** These constants are only defined here, though referenced elsewhere **/
 define('DEBUG', true);
-define('SFUN_VERSION', '0.9.5');
 define('DIR_SEPARATOR_URL', '/');
 define('DIR_SEPARATOR_ALIAS', '~dir~');
 define('FOLDER_NAME', 'structured');
@@ -66,7 +66,7 @@ class ViewController extends Controller {
     if (!isset($this->settings['client']) || !is_array($this->settings['client'])) {
       $this->settings['client'] = array();
     }
-    $this->settings['client']['sfun_version'] = SFUN_VERSION;
+    $this->settings['client']['sfun_version'] = Constantly::SFUN_VERSION;
     // process settings
     $this->processSettings();
     // get database connection
