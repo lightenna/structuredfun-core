@@ -1,29 +1,16 @@
 
-* dynamically add AddonBundle's routing.yml
-  + currently it's a static reference in app/routing.yml
-lightenna_structured_addon:
-    resource: "@LightennaStructuredAddonBundle/Resources/config/routing.yml"
-    prefix:   /
-    + which breaks if it's not present
---o--
-* shift routing.yml over to routing.php
-  + then add routes dynamically
-  = working, dropping out of router debug
-php app/console debug:router
---o--
-* routing dev is working (from command line)
-  + routing prod isn't
-
 * javascript error structured.js line 2554
   + seems that position isn't always being set
     + requesting a cell that's out of range?
+  + calcVisnear returning cells out of range (15)
+    + for image set that contains 15 images
+      + ref 0 to 14 inclusive
 
 * failures in the PHP test suite
-
-* loading a directory view made up of folders
-  + doesn't trigger flow to execute
-    + so all the folders are the wrong width
-      + which currently exposes the directories-not-centring bug
+  + also windows has a bad path
+    + but I'm ignoring that for now
+    + not included in this ticket
+  + layerouter has a division by zero
 
 * look up how to get ? parameters using symfony routes
   + canvas_width/height, tile_width/height
@@ -91,6 +78,11 @@ php app/console debug:router
 * chrome shuffles towards 0
   + when refreshing non-zero seq
     + related to chrome's remembering 
+
+* loading a directory view made up of folders
+  + doesn't trigger flow to execute
+    + so all the folders are the wrong width
+      + which currently exposes the directories-not-centring bug
 
 * wheeling through narrow images on widescreen display
   + can get stuck
@@ -5696,4 +5688,28 @@ Fatal error: Call to a member function setRawname() on boolean in C:\core\workin
   + looks like it's something to do with cell width
     + very wide cells don't allocate the margin properly
       + margins need to be in pixels
+
+* dynamically add AddonBundle's routing.yml
+  + currently it's a static reference in app/routing.yml
+lightenna_structured_addon:
+    resource: "@LightennaStructuredAddonBundle/Resources/config/routing.yml"
+    prefix:   /
+    + which breaks if it's not present
+--o--
+* shift routing.yml over to routing.php
+  + then add routes dynamically
+  = working, dropping out of router debug
+php app/console debug:router
+--o--
+* routing dev is working (from command line)
+  + routing prod isn't
+  + suspect it's a cache thing
+php app/console cache:clear
+  + runs fine but only clears dev cache
+php app/console cache:clear --env=prod
+  + returns different errors on different systems
+    + moved SFUN_VERSION constant out to new constant class
+      + will use that pattern for other constants soon too
+    + clear now on PC
+      + routing works
 

@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\InheritanceType;
 use Doctrine\ORM\Mapping\DiscriminatorColumn;
 use Doctrine\ORM\Mapping\DiscriminatorMap;
 use Lightenna\StructuredBundle\Controller\ViewController;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\IptcWriter;
 use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
@@ -45,7 +46,7 @@ class ImageMetadata {
    * version number used to verify ours/not-ours
    * @ORM\Column(type="string", length=100)
    */
-  protected $sfun_version = SFUN_VERSION;
+  protected $sfun_version = Constantly::SFUN_VERSION;
 
   /**
    * location of the remote originator
