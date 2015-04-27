@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\DependencyInjection\LayerOuter;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class FileviewController extends ViewController {
 
@@ -36,12 +37,12 @@ class FileviewController extends ViewController {
           ->render('LightennaStructuredBundle:Fileview:directory.html.twig',
             array(
               'dirname' => $name,
-              'direction' => DEFAULT_LAYOUT_DIRECTION,
+              'direction' => Constantly::DEFAULT_LAYOUT_DIRECTION,
               'celltype' => 'pc',
-              'breadth' => DEFAULT_LAYOUT_BREADTH,
-              'linkpath' => $name == '/' ? '' : trim($name, DIR_SEPARATOR_URL) . DIR_SEPARATOR_URL,
-              'linkaliased' => str_replace(DIR_SEPARATOR_URL, DIR_SEPARATOR_ALIAS, trim($name, DIR_SEPARATOR_URL)) .DIR_SEPARATOR_ALIAS,
-              'argsbase' => ARG_SEPARATOR,
+              'breadth' => Constantly::DEFAULT_LAYOUT_BREADTH,
+              'linkpath' => $name == '/' ? '' : trim($name, Constantly::DIR_SEPARATOR_URL) . Constantly::DIR_SEPARATOR_URL,
+              'linkaliased' => str_replace(Constantly::DIR_SEPARATOR_URL, Constantly::DIR_SEPARATOR_ALIAS, trim($name, Constantly::DIR_SEPARATOR_URL)) .Constantly::DIR_SEPARATOR_ALIAS,
+              'argsbase' => Constantly::ARG_SEPARATOR,
               'argsdefault' => 'maxlongest='.$thumbargs->{'maxlongest'}.'&',
               'dirlisting' => $listing,
               'metaform' => $this->mfr->getMetadata()->getForm($this)->createView(),

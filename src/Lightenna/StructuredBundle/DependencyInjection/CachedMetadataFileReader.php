@@ -16,6 +16,7 @@
  */
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class CachedMetadataFileReader extends MetadataFileReader {
 
@@ -24,7 +25,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function __construct($filename = null, $con) {
     parent::__construct($filename, $con);
-    $this->cachedir = $this->controller->convertRawToInternalFilename('htdocs'.DIR_SEPARATOR_URL.'web'.DIR_SEPARATOR_URL.$this->settings['mediacache']['path'].DIR_SEPARATOR_URL.'image');
+    $this->cachedir = $this->controller->convertRawToInternalFilename('htdocs'.Constantly::DIR_SEPARATOR_URL.'web'.Constantly::DIR_SEPARATOR_URL.$this->settings['mediacache']['path'].Constantly::DIR_SEPARATOR_URL.'image');
     // create cache directory if it's not already present
     if (!is_dir($this->cachedir)) {
       @mkdir($this->cachedir);
@@ -148,7 +149,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
     }
     // $argstring = self::flattenKeyArgs($this->args);
     // if ($argstring != '') {
-    //   $cachestring .= ARG_SEPARATOR . $argstring;
+    //   $cachestring .= Constantly::ARG_SEPARATOR . $argstring;
     // }
     // var_dump($cachestring);
     $key = self::hash($cachestring) . '.' . 'dat';
@@ -210,8 +211,15 @@ class CachedMetadataFileReader extends MetadataFileReader {
    */
   public function getAll($listing, $force = false) {
     foreach ($listing as &$entry) {
+      $image_metadata = $entry->getMetadata();
       // skip directories
       if ($entry->getType() == 'directory') {
+        // make directories square by default
+        // @todo could resolve subcell images first
+        $image_metadata->setStatus(Constantly::IMAGE_STATUS_DIRECTORY);
+        $image_metadata->setLoadedWidth(1000);
+        $image_metadata->setLoadedHeight(1000);
+        $image_metadata->calcRatio();
         continue;
       }
       // memory usage doesn't seem to increase
@@ -222,7 +230,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
         // failed to load image, substitute error image
         $image_metadata = $entry->getMetadata();
         if (!$image_metadata->hasRatio()) {
-          $image_metadata->setStatus(IMAGE_STATUS_MISSING);
+          $image_metadata->setStatus(Constantly::IMAGE_STATUS_MISSING);
           // assume error image
           $image_metadata->setLoadedWidth(1340);
           $image_metadata->setLoadedHeight(1080);
@@ -312,8 +320,8 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return string hashed string
    */
   static function hash($key) {
-    // return str_replace(str_split('\\/:*?"<>|'), DIR_SEPARATOR_ALIAS, $key);
-    return str_replace(DIR_SEPARATOR_URL, DIR_SEPARATOR_ALIAS, $key);
+    // return str_replace(str_split('\\/:*?"<>|'), Constantly::DIR_SEPARATOR_ALIAS, $key);
+    return str_replace(Constantly::DIR_SEPARATOR_URL, Constantly::DIR_SEPARATOR_ALIAS, $key);
     // used to use md5, experimenting with readable alternative
     // return md5($key);
   }
@@ -324,7 +332,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * reverse_hash() used by view controller when receiving URLs
    */
   static function reverse_hash($key) {
-    return str_replace(DIR_SEPARATOR_ALIAS, DIR_SEPARATOR_URL, $key);
+    return str_replace(Constantly::DIR_SEPARATOR_ALIAS, Constantly::DIR_SEPARATOR_URL, $key);
   }
 
   static function scrubDirectoryContents($dir) {
@@ -337,7 +345,7 @@ class CachedMetadataFileReader extends MetadataFileReader {
         continue;
       }
       // delete the file
-      unlink($dir.DIR_SEPARATOR_URL.$v);
+      unlink($dir.Constantly::DIR_SEPARATOR_URL.$v);
     }
   }
 }

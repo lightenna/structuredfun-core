@@ -5,6 +5,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Lightenna\StructuredBundle\Controller\ViewController;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class MetadataFileReaderTest extends WebTestCase {
 
@@ -47,7 +48,7 @@ class MetadataFileReaderTest extends WebTestCase {
     $first = reset($all);
     $this->assertEquals($first->getName(), '00980006.JPG');    
     // get listing for a single file, but strip arguments
-    $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
+    $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.Constantly::ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
     $all = $mfr->getListing();
     $first = reset($all);
     $this->assertEquals($first->getName(), '00980001.JPG');    

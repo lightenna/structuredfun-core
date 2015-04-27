@@ -12,6 +12,7 @@ use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class ImageviewController extends ViewController {
   // @param Array image metadata array, shared object reference with MetadataFileReader
@@ -154,10 +155,10 @@ class ImageviewController extends ViewController {
   private function loadVideoFrame() {
     // calculate position in video
     if (!isset($this->args->{'timecode'})) {
-      $this->args->{'timecode'} = DEFAULT_TIMECODE;
+      $this->args->{'timecode'} = Constantly::DEFAULT_TIMECODE;
     }
     // prepend the cache location
-    $key = CachedMetadataFileReader::hash($this->stats->getFile() . FILEARG_SEPARATOR . $this->args->timecode) . '_videofullres' . '.' . 'dat';
+    $key = CachedMetadataFileReader::hash($this->stats->getFile() . Constantly::FILEARG_SEPARATOR . $this->args->timecode) . '_videofullres' . '.' . 'dat';
     // create mfr in two stages, because we need to point at the image file in the cache
     $localmfr = new CachedMetadataFileReader(null, $this);
     $localmfr->rewrite($localmfr->getFilename($key));

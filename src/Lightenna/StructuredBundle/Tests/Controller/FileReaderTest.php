@@ -4,6 +4,7 @@ namespace Lightenna\StructuredBundle\Tests\Controller;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Lightenna\StructuredBundle\Controller\ViewController;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class FileReaderTest extends WebTestCase {
 
@@ -49,7 +50,7 @@ class FileReaderTest extends WebTestCase {
     $fr = new FileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980007.JPG'), $t);
     $this->assertEquals($fr->getFilename(), $t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip'));
     // get listing for a single file, but strip arguments
-    $fr = new FileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
+    $fr = new FileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.Constantly::ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
     $this->assertEquals($fr->getFilename(), $t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'));
   }
 

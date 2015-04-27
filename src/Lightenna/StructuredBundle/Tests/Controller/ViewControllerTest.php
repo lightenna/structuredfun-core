@@ -1,9 +1,10 @@
 <?php
 
 namespace Lightenna\StructuredBundle\Tests\Controller;
-use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Lightenna\StructuredBundle\Controller\ViewController;
+use Lightenna\StructuredBundle\DependencyInjection\FileReader;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class ViewControllerTest extends WebTestCase
 {
@@ -28,7 +29,7 @@ class ViewControllerTest extends WebTestCase
 		// test path .zip
 		$this->assertEquals($t->convertRawToFilename('mydir/my.zip'),$_SERVER['DOCUMENT_ROOT'].'/../../../mydir/my.zip');
 		// test path .zip to .jpg
-		$this->assertEquals($t->convertRawToFilename('mydir/my.zip'.ZIP_SEPARATOR.'zippath/myzip.jpg'),$_SERVER['DOCUMENT_ROOT'].'/../../../mydir/my.zip'.ZIP_SEPARATOR.'zippath/myzip.jpg');
+		$this->assertEquals($t->convertRawToFilename('mydir/my.zip'.Constantly::ZIP_SEPARATOR.'zippath/myzip.jpg'),$_SERVER['DOCUMENT_ROOT'].'/../../../mydir/my.zip'.Constantly::ZIP_SEPARATOR.'zippath/myzip.jpg');
 	}
 
 	public function testConvertRawToUrl() {
@@ -52,11 +53,11 @@ class ViewControllerTest extends WebTestCase
 		// test no args
 		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'),(object)array());
 		// test 1 arg
-		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test=1'),(object)array('test' => 1));
+		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.Constantly::ARG_SEPARATOR.'test=1'),(object)array('test' => 1));
 		// test 2 args
-		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test=1&k=v'),(object)array('test' => 1, 'k' => 'v'));
+		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.Constantly::ARG_SEPARATOR.'test=1&k=v'),(object)array('test' => 1, 'k' => 'v'));
 		// test bad arg
-		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.ARG_SEPARATOR.'test'),(object)array('test' => null));
+		$this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'.Constantly::ARG_SEPARATOR.'test'),(object)array('test' => null));
 	}
 
 	public function testPerformFilenameSubstitution() {
@@ -98,9 +99,9 @@ class ViewControllerTest extends WebTestCase
 	  // find no extension on a directory
 	  $this->assertEquals($t::getExtension('data/ext_directory/myfile/'),false);
 	  // find an extension when there are args
-	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.ARG_SEPARATOR.'test'),'jpg');
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.Constantly::ARG_SEPARATOR.'test'),'jpg');
 	  // find an extension when there are args (malformed)
-	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.ARG_SEPARATOR.''.ARG_SEPARATOR.'test'),'jpg');
+	  $this->assertEquals($t::getExtension('data/ext_directory/myfile.jpg'.Constantly::ARG_SEPARATOR.''.Constantly::ARG_SEPARATOR.'test'),'jpg');
 	}
 	
 }
