@@ -4,6 +4,7 @@ namespace Lightenna\StructuredBundle\Tests\Controller;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Lightenna\StructuredBundle\Controller\ViewController;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class CachedMetadataFileReaderTest extends WebTestCase {
 
@@ -28,7 +29,7 @@ class CachedMetadataFileReaderTest extends WebTestCase {
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980007.JPG'), $t);
     $this->assertEquals($mfr->getFilename(), $t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip'));
     // get filename for a single file, but strip arguments
-    $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
+    $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.Constantly::ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
     $this->assertEquals($mfr->getFilename(), $t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'));
   }
   
@@ -46,7 +47,7 @@ class CachedMetadataFileReaderTest extends WebTestCase {
     // get listing for a single file
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'), $t);
     $this->assertEquals($mfr->getFilename(true),
-      $mfr->getCachePath() . DIR_SEPARATOR_URL .
+      $mfr->getCachePath() . Constantly::DIR_SEPARATOR_URL .
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG')
       ) .
@@ -55,7 +56,7 @@ class CachedMetadataFileReaderTest extends WebTestCase {
     // get listing for a single file in a zip
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/00980002.JPG'), $t);
     $this->assertEquals($mfr->getFilename(true),
-      $mfr->getCachePath() . DIR_SEPARATOR_URL .
+      $mfr->getCachePath() . Constantly::DIR_SEPARATOR_URL .
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/00980002.JPG')
       ) .
@@ -64,16 +65,16 @@ class CachedMetadataFileReaderTest extends WebTestCase {
     // get listing for a single file in a nested folder in a zip
     $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980007.JPG'), $t);
     $this->assertEquals($mfr->getFilename(true),
-      $mfr->getCachePath() . DIR_SEPARATOR_URL .
+      $mfr->getCachePath() . Constantly::DIR_SEPARATOR_URL .
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980007.JPG')
       ) .
       '.dat'
     );
     // get listing for a single file, but strip filtered arguments
-    $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
+    $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'.Constantly::ARG_SEPARATOR.'arg1=v1&arg2=v2'), $t);
     $this->assertEquals($mfr->getFilename(true),
-      $mfr->getCachePath() . DIR_SEPARATOR_URL .
+      $mfr->getCachePath() . Constantly::DIR_SEPARATOR_URL .
       CachedMetadataFileReader::hash(
         $t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG')
       ) .

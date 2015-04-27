@@ -4,7 +4,7 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 
 use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
-// use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class MetadataFileReader extends FileReader {
 
@@ -120,8 +120,8 @@ class MetadataFileReader extends FileReader {
       }
     }
     // add in shares within this folder
-    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, DIR_SEPARATOR_URL)])) {
-      $shares = $this->settings['attach'][ltrim($this->name, DIR_SEPARATOR_URL)];
+    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, Constantly::DIR_SEPARATOR_URL)])) {
+      $shares = $this->settings['attach'][ltrim($this->name, Constantly::DIR_SEPARATOR_URL)];
       foreach ($shares as $k => &$sh) {
         $obj = new GenericEntry();
         $obj->setName($sh['name']);
@@ -180,20 +180,6 @@ class MetadataFileReader extends FileReader {
         // get the image metadata by reading (cached-only) file
         // fast enough (110ms for 91 images)
         $rentry = $this->getDirectoryEntryMetadata($obj);
-// delete me
-// this is a temporary fix
-// while we're sourcing the error upstream
-// it's actually making it worse
-//    because when the image isn't cached, we make it appear like it is
-        // if ($rentry === null) {
-        //   // failed to load image, substitute error image
-        //   $image_metadata = $obj->getMetadata();
-        //   if (!$image_metadata->hasRatio()) {
-        //     $image_metadata->setLoadedWidth(1340);
-        //     $image_metadata->setLoadedHeight(1080);
-        //     $image_metadata->calcRatio();
-        //   }
-        // }
         break;
       case 'video':
         // get the video metadata by reading (cached-only) file
@@ -228,7 +214,7 @@ class MetadataFileReader extends FileReader {
       $localmfr = new CachedMetadataFileReader($filename, $this->controller);
       // tweak rawname using path from controller but leaf from obj, and args as if first query
       $flat_args = self::flattenKeyArgs($this->args);
-      $child_name = $this->controller->getRawname() . DIR_SEPARATOR_URL . $obj->getName() . ARG_SEPARATOR . $flat_args . '&';
+      $child_name = $this->controller->getRawname() . Constantly::DIR_SEPARATOR_URL . $obj->getName() . Constantly::ARG_SEPARATOR . $flat_args . '&';
       $localmfr->getStats()->setRawname($child_name);
       // setup local reader
       $localmfr->setArgs($this->args);
@@ -288,13 +274,13 @@ class MetadataFileReader extends FileReader {
     if ($obj->getType() == 'genfile') {
       // try and match specific-type based on extension
       $extmatch = strtolower($obj->getExt());
-      if (in_array($extmatch, explode(',',FILETYPES_IMAGE))) {
+      if (in_array($extmatch, explode(',',Constantly::FILETYPES_IMAGE))) {
         $obj->setType('image');
       }
-      else if (in_array($extmatch, explode(',',FILETYPES_VIDEO))) {
+      else if (in_array($extmatch, explode(',',Constantly::FILETYPES_VIDEO))) {
         $obj->setType('video');
       }
-      else if (in_array($extmatch, explode(',',FILETYPES_ZIP))) {
+      else if (in_array($extmatch, explode(',',Constantly::FILETYPES_ZIP))) {
         $obj->setType('directory');
       }
     } else {

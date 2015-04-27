@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\DependencyInjection;
 
 use Lightenna\StructuredBundle\Entity\GenericEntry;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class FileReader {
 
@@ -37,14 +38,14 @@ class FileReader {
 
   private function parseFilename($filename) {
     // end before any arguments at the end of the URL
-    if (($end = strpos($filename, ARG_SEPARATOR)) === false) {
+    if (($end = strpos($filename, Constantly::ARG_SEPARATOR)) === false) {
       $end = strlen($filename);
     }
     // parse filename for zip marker
     if (($zip_pos = self::detectZip($filename)) !== false) {
       $this->file_part = substr($filename, 0, $zip_pos);
       // store zip_part without preceding slash
-      $this->zip_part = ltrim(substr($filename, $zip_pos, $end - $zip_pos), DIR_SEPARATOR_URL);
+      $this->zip_part = ltrim(substr($filename, $zip_pos, $end - $zip_pos), Constantly::DIR_SEPARATOR_URL);
       list($this->zip_part_path, $this->zip_part_leaf) = $this->splitPathLeaf($this->zip_part);
     }
     else {
@@ -177,7 +178,7 @@ class FileReader {
       // crop downstream [child] zip subfolders, based on output from upstream crop & strip
       foreach ($listing as $k => $item) {
         // if this entry features a slash
-        if (($slash_pos = strpos($item, DIR_SEPARATOR_URL)) !== false) {
+        if (($slash_pos = strpos($item, Constantly::DIR_SEPARATOR_URL)) !== false) {
           // followed by a character (i.e. a filename, not just a slash terminated directory name)
           if (strlen($item) > ($slash_pos + 1)) {
             unset($listing[$k]);
@@ -206,8 +207,8 @@ class FileReader {
         unset($listing[$k]);
         continue;
       }
-      // ignore files or folders that begin '.' or the FOLDER_NAME ('structured') folder
-      if (($v[0] == '.') || ($v == FOLDER_NAME)) {
+      // ignore files or folders that begin '.' or the Constantly::FOLDER_NAME ('structured') folder
+      if (($v[0] == '.') || ($v == Constantly::FOLDER_NAME)) {
         unset($listing[$k]);
         continue;
       }
@@ -229,7 +230,7 @@ class FileReader {
       // if listing just a file
       if ($this->file_part_leaf !== null) {
         $obj->setPath($this->file_part_path);
-        $obj->setFile($this->file_part_path . DIR_SEPARATOR_URL . $obj->getName());
+        $obj->setFile($this->file_part_path . Constantly::DIR_SEPARATOR_URL . $obj->getName());
       }
       // if listing a directory/zip
       else if ($this->file_part !== null) {
@@ -253,9 +254,9 @@ class FileReader {
       }
       else {
         // test using filesystem
-        if (is_dir($this->file_part . DIR_SEPARATOR_URL . $v_utf8)) {
+        if (is_dir($this->file_part . Constantly::DIR_SEPARATOR_URL . $v_utf8)) {
           $obj->setType('directory');
-          $sublisting = scandir($this->file_part . DIR_SEPARATOR_URL . $v_utf8);
+          $sublisting = scandir($this->file_part . Constantly::DIR_SEPARATOR_URL . $v_utf8);
           // exclude . and .. from sublisting count
           $obj->setSubfolderCount(count($sublisting)-2);
         }
@@ -317,14 +318,14 @@ class FileReader {
   public function getFullname($obj) {
     // if obj contains a zip path
     if ($obj->isZip()) {
-      $fullname = $obj->getFile() . ZIP_SEPARATOR . $obj->getZipPath();
+      $fullname = $obj->getFile() . Constantly::ZIP_SEPARATOR . $obj->getZipPath();
     } else {
       $fullname = $obj->getFile();
     }
     // if it's a directory or a zip file, append leaf from entry ($obj/stats)
     if ($this->isDirectory() || $this->inZip()) {
       // if obj contains a leaf name, append it
-      $fullname .= DIR_SEPARATOR_URL . $obj->getNameOriginalCharset();
+      $fullname .= Constantly::DIR_SEPARATOR_URL . $obj->getNameOriginalCharset();
     }
     return $fullname;
   }
@@ -352,7 +353,7 @@ class FileReader {
    */
   static function getExtension($name) {
     // find end of filename section (pre-args)
-    $end = strpos($name, ARG_SEPARATOR);
+    $end = strpos($name, Constantly::ARG_SEPARATOR);
     // if no args, use full length of string
     if ($end === false) {
       $end = strlen($name);
@@ -365,7 +366,7 @@ class FileReader {
     }
     $len = $end - $pos - 1;
     // strip trailing / if it came from a URL
-    if ($name[$pos + 1 + $len - 1] == DIR_SEPARATOR_URL) {
+    if ($name[$pos + 1 + $len - 1] == Constantly::DIR_SEPARATOR_URL) {
       $len--;
     }
     // pull out extension
@@ -388,9 +389,9 @@ class FileReader {
    */
 
   static function detectZip($comp) {
-    $zip_pos = strpos($comp, '.' . ZIP_EXTMATCH);
+    $zip_pos = strpos($comp, '.' . Constantly::ZIP_EXTMATCH);
     if ($zip_pos !== false) {
-      $zip_pos += strlen(ZIP_EXTMATCH) + 1;
+      $zip_pos += strlen(Constantly::ZIP_EXTMATCH) + 1;
     }
     return $zip_pos;
   }
@@ -413,7 +414,7 @@ class FileReader {
   public function splitPathLeaf($fullstr) {
     $path = $leaf = null;
     // detect the final slash
-    if (($slash_pos = strrpos(substr($fullstr, 0), DIR_SEPARATOR_URL)) !== false) {
+    if (($slash_pos = strrpos(substr($fullstr, 0), Constantly::DIR_SEPARATOR_URL)) !== false) {
       // then work out if there's a . in the last component
       if (($dot_pos = strrpos($fullstr, '.', $slash_pos)) !== false) {
         // if so split into path and leaf

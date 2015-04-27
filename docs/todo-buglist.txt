@@ -5,12 +5,7 @@
   + calcVisnear returning cells out of range (15)
     + for image set that contains 15 images
       + ref 0 to 14 inclusive
-
-* failures in the PHP test suite
-  + also windows has a bad path
-    + but I'm ignoring that for now
-    + not included in this ticket
-  + layerouter has a division by zero
+    = debug on PC, can't replicate on linux
 
 * look up how to get ? parameters using symfony routes
   + canvas_width/height, tile_width/height
@@ -5712,4 +5707,44 @@ php app/console cache:clear --env=prod
       + will use that pattern for other constants soon too
     + clear now on PC
       + routing works
+
+* failures in the PHP test suite
+  + also windows has a bad path
+    + but I'm ignoring that for now
+    + not included in this ticket
+  + layerouter has a division by zero
+    + getAll not filling out image_metadata
+      + seems to be confined to test suite
+        + 1st load fine for real images
+  + I think there's an interesting bug in here (#2)
+  1 not loading image metadata from image
+    + working on getDirectoryEntryMetadata
+      + now that's easy because
+      + we just needed to 'force'
+        + because the images would never normally get cached
+        + so they never appear
+  2 when they're not loaded
+    + we're not correctly filling them with error metadata
+      + that's significant
+    + although when rentry = null
+      + we're still dumping out
+      + I think it's because the nested folder is being evaluated
+    + need to protect 'directory' entries
+      + everytime we iterate over the listing
+      + or we need to give them a ratio
+        + as if they were normal images
+        + I'm favouring the latter
+          + because it gives us options
+          + js layout does it this way too
+
+* transfer define()s to Constantly.php
+
+* can't see AddonBundle routes on linux
+  + I think it's a cache problem
+    + routes look good on debug:router
+  + production cache clear throws difficult error
+The parameter "debug.error_handler.throw_at" must be defined.
+  + manually clear and warmup again
+rm -rf app/cache/*
+php app/console cache:warmup --env=prod
 
