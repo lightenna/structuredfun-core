@@ -7,21 +7,34 @@
       + ref 0 to 14 inclusive
     = debug on PC, can't replicate on linux
 
-* look up how to get ? parameters using symfony routes
-  + canvas_width/height, tile_width/height
-  + not sure how to handle scale factor
-    + so that we can share code between getDyanmic and getDZI
-
 * check an individual image's metadata
   + after a deserialise
     + I think we're not pulling the fields in properly
     + confirmed
   = lookup a progressive deserialize
     + there must be someone who's done it
+--o--
+* remove temp stitch
+  + stitching deserialise until we get progressive working
 
-* create TileMaker class
-  + from existing nebula code
-  + check canvas size is coming out sensibly
+* think about tile span
+  + we know the canvas width and height
+    + and normalised coords for each image's position on that
+  + we want to specify a canvas window
+    + i.e. the part of the canvas that we want to render
+    + then hunt for overlapping/in-window images
+  + window_ vars
+    + need to think about normalisation
+      + 1.0 for minor (e.g. height) makes sense
+      + but 1.0 for major doesn't
+        + that would mean the full canvas
+        + unless we use two different scale
+      + could specify tile size and only minor window sizes
+        + only partly helps
+          + because we still need the x1 and y1 coords
+            + for a grid system
+            + that means knowing the width of the tile on the canvas
+    + hmmm, thinking
 
 * make image tile
   + setup as a generic service
@@ -5747,4 +5760,55 @@ The parameter "debug.error_handler.throw_at" must be defined.
   + manually clear and warmup again
 rm -rf app/cache/*
 php app/console cache:warmup --env=prod
+
+* think about caching and picture layouts
+  + caching is an important part of this
+    + we want a way to create a whole array of tiles
+      + with minimal intervention
+      + php command line script is a good option
+  + can extend layerouter to cover images
+    + easy (easier) for square images
+    + count sub images
+      + div into grid to get w x h
+    + take master image
+      + decompose into w x h cells
+      + average pixels values to get colour mean
+    + assignment takes a little more skill
+      + naive: find nearest match
+        + means that the first cells get nearer matches
+          + we really want to distribute the error across the whole image
+      + randomly pick a cell
+        + then find the nearest match
+          + random is expensive
+      + pick every 5th cell
+        + prime to ensure distribution
+        + then come back and fill in the gaps
+      + layout is probably fine
+        + but will need to nail the grid
+          + so even if we use flow
+            + to stretch/squish cells
+          + we can still rely on each column being made up of h images
+            + which means there will be w columns
+          + the squished grid will distort the image a bit
+            + but it should be recognisable at the image
+          + we could even overlay the master image with a bit of alpha
+
+* look up how to get ? parameters using symfony routes
+  + canvas_width/height, tile_width/height
+  + not sure how to handle scale factor
+    + so that we can share code between getDyanmic and getDZI
+http://stackoverflow.com/questions/9784930/how-to-get-the-request-parameters-in-symfony2
+public function updateAction(Request $request)
+{
+    $foo = $request->get('foo');
+    $bar = $request->get('bar');
+}
+
+* create TileMaker class
+  + from existing nebula code
+  + check canvas size is coming out sensibly
+
+* work out why x2 key is missing from normals
+  + looks like we're missing the last pair
+  = fixed bucketListing() call to include last bucket
 
