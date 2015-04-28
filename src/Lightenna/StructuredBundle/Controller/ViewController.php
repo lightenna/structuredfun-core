@@ -336,6 +336,15 @@ class ViewController extends Controller {
     exit;
   }
 
+  protected function getParameterOrDefault($name, $default) {
+    $request = $this->getRequest();
+    $param_value = $request->get($name);
+    if ($param_value === null) {
+      $param_value = $default;
+    }
+    return $param_value;
+  }
+
   /**
    * @return URL name without trailing slash
    */
