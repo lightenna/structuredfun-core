@@ -138,42 +138,42 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 .sfun.flow-pc.flow-2 > .cell {
   width: 50%;
   height: 50%;
-  width: -webkit-calc(50% - 8px);
-  width: -moz-calc(50% - 8px);
-  width: calc(50% - 8px);
-  height: -webkit-calc(50% - 8px);
-  height: -moz-calc(50% - 8px);
-  height: calc(50% - 8px);
+  width: -webkit-calc(50% - 4px);
+  width: -moz-calc(50% - 4px);
+  width: calc(50% - 4px);
+  height: -webkit-calc(50% - 4px);
+  height: -moz-calc(50% - 4px);
+  height: calc(50% - 4px);
 }
 /* line 68, ../sass/structured.scss */
 .sfun.flow-pc.flow-4 > .cell {
   width: 25%;
   height: 25%;
-  width: -webkit-calc(25% - 8px);
-  width: -moz-calc(25% - 8px);
-  width: calc(25% - 8px);
-  height: -webkit-calc(25% - 8px);
-  height: -moz-calc(25% - 8px);
-  height: calc(25% - 8px);
+  width: -webkit-calc(25% - 4px);
+  width: -moz-calc(25% - 4px);
+  width: calc(25% - 4px);
+  height: -webkit-calc(25% - 4px);
+  height: -moz-calc(25% - 4px);
+  height: calc(25% - 4px);
 }
 /* line 75, ../sass/structured.scss */
 .sfun.flow-pc.flow-8 > .cell {
   width: 12.5%;
   height: 12.5%;
-  width: -webkit-calc(12.5% - 8px);
-  width: -moz-calc(12.5% - 8px);
-  width: calc(12.5% - 8px);
-  height: -webkit-calc(12.5% - 8px);
-  height: -moz-calc(12.5% - 8px);
-  height: calc(12.5% - 8px);
+  width: -webkit-calc(12.5% - 4px);
+  width: -moz-calc(12.5% - 4px);
+  width: calc(12.5% - 4px);
+  height: -webkit-calc(12.5% - 4px);
+  height: -moz-calc(12.5% - 4px);
+  height: calc(12.5% - 4px);
 }
 /* line 116, ../sass/structured.scss */
 .sfun.flow-pc > .cell {
   text-align: center;
   overflow: hidden;
-  margin: -webkit-calc(8px) -webkit-calc(4px) -webkit-calc(0px) -webkit-calc(4px);
-  margin: -moz-calc(8px) -moz-calc(4px) -moz-calc(0px) -moz-calc(4px);
-  margin: calc(8px) calc(4px) calc(0px) calc(4px);
+  margin: -webkit-calc(4px) -webkit-calc(2px) -webkit-calc(0px) -webkit-calc(2px);
+  margin: -moz-calc(4px) -moz-calc(2px) -moz-calc(0px) -moz-calc(2px);
+  margin: calc(4px) calc(2px) calc(0px) calc(2px);
   background-color: white;
 }
 /* line 136, ../sass/structured.scss */
@@ -202,7 +202,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: 100%;
   width: 100%;
   text-decoration: none;
-  margin: 4px;
+  margin: 2px;
   margin: -webkit-calc(0px);
   margin: -moz-calc(0px);
   margin: calc(0px);
@@ -419,7 +419,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 /* line 436, ../sass/structured.scss */
 .sfun.flow-pc > .cell .directory {
   border: 1px solid #e8e8e8;
-  border-radius: 16px;
+  border-radius: 8px;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -453,15 +453,15 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 .sfun.flow-pc > .cell .subcell {
   width: 50%;
   height: 50%;
-  margin: -webkit-calc(4px);
-  margin: -moz-calc(4px);
-  margin: calc(4px);
-  width: -webkit-calc(50% - 8px);
-  width: -moz-calc(50% - 8px);
-  width: calc(50% - 8px);
-  height: -webkit-calc(50% - 8px);
-  height: -moz-calc(50% - 8px);
-  height: calc(50% - 8px);
+  margin: -webkit-calc(2px);
+  margin: -moz-calc(2px);
+  margin: calc(2px);
+  width: -webkit-calc(50% - 4px);
+  width: -moz-calc(50% - 4px);
+  width: calc(50% - 4px);
+  height: -webkit-calc(50% - 4px);
+  height: -moz-calc(50% - 4px);
+  height: calc(50% - 4px);
 }
 /* line 483, ../sass/structured.scss */
 .sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
