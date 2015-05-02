@@ -5812,3 +5812,11 @@ public function updateAction(Request $request)
   + looks like we're missing the last pair
   = fixed bucketListing() call to include last bucket
 
+* try reducing the border between images
+  + see if it holds purely based on the CSS
+  + it's good but not perfect
+    + it exposes some slight border strangeness on
+      + the boundary between portrait and landscape
+    = that's another problem we don't have time to solve now
+  = leave at 4px which doesn't expose it
+
