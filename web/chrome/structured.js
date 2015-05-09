@@ -4413,6 +4413,7 @@ console.log('fireScroll', localContext);
     'KEY_CTRL': 17,
     'KEY_ALT': 18,
     'KEY_RETURN': 13,
+    'KEY_SPACE': 32,
     'KEY_NUMBER_1': 49,
     'KEY_NUMBER_2': 50,
     'KEY_NUMBER_4': 52,
