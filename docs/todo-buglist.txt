@@ -1,4 +1,11 @@
 
+* develop play button
+
+* experiment with css3 zooming transition
+  + can do using firebug to start
+  + found great example from Paul Irish
+http://codepen.io/mj/pen/rIBpt/
+
 * javascript error structured.js line 2554
   + seems that position isn't always being set
     + requesting a cell that's out of range?
@@ -5819,4 +5826,12 @@ public function updateAction(Request $request)
       + the boundary between portrait and landscape
     = that's another problem we don't have time to solve now
   = leave at 4px which doesn't expose it
+
+* note ideas for future playbutton
+  + whizzy circle that shows progress to next image
+
+* experiment with a playbutton
+  + can be an app
+  + debug playbutton link appearing ('cos it's not)
+    + there now
 
