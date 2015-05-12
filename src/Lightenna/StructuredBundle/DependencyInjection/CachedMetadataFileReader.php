@@ -25,15 +25,21 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   public function __construct($filename = null, $con) {
     parent::__construct($filename, $con);
-    $this->cachedir = $this->controller->convertRawToInternalFilename('htdocs'.Constantly::DIR_SEPARATOR_URL.'web'.Constantly::DIR_SEPARATOR_URL.$this->settings['mediacache']['path'].Constantly::DIR_SEPARATOR_URL.'image');
+    $settings = $this->controller->getSettings();
+    $this->cachedir = $this->controller->convertRawToInternalFilename('htdocs'.Constantly::DIR_SEPARATOR_URL.'web'.Constantly::DIR_SEPARATOR_URL.$settings['mediacache']['path'].Constantly::DIR_SEPARATOR_URL.'image');
     // create cache directory if it's not already present
     if (!is_dir($this->cachedir)) {
       @mkdir($this->cachedir);
       if (!is_dir($this->cachedir)) {
         // unable to create cache directory, throw nice error
-        print('Error: unable to create cache directory ('.$this->cachedir.')');
-        exit;
+        $this->controller->error('Unable to create cache directory ('.$this->cachedir.').  Caching temporarily disabled.  Please check filesystem permissions.');
+        $this->controller->disableCaching();
       }
+    }
+    // test cache directory is writeable
+    if (!$this->testCacheWrite()) {
+      $this->controller->error('Unable to write to cache directory.  Caching temporarily disabled.  Please check filesystem permissions.');
+      $this->controller->disableCaching();
     }
     if (!$this->isDirectory()) {
       $this->stats->setCacheKey(null);
@@ -44,10 +50,28 @@ class CachedMetadataFileReader extends MetadataFileReader {
   }
 
   /**
+   * @return boolean true if we can write to the cache directory
+   */
+  public function testCacheWrite() {
+    $filename = $this->getFilename('.writeable.txt');
+    // delete the file if it's already there
+    if (file_exists($filename)) {
+      @unlink($filename);
+    }
+    @file_put_contents($filename, '0');
+    // if the file is not there afterwards, return a nice error
+    if (!file_exists($filename)) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * called on first instance of cmfr for optional debugging ops
    */
   public function processDebugSettings() {
-    if (isset($this->settings['mediacache']['cleareverytime']) && $this->settings['mediacache']['cleareverytime']) {
+    $settings = $this->controller->getSettings();
+    if (isset($settings['mediacache']['cleareverytime']) && $settings['mediacache']['cleareverytime']) {
       // scrub cache directory
       self::scrubDirectoryContents($this->cachedir);
     }
@@ -58,7 +82,8 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return boolean True if cache is enabled
    */
   public function cacheIsEnabled() {
-    if (isset($this->settings['general']['nocache']) || isset($this->args->{'nocache'}) || !$this->stats->hasCacheKey()) {
+    $settings = $this->controller->getSettings();
+    if (isset($settings['general']['nocache']) || isset($this->args->{'nocache'}) || !$this->stats->hasCacheKey()) {
       return false;
     }
     return true;

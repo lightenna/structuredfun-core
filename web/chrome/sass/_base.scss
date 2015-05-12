@@ -43,3 +43,11 @@ $wide2: 2400px;
   #{$property}: calc(#{$exp_top}) calc(#{$exp_right}) calc(#{$exp_bottom}) calc(#{$exp_left});
 }
 
+@mixin multibrowser($property, $expression) { 
+  #{$property}: #{$expression};
+  -ms-#{$property}: #{$expression};     /* IE 9 */
+  -webkit-#{$property}: #{$expression}; /* Safari and Chrome */
+  -o-#{$property}: #{$expression};      /* Opera */
+  -moz-#{$property}: #{$expression};    /* Firefox */
+}
+

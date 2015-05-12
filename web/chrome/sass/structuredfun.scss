@@ -320,6 +320,48 @@ html.theme-dark {
 }
 
 // ---------------------------------------------------------------------------
+// Core: animations
+
+.sfun.animate-zoom {
+  &.flow-1 > .cell {
+    &.selected img.reresable {
+      @include multibrowser('animation', 'move-out 5s ease alternate');
+    }
+  }
+  &.flow-2 > .cell {
+    &.selected img.reresable {
+      @include multibrowser('animation', 'move-in 5s ease alternate');
+    }
+  }
+}
+
+@keyframes move-out {
+  from {
+    @include multibrowser('transform', 'scale(1.05)');
+    left: 0;
+    top: 0;
+  }
+  to {
+    @include multibrowser('transform', 'scale(1.00)');
+    left: 0;
+    top: 0;
+  }
+}
+
+@keyframes move-in {
+  from {
+    @include multibrowser('transform', 'scale(1.00)');
+    left: 0;
+    top: 0;
+  }
+  to {
+    @include multibrowser('transform', 'scale(1.05)');
+    left: 0;
+    top: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Queue visualisation
 
 #eventQueueVis {

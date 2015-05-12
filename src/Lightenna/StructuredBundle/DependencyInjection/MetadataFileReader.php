@@ -10,7 +10,6 @@ class MetadataFileReader extends FileReader {
 
   protected $stats = null;
   protected $args = null;
-  protected $settings = null;
   protected $controller = null;
   protected $metadata = null;
   protected $name = null;
@@ -28,7 +27,6 @@ class MetadataFileReader extends FileReader {
     }
     $this->stats->setRawname($this->controller->getRawname());
     $this->setArgs($this->controller->getArgs());
-    $this->settings = $this->controller->getSettings();
     // assume we're dealing simple Metadata for now (e.g. not Video)
     $this->metadata = new ImageMetadata($this, $this->stats);
   }
@@ -49,7 +47,7 @@ class MetadataFileReader extends FileReader {
    * @return array settings
    */
   public function getSettings() {
-    return $this->settings;
+    return $this->controller->getSettings();
   }
 
   /**
@@ -120,8 +118,9 @@ class MetadataFileReader extends FileReader {
       }
     }
     // add in shares within this folder
-    if (!is_null($this->name) && isset($this->settings['attach'][ltrim($this->name, Constantly::DIR_SEPARATOR_URL)])) {
-      $shares = $this->settings['attach'][ltrim($this->name, Constantly::DIR_SEPARATOR_URL)];
+    $settings = $this->controller->getSettings();
+    if (!is_null($this->name) && isset($settings['attach'][ltrim($this->name, Constantly::DIR_SEPARATOR_URL)])) {
+      $shares = $settings['attach'][ltrim($this->name, Constantly::DIR_SEPARATOR_URL)];
       foreach ($shares as $k => &$sh) {
         $obj = new GenericEntry();
         $obj->setName($sh['name']);

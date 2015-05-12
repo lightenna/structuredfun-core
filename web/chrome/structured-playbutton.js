@@ -16,12 +16,14 @@
     'title': 'Play',
     'title_playing': 'Pause',
   };
+  var slide_duration = 5 * 1000;
 
   // -----
   // STATE
   // -----
 
   var playing = false;
+  var change_interval = null;
 
   // ---------
   // FUNCTIONS
@@ -104,15 +106,28 @@
   }
 
   var _play = function() {
+    // flag as playing
     playing = true;
     $html.addClass('playing');
     $button.html(view['title_playing']);
+    // setup change interval
+    change_interval = setInterval(_getIntervalHandler(), slide_duration);
   }
 
   var _pause = function() {
+    // flag as paused
     playing = false;
     $html.removeClass('playing');
     $button.html(view['title']);
+    // cancel change interval
+    clearInterval(change_interval);
+  }
+
+  var _getIntervalHandler = function() {
+    return(function() {
+      // advance to next image
+      sfun.api_imageAdvanceBy(1);
+    });
   }
 
   // call init function

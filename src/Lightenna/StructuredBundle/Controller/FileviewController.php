@@ -27,6 +27,10 @@ class FileviewController extends ViewController {
     $thumbargs = new \stdClass();
     $thumbargs->{'maxlongest'} = 200;
     $this->mfr->injectArgs($thumbargs);
+    // for now just display errors
+    if ($this->errbuf !== null) {
+      print(implode('', $this->getErrors()));
+    }
     if ($this->mfr->isExisting()) {
       if ($this->mfr->isDirectory()) {
         // get the list of entries for this directory
