@@ -1,4 +1,4 @@
-/* line 17, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 5, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -20,46 +20,46 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
-/* line 22, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 22, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 html {
   line-height: 1;
 }
 
-/* line 24, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 24, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 ol, ul {
   list-style: none;
 }
 
-/* line 26, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 26, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 table {
   border-collapse: collapse;
   border-spacing: 0;
 }
 
-/* line 28, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 28, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 caption, th, td {
   text-align: left;
   font-weight: normal;
   vertical-align: middle;
 }
 
-/* line 30, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 30, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 q, blockquote {
   quotes: none;
 }
-/* line 103, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 103, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 q:before, q:after, blockquote:before, blockquote:after {
   content: "";
   content: none;
 }
 
-/* line 32, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+/* line 32, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
 a img {
   border: none;
 }
 
-/* line 116, ../../../../../../../users/alex/Google Drive/Lightenna/functionspace/techsetups/stdapps/compass/lib/ruby/compass_0.12/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
-article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
+/* line 116, ../../../../../../../../../../usr/lib/ruby/gems/1.8/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section, summary {
   display: block;
 }
 
@@ -145,24 +145,24 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   position: fixed;
   z-index: 2;
   overflow: hidden;
-  color: black;
+  color: #000000;
   text-transform: uppercase;
   font-size: 0.75em;
   background: #96c2ff;
   /* Old browsers */
-  background: -moz-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, white 100%);
+  background: -moz-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, #ffffff 100%);
   /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #96c2ff), color-stop(84%, #d9ecf9), color-stop(85%, #adadad), color-stop(100%, white));
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #96c2ff), color-stop(84%, #d9ecf9), color-stop(85%, #adadad), color-stop(100%, #ffffff));
   /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, white 100%);
+  background: -webkit-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, #ffffff 100%);
   /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, white 100%);
+  background: -o-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, #ffffff 100%);
   /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, white 100%);
+  background: -ms-linear-gradient(top, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, #ffffff 100%);
   /* IE10+ */
   background: linear-gradient(to bottom, #96c2ff 0%, #d9ecf9 84%, #adadad 85%, #ffffff 100%);
   /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#96c2ff', endColorstr='#ffffff',GradientType=0 );
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#96c2ff', endColorstr='#ffffff',GradientType=0 );
   /* IE6-9 */
 }
 /* line 119, ../sass/structuredfun.scss */
@@ -175,7 +175,7 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
 /* line 125, ../sass/structuredfun.scss */
 .page .header p a, .page .header li a, .page .footer p a, .page .footer li a {
   text-decoration: none;
-  color: black;
+  color: #000000;
 }
 /* line 130, ../sass/structuredfun.scss */
 .page .header p.menu.icon, .page .header li.menu.icon, .page .footer p.menu.icon, .page .footer li.menu.icon {
@@ -235,7 +235,7 @@ html.flow-1 .overlay-holder {
   /* IE10+ */
   background: radial-gradient(circle farthest-corner at center, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 80%, rgba(255, 255, 255, 0.45) 100%);
   /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 );
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 );
   /* IE6-9 fallback on horizontal gradient */
 }
 
@@ -250,27 +250,27 @@ html.theme-dark {
 }
 /* line 232, ../sass/structuredfun.scss */
 html.theme-dark .page .header {
-  color: white;
+  color: #ffffff;
   background: #000000;
   /* Old browsers */
-  background: -moz-linear-gradient(top, black 0%, #09134c 84%, #08090c 85%, #222222 100%);
+  background: -moz-linear-gradient(top, #000000 0%, #09134c 84%, #08090c 85%, #222222 100%);
   /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, black), color-stop(84%, #09134c), color-stop(85%, #08090c), color-stop(100%, #222222));
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #000000), color-stop(84%, #09134c), color-stop(85%, #08090c), color-stop(100%, #222222));
   /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, black 0%, #09134c 84%, #08090c 85%, #222222 100%);
+  background: -webkit-linear-gradient(top, #000000 0%, #09134c 84%, #08090c 85%, #222222 100%);
   /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, black 0%, #09134c 84%, #08090c 85%, #222222 100%);
+  background: -o-linear-gradient(top, #000000 0%, #09134c 84%, #08090c 85%, #222222 100%);
   /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, black 0%, #09134c 84%, #08090c 85%, #222222 100%);
+  background: -ms-linear-gradient(top, #000000 0%, #09134c 84%, #08090c 85%, #222222 100%);
   /* IE10+ */
   background: linear-gradient(to bottom, #000000 0%, #09134c 84%, #08090c 85%, #222222 100%);
   /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222',GradientType=0 );
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#222222',GradientType=0 );
   /* IE6-9 */
 }
 /* line 246, ../sass/structuredfun.scss */
 html.theme-dark .page .header p a, html.theme-dark .page .header li a {
-  color: white;
+  color: #ffffff;
 }
 /* line 249, ../sass/structuredfun.scss */
 html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu-icon {
@@ -303,7 +303,7 @@ html.theme-dark .page .content .sfun > .cell a .title {
 }
 /* line 288, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text], html.theme-dark .page .content .sfun > .cell .metaform-holder textarea {
-  color: white;
+  color: #ffffff;
 }
 /* line 290, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text]:focus, html.theme-dark .page .content .sfun > .cell .metaform-holder textarea:focus {
@@ -316,23 +316,104 @@ html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
 }
 /* line 309, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
-  background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
+  background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, transparent 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
-  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%, rgba(255, 255, 255, 0)), color-stop(80%, rgba(0, 0, 0, 0)), color-stop(100%, rgba(0, 0, 0, 0.45)));
+  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%, rgba(255, 255, 255, 0)), color-stop(80%, transparent), color-stop(100%, rgba(0, 0, 0, 0.45)));
   /* Chrome,Safari4+ */
-  background: -webkit-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
+  background: -webkit-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, transparent 80%, rgba(0, 0, 0, 0.45) 100%);
   /* Chrome10+,Safari5.1+ */
-  background: -o-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
+  background: -o-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, transparent 80%, rgba(0, 0, 0, 0.45) 100%);
   /* Opera 12+ */
-  background: -ms-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
+  background: -ms-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, transparent 80%, rgba(0, 0, 0, 0.45) 100%);
   /* IE10+ */
   background: radial-gradient(circle farthest-corner at center, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 );
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#bf000000',GradientType=1 );
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 325, ../sass/structuredfun.scss */
+/* line 327, ../sass/structuredfun.scss */
+.sfun.animate-zoom.flow-1 > .cell.selected img.reresable {
+  animation: move-out 5s ease alternate;
+  -ms-animation: move-out 5s ease alternate;
+  /* IE 9 */
+  -webkit-animation: move-out 5s ease alternate;
+  /* Safari and Chrome */
+  -o-animation: move-out 5s ease alternate;
+  /* Opera */
+  -moz-animation: move-out 5s ease alternate;
+  /* Firefox */
+}
+/* line 332, ../sass/structuredfun.scss */
+.sfun.animate-zoom.flow-2 > .cell.selected img.reresable {
+  animation: move-in 5s ease alternate;
+  -ms-animation: move-in 5s ease alternate;
+  /* IE 9 */
+  -webkit-animation: move-in 5s ease alternate;
+  /* Safari and Chrome */
+  -o-animation: move-in 5s ease alternate;
+  /* Opera */
+  -moz-animation: move-in 5s ease alternate;
+  /* Firefox */
+}
+
+@keyframes move-out {
+  from {
+    transform: scale(1.05);
+    -ms-transform: scale(1.05);
+    /* IE 9 */
+    -webkit-transform: scale(1.05);
+    /* Safari and Chrome */
+    -o-transform: scale(1.05);
+    /* Opera */
+    -moz-transform: scale(1.05);
+    /* Firefox */
+    left: 0;
+    top: 0;
+  }
+  to {
+    transform: scale(1.00);
+    -ms-transform: scale(1.00);
+    /* IE 9 */
+    -webkit-transform: scale(1.00);
+    /* Safari and Chrome */
+    -o-transform: scale(1.00);
+    /* Opera */
+    -moz-transform: scale(1.00);
+    /* Firefox */
+    left: 0;
+    top: 0;
+  }
+}
+@keyframes move-in {
+  from {
+    transform: scale(1.00);
+    -ms-transform: scale(1.00);
+    /* IE 9 */
+    -webkit-transform: scale(1.00);
+    /* Safari and Chrome */
+    -o-transform: scale(1.00);
+    /* Opera */
+    -moz-transform: scale(1.00);
+    /* Firefox */
+    left: 0;
+    top: 0;
+  }
+  to {
+    transform: scale(1.05);
+    -ms-transform: scale(1.05);
+    /* IE 9 */
+    -webkit-transform: scale(1.05);
+    /* Safari and Chrome */
+    -o-transform: scale(1.05);
+    /* Opera */
+    -moz-transform: scale(1.05);
+    /* Firefox */
+    left: 0;
+    top: 0;
+  }
+}
+/* line 367, ../sass/structuredfun.scss */
 #eventQueueVis {
   color: #fff;
   font-size: 0.8em;
@@ -342,31 +423,31 @@ html.theme-dark.flow-1 .overlay-holder {
   left: 100%;
   margin-left: -11em;
 }
-/* line 336, ../sass/structuredfun.scss */
+/* line 378, ../sass/structuredfun.scss */
 #eventQueueVis li {
   width: 10em;
   padding: 0.2em;
   background-color: #660000;
   border: 1px solid #000;
 }
-/* line 342, ../sass/structuredfun.scss */
+/* line 384, ../sass/structuredfun.scss */
 #eventQueueVis li.queued {
   border-left-color: #ff0000;
   border-right-color: #ff0000;
 }
-/* line 347, ../sass/structuredfun.scss */
+/* line 389, ../sass/structuredfun.scss */
 #eventQueueVis li.queued:last-child {
   border-bottom-color: #ff0000;
 }
-/* line 351, ../sass/structuredfun.scss */
+/* line 393, ../sass/structuredfun.scss */
 #eventQueueVis li.hash {
   background-color: #006600;
 }
-/* line 355, ../sass/structuredfun.scss */
+/* line 397, ../sass/structuredfun.scss */
 #eventQueueVis li.scroll {
   background-color: #000066;
 }
-/* line 359, ../sass/structuredfun.scss */
+/* line 401, ../sass/structuredfun.scss */
 #eventQueueVis li .dig3 {
   font-size: 0.6em;
   border: 1px solid #fff;
@@ -374,7 +455,7 @@ html.theme-dark.flow-1 .overlay-holder {
   margin: 0.1em 0.4em 0.1em 0.1em;
 }
 
-/* line 371, ../sass/structuredfun.scss */
+/* line 413, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

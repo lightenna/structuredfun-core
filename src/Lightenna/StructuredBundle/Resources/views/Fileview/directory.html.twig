@@ -5,7 +5,7 @@
 <div id="gutterball" class="yardstick"></div><div id="alleyball" class="yardstick"></div>
 
 <div class="content">
-<ul id="sfun" class="sfun flow flow-{{ direction }} flow-{{ celltype }} flow-{{ breadth }}">
+<ul id="sfun" class="sfun flow flow-{{ direction }} flow-{{ celltype }} flow-{{ breadth }} animate-zoom">
 {% for file in dirlisting %}
 {% if file.type == 'directory' %}
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type" data-seq="{{ file.seq }}">

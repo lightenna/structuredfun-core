@@ -1,10 +1,13 @@
 
-* develop play button
-
-* experiment with css3 zooming transition
-  + can do using firebug to start
-  + found great example from Paul Irish
-http://codepen.io/mj/pen/rIBpt/
+* fix kansas so that puppet run
+  + setups up structured/htdocs/web/mediacache/
+    + as a writeable directory
+--o--
+* setup checkout of StructuredAddonBundle
+  + as part of puppet run
+--o--
+* commit nebula
+  + commit sfun-linux
 
 * javascript error structured.js line 2554
   + seems that position isn't always being set
@@ -14,10 +17,8 @@ http://codepen.io/mj/pen/rIBpt/
       + ref 0 to 14 inclusive
     = debug on PC, can't replicate on linux
 
-* check an individual image's metadata
-  + after a deserialise
-    + I think we're not pulling the fields in properly
-    + confirmed
+* do a progressive deserialise
+  + across listing and all sub-objects
   = lookup a progressive deserialize
     + there must be someone who's done it
 --o--
@@ -5834,4 +5835,56 @@ public function updateAction(Request $request)
   + can be an app
   + debug playbutton link appearing ('cos it's not)
     + there now
+
+* rig up wikimedia images in elan again
+  + maybe commit the files somewhere handy
+    + like nebula
+  + now the blinkin' images aren't loading
+    + this was a way-annoying deploy
+    + got to get this stuff sorted in master elan
+
+* need to check nicely that we have write access to the cache dir
+  + if we don't, we have to report that cleanly
+    + it's not entirely clear where the best place to do that is
+    + we don't want to do it every image load
+  + could do it on a directory load
+    + a cache write isn't that expensive
+  + problem is that directory reads and image reads are independent
+    + so we really need to test it everytime
+      + that's a performance hit
+      + but I think let's just do it for now
+        + it's easy to refactor later
+--o--
+* soften error
+  + so that we can continue even if we can't write to cache
+  + disable cache
+    + problem is that we have multiple copies of settings
+    + could convert settings to an object
+      + yawn
+    + could always ask controller for settings
+
+* develop play button
+  + done something simple
+  + all we need for now
+
+* experiment with css3 zooming transition
+  + can do using firebug to start
+  + found great example from Paul Irish
+http://codepen.io/mj/pen/rIBpt/
+  + implement as slow zoom on selected image
+    + problem
+    + pretty sure it's because css can't find 'move' animation
+  + it's interesting but not a home run
+    + for now don't animate
+      + hmmm, can we make it at least an option that gets turned on
+      + a class that sits on .sfun
+        + or maybe html for consistency
+        = on sfun
+  + leave it turned on for now
+    + see if it gets annoying after a while
+
+* check an individual image's metadata
+  + after a deserialise
+    + I think we're not pulling the fields in properly
+    + confirmed
 

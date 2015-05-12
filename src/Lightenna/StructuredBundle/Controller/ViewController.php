@@ -17,6 +17,8 @@ class ViewController extends Controller {
   protected $mfr;
   // @param string URL requested
   protected $rawname = null;
+  // @param string[] error buffer
+  protected $errbuf = null;
 
   public function __construct() {
     $settings_file = $this->convertRawToInternalFilename('conf/structured.ini');
@@ -314,9 +316,38 @@ class ViewController extends Controller {
   /**
    * @return Filename within structured folder without trailing slash
    */
-
   public function convertRawToInternalFilename($name) {
     return $this->convertRawToFilename(Constantly::FOLDER_NAME . Constantly::DIR_SEPARATOR_URL . $name);
+  }
+
+  /**
+   * turn off caching, usually as a result of a detected error in the writeable cache folder
+   */
+  public function disableCaching() {
+    $this->settings['general']['nocache'] = 'nocache';
+  }
+
+  /**
+   * @param string $message Simple text error message
+   * channel all calls through here so eventually we can do something clever
+   */
+  public function error($message) {
+    if ($this->errbuf === null) {
+      $this->errbuf = array();
+    }
+    $this->errbuf[] = $message.'<br />'."\r\n";
+    // return an error message if we're not rendering an image
+    if (!is_a($this, 'Lightenna\StructuredBundle\Controller\ImageviewController')) {
+      // @todo remove
+      // currently this is handled by the ImageviewController not calling flush
+    }
+  }
+
+  /**
+   * @return array list of errors accumulated
+   */
+  public function getErrors() {
+    return $this->errbuf;
   }
 
   /**

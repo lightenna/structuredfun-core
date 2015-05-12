@@ -4804,6 +4804,14 @@ console.log('fireScroll', localContext);
     },
 
     /**
+     * jump forward/back by a certain number of images
+     * @param {int} number of images to advance by (+/-)
+     */
+    'api_imageAdvanceBy': function(by) {
+      return imageAdvanceBy(by);
+    },
+
+    /**
      * use offseq to centre the image
      * @param {string} direction axis to centre on
      * @param {int} image sequence number
