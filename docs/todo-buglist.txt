@@ -1,8 +1,4 @@
 
-* fix kansas so that puppet run
-  + setups up structured/htdocs/web/mediacache/
-    + as a writeable directory
---o--
 * setup checkout of StructuredAddonBundle
   + as part of puppet run
 --o--
@@ -5887,4 +5883,8 @@ http://codepen.io/mj/pen/rIBpt/
   + after a deserialise
     + I think we're not pulling the fields in properly
     + confirmed
+
+* fix kansas so that puppet run
+  + setups up structured/htdocs/web/mediacache/
+    + as a writeable directory
 
