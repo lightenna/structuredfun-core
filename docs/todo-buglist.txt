@@ -1,4 +1,11 @@
 
+* nasty bug wipes zip files
+  + seems to be a bug in zip_open (part of ZipArchive)
+
+* slow zoom doesn't work on landscape images
+  + one 'transform' wipes out the other
+  + look at codepen for alternative method
+
 * setup checkout of StructuredAddonBundle
   + as part of puppet run
 --o--
