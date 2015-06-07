@@ -53,7 +53,11 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * @return boolean true if we can write to the cache directory
    */
   public function testCacheWrite() {
-    $filename = $this->getFilename('.writeable.txt');
+    static $cacheWriteable = null;
+    if ($cacheWriteable != null) {
+      return $cacheWriteable;
+    }
+    $filename = $this->getFilenameInCache('.writeable.txt');
     // delete the file if it's already there
     if (file_exists($filename)) {
       @unlink($filename);
@@ -61,9 +65,10 @@ class CachedMetadataFileReader extends MetadataFileReader {
     @file_put_contents($filename, '0');
     // if the file is not there afterwards, return a nice error
     if (!file_exists($filename)) {
-      return false;
+      $cacheWriteable = false;
     }
-    return true;
+    $cacheWriteable = true;
+    return $cacheWriteable;
   }
 
   /**
@@ -183,10 +188,13 @@ class CachedMetadataFileReader extends MetadataFileReader {
 
   /**
    * Returns a simple filename for the current file, or its cached alias if key set
+   * That means there are cases where it returns:
+   *   - the cache path of this file, e.g. if it's been cached already
+   *   - the real path of the file, e.g. if it's a directory
+   *   - the real file path of a zip file, e.g. if it's a file within a zip
    * @param  string $key cache key, false not to use, true to use pre-existing
    * @return string full path filename of this key'd asset
    */
-
   public function getFilename($key = false) {
     if ($key === true && $this->stats->hasCacheKey()) {
       $key = $this->stats->getCacheKey();
@@ -196,9 +204,17 @@ class CachedMetadataFileReader extends MetadataFileReader {
       // just return the file part
       $fullname = parent::getFilename();
     } else {
-      $fullname = $this->cachedir . '/' . $key; 
+      $fullname = $this->getFilenameInCache($key);
     }
     return $fullname;
+  }
+
+  /**
+   * @param string $key typically a cache key
+   * @return string full path filename of this key'd asset
+   */
+  public function getFilenameInCache($key) {
+    return $this->cachedir . '/' . $key;
   }
 
   /**
