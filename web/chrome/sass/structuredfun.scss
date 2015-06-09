@@ -337,27 +337,24 @@ html.theme-dark {
 
 @keyframes move-out {
   from {
-    @include multibrowser('transform', 'scale(1.05)');
-    left: 0;
-    top: 0;
+    // @include multibrowser('transform', 'scale(1.05)');
+    // left: 0;
+    // top: 0;
+    zoom: 105%;
   }
   to {
-    @include multibrowser('transform', 'scale(1.00)');
-    left: 0;
-    top: 0;
+    zoom: 100%;
   }
 }
 
 @keyframes move-in {
   from {
-    @include multibrowser('transform', 'scale(1.00)');
-    left: 0;
-    top: 0;
+    // @include multibrowser('transform', 'scale(1.00)');
+    // @include multibrowser('zoom', '100%');
+    zoom: 100%;
   }
   to {
-    @include multibrowser('transform', 'scale(1.05)');
-    left: 0;
-    top: 0;
+    zoom: 105%;
   }
 }
 
