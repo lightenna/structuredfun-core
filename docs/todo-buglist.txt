@@ -2,6 +2,8 @@
 * slow zoom doesn't work on landscape images
   + one 'transform' wipes out the other
   + look at codepen for alternative method
+    + it relies on zoom
+    + zoom on its own doesn't seem to do anything in firefox
 
 * setup checkout of StructuredAddonBundle
   + as part of puppet run
