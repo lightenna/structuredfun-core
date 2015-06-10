@@ -1,32 +1,4 @@
 
-* slow zoom doesn't work on landscape images
-  + one 'transform' wipes out the other
-  + look at codepen for alternative method
-    + it relies on zoom
-    + zoom on its own doesn't seem to do anything in firefox
-
-* setup checkout of StructuredAddonBundle
-  + as part of puppet run
---o--
-* commit nebula
-  + commit sfun-linux
-
-* javascript error structured.js line 2554
-  + seems that position isn't always being set
-    + requesting a cell that's out of range?
-  + calcVisnear returning cells out of range (15)
-    + for image set that contains 15 images
-      + ref 0 to 14 inclusive
-    = debug on PC, can't replicate on linux
-
-* do a progressive deserialise
-  + across listing and all sub-objects
-  = lookup a progressive deserialize
-    + there must be someone who's done it
---o--
-* remove temp stitch
-  + stitching deserialise until we get progressive working
-
 * think about tile span
   + we know the canvas width and height
     + and normalised coords for each image's position on that
@@ -55,6 +27,28 @@
     + /image goes into the image folder
       + so choose route that maps to a different folder
       + e.g. /dyntile
+
+* setup checkout of StructuredAddonBundle
+  + as part of puppet run
+--o--
+* commit nebula
+  + commit sfun-linux
+
+* javascript error structured.js line 2554
+  + seems that position isn't always being set
+    + requesting a cell that's out of range?
+  + calcVisnear returning cells out of range (15)
+    + for image set that contains 15 images
+      + ref 0 to 14 inclusive
+    = debug on PC, can't replicate on linux
+
+* do a progressive deserialise
+  + across listing and all sub-objects
+  = lookup a progressive deserialize
+    + there must be someone who's done it
+--o--
+* remove temp stitch
+  + stitching deserialise until we get progressive working
 
 * can't fullscreen a high seq image
   + it doesn't go far enough right
@@ -5906,4 +5900,14 @@ http://codepen.io/mj/pen/rIBpt/
       + that doesn't give us the filename in the cache
         + it gives us the filename in the current directory
           + in this case a zip!
+
+* slow zoom doesn't work on landscape images
+  + one 'transform' wipes out the other
+  + look at codepen for alternative method
+    + it relies on zoom
+    + zoom on its own doesn't seem to do anything in firefox
+  + zoom experiment didn't work
+    + dump it for now
+      + we can always rescue it out of this commit
+ed1575ecbf1f9bd9c565264ef45927bb48cac318
 
