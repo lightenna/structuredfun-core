@@ -30,3 +30,5 @@ composer.phar
 
 # Ignore mediacache files (now that the directory exists)
 web/mediacache/image/*.dat
+web/mediacache/image/.writeable.txt
+
