@@ -14,10 +14,11 @@
 # app/config/parameters.ini
 # app/config/parameters.yml
 
-# Eclipse IDE files
+# IDE files
 .buildpath
 .project
 .settings/
+.idea/
 
 # Ignore Add-ons if installed
 src/Lightenna/StructuredAddonBundle
