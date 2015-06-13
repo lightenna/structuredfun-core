@@ -1,4 +1,7 @@
 
+* write tests for TileMaker
+  + there are loads of permutations and this stuff needs to be right
+
 * think about tile span
   + we know the canvas width and height
     + and normalised coords for each image's position on that
@@ -10,13 +13,21 @@
       + 1.0 for minor (e.g. height) makes sense
       + but 1.0 for major doesn't
         + that would mean the full canvas
-        + unless we use two different scale
+        + unless we use two different scales
       + could specify tile size and only minor window sizes
         + only partly helps
           + because we still need the x1 and y1 coords
             + for a grid system
             + that means knowing the width of the tile on the canvas
-    + hmmm, thinking
+    + could specify the minor height (in pixels)
+      + and the aspect ratio of the window that we're trying to fill
+      + that's pretty much the same as specifying the major width
+      + that aspect ratio comes from the tile
+        + if they're square tiles
+          + then we know then we want a bunch of them
+      + coordinates within the canvas all need to be
+        + height-normalised coords
+          + because height is max 1, but major width is >1
 
 * make image tile
   + setup as a generic service
