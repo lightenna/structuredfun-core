@@ -1,6 +1,14 @@
 
+* fix error in test suite
+[image2 @ 0299e300] Could not open file : C:\core\working\structuredfun-pc\struc
+tured\conf/../../structured/htdocs/web/mediacache/image/C:\core\working\structur
+edfun-pc\structured\conf~dir~..~dir~..~dir~structured~dir~tests~dir~data~dir~40-
+video_folder~dir~nasa-solar-flare-64x64.m4v~00:00:10.0_videofullres.dat
+av_interleaved_write_frame(): Input/output error
+
 * write tests for TileMaker
   + there are loads of permutations and this stuff needs to be right
+phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTest.php
 
 * think about tile span
   + we know the canvas width and height
