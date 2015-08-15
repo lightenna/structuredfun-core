@@ -319,7 +319,6 @@ class CachedMetadataFileReader extends MetadataFileReader {
    * Rewrite the current file's path
    * @todo may need to tweak for things in zips
    */
-
   public function rewrite($newname, $updateCacheKey = true) {
     parent::rewrite($newname);
     // only update cache key if we're not rewriting from the cache
@@ -327,6 +326,13 @@ class CachedMetadataFileReader extends MetadataFileReader {
       $this->stats->setCacheKey($this->getKey());
     }
     return $newname;
+  }
+
+  /**
+   * Rewrite the current file's path using a directory (generic) entry
+   */
+  public function rewriteWithGenericEntry($generic) {
+    parent::rewriteWithGenericEntry($generic);
   }
 
   /**

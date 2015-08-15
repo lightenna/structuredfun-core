@@ -18,7 +18,7 @@ class MetadataFileReader extends FileReader {
     parent::__construct($filename);
     $this->controller = $con;
     if (!is_null($filename)) {
-      // @refactor ; think we can remove this getListing call
+      // @refactor @todo ; think we can remove this getListing call
       $this->getListing();
       $this->stats = $this->getStatsFromListingHead();
     }
@@ -309,13 +309,20 @@ class MetadataFileReader extends FileReader {
    * Rewrite the current file's path
    * @todo may need to tweak for things in zips
    */
-  
   public function rewrite($newname) {
     parent::rewrite($newname);
     $this->stats->setFile($newname);
     // don't rewrite its extension because we don't use that for file access, only for type detection
     // $this->stats->ext = self::getExtension($this->stats->file);
     return $newname;
+  }
+
+  /**
+   * Rewrite the current file's path using a directory (generic) entry
+   */
+  public function rewriteWithGenericEntry($generic) {
+    parent::rewrite($generic->getFile());
+    $this->stats = $generic;
   }
 
   /**

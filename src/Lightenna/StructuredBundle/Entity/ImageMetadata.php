@@ -9,6 +9,7 @@ use Lightenna\StructuredBundle\Controller\ViewController;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\IptcWriter;
+use Lightenna\StructuredBundle\DependencyInjection\Rectangle;
 use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 
 /**
@@ -580,6 +581,15 @@ class ImageMetadata {
 
   public function setNormalHeight($breadth, $direction, $n) {
     $this->normal_height[$direction.$breadth] = $n;
+  }
+
+  public function getNormalRectangle($breadth, $direction) {
+    return new Rectangle(
+      $this->getNormalX($breadth, $direction),
+      $this->getNormalY($breadth, $direction),
+      $this->getNormalX($breadth, $direction) + $this->getNormalWidth($breadth, $direction),
+      $this->getNormalY($breadth, $direction) + $this->getNormalHeight($breadth, $direction)
+    );
   }
 
   public function getNormalXs() {
