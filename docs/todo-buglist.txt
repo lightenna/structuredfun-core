@@ -1,41 +1,9 @@
 
-* fix error in test suite
-[image2 @ 0299e300] Could not open file : C:\core\working\structuredfun-pc\struc
-tured\conf/../../structured/htdocs/web/mediacache/image/C:\core\working\structur
-edfun-pc\structured\conf~dir~..~dir~..~dir~structured~dir~tests~dir~data~dir~40-
-video_folder~dir~nasa-solar-flare-64x64.m4v~00:00:10.0_videofullres.dat
-av_interleaved_write_frame(): Input/output error
+* debug black tile
 
 * write tests for TileMaker
   + there are loads of permutations and this stuff needs to be right
 phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTest.php
-
-* think about tile span
-  + we know the canvas width and height
-    + and normalised coords for each image's position on that
-  + we want to specify a canvas window
-    + i.e. the part of the canvas that we want to render
-    + then hunt for overlapping/in-window images
-  + window_ vars
-    + need to think about normalisation
-      + 1.0 for minor (e.g. height) makes sense
-      + but 1.0 for major doesn't
-        + that would mean the full canvas
-        + unless we use two different scales
-      + could specify tile size and only minor window sizes
-        + only partly helps
-          + because we still need the x1 and y1 coords
-            + for a grid system
-            + that means knowing the width of the tile on the canvas
-    + could specify the minor height (in pixels)
-      + and the aspect ratio of the window that we're trying to fill
-      + that's pretty much the same as specifying the major width
-      + that aspect ratio comes from the tile
-        + if they're square tiles
-          + then we know then we want a bunch of them
-      + coordinates within the canvas all need to be
-        + height-normalised coords
-          + because height is max 1, but major width is >1
 
 * make image tile
   + setup as a generic service
@@ -52,6 +20,13 @@ phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTes
 --o--
 * commit nebula
   + commit sfun-linux
+
+* fix error in test suite
+[image2 @ 0299e300] Could not open file : C:\core\working\structuredfun-pc\struc
+tured\conf/../../structured/htdocs/web/mediacache/image/C:\core\working\structur
+edfun-pc\structured\conf~dir~..~dir~..~dir~structured~dir~tests~dir~data~dir~40-
+video_folder~dir~nasa-solar-flare-64x64.m4v~00:00:10.0_videofullres.dat
+av_interleaved_write_frame(): Input/output error
 
 * javascript error structured.js line 2554
   + seems that position isn't always being set
@@ -5929,4 +5904,31 @@ http://codepen.io/mj/pen/rIBpt/
     + dump it for now
       + we can always rescue it out of this commit
 ed1575ecbf1f9bd9c565264ef45927bb48cac318
+
+* think about tile span
+  + we know the canvas width and height
+    + and normalised coords for each image's position on that
+  + we want to specify a canvas window
+    + i.e. the part of the canvas that we want to render
+    + then hunt for overlapping/in-window images
+  + window_ vars
+    + need to think about normalisation
+      + 1.0 for minor (e.g. height) makes sense
+      + but 1.0 for major doesn't
+        + that would mean the full canvas
+        + unless we use two different scales
+      + could specify tile size and only minor window sizes
+        + only partly helps
+          + because we still need the x1 and y1 coords
+            + for a grid system
+            + that means knowing the width of the tile on the canvas
+    + could specify the minor height (in pixels)
+      + and the aspect ratio of the window that we're trying to fill
+      + that's pretty much the same as specifying the major width
+      + that aspect ratio comes from the tile
+        + if they're square tiles
+          + then we know then we want a bunch of them
+      + coordinates within the canvas all need to be
+        + height-normalised coords
+          + because height is max 1, but major width is >1
 

@@ -338,7 +338,6 @@ class FileReader {
   /**
    * Rewrite the current file's path
    */
-
   public function rewrite($newname) {
     $this->parseFilename($newname);
     // $this->file_part = $newname;
