@@ -1,32 +1,25 @@
 
-* debug black tile
-
-* write tests for TileMaker
-  + there are loads of permutations and this stuff needs to be right
-phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTest.php
-
-* make image tile
-  + setup as a generic service
-  + could be making a small tile (256x256) as part of a zoomable
-  + could be making a large collage (1600x800) for a social share
-  + cache
-    + should be able to share .htaccess code
-    + /image goes into the image folder
-      + so choose route that maps to a different folder
-      + e.g. /dyntile
-
-* setup checkout of StructuredAddonBundle
-  + as part of puppet run
---o--
-* commit nebula
-  + commit sfun-linux
-
 * fix error in test suite
+  + some errors are downstream of this too
 [image2 @ 0299e300] Could not open file : C:\core\working\structuredfun-pc\struc
 tured\conf/../../structured/htdocs/web/mediacache/image/C:\core\working\structur
 edfun-pc\structured\conf~dir~..~dir~..~dir~structured~dir~tests~dir~data~dir~40-
 video_folder~dir~nasa-solar-flare-64x64.m4v~00:00:10.0_videofullres.dat
 av_interleaved_write_frame(): Input/output error
+  + caused by path corruption
+    + conf~dir is wrong
+  + CachedMetadataFileReader->getFullname
+    + we're not using the right key
+      + it's a consistent video thing
+
+* write tests for TileMaker
+  + there are loads of permutations and this stuff needs to be right
+phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTest.php
+
+* investigate options for feeding Openseadragon with tiles
+  + is there some kind of IIIF option
+    + and if so, can we make a route to support it
+  + if not think about folder-based zoom levels and coords
 
 * javascript error structured.js line 2554
   + seems that position isn't always being set
@@ -5931,4 +5924,68 @@ ed1575ecbf1f9bd9c565264ef45927bb48cac318
       + coordinates within the canvas all need to be
         + height-normalised coords
           + because height is max 1, but major width is >1
+
+* debug black tile
+  + layout isn't loading the images properly
+    + it's getting identical loadedWidth:1340, loadedHeight:1080
+  + need to remember that dyntile only works if we've got a cached copy of the images
+  + layout is broadly ok, but the first x coord is wrong
+    + it's 0.48 when it should be 0 I think
+    = fixed
+  + file_part_leaf is missing cacheKey
+    + somehow we're not pulling it out of the cache
+    + which should work, even though we're going to rewrite to use getOriginal()
+    + problem is that we're stripping the args in FileReader->parseFilename
+      + there are probably cases where we want to do that
+      + just not here
+    + could make parseFilename smarter
+      + and look for .YYY at the end of the filename
+    + could pass a flag telling it not to strip
+    = made it smarter
+      + not sure how to remember that one
+
+* take out rewriteGeneric
+  + it doesn't work
+  + and we don't need it because we can pull an mfr from the generic anyway
+
+* think about tile gen
+  + there's a really interesting optimisation
+  + where we build the tile from cached images
+    + it's much faster
+      1 from cache 144ms
+      2 from originals 1920ms
+    + quite literally 10x faster
+  + right now we just need to get to a working prototype
+    + so this will have to wait for later
+
+* make image tile
+  + setup as a generic service
+  + could be making a small tile (256x256) as part of a zoomable
+  + could be making a large collage (1600x800) for a social share
+  + cache
+    + should be able to share .htaccess code
+    + /image goes into the image folder
+      + so choose route that maps to a different folder
+      + e.g. /dyntile
+
+* setup checkout of StructuredAddonBundle
+  + as part of puppet run
+--o--
+* commit nebula
+  + can't remember why?
++ commit sfun-linux
+
+* fix TileMaker error
+  + undefined index x2
+  + it's because the last entry is a folder
+    + we need an image for the test to work properly
+
+* remove javascript console.log() for scroll events
+
+* simple kc bug
+web\mediacache\image\kc~dir~fl_468x80.gif~args&maxlongest=200&.da.meta
+  + notice .gif
+    + it's almost certainly to do with the creation of .meta files
+      + pattern is consistent
+  + not associated with any js errors
 

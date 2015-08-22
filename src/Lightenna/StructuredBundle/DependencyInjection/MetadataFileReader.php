@@ -318,14 +318,6 @@ class MetadataFileReader extends FileReader {
   }
 
   /**
-   * Rewrite the current file's path using a directory (generic) entry
-   */
-  public function rewriteWithGenericEntry($generic) {
-    parent::rewrite($generic->getFile());
-    $this->stats = $generic;
-  }
-
-  /**
    * Create a string to uniquely identify these image arguments
    * @param object $args URL arguments
    * @return string arguments as a string

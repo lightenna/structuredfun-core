@@ -245,6 +245,14 @@ class CachedMetadataFileReader extends MetadataFileReader {
   }
 
   /**
+   * Get the contents of a file, explicitly not from cache
+   */
+  public function getOriginal() {
+    $imgdata = parent::get();
+    return $imgdata;
+  }
+
+  /**
    * get all the images in this directory
    * @param array $listing list of directory entries
    * @param boolean $force true to load all the images
@@ -326,13 +334,6 @@ class CachedMetadataFileReader extends MetadataFileReader {
       $this->stats->setCacheKey($this->getKey());
     }
     return $newname;
-  }
-
-  /**
-   * Rewrite the current file's path using a directory (generic) entry
-   */
-  public function rewriteWithGenericEntry($generic) {
-    parent::rewriteWithGenericEntry($generic);
   }
 
   /**
