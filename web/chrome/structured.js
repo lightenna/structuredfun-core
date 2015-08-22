@@ -3849,7 +3849,7 @@ console.log('fireScroll', localContext);
         // only track scroll events that we didn't invent
         var keyargs = 'x='+sx+'&y='+sy;
         fireTrackEvent('scroll', undefined, keyargs);
-        console.log(event.eventContext);
+        // console.log(event.eventContext);
       }
     }
     // invert deltas to match scroll wheel

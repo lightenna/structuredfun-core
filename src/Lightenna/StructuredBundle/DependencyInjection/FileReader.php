@@ -37,10 +37,7 @@ class FileReader {
    */
 
   private function parseFilename($filename) {
-    // end before any arguments at the end of the URL
-    if (($end = strpos($filename, Constantly::ARG_SEPARATOR)) === false) {
-      $end = strlen($filename);
-    }
+    $end = self::stripArgsToFilename($filename);
     // parse filename for zip marker
     if (($zip_pos = self::detectZip($filename)) !== false) {
       $this->file_part = substr($filename, 0, $zip_pos);
@@ -351,17 +348,26 @@ class FileReader {
    */
 
   /**
+   * carefully strip arguments off a filename but be careful of cache files (.dat)
+   * @param $filename to string
+   * @return int position of end of string
+   */
+  static function stripArgsToFilename($filename) {
+    // end before any arguments at the end of the URL, unless filename finishes .yyy
+    if ((($end = strpos($filename, Constantly::ARG_SEPARATOR)) === false) || ($filename[strlen($filename) - 4] == '.')) {
+      $end = strlen($filename);
+    }
+    return $end;
+  }
+
+  /**
    * get file extension from a filename
    * @param $name full path of file
    * @return string the extension
    */
   static function getExtension($name) {
     // find end of filename section (pre-args)
-    $end = strpos($name, Constantly::ARG_SEPARATOR);
-    // if no args, use full length of string
-    if ($end === false) {
-      $end = strlen($name);
-    }
+    $end = self::stripArgsToFilename($name);
     // find position of last .
     $pos = strrpos($name, '.');
     // if not found

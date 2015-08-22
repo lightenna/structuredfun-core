@@ -68,6 +68,10 @@ class GenericEntry {
     return ($this->zip_path !== null);
   }
 
+  public function isImage() {
+    return ($this->type == 'image');
+  }
+
   //
   // GETTERs and SETTERs
   //
