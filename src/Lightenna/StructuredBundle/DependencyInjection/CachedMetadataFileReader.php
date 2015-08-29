@@ -182,6 +182,9 @@ class CachedMetadataFileReader extends MetadataFileReader {
     //   $cachestring .= Constantly::ARG_SEPARATOR . $argstring;
     // }
     // var_dump($cachestring);
+    // substitute illegal characters that can be in URLs but can't appear in filenames
+    $cachestring = str_replace(':', '-', $cachestring);
+    // hash
     $key = self::hash($cachestring) . '.' . 'dat';
     return $key;
   }

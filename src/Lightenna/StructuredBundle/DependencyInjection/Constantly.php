@@ -16,7 +16,7 @@ class Constantly {
   const FILETYPES_IMAGE = 'png,jpeg,jpg,gif';
   const FILETYPES_VIDEO = 'mp4,m4v,avi,flv,wmv,mpg';
   const FILETYPES_ZIP = 'zip';
-  const DEFAULT_TIMECODE = '00:00:10.0';
+  const DEFAULT_TIMECODE = '00-00-10.0';
   const DEFAULT_LAYOUT_DIRECTION = 'x';
   const DEFAULT_LAYOUT_BREADTH = 2;
   const FOLDER_NAME = 'structured';

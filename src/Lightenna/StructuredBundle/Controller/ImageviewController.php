@@ -158,7 +158,7 @@ class ImageviewController extends ViewController {
       $this->args->{'timecode'} = Constantly::DEFAULT_TIMECODE;
     }
     // prepend the cache location
-    $key = CachedMetadataFileReader::hash($this->stats->getFile() . Constantly::FILEARG_SEPARATOR . $this->args->timecode) . '_videofullres' . '.' . 'dat';
+    $key = CachedMetadataFileReader::hash($this->stats->getRawnameWithoutArgs() . '&timecode=' . str_replace(':','-',$this->args->timecode)) . '.' . 'dat';
     // create mfr in two stages, because we need to point at the image file in the cache
     $localmfr = new CachedMetadataFileReader(null, $this);
     $localmfr->rewrite($localmfr->getFilename($key));
@@ -180,6 +180,8 @@ class ImageviewController extends ViewController {
     }
     // pull the metadata from localmfr and store in mfr (for when we write the image out later)
     $this->mfr->setMetadata($localmfr->getMetadata());
+    // also store in head stats metadata, because that's where we pull it from for the ImageTransform
+    $this->mfr->getStatsFromListingHead()->setMeta($localmfr->getMetadata());
     // return the image data
     return $imgdata;
   }
