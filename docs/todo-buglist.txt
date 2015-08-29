@@ -1,16 +1,17 @@
 
-* fix error in test suite
-  + some errors are downstream of this too
-[image2 @ 0299e300] Could not open file : C:\core\working\structuredfun-pc\struc
-tured\conf/../../structured/htdocs/web/mediacache/image/C:\core\working\structur
-edfun-pc\structured\conf~dir~..~dir~..~dir~structured~dir~tests~dir~data~dir~40-
-video_folder~dir~nasa-solar-flare-64x64.m4v~00:00:10.0_videofullres.dat
-av_interleaved_write_frame(): Input/output error
-  + caused by path corruption
-    + conf~dir is wrong
-  + CachedMetadataFileReader->getFullname
-    + we're not using the right key
-      + it's a consistent video thing
+* fix video preview frame for f (high-res)
+  + &maxheight= kills it
+  + &timecode with colons kills it
+    + this is persistent
+  + substitute illegal characters that can be in URLs but can't appear in filenames
+    return str_replace(':','-',$fullname);
+    + but can't do this in getFilename because we need : in some filenames (C:\)
+  + I think we'll say that : can't appear in a cache key
+  + does this introduce a cache miss
+    + because the request features timecode=::: whereas the file has timecode=---
+      = yes
+    + hmmm, could use a legal url format in javascript
+      + then transform just before sending it to ffmpeg
 
 * write tests for TileMaker
   + there are loads of permutations and this stuff needs to be right
@@ -65,13 +66,6 @@ phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTes
 
 * GA on sfun
   + use _gaq track to push events
-    = needs internet connection for reference
-
-* 302s are going back to the browser
-  + we want to hide the fact that the URL is changing
-    + if at all possible
-  + there's no need for the browser to know
-    + that the image is being served from a cache
     = needs internet connection for reference
 
 * chrome shuffles towards 0
@@ -5988,4 +5982,50 @@ web\mediacache\image\kc~dir~fl_468x80.gif~args&maxlongest=200&.da.meta
     + it's almost certainly to do with the creation of .meta files
       + pattern is consistent
   + not associated with any js errors
+
+* fix video preview frame for f
+  + problem is in imageTransform
+    + image going in is fine
+    + but transform comes out black
+  + output_width & _height are wrong
+    + from stats->getMetadata->getLoadedWidth/Height
+  + we getStatsFromListingHead()
+    + which is normally fine
+      + other than the listing head is a video frame
+      + saveThumbnail needs to poke the stats in the right place
+    + can poke it in (that works)
+  + better to refactor ImageTransform
+    + nicer to take metadata
+      + rather than a generic entry
+      - no
+    + it's better to pass the genericEntry
+      + because the metadata doesn't contain any file stuff
+      + it ought to be the genericEntry
+  = loading preview (200px)
+
+* fix error in test suite
+  + some errors are downstream of this too
+[image2 @ 0299e300] Could not open file : C:\core\working\structuredfun-pc\struc
+tured\conf/../../structured/htdocs/web/mediacache/image/C:\core\working\structur
+edfun-pc\structured\conf~dir~..~dir~..~dir~structured~dir~tests~dir~data~dir~40-
+video_folder~dir~nasa-solar-flare-64x64.m4v~00:00:10.0_videofullres.dat
+av_interleaved_write_frame(): Input/output error
+  + caused by path corruption
+    + conf~dir is wrong
+  + CachedMetadataFileReader->getFullname
+    + we're not using the right key
+      + it's a consistent video thing
+  + have changed out the video thumbnail bit for getRawname()
+    + but we've still got some args in there
+    + I suspect we shouldn't have them
+  + clarify command
+C:/core/working/structuredfun-pc/structured/htdocs/web/../../../structured/vendor/ffmpeg/bin/ffmpeg -i "T:\core\masters\keg\k_tobesorted/fashion/Mode City Lingerie & Swimwear - Paris - Part 4  _ FTV_H264-512x384.mp4" -ss "00:00:10.0" -f image2 -vframes 1 "C:/core/working/structuredfun-pc/structured/htdocs/web/../../../structured/htdocs/web/mediacache/image/playspace~dir~fashion~dir~Mode City Lingerie & Swimwear - Paris - Part 4  _ FTV_H264-512x384.mp4~args&maxlongest=200&timecode=00:00:10.0_videofullres.dat"
+    + problem is timecode :s
+
+* 302s are going back to the browser
+  + we want to hide the fact that the URL is changing
+    + if at all possible
+  + there's no need for the browser to know
+    + that the image is being served from a cache
+  = needed to use a relative not absolute URL
 

@@ -187,6 +187,10 @@ class GenericEntry {
     return $this->rawname;
   }
 
+  public function getRawnameWithoutArgs() {
+    return substr($this->rawname, 0, FileReader::stripArgsToFilename($this->rawname));
+  }
+
   public function setRawname($rn) {
     $this->rawname = $rn;
   }
