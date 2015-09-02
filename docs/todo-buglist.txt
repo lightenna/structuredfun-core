@@ -1,26 +1,28 @@
 
-* fix video preview frame for f (high-res)
-  + &maxheight= kills it
-  + &timecode with colons kills it
-    + this is persistent
-  + substitute illegal characters that can be in URLs but can't appear in filenames
-    return str_replace(':','-',$fullname);
-    + but can't do this in getFilename because we need : in some filenames (C:\)
-  + I think we'll say that : can't appear in a cache key
-  + does this introduce a cache miss
-    + because the request features timecode=::: whereas the file has timecode=---
-      = yes
-    + hmmm, could use a legal url format in javascript
-      + then transform just before sending it to ffmpeg
+* now LayoutviewControllerTest is producing large cached images
+  + it's because 
 
 * write tests for TileMaker
   + there are loads of permutations and this stuff needs to be right
 phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTest.php
+--o--
+* write test that exposes rewriteToOriginal
+  + pull a big tile that's bigger than the thumbnail
 
 * investigate options for feeding Openseadragon with tiles
   + is there some kind of IIIF option
-    + and if so, can we make a route to support it
+    + and if so, can we make a route to support it?
+      + we're already using a compatible /image/ format
   + if not think about folder-based zoom levels and coords
+
+* no-flow-resize when loading folder on left-edge
+  #!seq=0
+  + something about seq=0 or left-hand edge makes it just load squares
+  + the instant we're away from the edge
+    + it flows the folders
+--o-- could be related
+* bad-flow-resize when loading folder near left-edge
+  e.g. #!seq=2&offseq=100
 
 * javascript error structured.js line 2554
   + seems that position isn't always being set
@@ -81,6 +83,10 @@ phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTes
   + can get stuck
     + I think it's to do with offseq
     + perhaps offseq > last image width
+
+* not substituting out poster for videos
+  + it's the reason they look grainy for HD
+  + SD videos you can't really tell
 
 * make test suite work again
   + whole thing seems to have only 1 error
@@ -4889,7 +4895,7 @@ refreshMetadataApplyToFields function
       + it definitely something to do with old images (0.9.1)
     + seems not to be able to read the imgdata
       + even though it can pull the metadata from it
-  + restricted it to getAll()
+  + restricted it to getDirectoryAll()
     + that's the only case where we fill the metadata in
       + if it couldn't be read
 
@@ -5633,7 +5639,7 @@ var localContext = eventQueue.push({
     + print_debug_stacktrace kills the browser
   + worked it out manually
     + seems to go back to getDirectoryEntryMetadata
-      + to getAll()
+      + to getDirectoryAll()
         + we force metadata reading without filtering for images
 
 * GA track event add menu items
@@ -5711,7 +5717,7 @@ php app/console cache:clear --env=prod
     + but I'm ignoring that for now
     + not included in this ticket
   + layerouter has a division by zero
-    + getAll not filling out image_metadata
+    + getDirectoryAll not filling out image_metadata
       + seems to be confined to test suite
         + 1st load fine for real images
   + I think there's an interesting bug in here (#2)
@@ -6028,4 +6034,118 @@ C:/core/working/structuredfun-pc/structured/htdocs/web/../../../structured/vendo
   + there's no need for the browser to know
     + that the image is being served from a cache
   = needed to use a relative not absolute URL
+
+* fix video preview frame for f (high-res)
+  + &maxheight= kills it
+  + &timecode with colons kills it
+    + this is persistent
+  + substitute illegal characters that can be in URLs but can't appear in filenames
+    return str_replace(':','-',$fullname);
+    + but can't do this in getFilename because we need : in some filenames (C:\)
+  + I think we'll say that : can't appear in a cache key
+  + does this introduce a cache miss
+    + because the request features timecode=::: whereas the file has timecode=---
+      = yes
+    + hmmm, could use a legal url format in javascript
+      + then transform just before sending it to ffmpeg
+
+* need to update offseq after every <something>
+  + could be a scroll/wheel event
+  + but it needs to capture the change of selected cell position
+    + at the moment refresh is frequently out
+  + I need to understand how we update the selected cell
+    + what we had before was almost there
+    + just missing an argument
+    = I wish javascript was strongly typed
+
+* caching images during tile composition
+  + need way of caching images during getDirectoryAll
+  + hasRatio is a poor way of checking to see if we've loaded an image
+  + thinking about keeping the image cached
+    + that's useful but dangerous
+      = nope, not now, risk of using too much memory
+
+* using cached images in tile composition
+  + changed out
+    + getOriginalHeight()_ for getLoadedHeight()
+    + getOriginal() for get()
+  + tile produced ok
+    + tile composition from cached images is very fast
+      + 135ms
+      + as predicted (phew, thought I was way off)
+  + I think this means that we can generate tile view very fast
+    + once we've cached the 200s
+      + need to think about 200/500s
+
+* fallback to using higher-res image for tile gen
+  + if loaded image isn't big enough
+    + means repeating a calculation
+    + which creates problems for using local variables
+  + think we'll need to create a subclass of TileMaker
+    + Tile
+    + has advantage of nice $tile->burn
+      = ah ha, no, a TileMaker is the maker of a single Tile
+    + we're talking about a single image on a single tile
+  + TileImage
+  + getOriginal isn't returning the original image
+
+* frequently requesting a layout for a set of images
+  + that have yet to be viewed
+  + got to make the layerOuter more robust
+    + it really should read all the images if necessary
+  + getDirectoryAll does not cache the files it reads
+    + it needs to do that
+      + if force is true
+      + then we want to be caching files
+        + so that the second read works
+  = introduced caching
+
+* think about caching 500s during tile gen
+  + 200s are ok, but unlikely to be used
+    + 500s aren't that big (x4 filesize)
+  + there are advantages to keeping everything on the 200s
+    + I didn't have to write a special thing to tell it to default to 200
+      + it just did it
+  = not crucial now, maybe later
+
+* rename 'this->stats'
+  + to this->entry
+  + have left it in comments
+    = now also removed from comments
+
+* also change out $obj references to $entry too
+  + makes it all a lot clearer
+    + renamed as $entry
+
+* tilemaker test exposes that layout fails for folders with nested folders
+  + should treat a nested folder as a simple error for now
+    + we will encounter errors and the layout still needs to work
+  + fixed by telling TileMaker not to render directories in tiles
+    + can return to that later when we know what we want them to look like
+
+* test suite doesn't cache subsampled images
+  + tilemaker tests produce unscaled images in cache folder
+    + no args
+  + strange thing trying to track down default args
+    + I think they're injected in the FileviewController view
+  + tried injecting args using mfr->injectArgs
+        // inject sensible arguments
+        $thumbargs = new \stdClass();
+        $thumbargs->{'maxlongest'} = 200;
+        $mfr->injectArgs($thumbargs);
+  + tried setting them in the controller
+        $t->setArgsByArray(array(
+            'maxlongest' => 200,
+        ));
+    + neither works
+  + I suspect because the cache filename comes from the request URL
+    + real directories are set up to request images with args (&maxlongest=200&)
+    + but this bit's not clear
+      + requesting a tile from gallery1 produces correct cache files
+        + all of them have maxlongest=200
+        + and they are genuinely 200px thumbnails
+    + what's the difference between dyntile and the TileMaker test?
+  + ah ha
+    + it was injectArgs
+    + I just wasn't doing it properly
 
