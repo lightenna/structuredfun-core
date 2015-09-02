@@ -159,7 +159,7 @@ window.sfun = (function($, undefined) {
         state_previous['offseq'] = state_default['offseq'] = 0;
         state_previous['debug'] = state_default['debug'] = 0;
         // stick default timecode in here as a bit of a hack, until we use data-frame
-        state_default['timecode'] = '00:00:10.0';
+        state_default['timecode'] = '00-00-10.0';
         // bind to page
         bindToHeaderLinks();
         bindToHotKeys();
@@ -477,7 +477,7 @@ window.sfun = (function($, undefined) {
     });
   };
 
-  /** 
+  /**
    * refresh the selected entry after a visibility change
    * @param {int} scrolldir direction of scroll (+ve/-ve) or 0 for no scroll
    * @return {object} jQuery deferred
@@ -508,23 +508,23 @@ window.sfun = (function($, undefined) {
         // if no visible/vispart images, don't try to select anything
       }
     } else {
-      // the curent selection is still visible, offseq may need updating
+      // the current selection is still visible, offseq may need updating
       var seq = $ent.data('seq');
       // work out image and viewport's positions on major axis
       var offseq = imageStillShiftOffseq(seq);
       // compare with current offseq to see if we need to refresh hash
       var coffseq = getOffseq();
       if (offseq != coffseq) {
-        // // create a local context to allow us to numb listener
-        // var localContext = eventQueue.push({
-        //   'key': 'seqset:offseq='+offseq,
-        //   'comment': 'localContext for refreshSelected-nochange (image-'+seq+' offseq-'+offseq+')',
-        //   'replaceEvent': true
-        // });
-        // // select image using hash update
-        // return fireHashUpdate( { 'seq': seq, 'offseq': offseq }, localContext).done(function() {
-        //   eventQueue.resolve(localContext);
-        // });
+        // create a local context to allow us to numb listener
+        var localContext = eventQueue.push({
+          'key': 'setoff:offseq='+offseq,
+          'comment': 'localContext for refreshSelected-nochange (image-'+seq+' offseq-'+offseq+')',
+          'replaceEvent': true
+        });
+        // select image using hash update
+        return fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false, localContext).done(function() {
+          eventQueue.resolve(localContext);
+        });
       }
     }
     return getDeferred().resolve();
@@ -3597,8 +3597,6 @@ window.sfun = (function($, undefined) {
     if (debug && false) {
       console.log('* fired scroll event '+eventQueue.render(localContext));
     }
-// delete me
-console.log('fireScroll', localContext);
     // fire event: change the scroll position
     fireScrollActual(target, animate);
     // if we've yet to setup an event handler
