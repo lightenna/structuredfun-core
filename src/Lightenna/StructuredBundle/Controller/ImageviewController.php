@@ -56,6 +56,33 @@ class ImageviewController extends ViewController
         }
     }
 
+    public function iiifAction($identifier, $region, $size, $rotation, $quality, $ext)
+    {
+        // store rawname being indexed
+        $this->rawname = $identifier;
+        // populate vars based on rawname
+        $this->populate();
+        // try and pull image from cache
+        $imgdata = $this->mfr->getOnlyIfCached();
+        if ($imgdata) {
+            // found cached image (probably without touching PHP, see .htaccess)
+        } else {
+            // get image and transform
+            $imgdata = $this->fetchImage();
+        }
+        // catch test case
+        if (!$output) {
+            return $imgdata;
+        }
+        if ($imgdata !== null) {
+            // print image to output stream
+            $this->returnImage($imgdata);
+        } else {
+            // implied else
+            return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
+        }
+    }
+
     public function metaAction($rawname, Request $request)
     {
         // store rawname being indexed

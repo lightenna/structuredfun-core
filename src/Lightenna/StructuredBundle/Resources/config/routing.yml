@@ -18,6 +18,10 @@ lightenna_structured_imageview:
     requirements:
         rawname:  ".*"
 
+lightenna_structured_imageiiif:
+    path:      /imageiiif/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}
+    defaults:  { _controller: LightennaStructuredBundle:Imageview:iiif }
+
 lightenna_structured_imagemeta:
     path:      /imagemeta/{rawname}
     defaults:  { _controller: LightennaStructuredBundle:Imageview:meta }

@@ -15,7 +15,7 @@ class Rectangle
      * new Rectangle(x1,y1,x2,y2) or
      * new Rectangle([x1, y2, x2, y2])
      */
-    public function __construct($a1, $b1, $a2, $b2)
+    public function __construct($a1 = 0, $b1 = 0, $a2 = 0, $b2 = 0)
     {
         if (is_array($a1)) {
             $this->x1 = $a1[0];
@@ -79,9 +79,29 @@ class Rectangle
         return ('x1,y1(' . $this->x1 . ',' . $this->y1 . ') x2,y2(' . $this->x2 . ',' . $this->y2 . ')');
     }
 
+    public function getX()
+    {
+        return $this->getX1();
+    }
+
     public function getX1()
     {
         return $this->x1;
+    }
+
+    public function setX($x)
+    {
+        $this->setX1($x);
+    }
+
+    public function setX1($x)
+    {
+        $this->x1 = $x;
+    }
+
+    public function getY()
+    {
+        return $this->getY1();
     }
 
     public function getY1()
@@ -89,14 +109,50 @@ class Rectangle
         return $this->y1;
     }
 
+    public function setY($y)
+    {
+        $this->setY1($y);
+    }
+
+    public function setY1($y)
+    {
+        $this->y1 = $y;
+    }
+
     public function getX2()
     {
         return $this->x2;
     }
 
+    public function setX2($x)
+    {
+        $this->x2 = $x;
+    }
+
     public function getY2()
     {
         return $this->y2;
+    }
+
+    public function setY2($y)
+    {
+        $this->y2 = $y;
+    }
+
+    public function getWidth() {
+        return $this->x2 - $this->x1;
+    }
+
+    public function setWidth($w) {
+        $this->x2 = $this->x1 + $w;
+    }
+
+    public function getHeight() {
+        return $this->y2 - $this->y1;
+    }
+
+    public function setHeight($h) {
+        $this->y2 = $this->y1 + $h;
     }
 
 }

@@ -1,19 +1,23 @@
 
-* now LayoutviewControllerTest is producing large cached images
-  + it's because 
-
-* write tests for TileMaker
-  + there are loads of permutations and this stuff needs to be right
-phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTest.php
---o--
-* write test that exposes rewriteToOriginal
-  + pull a big tile that's bigger than the thumbnail
-
 * investigate options for feeding Openseadragon with tiles
   + is there some kind of IIIF option
     + and if so, can we make a route to support it?
       + we're already using a compatible /image/ format
   + if not think about folder-based zoom levels and coords
+  + looks like there is
+    + openseadragon has an iiif mode
+      + the URLs look nice and cacheable
+        + it will involve creating a lot of directories for each canvas (& image)
+          + but that's ok
+          + both canvases and images should be iiif-accessible
+            + that's a nice use case
+            + start with regular images
+        + probably worth doing that in a separate cache folder
+          + ha ha! which is automatically sorted out if we change the route
+            + from /image to /dyntile for example
+    + need to think about the coordinate system a little
+      + iiif is hinting towards a native coordinate system
+      + can modify layout to include total width and height information
 
 * no-flow-resize when loading folder on left-edge
   #!seq=0
@@ -6148,4 +6152,29 @@ C:/core/working/structuredfun-pc/structured/htdocs/web/../../../structured/vendo
   + ah ha
     + it was injectArgs
     + I just wasn't doing it properly
+      + yes, turns out it needs the null and the rewrite
+        $mfr = new CachedMetadataFileReader($t->convertRawToFilename('/structured/tests/data/20-image_folder'), $t);
+        $filename = $t->convertRawToFilename('/structured/tests/data/20-image_folder');
+        $mfr = new CachedMetadataFileReader(null, $t);
+        $mfr->rewrite($filename);
+      + not sure why
+
+* now LayoutviewControllerTest is producing large cached images
+phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\LayoutviewControllerTest.php
+  + it's because we're not injecting args
+    + I wonder if I should build in a sensible default
+      + I'm reluctant to because I may later confuse them with the defaults
+        + that are laid down by FileviewController
+    + just patch the test
+      + I don't want the codebase to include much stuff that's test-suite only
+
+* write tests for TileMaker
+  + there are loads of permutations and this stuff needs to be right
+phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTest.php
+  + remember also that tests are quick to write
+    + what's slow is when they expose something that didn't work
+      + which is something we want to do anyway!
+--o--
+* write test that exposes rewriteToOriginal
+  + pull a big tile that's bigger than the thumbnail
 
