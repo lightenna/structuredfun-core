@@ -4,6 +4,7 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 
 use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
+use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 class MetadataFileReader extends FileReader
@@ -328,9 +329,13 @@ class MetadataFileReader extends FileReader
      * Arguments influence the cachestring in the CachedMetadataFileReader
      * @param object $args
      */
-    public function injectArgs($args)
+    public function mergeArgs($args)
     {
-        $this->args = (object)array_merge((array)$this->args, (array)$args);
+        if ($this->args === null) {
+            $this->args = $args;
+        } else {
+            $this->args->mergeArgs($args);
+        }
     }
 
     /**

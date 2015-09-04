@@ -2,6 +2,8 @@
 
 namespace Lightenna\StructuredBundle\Controller;
 
+use Lightenna\StructuredBundle\Entity\Arguments;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -24,44 +26,27 @@ class ImageviewController extends ViewController
         parent::__construct();
         // initialise entry even though it's overwritten by populate()
         // because may use/test class before indexAction() call
-        $this->args = new \stdClass();
+        $this->args = new Arguments();
         $this->mfr = new CachedMetadataFileReader(null, $this);
         $this->entry = new GenericEntry();
     }
 
-    public function indexAction($rawname, $output = true)
-    {
-        // store rawname being indexed
-        $this->rawname = $rawname;
-        // populate vars based on rawname
-        $this->populate();
-        // try and pull image from cache
-        $imgdata = $this->mfr->getOnlyIfCached();
-        if ($imgdata) {
-            // found cached image (probably without touching PHP, see .htaccess)
-        } else {
-            // get image and transform
-            $imgdata = $this->fetchImage();
-        }
-        // catch test case
-        if (!$output) {
-            return $imgdata;
-        }
-        if ($imgdata !== null) {
-            // print image to output stream
-            $this->returnImage($imgdata);
-        } else {
-            // implied else
-            return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
-        }
-    }
-
-    public function iiifAction($identifier, $region, $size, $rotation, $quality, $ext)
+    /**
+     * returns image (iiif-style request)
+     *
+     * @Route("/imageiiif/{identifier}", name="lightenna_imageiiif_id")
+     * @Route("/imageiiif/{identifier}/", name="lightenna_imageiiif_noreg")
+     * @Route("/imageiiif/{identifier}/{region}/", name="lightenna_imageiiif_nosize")
+     * @Route("/imageiiif/{identifier}/{region}/{size}/", name="lightenna_imageiiif_norot")
+     * @Route("/imageiiif/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imageiiif_noqual")
+     * @Route("/imageiiif/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imageiiif_full")
+     */
+    public function imageAction($identifier, $region = 'full', $size = 'full', $rotation = 0, $quality = 'native', $ext = 'jpg', $output = true)
     {
         // store rawname being indexed
         $this->rawname = $identifier;
         // populate vars based on rawname
-        $this->populate();
+        $this->populate($region, $size);
         // try and pull image from cache
         $imgdata = $this->mfr->getOnlyIfCached();
         if ($imgdata) {
@@ -83,10 +68,22 @@ class ImageviewController extends ViewController
         }
     }
 
-    public function metaAction($rawname, Request $request)
+    /**
+     * returns image metadata
+     * include same set of routes as image to shoot for cache hits on metadata request
+     *
+     * @Route("/imagemeta/{rawname}", name="lightenna_imagemeta")
+     * @Route("/imagemeta/{identifier}", name="lightenna_imagemeta_id")
+     * @Route("/imagemeta/{identifier}/", name="lightenna_imagemeta_noreg")
+     * @Route("/imagemeta/{identifier}/{region}/", name="lightenna_imagemeta_nosize")
+     * @Route("/imagemeta/{identifier}/{region}/{size}/", name="lightenna_imagemeta_norot")
+     * @Route("/imagemeta/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagemeta_noqual")
+     * @Route("/imagemeta/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagemeta_full")
+     */
+    public function metaAction($identifier, Request $request)
     {
         // store rawname being indexed
-        $this->rawname = $rawname;
+        $this->rawname = $identifier;
         // populate vars based on rawname
         $this->populate();
         // request image from cache (including metadata)
@@ -123,7 +120,7 @@ class ImageviewController extends ViewController
     /**
      * Process input and setup local objects
      */
-    public function populate()
+    public function populate($region = 'full', $size = 'full')
     {
         try {
             // convert rawname to urlname and filename
@@ -134,8 +131,11 @@ class ImageviewController extends ViewController
             $filename = $this->convertRawToInternalFilename('htdocs/web' . $this->rawname);
         }
         $name = self::convertRawToUrl($this->rawname);
-        // pull arguments from URL
-        $this->args = self::getArgsFromPath($name);
+        $this->args = new Arguments();
+        // parse arguments from iiif-format vars
+        $this->args->parseArgs($region, $size);
+        // overwrite with arguments from URL identifier (if they're set)
+        $this->args->mergeArgsFromPath($name);
         // get file reader object
         $this->mfr = new CachedMetadataFileReader($filename, $this);
         $this->mfr->processDebugSettings();
@@ -169,6 +169,11 @@ class ImageviewController extends ViewController
             case 'image':
                 $imgdata = $this->loadImage();
                 break;
+        }
+        // check that we loaded some data
+        if ($imgdata === false) {
+            // substitute in error image
+            $imgdata = $this->loadErrorImage();
         }
         // check image data
         if (!FileReader::checkImageDatastream($imgdata)) {

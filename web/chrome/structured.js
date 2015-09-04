@@ -87,7 +87,7 @@ window.sfun = (function($, undefined) {
   // list of metadata fields supported
   var metadata_fields = ['iptcCaption', 'iptcByline', 'iptcHeadline', 'iptcKeywords', 'iptcCopyright', 'iptcSource'];
   var metadata_flags = ['editable'];
-  // last image maxlongest, to shortcut reres using thumb size
+  // last image maxwidth|height, to shortcut reres using thumb size
   var last_longest = null;
   // device detection
   var likely_fluidScroll = (navigator.platform.match(/(Mac|iPhone|iPod|iPad)/i)? true : false);

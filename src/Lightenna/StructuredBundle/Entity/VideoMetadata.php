@@ -3,7 +3,6 @@
 namespace Lightenna\StructuredBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 
 /**
  * VideoMetadata model

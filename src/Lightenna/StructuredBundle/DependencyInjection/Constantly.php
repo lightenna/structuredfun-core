@@ -7,7 +7,7 @@ class Constantly
 
     const SFUN_VERSION = '0.9.5';
     const DIR_SEPARATOR_URL = '/';
-    const DIR_SEPARATOR_ALIAS = '~dir~';
+    const DIR_SEPARATOR_ALIAS = '~2F';
     const IMAGE_STATUS_ERROR = -2;     // unable to open image at all
     const IMAGE_STATUS_DIRECTORY = -2; // entry is a directory
     const IMAGE_STATUS_MISSING = -1;   // cached image not found
