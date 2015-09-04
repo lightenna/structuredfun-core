@@ -12,19 +12,7 @@ lightenna_structured_fileview_root:
     path:      /
     defaults:  { _controller: LightennaStructuredBundle:Fileview:index, rawname:'' }
 
-lightenna_structured_imageview:
-    path:      /image/{rawname}
-    defaults:  { _controller: LightennaStructuredBundle:Imageview:index }
-    requirements:
-        rawname:  ".*"
-
-lightenna_structured_imageiiif:
-    path:      /imageiiif/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}
-    defaults:  { _controller: LightennaStructuredBundle:Imageview:iiif }
-
-lightenna_structured_imagemeta:
-    path:      /imagemeta/{rawname}
-    defaults:  { _controller: LightennaStructuredBundle:Imageview:meta }
-    requirements:
-        rawname:  ".*"
+images:
+    resource: "@LightennaStructuredBundle/Controller/ImageviewController.php"
+    type:     annotation
 

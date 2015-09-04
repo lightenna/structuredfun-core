@@ -187,11 +187,15 @@ class CachedMetadataFileReader extends MetadataFileReader
 
     private function getKey()
     {
+        $key = '';
         $cachestring = $this->entry->getRawname();
         if ($cachestring == null) {
             $cachestring = $this->getFullname();
         }
+        // hash
+        $key .= self::hash($cachestring);
 
+        // @todo remove this comment once Argument->getArgs() works
         // don't flatten args, I think because rawname features args now
         // $argstring = self::flattenKeyArgs($this->args);
         // if ($argstring != '') {
@@ -202,8 +206,13 @@ class CachedMetadataFileReader extends MetadataFileReader
         // because it creates a cache miss; instead address upstream
         // $cachestring = str_replace(':', '-', $cachestring);
 
-        // hash
-        $key = self::hash($cachestring) . '.' . 'dat';
+        // append arguments if we have any
+        if ($this->args !== null) {
+            $key .= $this->args->getArgString();
+        }
+
+        // add .dat to end of the key (filename)
+        $key .= '.' . 'dat';
         return $key;
     }
 
@@ -411,9 +420,9 @@ class CachedMetadataFileReader extends MetadataFileReader
      * Arguments influence the cachestring in the CachedMetadataFileReader
      * @param object $args
      */
-    public function injectArgs($args)
+    public function mergeArgs($args)
     {
-        parent::injectArgs($args);
+        parent::mergeArgs($args);
         if ($this->cacheKeyUpdateable()) {
             // update cachekey after messing with args
             $this->entry->setCacheKey($this->getKey());

@@ -6,6 +6,7 @@ use Lightenna\StructuredBundle\Controller\ImageviewController;
 use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
+use Lightenna\StructuredBundle\Entity\Arguments;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ImageviewControllerTest extends WebTestCase
@@ -14,7 +15,7 @@ class ImageviewControllerTest extends WebTestCase
     public function testImageCalcNewSize()
     {
         $dummy = '';
-        $it = new ImageTransform(new \stdClass(), $dummy);
+        $it = new ImageTransform(new Arguments(), $dummy);
         // setup vars for standard images
         $long = 500;
         $short = 400;
@@ -23,49 +24,39 @@ class ImageviewControllerTest extends WebTestCase
         $wide = imagecreatetruecolor($long, $short);
         $tall = imagecreatetruecolor($short, $long);
         // test width-limited landscape resize
-        $it = new ImageTransform((object)array(
-            'maxwidth' => $restricted
-        ), $dummy);
+        $it = new ImageTransform(new Arguments($restricted, null), $dummy);
         $it->imageCalcNewSize($wide);
         $this->assertEquals($it->getOutputWidth() == $restricted, true);
         $this->assertEquals($it->getOutputHeight() < $restricted, true);
         // test height-limited portrait resize
-        $it = new ImageTransform((object)array(
-            'maxheight' => $restricted,
-        ), $dummy);
+        $it = new ImageTransform(new Arguments(null, $restricted), $dummy);
         $it->imageCalcNewSize($tall);
         $this->assertEquals($it->getOutputWidth() < $restricted, true);
         $this->assertEquals($it->getOutputHeight() == $restricted, true);
         // test unrestricted resize
-        $it = new ImageTransform((object)array(), $dummy);
+        $it = new ImageTransform(new Arguments(), $dummy);
         $it->imageCalcNewSize($wide);
         $this->assertEquals($it->getOutputWidth() == $long, true);
         $this->assertEquals($it->getOutputHeight() == $short, true);
         // test weird width-limited portrait resize
-        $it = new ImageTransform((object)array(
-            'maxwidth' => $restricted,
-        ), $dummy);
+        $it = new ImageTransform(new Arguments($restricted, null), $dummy);
         $it->imageCalcNewSize($tall);
         $this->assertEquals($it->getOutputWidth() == $restricted, true);
         $this->assertEquals($it->getOutputHeight() > $restricted, true);
         // test width-limited landscape resize using longest
-        $it = new ImageTransform((object)array(
-            'maxlongest' => $restricted,
-        ), $dummy);
+        $it = new ImageTransform(new Arguments($restricted, $restricted), $dummy);
         $it->imageCalcNewSize($wide);
         $this->assertEquals($it->getOutputWidth() == $restricted, true);
         $this->assertEquals($it->getOutputHeight() < $restricted, true);
         // test height-bound landscape resize using shortest
-        $it = new ImageTransform((object)array(
-            'maxshortest' => $restricted,
-        ), $dummy);
-        $it->imageCalcNewSize($wide);
-        $this->assertEquals($it->getOutputWidth() > $restricted, true);
-        $this->assertEquals($it->getOutputHeight() == $restricted, true);
+//        $it = new ImageTransform((object)array(
+//            'maxshortest' => $restricted,
+//        ), $dummy);
+//        $it->imageCalcNewSize($wide);
+//        $this->assertEquals($it->getOutputWidth() > $restricted, true);
+//        $this->assertEquals($it->getOutputHeight() == $restricted, true);
         // test height-limited portrait resize using longest
-        $it = new ImageTransform((object)array(
-            'maxlongest' => $restricted,
-        ), $dummy);
+        $it = new ImageTransform(new Arguments($restricted, $restricted), $dummy);
         $it->imageCalcNewSize($tall);
         $this->assertEquals($it->getOutputWidth() < $restricted, true);
         $this->assertEquals($it->getOutputHeight() == $restricted, true);

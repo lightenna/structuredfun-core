@@ -1,4 +1,19 @@
 
+* look into cache changes to support iiif
+  + at the moment we're caching images without size info
+    + that means that the next request (for a different size)
+      - gets given the previous image (the wrong size)
+  + HTTP request is pretty naive
+    + it's just looking for a folder structure that matches the URL
+      + that means we create 4 folders and 1 file for each image
+        + I think that's ok
+        + we'll have to see what kind of performance hit we take
+  + arguments will need to capture something of the iiif params
+    + because we'll need to write them into the cache filename
+      + maybe we can derive them from the maxwidth|height vars
+  + start with flat (~TEMPSEP~) filenames
+  + then progress to directories
+
 * investigate options for feeding Openseadragon with tiles
   + is there some kind of IIIF option
     + and if so, can we make a route to support it?
@@ -6177,4 +6192,32 @@ phpunit -c app src\Lightenna\StructuredAddOnBundle\Tests\Controller\TileMakerTes
 --o--
 * write test that exposes rewriteToOriginal
   + pull a big tile that's bigger than the thumbnail
+
+* shift from using routing.yml files to routing in PHP comments
+  + try a mix first
+    + mix works fine so long as Route included
+Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+
+* factor out old image routes in favour of annotations
+lightenna_structured_imageview:
+    path:      /image/{rawname}
+    defaults:  { _controller: LightennaStructuredBundle:Imageview:index }
+    requirements:
+        rawname:  ".*"
+lightenna_structured_imagemeta:
+    path:      /imagemeta/{rawname}
+    defaults:  { _controller: LightennaStructuredBundle:Imageview:meta }
+    requirements:
+        rawname:  ".*"
+
+* convert args into a proper class
+  + we use it in a lot of places
+
+* write a receiver that takes iiif-format region and size
+  + and translates to args
++ write a test for it too
+
+* convert sfun over to using basic iiif
+  + trailing / kills the routing
+    = fixed using additional routes for the same endpoint
 

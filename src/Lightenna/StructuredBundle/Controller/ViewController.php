@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
@@ -13,7 +14,7 @@ class ViewController extends Controller
 {
 
     protected $settings;
-    // @param object URL arguments
+    // @param Arguments URL arguments
     protected $args;
     // @param FileReader object
     protected $mfr;
@@ -398,36 +399,6 @@ class ViewController extends Controller
     static function convertRawToUrl($name)
     {
         return Constantly::DIR_SEPARATOR_URL . trim($name, Constantly::DIR_SEPARATOR_URL);
-    }
-
-    /**
-     * get any arguments that feature on the filename
-     * @param $name full path
-     * @return object
-     */
-
-    static function getArgsFromPath($name)
-    {
-        $args = new \stdClass();
-        // strip args if present
-        $arg_pos = strpos($name, Constantly::ARG_SEPARATOR);
-        if ($arg_pos === false) {
-            // no arguments found
-        } else {
-            $char_split = explode('&', substr($name, $arg_pos + strlen(Constantly::ARG_SEPARATOR)));
-            foreach ($char_split as $char_var) {
-                if ($char_var == '') {
-                    continue;
-                }
-                if (strpos($char_var, '=') === false) {
-                    $args->{$char_var} = null;
-                    continue;
-                }
-                list($k, $v) = explode('=', $char_var);
-                $args->{$k} = $v;
-            }
-        }
-        return $args;
     }
 
 }

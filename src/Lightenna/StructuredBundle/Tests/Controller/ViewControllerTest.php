@@ -3,6 +3,7 @@
 namespace Lightenna\StructuredBundle\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\Controller\ViewController;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
@@ -50,9 +51,12 @@ class ViewControllerTest extends WebTestCase
         $this->assertEquals($t::convertRawToUrl('/fish/fowl/'), '/fish/fowl');
     }
 
+    /**
+     * left this in here, even though we now have a dedicated args test
+     */
     public function testGetArgsFromPath()
     {
-        $t = new ViewController();
+        $t = new Arguments();
         // test no args
         $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'), (object)array());
         // test 1 arg

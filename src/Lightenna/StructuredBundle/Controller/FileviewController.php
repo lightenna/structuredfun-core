@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
+use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\DependencyInjection\LayerOuter;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
@@ -26,9 +27,8 @@ class FileviewController extends ViewController
         $this->mfr->rewrite($filename);
         $this->mfr->injectShares($name);
         $this->mfr->processDebugSettings();
-        $thumbargs = new \stdClass();
-        $thumbargs->{'maxlongest'} = 200;
-        $this->mfr->injectArgs($thumbargs);
+        $thumbargs = new Arguments(200,200);
+        $this->mfr->mergeArgs($thumbargs);
         // for now just display errors
         if ($this->errbuf !== null) {
             print(implode('', $this->getErrors()));
@@ -49,7 +49,7 @@ class FileviewController extends ViewController
                             'linkpath' => $name == '/' ? '' : trim($name, Constantly::DIR_SEPARATOR_URL) . Constantly::DIR_SEPARATOR_URL,
                             'linkaliased' => str_replace(Constantly::DIR_SEPARATOR_URL, Constantly::DIR_SEPARATOR_ALIAS, trim($name, Constantly::DIR_SEPARATOR_URL)) . Constantly::DIR_SEPARATOR_ALIAS,
                             'argsbase' => Constantly::ARG_SEPARATOR,
-                            'argsdefault' => 'maxlongest=' . $thumbargs->{'maxlongest'} . '&',
+                            'argsdefault' => 'maxwidth=' . $thumbargs->{'maxwidth'} . '&maxheight=' . $thumbargs->{'maxheight'},
                             'dirlisting' => $listing,
                             'metaform' => $this->mfr->getMetadata()->getForm($this)->createView(),
                             'defaults' => ImageMetadata::getDefaults(),

@@ -16,8 +16,6 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 
-use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
-
 /**
  * GenericEntry model
  */
