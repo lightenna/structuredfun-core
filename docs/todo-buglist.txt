@@ -1,19 +1,4 @@
 
-* look into cache changes to support iiif
-  + at the moment we're caching images without size info
-    + that means that the next request (for a different size)
-      - gets given the previous image (the wrong size)
-  + HTTP request is pretty naive
-    + it's just looking for a folder structure that matches the URL
-      + that means we create 4 folders and 1 file for each image
-        + I think that's ok
-        + we'll have to see what kind of performance hit we take
-  + arguments will need to capture something of the iiif params
-    + because we'll need to write them into the cache filename
-      + maybe we can derive them from the maxwidth|height vars
-  + start with flat (~TEMPSEP~) filenames
-  + then progress to directories
-
 * investigate options for feeding Openseadragon with tiles
   + is there some kind of IIIF option
     + and if so, can we make a route to support it?
@@ -6220,4 +6205,48 @@ lightenna_structured_imagemeta:
 * convert sfun over to using basic iiif
   + trailing / kills the routing
     = fixed using additional routes for the same endpoint
+
+* look into cache changes to support iiif
+  + at the moment we're caching images without size info
+    + that means that the next request (for a different size)
+      - gets given the previous image (the wrong size)
+  + HTTP request is pretty naive
+    + it's just looking for a folder structure that matches the URL
+      + that means we create 4 folders and 1 file for each image
+        + I think that's ok
+        + we'll have to see what kind of performance hit we take
+  + arguments will need to capture something of the iiif params
+    + because we'll need to write them into the cache filename
+      + maybe we can derive them from the maxwidth|height vars
+  + start with flat (~TEMPSEP~) filenames
+  + then progress to directories
+    + creating directories and cache files properly
+  + make htaccess find cached images
+    + seems to be finding them
+    + but times are very slow
+  + 1st write to cache: 800ms
+  + nth read from cache: 80ms
+    + why?
+  + check that against simple directory separators
+    + no difference
+    + I suspect this is more substantial
+  + /imageiiif is a problem because we're always writing to
+    + mediacache/image
+    + when it's rewriting to mediacache/<top-level-folder-from-url>
+
+* imagemeta doesn't cache yet
+  + not sure that it's worth caching really
+    + not right now
+    + push out in favour of tiles
+
+* update jQuery
+
+* dyntile still using old maxwidth/height
+~args&maxwidth=200maxheight=200&
+  + getDirectoryEntryMetadataFileReader still using flattenKeyArgs
+
+* get test suite back up
+  + making some progress, but there's a data splurge in the output
+    + I think it's an artefact of the $output flag
+  = all green
 

@@ -30,7 +30,7 @@ class Arguments
     }
 
     public function getArgString() {
-        $separator = '~TEMPSEP~';
+        $separator = Constantly::DIR_SEPARATOR_URL;
         $argstr = $separator . 'full' . $separator;
         // always tend to put ! back into URLs
         if ($this->maintain_ratio) {
@@ -86,15 +86,22 @@ class Arguments
         } else {
             $char_split = explode('&', substr($name, $arg_pos + strlen(Constantly::ARG_SEPARATOR)));
             foreach ($char_split as $char_var) {
+                // skip empty values
                 if ($char_var == '') {
                     continue;
                 }
                 if (strpos($char_var, '=') === false) {
-                    $this->{$char_var} = null;
+                    if (property_exists($this, $char_var)) {
+                        $this->{$char_var} = true;
+                    }
                     continue;
                 }
                 list($k, $v) = explode('=', $char_var);
-                $this->{$k} = $v;
+                // only allow defined variables in arguments
+                if (property_exists($this, $k)) {
+                    // set value to key
+                    $this->{$k} = $v;
+                }
             }
         }
     }

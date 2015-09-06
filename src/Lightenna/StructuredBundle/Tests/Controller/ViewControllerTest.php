@@ -58,13 +58,11 @@ class ViewControllerTest extends WebTestCase
     {
         $t = new Arguments();
         // test no args
-        $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'), (object)array());
+        $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext'), new Arguments());
         // test 1 arg
-        $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext' . Constantly::ARG_SEPARATOR . 'test=1'), (object)array('test' => 1));
-        // test 2 args
-        $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext' . Constantly::ARG_SEPARATOR . 'test=1&k=v'), (object)array('test' => 1, 'k' => 'v'));
+        $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext' . Constantly::ARG_SEPARATOR . 'maxheight=200'), new Arguments(null, 200));
         // test bad arg
-        $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext' . Constantly::ARG_SEPARATOR . 'test'), (object)array('test' => null));
+        $this->assertEquals($t::getArgsFromPath('data/arg_directory/myfile.ext' . Constantly::ARG_SEPARATOR . 'tangle'), new Arguments());
     }
 
     public function testPerformFilenameSubstitution()

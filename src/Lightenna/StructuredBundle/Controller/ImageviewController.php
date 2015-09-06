@@ -34,12 +34,12 @@ class ImageviewController extends ViewController
     /**
      * returns image (iiif-style request)
      *
-     * @Route("/imageiiif/{identifier}", name="lightenna_imageiiif_id")
-     * @Route("/imageiiif/{identifier}/", name="lightenna_imageiiif_noreg")
-     * @Route("/imageiiif/{identifier}/{region}/", name="lightenna_imageiiif_nosize")
-     * @Route("/imageiiif/{identifier}/{region}/{size}/", name="lightenna_imageiiif_norot")
-     * @Route("/imageiiif/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imageiiif_noqual")
-     * @Route("/imageiiif/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imageiiif_full")
+     * @Route("/image/{identifier}", name="lightenna_imageiiif_id")
+     * @Route("/image/{identifier}/", name="lightenna_imageiiif_noreg")
+     * @Route("/image/{identifier}/{region}/", name="lightenna_imageiiif_nosize")
+     * @Route("/image/{identifier}/{region}/{size}/", name="lightenna_imageiiif_norot")
+     * @Route("/image/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imageiiif_noqual")
+     * @Route("/image/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imageiiif_full")
      */
     public function imageAction($identifier, $region = 'full', $size = 'full', $rotation = 0, $quality = 'native', $ext = 'jpg', $output = true)
     {

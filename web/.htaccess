@@ -20,11 +20,11 @@ DirectoryIndex app.php
     RewriteRule ^(.*) - [E=BASE:%1]
 
     # test to see if we're requesting an image or imagemeta
+    # @todo check that imagemeta is working by manually placing file in cache
     RewriteCond %{REQUEST_URI} ^/(image|imagemeta)/.*
     # test to see if the file exists in mediacache
     RewriteCond %{DOCUMENT_ROOT}/mediacache%{REQUEST_URI}\.dat -s
     # if so rewrite to use cached copy
-    # RewriteRule .* http://%{HTTP_HOST}/mediacache%{REQUEST_URI}\.dat [L]
     RewriteRule .* /mediacache%{REQUEST_URI}\.dat [L]
 
     # Redirect to URI without front controller to prevent duplicate content
