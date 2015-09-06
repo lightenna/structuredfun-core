@@ -264,10 +264,9 @@ class MetadataFileReader extends FileReader
             // local reader needs to use this reader's args (to get correctly size-cached thumbnails)
             // @todo this should really be either a MetadataFileReader or a CachedMetadataFileReader
             $mfr = new CachedMetadataFileReader($filename, $this->controller);
-            // tweak rawname using path from controller but leaf from obj, and args as if first query
-            $flat_args = self::flattenKeyArgs($this->args);
-            $child_name = $this->controller->getRawname() . Constantly::DIR_SEPARATOR_URL . $entry->getName() . Constantly::ARG_SEPARATOR . $flat_args . '&';
-            $mfr->getGenericEntry()->setRawname($child_name);
+            // tweak rawname using path from controller but leaf from obj
+            $entry_name = $this->controller->getRawname() . Constantly::DIR_SEPARATOR_URL . $entry->getName();
+            $mfr->getGenericEntry()->setRawname($entry_name);
             // setup local reader
             $mfr->setArgs($this->args);
             // store this read back into the entry for future use

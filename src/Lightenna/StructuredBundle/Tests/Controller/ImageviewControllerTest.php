@@ -115,7 +115,10 @@ class ImageviewControllerTest extends WebTestCase
     {
         $t = new ImageviewController();
         // prime the controller with the video URL, generate thumbnail at 00:00:10.0
-        $frame10s = $t->indexAction('structured/tests/data/40-video_folder/nasa-solar-flare-64x64.m4v', false);
+        $frame10s = $t->imageAction(
+            'structured/tests/data/40-video_folder/nasa-solar-flare-64x64.m4v',
+            'full', 'full', 0, 'native', 'jpg',
+            false);
         $leaf = 'test-nasa-solar-flare-64x64-t000900.dat';
         // create an MFR to get cache directory path
         $localmfr = new CachedMetadataFileReader(null, $t);
@@ -185,7 +188,9 @@ class ImageviewControllerTest extends WebTestCase
         $t = new ImageviewController();
         // prime the controller with the image's URL
         // @todo this line is incredibly slow, don't know why
-        $img = $t->indexAction('structured/tests/data/50-fail_image_folder/[1]~args&maxlongest=200&', false);
+        $img = $t->imageAction('structured/tests/data/50-fail_image_folder/[1]',
+            'full', 'full', 0, 'native', 'jpg',
+            false);
         // load error image at same size (using $t's args from first call) and compare to massive image (error response)
         $rawerrorimg = $t->loadErrorImage();
         $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getGenericEntryFromListingHead());
@@ -193,7 +198,9 @@ class ImageviewControllerTest extends WebTestCase
         $errorimg = $it->getImgdata();
         $this->assertEquals($img, $errorimg);
         // load a normal (smaller) image and check that it's not an error
-        $img = imagecreatefromstring($t->indexAction('structured/tests/data/20-image_folder/[i1]~args&maxlongest=200&', false));
+        $img = imagecreatefromstring($t->imageAction('structured/tests/data/20-image_folder/[i1]',
+            'full', 'full', 0, 'native', 'jpg',
+            false));
         $this->assertNotEquals($img, $errorimg);
     }
 
@@ -201,7 +208,9 @@ class ImageviewControllerTest extends WebTestCase
     {
         $t = new ImageviewController();
         // load image via testshare (required controller)
-        $imgdata = $t->indexAction('structured/testshare/30-zip_folder.zip/nested/00980006.JPG', false);
+        $imgdata = $t->imageAction('structured/testshare/30-zip_folder.zip/nested/00980006.JPG',
+            'full', 'full', 0, 'native', 'jpg',
+            false);
         // load the same image from a direct path for comparison
         $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'), $t);
         $this->assertEquals($mfr->isExisting(), true);

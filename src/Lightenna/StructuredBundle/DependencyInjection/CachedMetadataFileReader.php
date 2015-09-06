@@ -141,6 +141,12 @@ class CachedMetadataFileReader extends MetadataFileReader
             $filename = $this->getFilename($this->entry->getCacheKey());
             // only cache the file if it's not already in the cache
             if (!$this->existsInCache($filename)) {
+                // detect directory separators in filename
+                if (strpos($this->entry->getCacheKey(), Constantly::DIR_SEPARATOR_URL) !== false) {
+                    if (!file_exists(dirname($filename))) {
+                        mkdir(dirname($filename), '0777', true);
+                    }
+                }
                 // write out file
                 file_put_contents($filename, $imgdata);
                 if ($this->fileCanHoldMetadata()) {
