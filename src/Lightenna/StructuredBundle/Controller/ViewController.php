@@ -336,6 +336,9 @@ class ViewController extends Controller
      */
     public function disableCaching()
     {
+        // single args object, so use it to disable caching
+        $this->args->setCache(false);
+        // @todo remove; not sure this works because we end up with copies of the settings array
         $this->settings['general']['nocache'] = 'nocache';
     }
 
@@ -343,8 +346,12 @@ class ViewController extends Controller
      * @param string $message Simple text error message
      * channel all calls through here so eventually we can do something clever
      */
-    public function error($message)
+    public function error($message, $fatal = false)
     {
+        if ($fatal) {
+            print $message;
+            exit;
+        }
         if ($this->errbuf === null) {
             $this->errbuf = array();
         }

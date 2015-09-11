@@ -1916,6 +1916,8 @@ window.sfun = (function($, undefined) {
       // only scroll if we need to
       offseq = imageStillShiftOffseq(seq);
     }
+    // stop offseq being negative (because imageAdvanceTo should show all of the image)
+    if (offseq < 0) offseq = 0;
     // update using hash change
     return fireHashUpdate( { 'seq': seq, 'offseq': offseq }, false, eventContext);
   };
@@ -1965,7 +1967,8 @@ window.sfun = (function($, undefined) {
     var viewport_major = (direction == 'x' ? getViewportWidth() : getViewportHeight());
     var cell_major = (direction == 'x' ? $cell(seq).width() : $cell(seq).height());
     var max_offseq = viewport_major - cell_major - gutter;
-    var min_offseq = 0 + gutter;
+    // work out min offseq can be to keep selected image at least partially in view
+    var min_offseq = 0 - cell_major + (2 * gutter);
     // crop offseq against window bounds allowing for image bounds
     var cropped = Math.max(Math.min(offseq, max_offseq), min_offseq);
     return cropped;
@@ -4061,8 +4064,17 @@ window.sfun = (function($, undefined) {
     if (imagesnap) {
       // calculate how many minor axis cells
       var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
+      var vpm = (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight());
+      var snap_line = 0;
+      if (breadth == 1) {
+        // snap to middle/middle (horizontal or vertical scrolling)
+        snap_line = vpm / 2;
+      } else {
+        // snap to the left/top
+        snap_line = 0;
+      }
       // cell at left hand edge, i.e. find first spanning min boundary
-      var current_ref = visTableMajor.findCompare(current_pos, exp.compareGTE, false);
+      var current_ref = visTableMajor.findCompare(current_pos + snap_line, exp.compareLTE, false);
       // compute next_ref but don't allow wrap around
       var next_ref = Math.min(current_ref + advance_by, visTableMajor.getSize()-1);
       // next_pos is next major
@@ -4070,7 +4082,7 @@ window.sfun = (function($, undefined) {
         // offset by offseq to centre that image
         next_pos = visTableMajor.key(next_ref) - imageCentreOffseq(direction, next_ref);
       } else {
-        next_pos = visTableMajor.key(next_ref);        
+        next_pos = visTableMajor.key(next_ref);
       }
       // put into target object
       var target = {};

@@ -1,4 +1,25 @@
 
+* wheeling through narrow images on widescreen display
+  + can get stuck
+    + I think it's to do with offseq
+    + perhaps offseq > last image width
+  + seems to be because we're placing the image in the centre
+    + but cropping against the left hand edge
+* currently selected image is allowed to drift
+  + independent of what's showing
+    + scroll wheel feels like it should be moving the selection
+      + I have evaluated this before
+      + and I seem to remember there were problems
+  + I think we've got to solve those problems
+
+* do a release
+  + it's been ages and there's lots of improvements
+  + also good to get into the habit of a release
+    + regularly and often
+
+* cached thumbnails for PNGs are 0 bytes
+  + write problem, presumably caused by the extension
+
 * investigate options for feeding Openseadragon with tiles
   + is there some kind of IIIF option
     + and if so, can we make a route to support it?
@@ -82,11 +103,6 @@
   + doesn't trigger flow to execute
     + so all the folders are the wrong width
       + which currently exposes the directories-not-centring bug
-
-* wheeling through narrow images on widescreen display
-  + can get stuck
-    + I think it's to do with offseq
-    + perhaps offseq > last image width
 
 * not substituting out poster for videos
   + it's the reason they look grainy for HD
@@ -6249,4 +6265,15 @@ lightenna_structured_imagemeta:
   + making some progress, but there's a data splurge in the output
     + I think it's an artefact of the $output flag
   = all green
+
+* protect getimagesize call
+  + should return proper read error
+
+* fix broken transparent.png error
+
+* offseq should go negative on a scroll
+  + when the selected image is scrolled partially out of view
+
+* home should clear offseq
+  + because image 0 is always going to be flat against the left edge
 

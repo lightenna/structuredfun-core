@@ -76,7 +76,7 @@ class MetadataFileReader extends FileReader
             $md = $md->read($mdata, $info);
         } else {
             // debug_print_backtrace();
-            print('Error: problem reading ' . $this->file_part . ', length ' . strlen($imgdata) . ' bytes' . "<br />\r\n");
+            $this->controller->error('problem reading ' . $this->file_part . ', length ' . strlen($imgdata) . ' bytes' . "<br />\r\n", true);
         }
         return $md;
     }
