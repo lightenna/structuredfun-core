@@ -128,6 +128,7 @@ class ImageviewController extends ViewController
         } catch (\Exception $e) {
             // if there was a problem, return a small transparent image
             $this->rawname = '/chrome/images/fullres/transparent.png';
+            $this->disableCaching();
             $filename = $this->convertRawToInternalFilename('htdocs/web' . $this->rawname);
         }
         $name = self::convertRawToUrl($this->rawname);
@@ -296,7 +297,9 @@ class ImageviewController extends ViewController
     public function loadErrorImage()
     {
         // disable caching
-        $this->args->{'nocache'} = true;
+        $this->disableCaching();
+        // flag that an error has occurred
+        $this->args->setError(true);
         // return error image
         return file_get_contents($this->convertRawToInternalFilename('htdocs/web/chrome/images/fullres/missing_image.jpg'));
     }

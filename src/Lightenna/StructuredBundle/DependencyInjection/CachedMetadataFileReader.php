@@ -95,7 +95,10 @@ class CachedMetadataFileReader extends MetadataFileReader
     public function cacheIsEnabled()
     {
         $settings = $this->controller->getSettings();
-        if (isset($settings['general']['nocache']) || isset($this->args->{'nocache'}) || !$this->entry->hasCacheKey()) {
+        if (isset($settings['general']['nocache']) || !$this->entry->hasCacheKey()) {
+            return false;
+        }
+        if ($this->args &&  (!$this->args->getCache())) {
             return false;
         }
         return true;

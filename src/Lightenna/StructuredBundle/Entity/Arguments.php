@@ -18,6 +18,8 @@ class Arguments
     public $clipwidth = null;
     public $clipheight = null;
     public $maintain_ratio = true;
+    public $cache = true;
+    public $error = false;
 
     public function __construct($w = null, $h = null)
     {
@@ -128,6 +130,22 @@ class Arguments
 
     public function setMaxHeight($h) {
         $this->maxheight = $h;
+    }
+
+    public function getCache() {
+        return $this->cache;
+    }
+
+    public function setCache($c) {
+        $this->cache = $c;
+    }
+
+    public function getError() {
+        return $this->error;
+    }
+
+    public function setError($e) {
+        $this->error = $e;
     }
 
     /**

@@ -510,6 +510,9 @@ class FileReader
 
     static function checkImageDatastream(&$imgdata)
     {
+        if (strlen($imgdata) == 0) {
+            return false;
+        }
         // can't use getimagesizefromstring as php > 5.4.0, so redirect via file wrapper
         $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
         $mdata = getimagesize($uri);
