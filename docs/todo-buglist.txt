@@ -1,9 +1,24 @@
 
-* do a release
-  + it's been ages and there's lots of improvements
-  + also good to get into the habit of a release
-    + regularly and often
-  + release 0.9.6
+* debug 500s on images in demo
+
+* write nice test for writeable folder
+  + or rather make sure the test happens before we start trying to create folders
+
+* record screencast showing off demo
+
+* tweet about new version of demo
+  + include screencast link in tweet
+  + send it out to both lightenna and alex_stanhope
+
+* exclude fun.lnk
+  + showing up in directory and spoiling scroll
+
+* release 0.9.7
+  + include install improvements
+
+* record install procedure screencast
+  + upload to YouTube
+  + embed on Download page
 
 * grab cursor when scrolling
   + so that keys work after that
@@ -3413,8 +3428,12 @@ let's do it on a filename level
     + or update packaging-only repo
       + need to do a submodule update too
   + copy folder
-  + check opcache settings at bottom of file
-    + refresh is at 60s, not 2s for debugging
+  + no need to check .htaccess
+    + because we're already using app.php not app_dev.php
+  + check php.ini
+    + remove xdebug
+    + check opcache settings at bottom of file
+      + refresh is at 60s, not 2s for debugging
 opcache.revalidate_freq=60
   + clean unnecessary files
     + clean zips
@@ -3424,6 +3443,7 @@ opcache.revalidate_freq=60
     + clean LICENSE
     + clean README.md
   + package (zip) without a top-level dir
+    + name structuredfun-pc-v0p9p3.zip
   + expand and run test suites
 
 --- first launch: it's not a big deal ---
@@ -6295,4 +6315,16 @@ lightenna_structured_imagemeta:
 * move imagesnap to state
   + because we want to use constants
     + and var exp hasn't been defined in time
+
+* do a release
+  + it's been ages and there's lots of improvements
+  + also good to get into the habit of a release
+    + regularly and often
+  + release 0.9.6
+
+* rehearse screencast
+  + wrong mic selected
+  + minimise window
+
+* update demo
 

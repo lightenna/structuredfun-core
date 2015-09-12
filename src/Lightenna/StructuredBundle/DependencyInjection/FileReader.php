@@ -207,8 +207,8 @@ class FileReader
                 unset($listing[$k]);
                 continue;
             }
-            // ignore files or folders that begin '.' or the Constantly::FOLDER_NAME ('structured') folder
-            if (($v[0] == '.') || ($v == Constantly::FOLDER_NAME)) {
+            // ignore files or folders that begin '.' or the 'structured' folder or 'fun.lnk'
+            if (($v[0] == '.') || ($v == Constantly::FOLDER_NAME) || ($v == Constantly::LINK_NAME)) {
                 unset($listing[$k]);
                 continue;
             }

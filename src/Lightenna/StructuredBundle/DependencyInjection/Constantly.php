@@ -5,7 +5,7 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 class Constantly
 {
 
-    const SFUN_VERSION = '0.9.6';
+    const SFUN_VERSION = '0.9.7';
     const DIR_SEPARATOR_URL = '/';
     const DIR_SEPARATOR_ALIAS = '~2F';
     const IMAGE_STATUS_ERROR = -2;     // unable to open image at all
@@ -21,6 +21,7 @@ class Constantly
     const DEFAULT_LAYOUT_DIRECTION = 'x';
     const DEFAULT_LAYOUT_BREADTH = 2;
     const FOLDER_NAME = 'structured';
+    const LINK_NAME = 'fun.lnk';
     const ZIP_EXTMATCH = 'zip';
     const ZIP_SEPARATOR = '/';
     const ARG_SEPARATOR = '~args&';
