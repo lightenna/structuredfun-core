@@ -1,24 +1,13 @@
 
-* wheeling through narrow images on widescreen display
-  + can get stuck
-    + I think it's to do with offseq
-    + perhaps offseq > last image width
-  + seems to be because we're placing the image in the centre
-    + but cropping against the left hand edge
-* currently selected image is allowed to drift
-  + independent of what's showing
-    + scroll wheel feels like it should be moving the selection
-      + I have evaluated this before
-      + and I seem to remember there were problems
-  + I think we've got to solve those problems
-
 * do a release
   + it's been ages and there's lots of improvements
   + also good to get into the habit of a release
     + regularly and often
+  + release 0.9.6
 
-* cached thumbnails for PNGs are 0 bytes
-  + write problem, presumably caused by the extension
+* grab cursor when scrolling
+  + so that keys work after that
+  + maybe also grab on hover
 
 * investigate options for feeding Openseadragon with tiles
   + is there some kind of IIIF option
@@ -39,6 +28,9 @@
     + need to think about the coordinate system a little
       + iiif is hinting towards a native coordinate system
       + can modify layout to include total width and height information
+
+* cached thumbnails for PNGs are 0 bytes
+  + write problem, presumably caused by the extension
 
 * no-flow-resize when loading folder on left-edge
   #!seq=0
@@ -3414,6 +3406,7 @@ let's do it on a filename level
   + disable debug in javascript
 
 * package instructions
+  + also know as how to do a release or how to release
   + check release number e.g. 0.9.3
   + do a clean clone of git repo
     + or update packaging-only repo
@@ -6276,4 +6269,29 @@ lightenna_structured_imagemeta:
 
 * home should clear offseq
   + because image 0 is always going to be flat against the left edge
+
+* wheeling through narrow images on widescreen display
+  + can get stuck
+    + I think it's to do with offseq
+    + perhaps offseq > last image width
+  + seems to be because we're placing the image in the centre
+    + but cropping against the left hand edge
+* currently selected image is allowed to drift
+  + independent of what's showing
+    + scroll wheel feels like it should be moving the selection
+      + I have evaluated this before
+      + and I seem to remember there were problems
+  + I think we've got to solve those problems
+
+* make image seq scroll animated
+  - introduces crash
+    + leave it for now
+  = returned to imagesnap = 1
+
+* start with a bit of test
+  + only address major issues pre-release
+
+* move imagesnap to state
+  + because we want to use constants
+    + and var exp hasn't been defined in time
 
