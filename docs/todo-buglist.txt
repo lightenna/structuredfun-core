@@ -3408,6 +3408,7 @@ let's do it on a filename level
 * package instructions
   + also know as how to do a release or how to release
   + check release number e.g. 0.9.3
+  + commit and push everything
   + do a clean clone of git repo
     + or update packaging-only repo
       + need to do a submodule update too
