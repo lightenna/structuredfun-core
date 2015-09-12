@@ -147,7 +147,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                 // detect directory separators in filename
                 if (strpos($this->entry->getCacheKey(), Constantly::DIR_SEPARATOR_URL) !== false) {
                     if (!file_exists(dirname($filename))) {
-                        mkdir(dirname($filename), '0777', true);
+                        mkdir(dirname($filename), 0777, true);
                     }
                 }
                 // write out file
