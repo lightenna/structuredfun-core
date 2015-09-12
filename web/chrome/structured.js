@@ -74,8 +74,9 @@ window.sfun = (function($, undefined) {
   // and private variables
   // ---------
 
-  // debugging state (assume off)
+  // state variables (assume debug off as could be used before default set)
   var debug = 0;
+  var imagesnap;
   // default values for view state
   var state_default = [];
   // the previous values for the view state (1 generation)
@@ -94,9 +95,6 @@ window.sfun = (function($, undefined) {
   // maintain a rolling mean of image ratios (#sfun.data-ratio-mean)
   var ratio_total = 0;
   var ratio_count = 0;
-
-  // move to state
-  var imagesnap = true;
 
   // jQuery cache
   var $document = $(document);
@@ -157,7 +155,8 @@ window.sfun = (function($, undefined) {
         state_previous['breadth'] = state_default['breadth'] = getBreadth();
         state_previous['seq'] = state_default['seq'] = 0;
         state_previous['offseq'] = state_default['offseq'] = 0;
-        state_previous['debug'] = state_default['debug'] = 0;
+        state_previous['debug'] = state_default['debug'] = debug = 0;
+        state_previous['imagesnap'] = state_default['imagesnap'] = imagesnap = exp.imageSnapByScroll;
         // stick default timecode in here as a bit of a hack, until we use data-frame
         state_default['timecode'] = '00-00-10.0';
         // bind to page
@@ -851,7 +850,7 @@ window.sfun = (function($, undefined) {
       // guess at the likely existence of a trackpad/magic mouse
       if (likely_fluidScroll) {
         // turn off imagesnap
-        imagesnap = false;
+        imagesnap = exp.imageSnapOff;
       }
       // flag that we've attached our listeners
       this.bindToScroll_static = true;
@@ -1231,7 +1230,7 @@ window.sfun = (function($, undefined) {
    * @return {object} get URL default hash arguments
    */
   var getDefaults = function() {
-    return { 'theme': state_default['theme'], 'direction': state_default['direction'], 'breadth': state_default['breadth'], 'seq': state_default['seq'], 'offseq': state_default['offseq'], 'debug': state_default['debug'] };
+    return { 'theme': state_default['theme'], 'direction': state_default['direction'], 'breadth': state_default['breadth'], 'seq': state_default['seq'], 'offseq': state_default['offseq'], 'debug': state_default['debug'], 'imagesnap': state_default['imagesnap'] };
   }
 
   /**
@@ -3713,7 +3712,7 @@ window.sfun = (function($, undefined) {
     }
     merge(obj, fromHash);
     // update previous values if changed
-    var cdirection = getDirection(), cbreadth = getBreadth(), cseq = getSeq(), coffseq = getOffseq(), ctheme = getTheme(), cdebug = debug;
+    var cdirection = getDirection(), cbreadth = getBreadth(), cseq = getSeq(), coffseq = getOffseq(), ctheme = getTheme(), cdebug = debug, cimagesnap = imagesnap;
     if (cdirection != obj.direction) {
       state_previous['direction'] = cdirection;
     }
@@ -3732,6 +3731,9 @@ window.sfun = (function($, undefined) {
     if (cdebug != obj.debug) {
       state_previous['debug'] = cdebug;
     }
+    if (cimagesnap != obj.imagesnap) {
+      state_previous['imagesnap'] = cimagesnap;
+    }
     // optional debugging
     if (debug && false) {
       console.log('caught hashChanged event ['+hash+']');
@@ -3749,6 +3751,8 @@ window.sfun = (function($, undefined) {
     var themeChanged = setTheme(obj.theme);
     // debug changed (no affect)
     setDebug(obj.debug);
+    // imagesnap changed (no affect)
+    imagesnap = obj.imagesnap;
     // updates based on certain types of change
     if (breadthChanged || directionChanged || forceChange) {
       // force the cells back to their native (CSS) sizes
@@ -4053,56 +4057,105 @@ window.sfun = (function($, undefined) {
   var handlerMouseWheeled = function(event) {
     var that = this;
     // work out what direction we're applying this mouse-wheel scroll to
-    var direction = getDirection();
     var breadth = getBreadth();
+    var direction = getDirection();
     // scroll direction goes against change in Y (for both x and y directions)
     var scrolldir = 0 - event.deltaY;
     // get current scroll position
     var rounding = getGutter()+1;
-    var next_pos, current_pos = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
+    var current_pos = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
     // active mousewheel reaction is dependent on which direction we're flowing in
-    if (imagesnap) {
-      // calculate how many minor axis cells
-      var advance_by = (scrolldir > 0 ? 1 : -1) * getBreadth();
-      var vpm = (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight());
-      var snap_line = 0;
-      if (breadth == 1) {
-        // snap to middle/middle (horizontal or vertical scrolling)
-        snap_line = vpm / 2;
-      } else {
-        // snap to the left/top
-        snap_line = 0;
-      }
-      // cell at left hand edge, i.e. find first spanning min boundary
-      var current_ref = visTableMajor.findCompare(current_pos + snap_line, exp.compareLTE, false);
-      // compute next_ref but don't allow wrap around
-      var next_ref = Math.min(current_ref + advance_by, visTableMajor.getSize()-1);
-      // next_pos is next major
-      if (breadth == 1) {
-        // offset by offseq to centre that image
-        next_pos = visTableMajor.key(next_ref) - imageCentreOffseq(direction, next_ref);
-      } else {
-        next_pos = visTableMajor.key(next_ref);
-      }
-      // put into target object
-      var target = {};
-      target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
-      // then crop against viewport
-      fireScrollActual(cropScrollPositionAgainstViewport(target), exp.implicitScrollDURATION);
-      event.preventDefault();
-    } else {
-      // if not snapping to images
-      if (direction == 'x') {
-        // use both axes to scroll along X
-        next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
-        fireScrollActual( { 'scrollLeft': next_pos }, (likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
+    var target = {};
+    switch (imagesnap) {
+      case exp.imageSnapBySeq : // on, scroll selector
+        var next_seq = handlerMouseWheeled_getNextSeq(breadth, direction, scrolldir);
         event.preventDefault();
-      }
+        //// create localContext because jump can be animated
+        //var localContext = eventQueue.push({
+        //  'key': 'wheelTo:'+'seq='+next_seq,
+        //  'comment': 'localContext for handlerMouseWheeled'
+        //});
+        //localContext.animateable = exp.implicitScrollDURATION;
+        imageAdvanceTo(next_seq);
+        break;
+
+      case exp.imageSnapByScroll : // on, scroll by image alignment
+        var next_pos = handlerMouseWheeled_getNextPos(breadth, direction, scrolldir, current_pos);
+        // put into target object
+        target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
+        // target = cropScrollPositionAgainstViewport(target);
+        break;
+
+      case exp.imageSnapOff : // off, no image snapping just scroll
+        if (direction == 'x') {
+          // use both axes to scroll along X
+          var next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
+          target = { 'scrollLeft': next_pos };
+        }
+        break;
+    }
+    // only scroll if we've got a target
+    if (target != {}) {
+      // then crop against viewport
+      fireScrollActual(target, (likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
+      event.preventDefault();
     }
     // optional debugging
     if (debug && false) {
       console.log('wheel dx[' + event.deltaX + '] dy[' + event.deltaY + '] factor[' + event.deltaFactor + ']');
     }
+  };
+
+  /**
+   * works out where the scroll wheel should scroll to
+   * @param {int} breadth
+   * @param {string} direction
+   * @param {int} scrolldir > 0 for right/down, < 0 for left/up
+   * @param {int} current_pos
+   * @returns {int} next viewport (scroll) position
+   */
+  var handlerMouseWheeled_getNextPos = function(breadth, direction, scrolldir, current_pos) {
+    // calculate how many minor axis cells
+    var advance_by = (scrolldir > 0 ? 1 : -1) * breadth;
+    var vpm = (direction == 'x' ? sfun.api_getViewportWidth() : sfun.api_getViewportHeight());
+    var snap_line = 0;
+    if (breadth == 1) {
+      // snap to middle/middle (horizontal or vertical scrolling)
+      snap_line = vpm / 2;
+    } else {
+      // snap to the left/top
+      snap_line = 0;
+    }
+    // cell at snap line, i.e. find first spanning min boundary
+    var current_seq = visTableMajor.findCompare(current_pos + snap_line, exp.compareLTE, false);
+    // compute next_seq but don't allow wrap around
+    var next_seq = Math.min(current_seq + advance_by, visTableMajor.getSize() - 1);
+    // next_pos is next major
+    var next_pos = 0;
+    if (breadth == 1) {
+      // offset by offseq to centre that image
+      next_pos = visTableMajor.key(next_seq) - imageCentreOffseq(direction, next_seq);
+    } else {
+      next_pos = visTableMajor.key(next_seq);
+    }
+    return next_pos;
+  };
+
+  /**
+   * works out where the scroll wheel should scroll to
+   * @param {int} breadth
+   * @param {string} direction
+   * @param {int} scrolldir > 0 for right/down, < 0 for left/up
+   * @param {int} current_pos
+   * @returns {int} next image sequence number
+   */
+  var handlerMouseWheeled_getNextSeq = function(breadth, direction, scrolldir, current_pos) {
+    var advance_by = (scrolldir > 0 ? 1 : -1) * breadth;
+    // get seq of currently selected image
+    var current_seq = getSeq();
+    // compute next_seq but don't allow wrap around
+    var next_seq = Math.min(current_seq + advance_by, visTableMajor.getSize() - 1);
+    return Math.max(next_seq, 0);
   };
 
   /**
@@ -4451,6 +4504,9 @@ window.sfun = (function($, undefined) {
     imageStatusPENDING: 0,
     imageStatusLOADED:  1,
     imageStatusRERESED:  2,
+    imageSnapOff: 0,
+    imageSnapByScroll: 1,
+    imageSnapBySeq: 2,
     // settings (default settings)
     settings: {
       'ga_id': null,
@@ -4672,7 +4728,7 @@ window.sfun = (function($, undefined) {
      * @return {object} previous state as name:value pairs
      */
     'api_getPreviousState': function() {
-      return { 'breadth': state_previous['breadth'], 'seq': state_previous['seq'], 'offseq': state_previous['offseq'] };
+      return { 'breadth': state_previous['breadth'], 'seq': state_previous['seq'], 'offseq': state_previous['offseq'], 'debug': state_previous['debug'], 'imagesnap': state_previous['imagesnap'] };
     },
 
     /**
