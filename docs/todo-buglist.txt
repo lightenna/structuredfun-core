@@ -1,9 +1,4 @@
 
-* debug 500s on images in demo
-
-* write nice test for writeable folder
-  + or rather make sure the test happens before we start trying to create folders
-
 * record screencast showing off demo
 
 * tweet about new version of demo
@@ -6327,4 +6322,12 @@ lightenna_structured_imagemeta:
   + minimise window
 
 * update demo
+
+* debug 500s on images in demo
+
+* write nice test for writeable folder
+  + or rather make sure the test happens before we start trying to create folders
+  + we have got a writeable folder
+    + the last 500 bug was unusual
+    + caused by mkdir 0777 string bug
 
