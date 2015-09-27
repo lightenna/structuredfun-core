@@ -1,5 +1,12 @@
 
-* record screencast showing off demo
+* clicking into folder
+  + should drop offseq
+    + go to image seq#0
+
+* reduce folder to 1 big and 3 small images
+
+* first scroll 1-up needs to understand that it's not centred
+  + because we miss image 2
 
 * tweet about new version of demo
   + include screencast link in tweet
@@ -6330,4 +6337,20 @@ lightenna_structured_imagemeta:
   + we have got a writeable folder
     + the last 500 bug was unusual
     + caused by mkdir 0777 string bug
+
+* record screencast showing off demo
+
+* going back
+  + if page moves
+    + URL changes
+    + which invalidates the forward history
+      + which makes the forward button disappear
+
+* click on image seq#0
+  + spawns new history item
+  + problem is in hashSetTo()
+    + offseq is changing
+      + because we're up against the edge
+    + when we read it back it's different
+      + so we end up pushing it onto the history
 

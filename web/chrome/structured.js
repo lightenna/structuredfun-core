@@ -2034,16 +2034,24 @@ window.sfun = (function($, undefined) {
     if (push) {
       History.pushState({}, null, exp.stringHASHBANG + hash);
     } else {
-      // -- doesn't always work!
+      // -- doesn't always work, fails when hash is empty
+      if (hash == '') {
+        hash = 'seq=0';
+      }
       History.replaceState({}, 'Image', exp.stringHASHBANG + hash);
-      // have to read it back and check; History hashes come back without #
-      readback = History.getHash();
-      if ((exp.stringHASHBANG + hash) != ('#'+readback)) {
-        // -- leaves a messy history trail
-        window.location.hash = exp.stringHASHBANG + hash;
+      // can also check with readback, but location.hash makes a mess of the history
+      var assume_working = true;
+      if (!assume_working) {
+        // have to read it back and check; History hashes come back without #
+        readback = History.getHash();
+        if ((exp.stringHASHBANG + hash) != ('#'+readback)) {
+          // -- leaves a messy history trail
+          window.location.hash = exp.stringHASHBANG + hash;
+          console.log('History.replaceState('+(exp.stringHASHBANG + hash)+') failed='+readback+', forced location.hash='+(exp.stringHASHBANG + hash));
+        }
       }
     }
-  }
+  };
 
   /**
    * convert an object to a hash string
@@ -4066,7 +4074,14 @@ window.sfun = (function($, undefined) {
     var current_pos = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
     // active mousewheel reaction is dependent on which direction we're flowing in
     var target = {};
-    switch (imagesnap) {
+    var animation_length = exp.implicitScrollDURATION;
+    // only imagesnap and animate for breadth=1
+    var applied_imagesnap = imagesnap;
+    if (breadth > 1) {
+      applied_imagesnap = exp.imageSnapOff;
+      animation_length = 0;
+    }
+    switch (applied_imagesnap) {
       case exp.imageSnapBySeq : // on, scroll selector
         var next_seq = handlerMouseWheeled_getNextSeq(breadth, direction, scrolldir);
         event.preventDefault();
@@ -4089,7 +4104,8 @@ window.sfun = (function($, undefined) {
       case exp.imageSnapOff : // off, no image snapping just scroll
         if (direction == 'x') {
           // use both axes to scroll along X
-          var next_pos = current_pos + (0 - event.deltaY) + event.deltaX;
+          var velocity = 100;
+          var next_pos = current_pos + ((0 - event.deltaY) + event.deltaX) * velocity;
           target = { 'scrollLeft': next_pos };
         }
         break;
@@ -4097,7 +4113,7 @@ window.sfun = (function($, undefined) {
     // only scroll if we've got a target
     if (target != {}) {
       // then crop against viewport
-      fireScrollActual(target, (likely_fluidScroll ? 0 : exp.implicitScrollDURATION));
+      fireScrollActual(target, animation_length);
       event.preventDefault();
     }
     // optional debugging
