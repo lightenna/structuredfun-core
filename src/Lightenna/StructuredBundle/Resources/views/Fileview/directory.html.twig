@@ -11,7 +11,7 @@
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type" data-seq="{{ file.seq }}">
     <a class="container directory-container directory-outer clickable" href="/file/{{ linkpath }}{{ file.name }}/">
       <ul class="directory flow boundable selectreflector">
-        {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="subcell" data-seq="{{ file.seq }}-{{ img_prev_n }}">
+        {% for img_prev_n in 1..4 %}<li id="seq-{{ file.seq }}-{{ img_prev_n }}" class="subcell subcell-{{ img_prev_n }}" data-seq="{{ file.seq }}-{{ img_prev_n }}">
         <span class="container directory-container directory-inner">
           <img id="imgseq-{{ file.seq }}-{{ img_prev_n }}" class="loadable boundable reresable"
                data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i{{ img_prev_n }}]/full/!200,200/0/native.jpg"
