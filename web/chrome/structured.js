@@ -88,7 +88,7 @@ window.sfun = (function($, undefined) {
   // list of metadata fields supported
   var metadata_fields = ['iptcCaption', 'iptcByline', 'iptcHeadline', 'iptcKeywords', 'iptcCopyright', 'iptcSource'];
   var metadata_flags = ['editable'];
-  // last image maxwidth|height, to shortcut reres using thumb size
+  // last image maxwidth|height, to shortcut reres using thumb size; can disable where set in refreshResolution()
   var last_longest = null;
   // device detection
   var likely_fluidScroll = (navigator.platform.match(/(Mac|iPhone|iPod|iPad)/i)? true : false);
@@ -589,8 +589,8 @@ window.sfun = (function($, undefined) {
           brackWidth = Math.min(Math.ceil(imageContainerWidth/resbracket) * resbracket, nativeWidth);
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
-            // store max longest to shortcut next thumb load
-            last_longest = brackWidth;
+            // don't store max longest to shortcut next thumb load; always load 200s
+            // last_longest = brackWidth;
             // swap out image and wait for swap to complete
             imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': brackWidth, 'timecode': state_default['timecode'] } )).always(wrapUp);
           } else {
@@ -600,8 +600,8 @@ window.sfun = (function($, undefined) {
           // same but pivot on height rather than width
           brackHeight = Math.min(Math.ceil(imageContainerHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
-            // store max longest to shortcut next thumb load
-            last_longest = brackHeight;
+            // don't store max longest to shortcut next thumb load; always load 200s
+            // last_longest = brackHeight;
             // swap out image and wait for swap to complete
             imageReres($ent, substitute($reresable.data('template-src'), { 'maxheight': brackHeight, 'timecode': state_default['timecode'] } )).always(wrapUp);
           } else {
@@ -2155,9 +2155,12 @@ window.sfun = (function($, undefined) {
    */
   var hashGetPreserved = function(options) {
     var obj = hashParse(getHash());
-    // unset unpreserved state
+    // unset unpreserved state (seq/offseq)
     if (typeof('obj.seq') != 'undefined') {
       delete obj.seq;
+    }
+    if (typeof('obj.offseq') != 'undefined') {
+      delete obj.offseq;
     }
     if (options != undefined) {
       // overwrite with options
