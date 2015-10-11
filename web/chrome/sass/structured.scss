@@ -142,7 +142,7 @@
       }
 
       // default colour under media-container to avoid wiping out .directory border
-      .media-container .selectreflector {
+      > .container > .selectreflector {
         border-color: $background_html_light;
       }
 
@@ -150,13 +150,13 @@
         border-color: $highlight;
       }
 
-      .video-container .selectreflector {
+      > .video-container > .selectreflector {
         border: none;
       }
 
       // CONTAINER
 
-      .container {
+      > .container {
         // relative parent required for alignment of x-bound images and meta
         position: relative;
         // display block, height 100% required for aligning image metadata to base
@@ -192,7 +192,7 @@
         }
 
         // landscape images
-        .x-bound {
+        > img.x-bound {
           position: relative;
           width: 100%;
           top: 50%;
@@ -202,12 +202,12 @@
         }
       
         // portrait images
-        .y-bound {
+        > img.y-bound {
           height: 100%;
         }
 
         // metadata over bottom of image/cell
-        .meta {
+        > .meta {
           // position absolute to stick to bottom
           display: block;
           position: absolute;
@@ -432,25 +432,6 @@
         }
       } // .metadata-holder
 
-      // directories with preview images
-      .directory {
-        border: none;
-        width: 100%;
-        height: 100%;
-        position: relative;
-
-        .overlay {
-          width: 100%;
-          height: 100%;
-          display: inline-block;
-          // absolute position within relative container to do overlay with no effective height
-          position: absolute;
-          top: 0;
-          z-index: 1;
-        }
-
-      } // .directory
-
       // title over directories
       .title {
         opacity:0.7;
@@ -465,26 +446,6 @@
         margin: 0 2.4% 0 2.7%;
         padding: 0.5em;
       } // title
-
-      // sub-cells are 1+3
-      .subcell {
-        width: (100% / 3);
-        height: (100% / 3);
-        // add margin here but subtract twice (left+right or top+bottom) from cell dimensions
-        @include calc(margin, ($alley / 2));
-        // use calc to subtract cell margin, if supported
-        @include calc(width, (100% / 3)+" - "+($alley));
-        @include calc(height, (100% / 3)+" - "+($alley));
-      }
-      .subcell-1 {
-        width: (100% * 2 / 3);
-        height: (100% * 3 / 3);
-        // add margin here but subtract twice (left+right or top+bottom) from cell dimensions
-        @include calc(margin, ($alley / 2));
-        // use calc to subtract cell margin, if supported
-        @include calc(width, (100% * 2 / 3)+" - "+($alley));
-        @include calc(height, (100% * 3 / 3)+" - "+($alley));
-      }
 
       // show metric if image is visible or part-visible
       &.visible .imgmetric, &.vispart p.imgmetric {

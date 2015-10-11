@@ -64,17 +64,20 @@
     var flow_cellsResize = function (range) {
         var that = this;
         var direction = sfun.api_getDirection();
+        // get total size of minor for use in cache searches
+        var minorKey = (direction == 'x' ? sfun.api_getViewportHeight() : sfun.api_getViewportWidth());
         var $anchorpost = sfun.api_getCell(range.selected);
         if (!$anchorpost.length) {
             // if we can't find the selected image, just use the first
             $anchorpost = sfun.api_getCell(range.first_1);
         }
+        if (debug && true) {
+            console.log('flow_cellsResize calls ['+range.first_1+'-'+range.last_n+']');
+        }
         // record the initial absolute coord of the image
         var selectedMajorCoordabsInitial = (direction == 'x' ? $anchorpost.offset().left : $anchorpost.offset().top);
         // fetch visible cells and group by major axis value
         var cellGroup = {};
-        // also pull cells that contain nested cells
-        var subcellGroup = {};
         // iterate across visible and visnear cells
         for (var i = range.first_1; i <= range.last_n; ++i) {
             var $ent = sfun.api_$cell(i);
@@ -84,36 +87,6 @@
             }
             // store cell in correct bucket, by position on major axis
             _bucketCell($ent, direction, cellGroup);
-            // see if cell contains subcells
-            $ent.cachedFind('.subcell').each(function () {
-                // store subcell in correct bucket, by parent, then position on major axis
-                _bucketCell($(this), direction, subcellGroup, $ent);
-            });
-        }
-        // store list of cells with subcells
-        var parentList = [];
-        // work through all buckets of cells with subcells first
-        for (var coordabs in subcellGroup) {
-            // use first cell to get parent
-            var $parent = subcellGroup[coordabs][0].litter.$parent;
-            // define parent for calculating percentages of
-            var parentBounds = {
-                'minor': (direction == 'x' ? $parent.height() : $parent.width()),
-                'major': (direction == 'x' ? $parent.width() : $parent.height())
-            };
-            // process bucket
-            _processBucket(subcellGroup[coordabs], parentBounds);
-            // store parent in list if not there already
-            if (parentList.indexOf($parent) == -1) {
-                parentList.push($parent);
-            }
-        }
-        // propagate data-ratio upto cell
-        for (var i = 0; i < parentList.length; ++i) {
-            var $parent = parentList[i];
-            var subcellRatio = _getSubcellCombinedRatio($parent);
-            // store the ratio on the boundable container (ul.directory)
-            $parent.cachedFind('> .container > .boundable').data('ratio', subcellRatio);
         }
         // allow for image alley and page gutter
         var spacing = (sfun.api_getAlley() * (sfun.api_getBreadth() - 1)) + (2 * sfun.api_getGutter());
@@ -194,9 +167,10 @@
     var flow_cellsCheckMinor = function (minor) {
         var breadth = sfun.api_getBreadth();
         var base = minor * breadth;
+        var max = Math.min(base + breadth, sfun.api_getTotalEntries());
         var pre_marked = 0;
         // loop through all cells in this minor
-        for (var i = base; i < base + breadth; ++i) {
+        for (var i = base; i < max; ++i) {
             var $ent = sfun.api_$cell(i);
             // test to see if we've already set a specific minor to this cell
             if ($ent.hasClass(cell_marker)) {
@@ -215,9 +189,9 @@
         // all ratios loaded, check for un-sized cells
         if (pre_marked != breadth) {
             if (debug && false) {
-                console.log('flow; flow_cellsCheckMinor can resize column[' + minor + '] ' + base + '-' + (base + breadth));
+                console.log('flow; flow_cellsCheckMinor can resize column[' + minor + '] ' + base + '-' + max);
             }
-            return {'first_1': base, 'last_n': base + breadth - 1};
+            return {'first_1': base, 'last_n': max - 1};
         }
         // otherwise flag that there were no changes
         return false;
@@ -226,27 +200,6 @@
     //
     // FUNCTIONS: Helpers
     //
-
-    /**
-     * @param  {[type]} $ent jQuery entity
-     * @return {float} ratio of container width to height
-     */
-    var _getSubcellCombinedRatio = function ($ent) {
-        var x1 = y1 = 99999, x2 = y2 = -99999;
-        // find bounding box of subcells
-        $ent.cachedFind('.subcell').each(function () {
-            var pos = $(this).offset();
-            x1 = Math.min(x1, pos.left);
-            y1 = Math.min(y1, pos.top);
-            x2 = Math.max(x2, pos.left + $(this).width());
-            y2 = Math.max(y2, pos.top + $(this).height());
-        });
-        // write loaded width and height on to ul.directory
-        var directory = $ent.cachedFind('> .container > .boundable');
-        directory.data({'loaded-width': (x2 - x1), 'loaded-height': (y2 - y1)});
-        // ratio is width/height
-        return (x2 - x1) / (y2 - y1);
-    }
 
     /**
      * @param {array}  bucket                         array of jQuery entities
