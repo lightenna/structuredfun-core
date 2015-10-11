@@ -184,7 +184,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   border: 1px solid;
 }
 /* line 145, ../sass/structured.scss */
-.sfun.flow-pc > .cell .media-container .selectreflector {
+.sfun.flow-pc > .cell > .container > .selectreflector {
   border-color: #e8e8e8;
 }
 /* line 149, ../sass/structured.scss */
@@ -192,11 +192,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   border-color: gray;
 }
 /* line 153, ../sass/structured.scss */
-.sfun.flow-pc > .cell .video-container .selectreflector {
+.sfun.flow-pc > .cell > .video-container > .selectreflector {
   border: none;
 }
 /* line 159, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container {
+.sfun.flow-pc > .cell > .container {
   position: relative;
   display: block;
   height: 100%;
@@ -208,7 +208,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: calc(0px);
 }
 /* line 171, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container.directory-container.directory-outer {
+.sfun.flow-pc > .cell > .container.directory-container.directory-outer {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -223,20 +223,20 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   height: calc(100% - 20px);
 }
 /* line 179, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container.directory-container.directory-outer > .meta {
+.sfun.flow-pc > .cell > .container.directory-container.directory-outer > .meta {
   opacity: 1;
 }
 /* line 183, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container.directory-container.directory-outer > .meta .base {
+.sfun.flow-pc > .cell > .container.directory-container.directory-outer > .meta .base {
   margin-left: 1px;
 }
 /* line 186, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container.directory-container.directory-outer > .meta .base .iptcHeadline {
+.sfun.flow-pc > .cell > .container.directory-container.directory-outer > .meta .base .iptcHeadline {
   font-weight: normal;
   font-size: 2.0em;
 }
 /* line 195, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .x-bound {
+.sfun.flow-pc > .cell > .container > img.x-bound {
   position: relative;
   width: 100%;
   top: 50%;
@@ -245,11 +245,11 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   -webkit-transform: translate(0, -50%);
 }
 /* line 205, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .y-bound {
+.sfun.flow-pc > .cell > .container > img.y-bound {
   height: 100%;
 }
 /* line 210, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta {
+.sfun.flow-pc > .cell > .container > .meta {
   display: block;
   position: absolute;
   z-index: 1;
@@ -266,7 +266,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   transition: opacity 0.3s ease-out 0s;
 }
 /* line 235, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base {
+.sfun.flow-pc > .cell > .container > .meta .base {
   position: absolute;
   background-image: linear-gradient(rgba(232, 232, 232, 0.4), rgba(232, 232, 232, 0.8));
   padding-left: 1em;
@@ -275,7 +275,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   bottom: 0;
 }
 /* line 244, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc {
+.sfun.flow-pc > .cell > .container > .meta .base .iptc {
   margin: 1.0em 1.0em 1.0em 0;
   height: 1.2em;
   display: block;
@@ -283,13 +283,13 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   overflow: hidden;
 }
 /* line 257, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.iptcHeadline {
+.sfun.flow-pc > .cell > .container > .meta .base .iptc.iptcHeadline {
   font-weight: bold;
   display: block;
   margin-right: 0.5em;
 }
 /* line 264, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.iptcCaption, .sfun.flow-pc > .cell .container .meta .base .iptc.iptcKeywords, .sfun.flow-pc > .cell .container .meta .base .iptc.iptcCopyright, .sfun.flow-pc > .cell .container .meta .base .iptc.iptcSource {
+.sfun.flow-pc > .cell > .container > .meta .base .iptc.iptcCaption, .sfun.flow-pc > .cell > .container > .meta .base .iptc.iptcKeywords, .sfun.flow-pc > .cell > .container > .meta .base .iptc.iptcCopyright, .sfun.flow-pc > .cell > .container > .meta .base .iptc.iptcSource {
   pointer-events: auto;
   color: #555555;
   display: inline;
@@ -297,26 +297,26 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin-right: 0;
 }
 /* line 274, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.editable {
+.sfun.flow-pc > .cell > .container > .meta .base .iptc.editable {
   pointer-events: auto;
   display: inline;
   margin-left: 0;
   margin-right: 0;
 }
 /* line 280, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.editable:hover {
+.sfun.flow-pc > .cell > .container > .meta .base .iptc.editable:hover {
   color: red;
 }
 /* line 285, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.iptcByline {
+.sfun.flow-pc > .cell > .container > .meta .base .iptc.iptcByline {
   display: inline;
 }
 /* line 290, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .iptc.iptc_default, .sfun.flow-pc > .cell .container .meta .base .iptc.iptc_undefined {
+.sfun.flow-pc > .cell > .container > .meta .base .iptc.iptc_default, .sfun.flow-pc > .cell > .container > .meta .base .iptc.iptc_undefined {
   display: none;
 }
 /* line 295, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .imgmetric {
+.sfun.flow-pc > .cell > .container > .meta .base .imgmetric {
   float: left;
   margin-left: -1.25em;
   line-height: 1.0em;
@@ -325,31 +325,31 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   white-space: nowrap;
 }
 /* line 308, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .imgmetric .size {
+.sfun.flow-pc > .cell > .container > .meta .base .imgmetric .size {
   display: none;
 }
 /* line 317, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .imgmetric.super {
+.sfun.flow-pc > .cell > .container > .meta .base .imgmetric.super {
   background-color: #009900;
   color: #BBFFBB;
 }
 /* line 322, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .meta .base .imgmetric.sub {
+.sfun.flow-pc > .cell > .container > .meta .base .imgmetric.sub {
   background-color: #990000;
   color: #FFBBBB;
 }
 /* line 332, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container:hover .meta {
+.sfun.flow-pc > .cell > .container:hover .meta {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
 /* line 339, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container:hover .imgmetric {
+.sfun.flow-pc > .cell > .container:hover .imgmetric {
   opacity: 1;
   transition: opacity 0.3s ease-in 0s;
 }
 /* line 348, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .button {
+.sfun.flow-pc > .cell > .container .button {
   position: absolute;
   top: 15%;
   left: 45%;
@@ -362,7 +362,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   opacity: 0.5;
 }
 /* line 362, ../sass/structured.scss */
-.sfun.flow-pc > .cell .container .video-js {
+.sfun.flow-pc > .cell > .container .video-js {
   position: absolute;
   top: 0;
   left: 0;
@@ -417,22 +417,6 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   display: none;
 }
 /* line 436, ../sass/structured.scss */
-.sfun.flow-pc > .cell .directory {
-  border: none;
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-/* line 442, ../sass/structured.scss */
-.sfun.flow-pc > .cell .directory .overlay {
-  width: 100%;
-  height: 100%;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  z-index: 1;
-}
-/* line 455, ../sass/structured.scss */
 .sfun.flow-pc > .cell .title {
   opacity: 0.7;
   filter: alpha(opacity=70);
@@ -447,45 +431,17 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   margin: 0 2.4% 0 2.7%;
   padding: 0.5em;
 }
-/* line 470, ../sass/structured.scss */
-.sfun.flow-pc > .cell .subcell {
-  width: 33.33333%;
-  height: 33.33333%;
-  margin: -webkit-calc(2px);
-  margin: -moz-calc(2px);
-  margin: calc(2px);
-  width: -webkit-calc(33.33333% - 4px);
-  width: -moz-calc(33.33333% - 4px);
-  width: calc(33.33333% - 4px);
-  height: -webkit-calc(33.33333% - 4px);
-  height: -moz-calc(33.33333% - 4px);
-  height: calc(33.33333% - 4px);
-}
-/* line 479, ../sass/structured.scss */
-.sfun.flow-pc > .cell .subcell-1 {
-  width: 66.66667%;
-  height: 100%;
-  margin: -webkit-calc(2px);
-  margin: -moz-calc(2px);
-  margin: calc(2px);
-  width: -webkit-calc(66.66667% - 4px);
-  width: -moz-calc(66.66667% - 4px);
-  width: calc(66.66667% - 4px);
-  height: -webkit-calc(100% - 4px);
-  height: -moz-calc(100% - 4px);
-  height: calc(100% - 4px);
-}
-/* line 490, ../sass/structured.scss */
+/* line 451, ../sass/structured.scss */
 .sfun.flow-pc > .cell.visible .imgmetric, .sfun.flow-pc > .cell.vispart p.imgmetric {
   display: block;
 }
-/* line 496, ../sass/structured.scss */
+/* line 457, ../sass/structured.scss */
 .sfun.flow-pc > .cell.reres-plus-2s .imgmetric {
   opacity: 0;
   transition: opacity 0.3s ease-out 0s;
 }
 
-/* line 513, ../sass/structured.scss */
+/* line 474, ../sass/structured.scss */
 .js .sfun .cell.resizepending {
   visibility: hidden;
 }

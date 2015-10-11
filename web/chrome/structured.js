@@ -537,15 +537,15 @@ window.sfun = (function($, undefined) {
   var refreshResolution = function($ent) {
     var that = this;
     var $reresable = $ent.cachedFind('.reresable');
+    // skip if nothing reresable
     if (!$reresable.length) {
       return getDeferred().resolve();
     }
-    // don't attempt to check image resolution on directory
-    var type = getType($ent);
-    if (!(type == 'image' || type == 'video')) {
+    // skip if already reresing
+    if ($ent.hasClass('reresing')) {
       return getDeferred().resolve();
     }
-    // flag this image as updating its resolution
+    // flag this cell's image as updating its resolution
     $ent.addClass('reresing');
     // [could] move the metric into position and show
     // refreshMetricPosition($ent);
@@ -803,27 +803,30 @@ window.sfun = (function($, undefined) {
         var $ent = $(this);
         defs.push(loadThumbRefreshBounds($ent));
       });
-      // stage 1b: refresh cell sizes
-      defs.push(cellsResize());
       $.when.apply($, defs).always(function() {
-        // stage 2: if we're reresing the images
-        if (reres) {
+        defs = [];
+        // stage 1b: refresh cell sizes
+        defs.push(cellsResize());
+        $.when.apply($, defs).always(function() {
           defs = [];
-          // refresh $set because resize may have added more visible/vispart/visnear cells
-          $set = $set.refresh();
-          // stage 3: refresh resolutions as a batch
-          $set.each(function() {
-            // get shared cached copy of cell
-            var $ent = $cell($(this).data('seq'));
-            defs.push(refreshImageResolution($ent, true));
-          });
-          $.when.apply($, defs).always(function() {
-            // finally resolve
+          // stage 2: if we're reresing the images
+          if (reres) {
+            // refresh $set because resize may have added more visible/vispart/visnear cells
+            $set = $set.refresh();
+            // stage 3: refresh resolutions as a batch
+            $set.each(function() {
+              // get shared [cached] copy of cell
+              var $ent = $cell($(this).data('seq'));
+              defs.push(refreshImageResolution($ent, true));
+            });
+            $.when.apply($, defs).always(function() {
+              // finally resolve
+              deferred.resolve();
+            });
+          } else {
             deferred.resolve();
-          });
-        } else {
-          deferred.resolve();
-        }
+          }
+        });
       });
       return deferred;
     }
@@ -965,11 +968,18 @@ window.sfun = (function($, undefined) {
   var bindToDirectoryLinks = function() {
     var that = this;
     $sfun.on('click', '.selectablecell a.directory-container', function(event) {
-      var url = urlDirectoryWithState($(this).attr('href'));
-      event.preventDefault();
-      // manually jump to new URL
-      urlGoto(url);
-    });    
+      // detect ctrl down
+      if (event.ctrlKey) {
+        // just allow the browser to process the click normally (pop a new tab)
+        return true;
+      } else {
+        // interrupt the click and manually process
+        var url = urlDirectoryWithState($(this).attr('href'));
+        event.preventDefault();
+        // manually jump to new URL
+        urlGoto(url);
+      }
+    });
   };
 
   /**
@@ -1842,6 +1852,9 @@ window.sfun = (function($, undefined) {
   var imageReres = function($ent, path) {
     var that = this;
     var $reresable = $ent.cachedFind('.reresable');
+    if (debug && true) {
+      console.log('imageReres called for '+$ent.data('seq'));
+    }
     if ($reresable.length) {
       var deferred = getDeferred();
       // create temporary image container
@@ -2559,6 +2572,9 @@ window.sfun = (function($, undefined) {
           var position = $ent.offset();
           var ref = $ent.data('seq');
           var obj = vt.select(ref);
+          if (position == undefined) {
+            console.log('eeeek');
+          }
           if (obj == null) {
             // add object
             var obj = {
@@ -3777,10 +3793,10 @@ window.sfun = (function($, undefined) {
       if (seqChanged || offseqChanged || breadthChanged || directionChanged || forceChange) {
         // scroll to the selected image, which triggers refresh on all .visible images
         return envisionSeq(obj.seq, obj.offseq, eventContext).done(function() {
-          // @todo this doesn't cover it
-          // if (breadthChanged || directionChanged || forceChange) {
-          //   cellsResize();
-          // }
+          // @todo this doesn't cover it, do it on refreshAnImageSet() instead
+          //if (breadthChanged || directionChanged || forceChange) {
+          //  cellsResize();
+          //}
         });
       }
     });

@@ -1,39 +1,27 @@
 
-* reduce folder to 1 big and 3 small images
-  + can show 4-up in full-screen mode
-    + basically invert the current setup
-  + when breadth = 1
-    + show 2-up
-  + when breadth = 2|4|8
-    + show 1-up
-  + look at css
-  + actually 1+3 works pretty well in all breadths
---o--
-* adjust flow.js to make it preserve 1+3
-  + this should be as simple as altering the bucketing process
-    + will need to use native cell size to determine how they flow
+* high seq clicks are broken
+  + when I click an image above about 10
+  + only seems to apply to some image sets
+    + seems consistent with those image sets
 
-* try leaving all directory cells at their normal height (minor)
-  + so don't adjust minors on directories
-    + that should equalise spacing
-      + but may create a lot of black
-        + we'll see
-  + set every directory's ratio as 1, so square
-
-* no-flow-resize when loading folder on left-edge
-  #!seq=0
-  + something about seq=0 or left-hand edge makes it just load squares
-  + the instant we're away from the edge
-    + it flows the folders
---o-- could be related
-* bad-flow-resize when loading folder near left-edge
-  e.g. #!seq=2&offseq=100
+* revive test suite
+  + it's impossible to work seriously on this codebase without it
 
 * first scroll 1-up needs to understand that it's not centred
   + because we miss image 2
 
 * release 0.9.7
   + include install improvements
+
+* stop scroll creep
+  + dragging to the middle of the image set
+    + creeps around
+      + which I think makes it slow
+--o--
+* jigging images
+  + sometimes we end up with a few images constantly reflowing
+    + no longer constantly
+  + but we do get multiple re-flows
 
 * record install procedure screencast
   + upload to YouTube
@@ -6383,4 +6371,134 @@ lightenna_structured_imagemeta:
         // border: 1px solid $directory_light;
         // border-radius: ($alley * 2);
         // box-sizing: border-box;
+
+* introduce abbreviation for zips with a single, top-level folder
+  + click-through
+    + when you click into a folder with a single sub-folder
+      + we just redirect straight through to that sub-folder
+  + image requests
+    + build the same pass through for wildcard [iX] searches
+zip~2F[i1]
+    + becomes
+zip~2F[1]~2F[i1]
+
+* up-res folder images
+  + simple as removing a block
+    + but!
+
+* up-res on folder images
+  + makes all images look the same
+  + imageReres is done on the cell
+    + need to do it on the subcell or image
+      + or change out just the matching image
+    + or make it aware there could be multiple images in the cell
+  + fine when we just do the first one
+
+* [console] print a log of all the imageReres stuff we're doing
+  + it looks like we call the same thing multiple times
+    + have protected with hasClass test for now
+
+* try leaving all directory cells at their normal height (minor)
+  + so don't adjust minors on directories
+    + that should equalise spacing
+      + but may create a lot of black
+        + we'll see
+  + set every directory's ratio as 1, so square
+  = actually they look pretty good at different sizes now we've got the 1+3 thing
+
+* load ratio for cached thumbs
+  + just whichever ones are loaded
+    + not only if they're all there
+  + it's a problem for directories
+    + check for images in folders
+      + looks like ratios are being put onto the cached images
+        + even if the rest of the folder is unseen
+
+* loading speed of directory view
+  + it's good when we're loading images
+    + but it's less good on directories
+  + could try and make directory more like a regular image cell
+    + a single hi-res image in the background
+      + then smaller sub-cells
+    + has the advantage of making the cell dimensions calculable on the server-side
+  + may eventually merge the twig [if clauses] in the future
+    + but for now let's see if we can just get it rendering
+  = suspend this ticket as single-image dir seems to help a lot
+
+* fix select reflector on directories
+
+* make directory single image
+  + not behaving like an image cell yet
+    + not sure why
+
+* add back multiple images to directories
+  - doesn't seem to add anything
+    = dropped
+
+* lost the select reflector
+
+* reduce folder to 1 big and 3 small images
+  + can show 4-up in full-screen mode
+    + basically invert the current setup
+  + when breadth = 1
+    + show 2-up
+  + when breadth = 2|4|8
+    + show 1-up
+  + look at css
+  + actually 1+3 works pretty well in all breadths
+--o--
+* adjust flow.js to make it preserve 1+3
+  + this should be as simple as altering the bucketing process
+    + will need to use native cell size to determine how they flow
+  = deprecated, got rid of the +3
+
+* ctrl+click
+  + just return true on click handler
+    + so that we naturally pop a browser tab
+
+= it's working pretty well
+  + time for a release
+
+* no-flow-resize when loading folder on left-edge
+  #!seq=0
+  + something about seq=0 or left-hand edge makes it just load squares
+  + the instant we're away from the edge
+    + it flows the folders
+--o-- could be related
+* bad-flow-resize when loading folder near left-edge
+  e.g. #!seq=2&offseq=100
+  = this has gone away now
+
+* could tag cells with last flow
+  + don't want to reflow unless it's absolutely necessary
+    + ie. if the height changes
+  + also make it breadth specific
+    + so we can flick between breadths quicker
+      + and without the unstyled content flash
+  = have folded this one into the the large folder profile
+
+* profile out large folders
+  + first load on large folders is fine
+    + it's all in the HTML generation (5.22s)
+  + worth profiling a few interactions
+    + click to full screen (clickfull) could be snappier
+      + benefits all sorts of folders
+    + disable flow and see what it's like
+      + it's pretty instantaneous
+        + I think it's worth optimising flow
+    + two approaches
+      1 what can we cache
+      2 can we do it in ranges
+  + there are a lot of calls to cellsResize
+    + that's not a bad thing
+      + because there are lots of cases where a resize might be necessary
+    + we want to leave the calls in there
+      + but cut them off sensibly
+  + cut offs
+    + no point reflowing if we haven't loaded a cell
+    + once we've reflowed at a certain height, it's probably not worth doing it again
+  + short-term
+    + let's _try_ to only reflow cells when their column is loaded
+      - didn't work
+  + let's try and address the trickle in another ticket
 

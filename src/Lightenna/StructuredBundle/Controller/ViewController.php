@@ -219,11 +219,23 @@ class ViewController extends Controller
                 // find file using that path
                 // strip trailing slash because findFind works off either a directory/zip
                 $matched_leaf = $this->findFile(rtrim($subname, Constantly::DIR_SEPARATOR_URL), $match[0]);
-                // add found file to path
+                // if we couldn't find the first image [iX]
+                if (($matched_leaf === false) && ($match[0][0] == 'i')) {
+                    // try to search under first entity [1] (top-level dir zip case)
+                    $matched_leaf = $this->findFile(rtrim($subname, Constantly::DIR_SEPARATOR_URL), 1);
+                    if ($matched_leaf !== false) {
+                        // if we found a first entity, append it to subname
+                        $subname .= $matched_leaf . Constantly::DIR_SEPARATOR_URL;
+                        // then search again for the original [iX]
+                        $matched_leaf = $this->findFile(rtrim($subname, Constantly::DIR_SEPARATOR_URL), $match[0]);
+                    }
+                }
+                // check if we found anything
                 if ($matched_leaf === false) {
                     // fail, unable to find that file
                     throw $this->createNotFoundException('Unable to find a file matching those parameters');
                 } else {
+                    // add found file to path
                     $subname .= $matched_leaf;
                 }
                 $lastpos = $match[1] + 1 + strlen($match[0]);

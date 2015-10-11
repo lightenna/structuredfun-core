@@ -188,7 +188,7 @@ html.flow-1 {
       margin: 0;
 
       // no selected border either
-      .media-container .selectreflector {
+      .container .selectreflector {
         border: none;
       }
     }
@@ -258,7 +258,7 @@ html.theme-dark {
         // tint all cells darker
         background-color: ($background_html_dark - $tint_cell_distance);
 
-        &:not(.selected) .media-container .selectreflector {
+        &:not(.selected) .container .selectreflector {
           border-color: $background_html_dark;
         }
 

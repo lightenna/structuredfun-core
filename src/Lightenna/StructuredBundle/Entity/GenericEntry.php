@@ -75,6 +75,11 @@ class GenericEntry
         return ($this->type == 'image');
     }
 
+    public function isDirectory()
+    {
+        return ($this->type == 'directory');
+    }
+
     //
     // GETTERs and SETTERs
     //
