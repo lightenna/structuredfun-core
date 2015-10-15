@@ -1,9 +1,4 @@
 
-* high seq clicks are broken
-  + when I click an image above about 10
-  + only seems to apply to some image sets
-    + seems consistent with those image sets
-
 * revive test suite
   + it's impossible to work seriously on this codebase without it
 
@@ -6502,3 +6497,42 @@ zip~2F[1]~2F[i1]
       - didn't work
   + let's try and address the trickle in another ticket
 
+* high seq clicks are broken
+  + when I click an image above about 10
+  + only seems to apply to some image sets
+    + seems consistent with those image sets
+  + could be related to clipping against the _current_ window size
+  + it's something to do with csel
+    + the csel css value is way too large (4000 odd)
+      + got to find out how it got to be so large
+    + I think it's because
+      + everytime we adjust the csel for an earlier image
+        + we're moving the position of anchorpost
+        + but not updating the selectedMajorCoordabsInitial
+      + it's the last cycle
+        + when useScroll is true
+        + that we jump back to the wrong place
+  + set breakpoint at sfun-flow.js:390
+  + it's getting cropped during _processBucket
+    + _cellsResizeBucketMajor takes 630-odd of the cell width
+      + which shoots the scrollbar up to the end of the doc
+      + when we then realign
+        + the scrollbar isn't where it's meant to be
+      + we've taken a lump off
+        + and added the lump back
+        + but the scrollbar got nudged back in betweem
+      + we really need to add the extra in first
+        + then take it off
+      + which means getting resizeBucketMajor to add the different to the container first
+        + or finding another way to correct the scrollbar
+          + we know the initial position of the image
+          + we could also save the initial offset of the image from the viewport
+            + this is harder but neater
+          + the trick is to not use the 'oldpos' position of the scrollbar
+          + I think we _have_ to store the initial position of the scrollbar somehow
+            + because otherwise there's no way to tell how it's been bumped around
+            + unless we trust that offseq is
+              + up to date and
+              + hasn't been affected by the resize
+                + that's probably true, but I'm not sure of it
+  = resolved very effectively

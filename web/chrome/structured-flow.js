@@ -76,6 +76,7 @@
         }
         // record the initial absolute coord of the image
         var selectedMajorCoordabsInitial = (direction == 'x' ? $anchorpost.offset().left : $anchorpost.offset().top);
+        var scrollMajorCoordabsInitial = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
         // fetch visible cells and group by major axis value
         var cellGroup = {};
         // iterate across visible and visnear cells
@@ -111,7 +112,7 @@
             _processBucket(cellGroup[coordabs], viewportBounds, $anchorpost, selectedMajorCoordabsInitial);
         }
         // now that all cells resized, realign using scrollbar instead of container position
-        _cellsResizeRealignMajor($anchorpost, selectedMajorCoordabsInitial, true);
+        _cellsResizeRealignMajor($anchorpost, selectedMajorCoordabsInitial, scrollMajorCoordabsInitial);
         // return a resolved deferred in case we wait to make any of this resync in the future
         return $.Deferred().resolve();
     }
@@ -377,37 +378,40 @@
     /**
      * realign a given cell with its initial position
      * @param  {object} $selected jQuery selected image
-     * @param  {real} initial selected major absolute coord
-     * @param  {boolean} useScroll true to align using scrollbar, false using container position
+     * @param  {real} initial_anchor selected major absolute coord
+     * @param  {real | false} initial_scroll non-null to align using scrollbar, false using container position
      */
-    var _cellsResizeRealignMajor = function ($selected, initial, useScroll) {
+    var _cellsResizeRealignMajor = function ($selected, initial_anchor, initial_scroll) {
         var direction = sfun.api_getDirection();
         var coordabs = (direction == 'x' ? $selected.offset().left : $selected.offset().top);
-        var diff = sfun.api_round(initial - coordabs, 2);
+        // diff is the difference between where the image was (before resize) and where it is now
+        var diff = sfun.api_round(initial_anchor - coordabs, 2);
         var csel = sfun.api_getLayoutRoot();
         var property = (direction == 'x' ? 'left' : 'top');
         // get the container's current csel offset (without 'px')
         var cselOffset = sfun.api_round(parseFloat(csel.css(property)), 2);
-        if (useScroll) {
-            var scrolldiff = cselOffset + diff;
+        if (initial_scroll === false) {
+            // add diff to current csel offset
+            csel.css(property, cselOffset + diff);
+        } else {
             // stop using container
             csel.css(property, 0);
-            // scroll instead
-            var oldpos = {'scrollLeft': $document.scrollLeft(), 'scrollTop': $document.scrollTop()};
-            // don't need to do using hashUpdate because we're keeping offseq where it is (probably 0)
+            // work out where the selected image is now
+            var coordabs = (direction == 'x' ? $selected.offset().left : $selected.offset().top);
+            // offset by same amount as initial difference
+            var scrollabs = coordabs - (initial_anchor - initial_scroll);
             var newpos = {
-                'scrollLeft': (direction == 'x' ? oldpos.scrollLeft - scrolldiff : 0),
-                'scrollTop': (direction == 'x' ? 0 : oldpos.scrollTop - scrolldiff)
+                'scrollLeft': (direction == 'x' ? scrollabs : 0),
+                'scrollTop': (direction == 'x' ? 0 : scrollabs)
             };
+            // get current position to see if it's changed
+            var oldpos = {'scrollLeft': $document.scrollLeft(), 'scrollTop': $document.scrollTop()};
             // if we're changing position, fire scroll
             if ((newpos.scrollLeft != oldpos.scrollLeft) || (newpos.scrollTop != oldpos.scrollTop)) {
                 // note: async scroll will not expose new cells, only realign without container offset
                 // @todo need to crop this new position against viewport
                 sfun.api_triggerScroll(newpos, true);
             }
-        } else {
-            // add diff to current csel offset
-            csel.css(property, cselOffset + diff);
         }
     }
 
