@@ -805,8 +805,8 @@ window.sfun = (function($, undefined) {
       });
       $.when.apply($, defs).always(function() {
         defs = [];
-        // stage 1b: refresh cell sizes
-        defs.push(cellsResize());
+        // stage 1b: refresh cell sizes for cells in and near image set
+        defs.push(cellsResize(calcVisnear($set.first().data('seq'), $set.last().data('seq'))));
         $.when.apply($, defs).always(function() {
           defs = [];
           // stage 2: if we're reresing the images
