@@ -4170,6 +4170,16 @@ window.sfun = (function($, undefined) {
     if (breadth == 1) {
       // offset by offseq to centre that image
       next_pos = visTableMajor.key(next_seq) - imageCentreOffseq(direction, next_seq);
+      // insert hack to make sure we don't miss second image seq#1
+      if (next_seq == 2) {
+        // see where the position would be for image 1
+        var possible_pos = visTableMajor.key(1) - imageCentreOffseq(direction, 1);
+        // if that position is forward from where we are now
+        if (possible_pos > current_pos) {
+          // jump to possible_pos instead of next_pos
+          return possible_pos;
+        }
+      }
     } else {
       next_pos = visTableMajor.key(next_seq);
     }

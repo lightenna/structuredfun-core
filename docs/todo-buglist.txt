@@ -1,12 +1,20 @@
 
+* release 0.9.7
+  + include install improvements
+
+* investigate bigcanvas
+  + how close are we to visualising full canvases
+
+* add open folder tool
+
 * revive test suite
   + it's impossible to work seriously on this codebase without it
 
-* first scroll 1-up needs to understand that it's not centred
-  + because we miss image 2
+* refresh is losing a few seqs
+  + I think it's to do with resize
 
-* release 0.9.7
-  + include install improvements
+* unable to allocate enough memory for large images
+  + seems to affect images over 50MP
 
 * stop scroll creep
   + dragging to the middle of the image set
@@ -6536,3 +6544,11 @@ zip~2F[1]~2F[i1]
               + hasn't been affected by the resize
                 + that's probably true, but I'm not sure of it
   = resolved very effectively
+
+* first scroll 1-up needs to understand that it's not centred
+  + because we miss image 2
+  + even if the centre line is on image 2
+    + it won't actually have it centred
+      + so we could introduce a check on that
+  = good solution based on comparison with projected scroll pos for image 2 (seq#1)
+
