@@ -22,6 +22,8 @@ class ViewController extends Controller
     protected $rawname = null;
     // @param string[] error buffer
     protected $errbuf = null;
+    // @param Request Symfony request object
+    protected $request = null;
 
     public function __construct()
     {
@@ -403,8 +405,7 @@ class ViewController extends Controller
 
     protected function getParameterOrDefault($name, $default)
     {
-        $request = $this->getRequest();
-        $param_value = $request->get($name);
+        $param_value = $this->request->get($name);
         if ($param_value === null) {
             $param_value = $default;
         }

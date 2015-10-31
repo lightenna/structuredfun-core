@@ -41,8 +41,9 @@ class ImageviewController extends ViewController
      * @Route("/image/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imageiiif_noqual")
      * @Route("/image/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imageiiif_full")
      */
-    public function imageAction($identifier, $region = 'full', $size = 'full', $rotation = 0, $quality = 'native', $ext = 'jpg', $output = true)
+    public function imageAction($identifier, $region = 'full', $size = 'full', $rotation = 0, $quality = 'native', $ext = 'jpg', $output = true, Request $req)
     {
+        $this->request = $req;
         // store rawname being indexed
         $this->rawname = $identifier;
         // populate vars based on rawname
@@ -80,8 +81,9 @@ class ImageviewController extends ViewController
      * @Route("/imagemeta/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagemeta_noqual")
      * @Route("/imagemeta/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagemeta_full")
      */
-    public function metaAction($identifier, Request $request)
+    public function metaAction($identifier, Request $req)
     {
+        $this->request = $req;
         // store rawname being indexed
         $this->rawname = $identifier;
         // populate vars based on rawname
@@ -101,7 +103,7 @@ class ImageviewController extends ViewController
         $this->entry->setMetadata($md);
         // see if we have form data to process
         $form = $md->getForm($this);
-        $form->handleRequest($request);
+        $form->handleRequest($this->request);
         if ($form->isValid()) {
             // $form data already in $md object
             $md->updateDB();
@@ -116,6 +118,10 @@ class ImageviewController extends ViewController
         print($metadata);
         exit;
     }
+
+    //
+    // API
+    //
 
     /**
      * Process input and setup local objects
