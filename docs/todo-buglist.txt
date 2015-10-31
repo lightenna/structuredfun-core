@@ -1,11 +1,47 @@
 
-* release 0.9.7
-  + include install improvements
+* change out programmatic references to layout view
+  + need to include json query arg
+http://localhost:8097/layout/playspace/wikimedia-gallery1/!seq=0?format=json
 
-* investigate bigcanvas
-  + how close are we to visualising full canvases
+* work out url for dynamic tiles
+http://localhost:8097/dyntile/playspace/wikimedia-gallery1/
+  + produces a square (256x256) image
+    + looks pretty good
+      + but need to parameterise to produce good sharing image
+  + seems to work amazingly well
+http://localhost:8097/dyntile/playspace/wikimedia-gallery1/?tile_width=512
+  + bigger tiles take longer to render
+http://localhost:8097/dyntile/playspace/wikimedia-gallery1/?tile_width=1024&tile_height=512
+    + at the moment they're not being cached
+      + the image produced is good enough
+        + we just need to sort out the caching
+        + suspect that will require moving /dyntile over to /image (IIIF) format
+  + there's a symmetry thing here
+    + /file/identifier/with/slashes
+      + pulls images from /image/identifier-without-slashes
+    + /canvas/identifier/with/slashes
+      + may be able to do the same
+      + it's got to cache images
+        + those cached images will need to be without slashes
+      + /dyntile currently gets a single tile
+        + /layout is the closest to what we want
+    + /canvas should build a seadragon instance
+      + and fire requests for tiles to /image/
+        + that means that tile caching is automatically handled
+      + could do this as a format on the /layout view
+        + the code is incredibly similar
+      + format is complicated
+        + all /file/*-style routes push parameter out into the query string
+
+* in LayoutviewController, make
+
+* embed HTML (meta) tags for sharing/card image
+  + do it if we've pre-loaded all the images
+    + because we'll need to generate a layout reliably
 
 * add open folder tool
+  + a downloadable link looks like the best option
+http://stackoverflow.com/questions/5246292/open-local-folder-from-link
 
 * revive test suite
   + it's impossible to work seriously on this codebase without it
@@ -3430,6 +3466,7 @@ let's do it on a filename level
     + or update packaging-only repo
       + need to do a submodule update too
   + copy folder
+    + give it a v0p9p3 style name
   + no need to check .htaccess
     + because we're already using app.php not app_dev.php
   + check php.ini
@@ -6551,4 +6588,13 @@ zip~2F[1]~2F[i1]
     + it won't actually have it centred
       + so we could introduce a check on that
   = good solution based on comparison with projected scroll pos for image 2 (seq#1)
+
+* release 0.9.7
+  + include install improvements
+    + can't remember what these were (files in root?)
+
+* see if we've got the sharing/card image working
+
+* investigate bigcanvas
+  + how close are we to visualising full canvases
 

@@ -8,6 +8,7 @@ use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\Entity\Arguments;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 class ImageviewControllerTest extends WebTestCase
 {
@@ -118,7 +119,7 @@ class ImageviewControllerTest extends WebTestCase
         $frame10s = $t->imageAction(
             'structured/tests/data/40-video_folder/nasa-solar-flare-64x64.m4v',
             'full', 'full', 0, 'native', 'jpg',
-            false);
+            false, new Request());
         $leaf = 'test-nasa-solar-flare-64x64-t000900.dat';
         // create an MFR to get cache directory path
         $localmfr = new CachedMetadataFileReader(null, $t);
@@ -190,7 +191,7 @@ class ImageviewControllerTest extends WebTestCase
         // @todo this line is incredibly slow, don't know why
         $img = $t->imageAction('structured/tests/data/50-fail_image_folder/[1]',
             'full', 'full', 0, 'native', 'jpg',
-            false);
+            false, new Request());
         // load error image at same size (using $t's args from first call) and compare to massive image (error response)
         $rawerrorimg = $t->loadErrorImage();
         $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getGenericEntryFromListingHead());
@@ -200,7 +201,7 @@ class ImageviewControllerTest extends WebTestCase
         // load a normal (smaller) image and check that it's not an error
         $img = imagecreatefromstring($t->imageAction('structured/tests/data/20-image_folder/[i1]',
             'full', 'full', 0, 'native', 'jpg',
-            false));
+            false, new Request()));
         $this->assertNotEquals($img, $errorimg);
     }
 
@@ -210,7 +211,7 @@ class ImageviewControllerTest extends WebTestCase
         // load image via testshare (required controller)
         $imgdata = $t->imageAction('structured/testshare/30-zip_folder.zip/nested/00980006.JPG',
             'full', 'full', 0, 'native', 'jpg',
-            false);
+            false, new Request());
         // load the same image from a direct path for comparison
         $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'), $t);
         $this->assertEquals($mfr->isExisting(), true);

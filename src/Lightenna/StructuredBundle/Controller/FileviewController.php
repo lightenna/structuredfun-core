@@ -4,6 +4,7 @@ namespace Lightenna\StructuredBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -16,8 +17,9 @@ use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 class FileviewController extends ViewController
 {
 
-    public function indexAction($rawname, $format = 'html')
+    public function indexAction($rawname, $format = 'html', Request $req)
     {
+        $this->request = $req;
         // store rawname being indexed
         $this->rawname = $rawname;
         // convert rawname to urlname and filename
