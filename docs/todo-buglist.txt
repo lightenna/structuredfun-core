@@ -1,39 +1,15 @@
 
-* change out programmatic references to layout view
-  + need to include json query arg
-http://localhost:8097/layout/playspace/wikimedia-gallery1/!seq=0?format=json
+* store a normal:native ratio (nnr) for each image
+  + it should be the same for width and height
+  + calculate when we're calculating normal_x/y/w/h
 
-* work out url for dynamic tiles
-http://localhost:8097/dyntile/playspace/wikimedia-gallery1/
-  + produces a square (256x256) image
-    + looks pretty good
-      + but need to parameterise to produce good sharing image
-  + seems to work amazingly well
-http://localhost:8097/dyntile/playspace/wikimedia-gallery1/?tile_width=512
-  + bigger tiles take longer to render
-http://localhost:8097/dyntile/playspace/wikimedia-gallery1/?tile_width=1024&tile_height=512
-    + at the moment they're not being cached
-      + the image produced is good enough
-        + we just need to sort out the caching
-        + suspect that will require moving /dyntile over to /image (IIIF) format
-  + there's a symmetry thing here
-    + /file/identifier/with/slashes
-      + pulls images from /image/identifier-without-slashes
-    + /canvas/identifier/with/slashes
-      + may be able to do the same
-      + it's got to cache images
-        + those cached images will need to be without slashes
-      + /dyntile currently gets a single tile
-        + /layout is the closest to what we want
-    + /canvas should build a seadragon instance
-      + and fire requests for tiles to /image/
-        + that means that tile caching is automatically handled
-      + could do this as a format on the /layout view
-        + the code is incredibly similar
-      + format is complicated
-        + all /file/*-style routes push parameter out into the query string
+* parse listing for largest normal:native ratio (nnr)
+  + use that to divine the size of the whole canvas
+  + write back the canvas:native ratio (cnr)
+    + for each image in the listing
 
-* in LayoutviewController, make
+* compute layout width and height based on
+  + smallest (scaled) image's native resolution
 
 * embed HTML (meta) tags for sharing/card image
   + do it if we've pre-loaded all the images
@@ -6597,4 +6573,48 @@ zip~2F[1]~2F[i1]
 
 * investigate bigcanvas
   + how close are we to visualising full canvases
+
+* change out programmatic references to layout view
+  + need to include json query arg
+http://localhost:8097/layout/playspace/wikimedia-gallery1/!seq=0?format=json
+  + no programmatic references yet
+    + we're still doing it the long-hand way in dyntile
+
+* render a nice OSD container in LayoutviewController
+
+* work out url for dynamic tiles
+http://localhost:8097/dyntile/playspace/wikimedia-gallery1/
+  + produces a square (256x256) image
+    + looks pretty good
+      + but need to parameterise to produce good sharing image
+  + seems to work amazingly well
+http://localhost:8097/dyntile/playspace/wikimedia-gallery1/?tile_width=512
+  + bigger tiles take longer to render
+http://localhost:8097/dyntile/playspace/wikimedia-gallery1/?tile_width=1024&tile_height=512
+    + at the moment they're not being cached
+      + the image produced is good enough
+        + we just need to sort out the caching
+        + suspect that will require moving /dyntile over to /image (IIIF) format
+  + there's a symmetry thing here
+    + /file/identifier/with/slashes
+      + pulls images from /image/identifier-without-slashes
+    + /canvas/identifier/with/slashes
+      + may be able to do the same
+      + it's got to cache images
+        + those cached images will need to be without slashes
+      + /dyntile currently gets a single tile
+        + /layout is the closest to what we want
+    + /canvas should build a seadragon instance
+      + and fire requests for tiles to /image/
+        + that means that tile caching is automatically handled
+      + could do this as a format on the /layout view
+        + the code is incredibly similar
+      + format is complicated
+        + all /file/*-style routes push parameter out into the query string
+        + default to osd for now
+  + have looped around on this
+    + back to joining up /dyntile and /image
+      + /image makes most sense because we don't have to fiddle with the caching
+        + but we want it to live in AddonBundle
+        + so use a different route
 
