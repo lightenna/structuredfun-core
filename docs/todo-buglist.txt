@@ -1,15 +1,13 @@
 
-* store a normal:native ratio (nnr) for each image
-  + it should be the same for width and height
-  + calculate when we're calculating normal_x/y/w/h
-
-* parse listing for largest normal:native ratio (nnr)
-  + use that to divine the size of the whole canvas
-  + write back the canvas:native ratio (cnr)
-    + for each image in the listing
-
-* compute layout width and height based on
-  + smallest (scaled) image's native resolution
+* openseadragon: get it requesting images
+  + so we can see the url structure
+    + then plan evolving our /tile route
+  = urls seem sensible
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/65536,0,8192,8192/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/65536,8192,8192,7836.865391566/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/57344,0,8192,8192/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/57344,8192,8192,7836.865391566/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/73728,0,8192,8192/256,/0/default.jpg
 
 * embed HTML (meta) tags for sharing/card image
   + do it if we've pre-loaded all the images
@@ -6617,4 +6615,29 @@ http://localhost:8097/dyntile/playspace/wikimedia-gallery1/?tile_width=1024&tile
       + /image makes most sense because we don't have to fiddle with the caching
         + but we want it to live in AddonBundle
         + so use a different route
+
+* store a normal:native ratio (nnr) for each image
+  + it should be the same for width and height
+  + calculate when we're calculating normal_x/y/w/h
+
+* parse listing for smallest normal:native ratio (nnr)
+  + smallest means largest native image with smallest normalised size
+  + use that to divine the size of the whole canvas
+  + write back the canvas:native ratio (cnr)
+    + for each image in the listing
+
+* compute layout width and height based on
+  + smallest (scaled) image's native resolution
+
+* check canvas width and height
+  + against actual native resolution of images
+  + remember that it's the peak resolution
+    + so we're probably talking about
+      + the max res of smallest image in the canvas
+  = they seem about right
+string 'Bastei (Elbe Sandstone Mountains) in Saxony, Germany' (length=52)
+int 4822
+float 0.30083227241631 (nnr)
+  + translates to canvas height of 16,000
+    = bang on
 
