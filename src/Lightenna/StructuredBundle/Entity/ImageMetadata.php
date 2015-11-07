@@ -164,6 +164,11 @@ class ImageMetadata
     protected $status = 0;
 
     /**
+     * ratio of the normalised dimension:native dimension
+     */
+    protected $normal_native_ratio = array();
+
+    /**
      * image width normalised within bucket of key
      * e.g. [1] => 1, [2] => 0.6, [3] => 0.32
      */
@@ -623,6 +628,14 @@ class ImageMetadata
     public function hasError()
     {
         return ($this->status < 0);
+    }
+
+    public function getNormalNativeRatio($breadth, $direction) {
+        return $this->normal_native_ratio[$direction . $breadth];
+    }
+
+    public function setNormalNativeRatio($breadth, $direction, $nnr) {
+        $this->normal_native_ratio[$direction . $breadth] = $nnr;
     }
 
     public function getNormalWidths()
