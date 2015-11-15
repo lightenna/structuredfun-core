@@ -20,6 +20,7 @@ class Constantly
     const DEFAULT_TIMECODE = '00-00-10.0';
     const DEFAULT_LAYOUT_DIRECTION = 'x';
     const DEFAULT_LAYOUT_BREADTH = 2;
+    const CACHE_FILEEXT = 'dat';
     const FOLDER_NAME = 'structured';
     const LINK_NAME = 'fun.lnk';
     const ZIP_EXTMATCH = 'zip';

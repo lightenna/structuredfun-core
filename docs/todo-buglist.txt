@@ -1,13 +1,9 @@
 
-* openseadragon: get it requesting images
-  + so we can see the url structure
-    + then plan evolving our /tile route
-  = urls seem sensible
-Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/65536,0,8192,8192/256,/0/default.jpg
-Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/65536,8192,8192,7836.865391566/256,/0/default.jpg
-Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/57344,0,8192,8192/256,/0/default.jpg
-Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/57344,8192,8192,7836.865391566/256,/0/default.jpg
-Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/73728,0,8192,8192/256,/0/default.jpg
+* work on dyntile route
+  + cURL (cached) layout json
+    + deserialise into proper listing/GenericEntry object *
+  + process incoming arguments
+    + normalise coords
 
 * embed HTML (meta) tags for sharing/card image
   + do it if we've pre-loaded all the images
@@ -6640,4 +6636,20 @@ int 4822
 float 0.30083227241631 (nnr)
   + translates to canvas height of 16,000
     = bang on
+
+* make json default
+  + because that's the one we want to pull from the cache
+
+* openseadragon: get it requesting images
+  + so we can see the url structure
+    + then plan evolving our /tile route
+  = urls seem sensible
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/65536,0,8192,8192/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/65536,8192,8192,7836.865391566/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/57344,0,8192,8192/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/57344,8192,8192,7836.865391566/256,/0/default.jpg
+Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~2Fwikimedia-gallery1/73728,0,8192,8192/256,/0/default.jpg
+  + sort out /tile/ part
+  + sort out dirhash
+    + it's got an additional ~2F at the start
 

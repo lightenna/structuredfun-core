@@ -110,6 +110,13 @@ class ViewController extends Controller
     }
 
     /**
+     * @return string server name and port
+     */
+    public function getServerCompound() {
+        return $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'];
+    }
+
+    /**
      * Process settings array for actions
      */
     private function processSettings()

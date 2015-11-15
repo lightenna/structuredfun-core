@@ -29,22 +29,7 @@ class CachedMetadataFileReader extends MetadataFileReader
     public function __construct($filename = null, $con)
     {
         parent::__construct($filename, $con);
-        $settings = $this->controller->getSettings();
-        $this->cachedir = $this->controller->convertRawToInternalFilename('htdocs' . Constantly::DIR_SEPARATOR_URL . 'web' . Constantly::DIR_SEPARATOR_URL . $settings['mediacache']['path'] . Constantly::DIR_SEPARATOR_URL . 'image');
-        // create cache directory if it's not already present
-        if (!is_dir($this->cachedir)) {
-            @mkdir($this->cachedir);
-            if (!is_dir($this->cachedir)) {
-                // unable to create cache directory, throw nice error
-                $this->controller->error('Unable to create cache directory (' . $this->cachedir . ').  Caching temporarily disabled.  Please check filesystem permissions.');
-                $this->controller->disableCaching();
-            }
-        }
-        // test cache directory is writeable
-        if (!$this->testCacheWrite()) {
-            $this->controller->error('Unable to write to cache directory.  Caching temporarily disabled.  Please check filesystem permissions.');
-            $this->controller->disableCaching();
-        }
+        $this->cachedir = $this->setupCacheDir();
         if (!$this->isDirectory()) {
             $this->entry->setCacheKey(null);
             if (!is_null($filename)) {
@@ -151,7 +136,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                     }
                 }
                 // write out file
-                file_put_contents($filename, $imgdata);
+                $this->cacheRawData($filename, $imgdata);
                 if ($this->fileCanHoldMetadata()) {
                     $this->metadata->write($filename);
                 } else {
@@ -162,6 +147,14 @@ class CachedMetadataFileReader extends MetadataFileReader
             }
         }
         return false;
+    }
+
+    /**
+     * Store the data in the cache
+     * @param string $data
+     */
+    public function cacheRawData($filename, $data) {
+        file_put_contents($filename, $data);
     }
 
     /**
@@ -221,7 +214,7 @@ class CachedMetadataFileReader extends MetadataFileReader
         }
 
         // add .dat to end of the key (filename)
-        $key .= '.' . 'dat';
+        $key .= '.' . Constantly::CACHE_FILEEXT;
         return $key;
     }
 
@@ -348,6 +341,26 @@ class CachedMetadataFileReader extends MetadataFileReader
             // cache transformed image
             $mfr->cache($imgdata, false);
         }
+    }
+
+    public function setupCacheDir($type = 'image') {
+        $settings = $this->controller->getSettings();
+        $dirname = $this->controller->convertRawToInternalFilename('htdocs' . Constantly::DIR_SEPARATOR_URL . 'web' . Constantly::DIR_SEPARATOR_URL . $settings['mediacache']['path'] . Constantly::DIR_SEPARATOR_URL . $type);
+        // create cache directory if it's not already present
+        if (!is_dir($dirname)) {
+            @mkdir($dirname);
+            if (!is_dir($dirname)) {
+                // unable to create cache directory, throw nice error
+                $this->controller->error('Unable to create cache directory (' . $this->cachedir . ').  Caching temporarily disabled.  Please check filesystem permissions.');
+                $this->controller->disableCaching();
+            }
+        }
+        // test cache directory is writeable
+        if (!$this->testCacheWrite()) {
+            $this->controller->error('Unable to write to cache directory.  Caching temporarily disabled.  Please check filesystem permissions.');
+            $this->controller->disableCaching();
+        }
+        return $dirname;
     }
 
     /**
