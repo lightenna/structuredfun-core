@@ -205,7 +205,7 @@ class ImageviewController extends ViewController
             $this->args->{'timecode'} = Constantly::DEFAULT_TIMECODE;
         }
         // prepend the cache location
-        $key = CachedMetadataFileReader::hash($this->entry->getRawnameWithoutArgs() . '&timecode=' . $this->args->timecode . '.' . 'dat');
+        $key = CachedMetadataFileReader::hash($this->entry->getRawnameWithoutArgs() . '&timecode=' . $this->args->timecode . '.' . Constantly::CACHE_FILEEXT);
         // create mfr in two stages, because we need to point at the image file in the cache
         $localmfr = new CachedMetadataFileReader(null, $this);
         $localmfr->rewrite($localmfr->getFilename($key));
