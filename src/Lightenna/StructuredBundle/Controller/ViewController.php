@@ -2,7 +2,14 @@
 
 namespace Lightenna\StructuredBundle\Controller;
 
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Lightenna\StructuredBundle\Entity\ImageMetadata;
+use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
@@ -426,6 +433,38 @@ class ViewController extends Controller
     static function convertRawToUrl($name)
     {
         return Constantly::DIR_SEPARATOR_URL . trim($name, Constantly::DIR_SEPARATOR_URL);
+    }
+
+    public function serialise($listing)
+    {
+        $encoders = array(new XmlEncoder(), new JsonEncoder());
+        $normalizers = array(new GetSetMethodNormalizer());
+        $igFields = array_merge(ImageMetadata::getIgnoredAttributes(), GenericEntry::getIgnoredAttributes());
+        $normalizers[0]->setIgnoredAttributes($igFields);
+        $serializer = new Serializer($normalizers, $encoders);
+        $jsonContent = $serializer->serialize($listing, 'json');
+        return $jsonContent;
+    }
+
+    public function deserialise($serial_json)
+    {
+        $serial = array();
+        $encoders = array(new XmlEncoder(), new JsonEncoder());
+        $normalizers = array(new GetSetMethodNormalizer());
+        $igFields = array_merge(ImageMetadata::getIgnoredAttributes(), GenericEntry::getIgnoredAttributes());
+        $normalizers[0]->setIgnoredAttributes($igFields);
+        $serializer = new Serializer($normalizers, $encoders);
+        // use two-stage deserialize to cope with array of objects
+        $serial_array = $serializer->decode($serial_json, 'json');
+        foreach ($serial_array as $sjs) {#
+            $entry = $serializer->denormalize($sjs, 'Lightenna\StructuredBundle\Entity\GenericEntry', 'json');
+            // also properly deserialize the metadata object inside it
+var_dump($entry->getMetadata());
+            $entry->setMetadata($serializer->denormalize($entry->getMetadata(), 'Lightenna\StructuredBundle\Entity\ImageMetadata', 'json'));
+var_dump($entry->getMetadata());
+            $serial[] = $entry;
+        }
+        return $serial;
     }
 
 }
