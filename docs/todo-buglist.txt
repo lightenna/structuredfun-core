@@ -1,7 +1,12 @@
 
+* [phpstorm] refactor get/setNormalWidth() to see if
+  + we can set with a single array
+  + and make denormalisation work
+
 * work on dyntile route
   + cURL (cached) layout json
     + deserialise into proper listing/GenericEntry object *
+    + nested object being deserialised as array
   + process incoming arguments
     + normalise coords
 
@@ -6652,4 +6657,9 @@ Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~
   + sort out /tile/ part
   + sort out dirhash
     + it's got an additional ~2F at the start
+
+* introduce /canvas route
+  + because using a query arg for osd
+    + produces caching problems
+      + i.e. a cache hit for the json, not the osd
 
