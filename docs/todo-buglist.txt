@@ -1,8 +1,4 @@
 
-* [phpstorm] refactor get/setNormalWidth() to see if
-  + we can set with a single array
-  + and make denormalisation work
-
 * work on dyntile route
   + cURL (cached) layout json
     + deserialise into proper listing/GenericEntry object *
@@ -18,7 +14,7 @@
   + a downloadable link looks like the best option
 http://stackoverflow.com/questions/5246292/open-local-folder-from-link
 
-* revive test suite
+* revive js test suite
   + it's impossible to work seriously on this codebase without it
 
 * refresh is losing a few seqs
@@ -6662,4 +6658,18 @@ Tile [object Object] failed to load: http://localhost:8097/dyntile/~2Fplayspace~
   + because using a query arg for osd
     + produces caching problems
       + i.e. a cache hit for the json, not the osd
+
+* [phpstorm] refactor get/setNormalWidthBD() to see if
+  + we can set with a single array
+  + and make denormalisation work
+
+* fix up test suite
+  + division by zero
+    + for some reason not getting originalHeight
+    + really need debugger on test suite
+      + which requires solving the Shift+F9 error
+Fatal error: Class 'PHPUnit_TextUI_ResultPrinter' not found in ...
+      + I notice it's using the uncompt configuration
+  + be careful when bucketing
+    + need to ensure no directories get into the buckets
 

@@ -417,9 +417,14 @@ class ImageMetadata
     // used by form api and JSON serializer
     //
 
-    public function getVersion()
+    public function getSfunVersion()
     {
         return $this->sfun_version;
+    }
+
+    public function setSfunVersion($sv)
+    {
+        $this->sfun_version = $sv;
     }
 
     public function getIptcHeadline()
@@ -487,6 +492,11 @@ class ImageMetadata
         return $this->ratio;
     }
 
+    public function setRatio($r)
+    {
+        $this->ratio = $r;
+    }
+
     public function hasRatio()
     {
         return ($this->ratio !== null);
@@ -550,6 +560,11 @@ class ImageMetadata
     public function getEditable()
     {
         return $this->editable;
+    }
+
+    public function setEditable($e)
+    {
+        $this->editable = $e;
     }
 
     public function getLoadedWidth()
@@ -630,40 +645,50 @@ class ImageMetadata
         return ($this->status < 0);
     }
 
-    public function getNormalNativeRatio($breadth, $direction) {
+    public function getNormalNativeRatioBD($breadth, $direction) {
         return $this->normal_native_ratio[$direction . $breadth];
     }
 
-    public function setNormalNativeRatio($breadth, $direction, $nnr) {
+    public function setNormalNativeRatioBD($breadth, $direction, $nnr) {
         $this->normal_native_ratio[$direction . $breadth] = $nnr;
     }
 
-    public function getNormalWidths()
+    public function getNormalWidth()
     {
         return $this->normal_width;
     }
 
-    public function getNormalWidth($breadth, $direction)
+    public function setNormalWidth($nw)
+    {
+        $this->normal_width = $nw;
+    }
+
+    public function getNormalWidthBD($breadth, $direction)
     {
         return $this->normal_width[$direction . $breadth];
     }
 
-    public function setNormalWidth($breadth, $direction, $n)
+    public function setNormalWidthBD($breadth, $direction, $n)
     {
         $this->normal_width[$direction . $breadth] = $n;
     }
 
-    public function getNormalHeights()
+    public function getNormalHeight()
     {
         return $this->normal_height;
     }
 
-    public function getNormalHeight($breadth, $direction)
+    public function setNormalHeight($nh)
+    {
+        $this->normal_height = $nh;
+    }
+
+    public function getNormalHeightBD($breadth, $direction)
     {
         return $this->normal_height[$direction . $breadth];
     }
 
-    public function setNormalHeight($breadth, $direction, $n)
+    public function setNormalHeightBD($breadth, $direction, $n)
     {
         $this->normal_height[$direction . $breadth] = $n;
     }
@@ -671,39 +696,49 @@ class ImageMetadata
     public function getNormalRectangle($breadth, $direction)
     {
         return new Rectangle(
-            $this->getNormalX($breadth, $direction),
-            $this->getNormalY($breadth, $direction),
-            $this->getNormalX($breadth, $direction) + $this->getNormalWidth($breadth, $direction),
-            $this->getNormalY($breadth, $direction) + $this->getNormalHeight($breadth, $direction)
+            $this->getNormalXBD($breadth, $direction),
+            $this->getNormalYBD($breadth, $direction),
+            $this->getNormalXBD($breadth, $direction) + $this->getNormalWidthBD($breadth, $direction),
+            $this->getNormalYBD($breadth, $direction) + $this->getNormalHeightBD($breadth, $direction)
         );
     }
 
-    public function getNormalXs()
+    public function getNormalX()
     {
         return $this->normal_x;
     }
 
-    public function getNormalX($breadth, $direction)
+    public function setNormalX($nx)
+    {
+        $this->normal_x = $nx;
+    }
+
+    public function getNormalXBD($breadth, $direction)
     {
         return $this->normal_x[$direction . $breadth];
     }
 
-    public function setNormalX($breadth, $direction, $n)
+    public function setNormalXBD($breadth, $direction, $n)
     {
         $this->normal_x[$direction . $breadth] = $n;
     }
 
-    public function getNormalYs()
+    public function getNormalY()
     {
         return $this->normal_y;
     }
 
-    public function getNormalY($breadth, $direction)
+    public function setNormalY($ny)
+    {
+        $this->normal_y = $ny;
+    }
+
+    public function getNormalYBD($breadth, $direction)
     {
         return $this->normal_y[$direction . $breadth];
     }
 
-    public function setNormalY($breadth, $direction, $n)
+    public function setNormalYBD($breadth, $direction, $n)
     {
         $this->normal_y[$direction . $breadth] = $n;
     }
