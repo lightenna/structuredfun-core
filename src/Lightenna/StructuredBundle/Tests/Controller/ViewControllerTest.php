@@ -20,6 +20,7 @@ class ViewControllerTest extends WebTestCase
         } else if (isset($_SERVER['PWD'])) {
             $_SERVER['DOCUMENT_ROOT'] = str_replace('htdocs', 'htdocs/web', $_SERVER['PWD']);
         }
+
         // test path to Symfony
         $this->assertEquals($t->convertRawToFilename('data/my_directory/'), $_SERVER['DOCUMENT_ROOT'] . '/../../../data/my_directory');
         // test path without trailing /

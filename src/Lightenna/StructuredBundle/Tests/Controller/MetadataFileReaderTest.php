@@ -15,7 +15,7 @@ class MetadataFileReaderTest extends WebTestCase
     {
         $m = new ImageMetadata();
         // check that version string has at least major.minor format (X.Y)
-        $this->assertEquals(strlen($m->getVersion()) >= 3, true);
+        $this->assertEquals(strlen($m->getSfunVersion()) >= 3, true);
     }
 
     public function testGetListing()

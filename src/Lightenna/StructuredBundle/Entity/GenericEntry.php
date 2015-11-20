@@ -286,7 +286,7 @@ class GenericEntry
     {
         $encoders = array(new XmlEncoder(), new JsonEncoder());
         $normalizers = array(new GetSetMethodNormalizer());
-        $igFields = array_merge(self::getIgnoredAttributes(), ImageMetadata::getIgnoredAttributes());
+        $igFields = array_merge(ImageMetadata::getIgnoredAttributes(), GenericEntry::getIgnoredAttributes());
         $normalizers[0]->setIgnoredAttributes($igFields);
         $serializer = new Serializer($normalizers, $encoders);
         $jsonContent = $serializer->serialize($this, 'json');

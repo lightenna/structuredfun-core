@@ -10,7 +10,6 @@ use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\Entity\GenericEntry;
-use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
@@ -119,7 +118,8 @@ class ViewController extends Controller
     /**
      * @return string server name and port
      */
-    public function getServerCompound() {
+    public function getServerCompound()
+    {
         return $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'];
     }
 
@@ -339,10 +339,15 @@ class ViewController extends Controller
             if (isset($_SERVER['PHPRC'])) {
                 // use php conf directory, which should be consistent across both
                 $filename = rtrim($_SERVER['PHPRC'], Constantly::DIR_SEPARATOR_URL) . str_repeat(Constantly::DIR_SEPARATOR_URL . '..', 2);
-            } else {
-                if (isset($_SERVER['PWD'])) {
-                    // use php pwd
-                    $filename = rtrim($_SERVER['PWD'], Constantly::DIR_SEPARATOR_URL) . str_repeat(Constantly::DIR_SEPARATOR_URL . '..', 2);
+            } else if (isset($_SERVER['PWD'])) {
+                // use php pwd
+                $filename = rtrim($_SERVER['PWD'], Constantly::DIR_SEPARATOR_URL) . str_repeat(Constantly::DIR_SEPARATOR_URL . '..', 2);
+            } else if (isset($_SERVER['argv'][2])) {
+                $config_file = str_replace('\\', Constantly::DIR_SEPARATOR_URL, $_SERVER['argv'][2]);
+                $config_file_pos = strpos($config_file, 'app' . Constantly::DIR_SEPARATOR_URL . 'phpunit.xml.dist');
+                if ($config_file_pos) {
+                    // use configuration file argument (Oh look, a straw to clutch at!)
+                    $filename = rtrim(substr($config_file, 0, $config_file_pos), Constantly::DIR_SEPARATOR_URL) . str_repeat(Constantly::DIR_SEPARATOR_URL . '..', 2);
                 }
             }
         }
@@ -354,7 +359,8 @@ class ViewController extends Controller
     /**
      * @return Filename within structured folder without trailing slash
      */
-    public function convertRawToInternalFilename($name)
+    public
+    function convertRawToInternalFilename($name)
     {
         return $this->convertRawToFilename(Constantly::FOLDER_NAME . Constantly::DIR_SEPARATOR_URL . $name);
     }
@@ -362,7 +368,8 @@ class ViewController extends Controller
     /**
      * turn off caching, usually as a result of a detected error in the writeable cache folder
      */
-    public function disableCaching()
+    public
+    function disableCaching()
     {
         // single args object, so use it to disable caching
         $this->args->setCache(false);
@@ -374,7 +381,8 @@ class ViewController extends Controller
      * @param string $message Simple text error message
      * channel all calls through here so eventually we can do something clever
      */
-    public function error($message, $fatal = false)
+    public
+    function error($message, $fatal = false)
     {
         if ($fatal) {
             print $message;
@@ -394,7 +402,8 @@ class ViewController extends Controller
     /**
      * @return array list of errors accumulated
      */
-    public function getErrors()
+    public
+    function getErrors()
     {
         return $this->errbuf;
     }
@@ -403,7 +412,8 @@ class ViewController extends Controller
      * Output an image with correct headers
      * @param string $imgdata Raw image data as a string
      */
-    protected function returnImage($imgdata)
+    protected
+    function returnImage($imgdata)
     {
         $ext = 'jpeg';
         if (isset($this->{'entry'})) {
@@ -417,7 +427,8 @@ class ViewController extends Controller
         exit;
     }
 
-    protected function getParameterOrDefault($name, $default)
+    protected
+    function getParameterOrDefault($name, $default)
     {
         $param_value = $this->request->get($name);
         if ($param_value === null) {
@@ -435,7 +446,7 @@ class ViewController extends Controller
         return Constantly::DIR_SEPARATOR_URL . trim($name, Constantly::DIR_SEPARATOR_URL);
     }
 
-    public function serialise($listing)
+    static function serialiseListing($listing)
     {
         $encoders = array(new XmlEncoder(), new JsonEncoder());
         $normalizers = array(new GetSetMethodNormalizer());
@@ -446,7 +457,7 @@ class ViewController extends Controller
         return $jsonContent;
     }
 
-    public function deserialise($serial_json)
+    static function deserialiseListing($serial_json)
     {
         $serial = array();
         $encoders = array(new XmlEncoder(), new JsonEncoder());
@@ -459,9 +470,7 @@ class ViewController extends Controller
         foreach ($serial_array as $sjs) {#
             $entry = $serializer->denormalize($sjs, 'Lightenna\StructuredBundle\Entity\GenericEntry', 'json');
             // also properly deserialize the metadata object inside it
-var_dump($entry->getMetadata());
             $entry->setMetadata($serializer->denormalize($entry->getMetadata(), 'Lightenna\StructuredBundle\Entity\ImageMetadata', 'json'));
-var_dump($entry->getMetadata());
             $serial[] = $entry;
         }
         return $serial;
