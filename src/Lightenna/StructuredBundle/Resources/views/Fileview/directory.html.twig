@@ -40,7 +40,7 @@
            {# thumbnail source when first loaded #}
            data-desrc="/image/{{ linkaliased }}{{ file.name }}/full/!200,200/0/native.jpg"
            {# thumbnail source for dynamic reresing #}
-           data-template-src="/image/{{ linkaliased }}{{ file.name }}{% if file.type == 'video' %}{% verbatim %}{{ argsbase }}timecode={{ timecode }}{% endverbatim %}{% endif %}/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/native.jpg"
+           data-template-src="/image/{{ linkaliased }}{{ file.name }}{% if file.type == 'video' %}{{ argsbase }}{% verbatim %}timecode={{ timecode }}{% endverbatim %}{% endif %}/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/native.jpg"
       {% if (file.type == 'video') %}
            {# video source #}
            data-video-src="/file/{{ linkaliased }}{{ file.name }}"

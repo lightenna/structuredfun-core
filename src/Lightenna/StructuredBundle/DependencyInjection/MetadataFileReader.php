@@ -63,6 +63,11 @@ class MetadataFileReader extends FileReader
         return $this->entry;
     }
 
+    public function setGenericEntry($e)
+    {
+        $this->entry = $e;
+    }
+
     public function dumbreadImageMetadata($imgdata)
     {
         // read metadata
@@ -124,8 +129,8 @@ class MetadataFileReader extends FileReader
         }
         if ($this->isDirectory()) {
             // if we're processing a directory, loop through files and pull their metadata
-            foreach ($listing as $entry) {
-                $this->parseDirectoryEntry($entry);
+            foreach ($listing as $ref => $entry) {
+                $listing[$ref] = $this->parseDirectoryEntry($entry);
             }
         }
         // add in shares within this folder
@@ -190,11 +195,11 @@ class MetadataFileReader extends FileReader
             case 'image':
                 // get the image metadata by reading (cached-only) file
                 // fast enough (110ms for 91 images)
-                $returned_entry = $this->getDirectoryEntryMetadata($entry);
+                $entry = $this->getDirectoryEntryMetadata($entry);
                 break;
             case 'video':
                 // get the video metadata by reading (cached-only) file
-                $returned_entry = $this->getDirectoryEntryMetadata($entry);
+                $entry = $this->getDirectoryEntryMetadata($entry);
                 break;
             default:
                 break;
@@ -224,16 +229,11 @@ class MetadataFileReader extends FileReader
             $imgdata = ($forceGet ? $entry_mfr->get() : $entry_mfr->getOnlyIfCached());
             // pull out mfr's metadata
             $entry_meta = $entry_mfr->getMetadata();
-            $entry->setMetadata($entry_meta);
-            // @todo this print_r exposes that we're calling it twice
-            // transfer metadata from cached copy to this directory entry
-            if ($entry_mfr->getGenericEntry()->hasCacheKey()) {
-                $entry->setCachekey($entry_mfr->getGenericEntry()->getCacheKey());
-            }
         }
         // try and use metadata first
         if ($entry_meta->hasRatio()) {
-            return null;
+            // if it's there, all good so return entry
+            return $entry;
         }
         // if we don't have the metadata, try and pull from image
         if ($imgdata == null)
@@ -255,24 +255,24 @@ class MetadataFileReader extends FileReader
      * @param $entry directory [generic] entry
      * @return MetadataFileReader $mfr for $obj
      */
-    protected function getDirectoryEntryMetadataFileReader($entry)
+    protected function getDirectoryEntryMetadataFileReader(&$entry)
     {
         // try and use the entry's FileReader
-        $mfr = $entry->getMetadataFileReader();
-        if ($mfr === null) {
+        $entry_mfr = $entry->getMetadataFileReader();
+        if ($entry_mfr === null) {
             $filename = $this->getFullname($entry);
             // local reader needs to use this reader's args (to get correctly size-cached thumbnails)
             // @todo this should really be either a MetadataFileReader or a CachedMetadataFileReader
-            $mfr = new CachedMetadataFileReader($filename, $this->controller);
+            $entry_mfr = new CachedMetadataFileReader($filename, $this->controller);
             // tweak rawname using path from controller but leaf from obj
             $entry_name = $this->controller->getRawname() . Constantly::DIR_SEPARATOR_URL . $entry->getName();
-            $mfr->getGenericEntry()->setRawname($entry_name);
+            // transfer metadata from cached copy to this directory entry
+            $entry = $entry_mfr->getGenericEntry();
+            $entry->setRawname($entry_name);
             // setup local reader
-            $mfr->setArgs($this->args);
-            // store this read back into the entry for future use
-            $entry->setMetadataFileReader($mfr);
+            $entry_mfr->setArgs($this->args);
         }
-        return $mfr;
+        return $entry_mfr;
     }
 
     /**

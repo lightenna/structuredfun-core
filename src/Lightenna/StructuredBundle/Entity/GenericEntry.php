@@ -279,7 +279,8 @@ class GenericEntry
      */
     static function getIgnoredAttributes()
     {
-        return array('fileOriginal', 'file', 'path', 'metadataFileReader', 'ignoredAttributes');
+        // return array('fileOriginal', 'file', 'path', 'metadataFileReader', 'ignoredAttributes');
+        return array('metadataFileReader', 'ignoredAttributes');
     }
 
     public function serialise()
