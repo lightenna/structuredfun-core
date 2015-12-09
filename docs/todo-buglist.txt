@@ -1,10 +1,15 @@
 
-* work on dyntile route
-  + cURL (cached) layout json
-    + deserialise into proper listing/GenericEntry object *
-    + nested object being deserialised as array
-  + process incoming arguments
-    + normalise coords
+* seadragon doesn't always request square tiles
+  + tiles at the edges are a different shape
+    + it's not a rounding issue
+      + 7836 doesn't work either
+    + it's a squareness issue
+      + width and height need to be the same
+
+* think about how we're going to pass view parameters to /tile/ requests
+  + currently relying on default b=2, d=x
+  + might need to put it into ImageMetadata or GenericEntry
+    + could use something like getLastLayoutBreadth()/Direction()
 
 * embed HTML (meta) tags for sharing/card image
   + do it if we've pre-loaded all the images
@@ -6672,4 +6677,53 @@ Fatal error: Class 'PHPUnit_TextUI_ResultPrinter' not found in ...
       + I notice it's using the uncompt configuration
   + be careful when bucketing
     + need to ensure no directories get into the buckets
+
+* work on dyntile route
+  + cURL (cached) layout json
+    + deserialise into proper listing/GenericEntry object *
+    + nested object being deserialised as array
+  + process incoming arguments
+    + normalise coords
+  + need to have a working filereader stored in each generic entry
+    + either deserialised
+    + or just manually reinflated
+      + could even wait until there's a get call
+  + two outstanding bugs
+    + move one to its own ticket
+    + dyntile is using unscaled images
+      + suspect it could be a serialization issue
+    + resolved by manually copying the entry through
+
+* investigate window_minor param
+  + it's not scaling things in the way it should
+  + this is a straight-up scaling problem
+    + a smaller window size
+    + only covers part of the tile
+    + it just so happens that as we scale the image up
+      + we go over what we can get out of the thumbnail
+        + and we need to pull from the original
+        + it's that 'original' get() that fails
+      + file_original is missing in the mfr->entry
+        + solved serialisation issue
+      + file_original isn't set in the other entry
+        + it's fine in the inner mfr->entry
+          + we should avoid having two objects
+MetadataFileReader::getDirectoryEntryMetadata (216)
+//            $entry->setMetadata($entry_meta);
+//            // @todo this print_r exposes that we're calling it twice
+//            // transfer metadata from cached copy to this directory entry
+//            if ($entry_mfr->getGenericEntry()->hasCacheKey()) {
+//                $entry->setCachekey($entry_mfr->getGenericEntry()->getCacheKey());
+//            }
+  + stop manually transferring data from nested mfr->entry up to entry
+    + instead make it the same object in both
+      + by having getDirectoryEntryMetadataFileReader() overwrite it
+//            // @todo could possibly just do an $mfr->setGenericEntry($entry);
+//            $entry_mfr->getGenericEntry()->setRawname($entry_name);
+//            // store this read back into the entry for future use
+//            $entry->setMetadataFileReader($entry_mfr);
+    + have to be careful with that
+      + because we need to save that new object all the way up the chain
+        + a cold copy would be better
+        + but it's working now
 

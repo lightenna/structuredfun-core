@@ -254,6 +254,7 @@ class ImageMetadata
      * see http://php.net/manual/en/function.getimagesize.php
      * @param array $mdata basic metadata about the image
      * @param array $info IPTC metadata array in APP13
+     * @return ImageMetadata $this or deserialized replacement ($meta)
      */
     public function read($mdata, $info)
     {
@@ -645,12 +646,29 @@ class ImageMetadata
         return ($this->status < 0);
     }
 
-    public function getNormalNativeRatioBD($breadth, $direction) {
+    public function hasNormalNativeRatioBD($breadth, $direction)
+    {
+        return isset($this->normal_native_ratio[$direction . $breadth]);
+    }
+
+    public function getNormalNativeRatioBD($breadth, $direction)
+    {
         return $this->normal_native_ratio[$direction . $breadth];
     }
 
-    public function setNormalNativeRatioBD($breadth, $direction, $nnr) {
+    public function setNormalNativeRatioBD($breadth, $direction, $nnr)
+    {
         $this->normal_native_ratio[$direction . $breadth] = $nnr;
+    }
+
+    public function getNormalNativeRatio()
+    {
+        return $this->normal_native_ratio;
+    }
+
+    public function setNormalNativeRatio($nnarr)
+    {
+        $this->normal_native_ratio = $nnarr;
     }
 
     public function getNormalWidth()

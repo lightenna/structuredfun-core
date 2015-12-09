@@ -147,7 +147,7 @@ class ImageviewController extends ViewController
         $this->mfr = new CachedMetadataFileReader($filename, $this);
         $this->mfr->processDebugSettings();
         // read metadata
-        $listing = $this->mfr->getListing();
+        $this->mfr->getListing();
         $this->entry = $this->mfr->getGenericEntryFromListingHead();
     }
 

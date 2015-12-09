@@ -79,6 +79,17 @@ class Rectangle
         return ('x1,y1(' . $this->x1 . ',' . $this->y1 . ') x2,y2(' . $this->x2 . ',' . $this->y2 . ')');
     }
 
+    public function mux($xfac, $yfac) {
+        $this->x1 = $this->x1 * $xfac;
+        $this->x2 = $this->x2 * $xfac;
+        $this->y1 = $this->y1 * $yfac;
+        $this->y2 = $this->y2 * $yfac;
+    }
+
+    //
+    // Accessor/mutators
+    //
+
     public function getX()
     {
         return $this->getX1();

@@ -457,7 +457,7 @@ class ViewController extends Controller
         return $jsonContent;
     }
 
-    static function deserialiseListing($serial_json)
+    public function deserialiseListing($serial_json)
     {
         $serial = array();
         $encoders = array(new XmlEncoder(), new JsonEncoder());
@@ -471,6 +471,12 @@ class ViewController extends Controller
             $entry = $serializer->denormalize($sjs, 'Lightenna\StructuredBundle\Entity\GenericEntry', 'json');
             // also properly deserialize the metadata object inside it
             $entry->setMetadata($serializer->denormalize($entry->getMetadata(), 'Lightenna\StructuredBundle\Entity\ImageMetadata', 'json'));
+            // reinflate the MetadataFileReader
+            $filename = $this->convertRawToFilename($entry->getRawname());
+            $mfr = new CachedMetadataFileReader($filename, $this);
+            $entry->setMetadataFileReader($mfr);
+            $mfr->setGenericEntry($entry);
+            // store the entry in the output array
             $serial[] = $entry;
         }
         return $serial;
