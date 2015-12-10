@@ -48,7 +48,7 @@ extension=php_gd2.dll
 extension=php_mbstring.dll
 extension=php_openssl.dll
 
-PHP optionally needs a higher memory limit, depending on how large the images are.
+PHP optionally wants a higher memory limit, depending on how large the images are.
 
 memory_limit = 384M
 
