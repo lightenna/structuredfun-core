@@ -21,7 +21,7 @@ DirectoryIndex app.php
 
     # test to see if we're requesting an image or imagemeta
     # @todo check that imagemeta is working by manually placing file in cache
-    RewriteCond %{REQUEST_URI} ^/(image|imagemeta|layout)/.*
+    RewriteCond %{REQUEST_URI} ^/(image|imagemeta|layout|tile)/.*
     # test to see if the file exists in mediacache
     RewriteCond %{DOCUMENT_ROOT}/mediacache%{REQUEST_URI}\.dat -s
     # if so rewrite to use cached copy

@@ -121,6 +121,18 @@ class FileReader
         }
     }
 
+    public function isIgnorableListingEntry($v) {
+        // ignore directory references or empty file names
+        if ($v == '.' || $v == '..' || $v == '') {
+            return true;
+        }
+        // ignore files or folders that begin '.' or the 'structured' folder or 'fun.lnk'
+        if (($v[0] == '.') || ($v == Constantly::FOLDER_NAME) || ($v == Constantly::LINK_NAME)) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Return a directory listing
      * Crops and strips the zip_part from the listing items
@@ -202,13 +214,7 @@ class FileReader
         // Part 2: process listing into array of GenericEntries
         //
         foreach ($listing as $k => $v) {
-            // ignore directory references or empty file names
-            if ($v == '.' || $v == '..' || $v == '') {
-                unset($listing[$k]);
-                continue;
-            }
-            // ignore files or folders that begin '.' or the 'structured' folder or 'fun.lnk'
-            if (($v[0] == '.') || ($v == Constantly::FOLDER_NAME) || ($v == Constantly::LINK_NAME)) {
+            if ($this->isIgnorableListingEntry($v)) {
                 unset($listing[$k]);
                 continue;
             }

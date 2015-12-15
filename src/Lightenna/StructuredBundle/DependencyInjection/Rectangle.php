@@ -51,16 +51,13 @@ class Rectangle
      */
     public function intersects($r)
     {
-        // test if any of four points are inside
         if (
-            $this->contains($r->getX1(), $r->getY1()) ||
-            $this->contains($r->getX2(), $r->getY1()) ||
-            $this->contains($r->getX1(), $r->getY2()) ||
-            $this->contains($r->getX2(), $r->getY2())
+            ($r->getX2() < $this->getX1()) || ($this->getX2() < $r->getX1()) ||
+            ($r->getY2() < $this->getY1()) || ($this->getY2() < $r->getY1())
         ) {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -79,7 +76,8 @@ class Rectangle
         return ('x1,y1(' . $this->x1 . ',' . $this->y1 . ') x2,y2(' . $this->x2 . ',' . $this->y2 . ')');
     }
 
-    public function mux($xfac, $yfac) {
+    public function mux($xfac, $yfac)
+    {
         $this->x1 = $this->x1 * $xfac;
         $this->x2 = $this->x2 * $xfac;
         $this->y1 = $this->y1 * $yfac;
@@ -150,19 +148,23 @@ class Rectangle
         $this->y2 = $y;
     }
 
-    public function getWidth() {
+    public function getWidth()
+    {
         return $this->x2 - $this->x1;
     }
 
-    public function setWidth($w) {
+    public function setWidth($w)
+    {
         $this->x2 = $this->x1 + $w;
     }
 
-    public function getHeight() {
+    public function getHeight()
+    {
         return $this->y2 - $this->y1;
     }
 
-    public function setHeight($h) {
+    public function setHeight($h)
+    {
         $this->y2 = $this->y1 + $h;
     }
 

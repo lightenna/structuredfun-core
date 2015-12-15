@@ -343,6 +343,11 @@ class CachedMetadataFileReader extends MetadataFileReader
         }
     }
 
+    /**
+     * Sets up cache to read from/write to new directory (creates if necessary)
+     * @param string $type leaf
+     * @return string name of target cache directory
+     */
     public function setupCacheDir($type = 'image') {
         $settings = $this->controller->getSettings();
         $dirname = $this->controller->convertRawToInternalFilename('htdocs' . Constantly::DIR_SEPARATOR_URL . 'web' . Constantly::DIR_SEPARATOR_URL . $settings['mediacache']['path'] . Constantly::DIR_SEPARATOR_URL . $type);
@@ -360,6 +365,7 @@ class CachedMetadataFileReader extends MetadataFileReader
             $this->controller->error('Unable to write to cache directory.  Caching temporarily disabled.  Please check filesystem permissions.');
             $this->controller->disableCaching();
         }
+        $this->cachedir = $dirname;
         return $dirname;
     }
 
@@ -396,6 +402,63 @@ class CachedMetadataFileReader extends MetadataFileReader
     public function getCachePath()
     {
         return $this->cachedir;
+    }
+
+    /**
+     * Look for other caches thumbnails of this image
+     * @param int $minimum min width of image
+     * @return array List of available sizes
+     */
+    public function huntAvailableSizes($minimum = 0) {
+        // if we don't have anything cached for this image, there are no available sizes
+        if (!$this->isCached()) {
+            return array();
+        }
+        $availables = array();
+        $filename = $this->getFilename($this->entry->getCacheKey());
+        // find size part of path
+        $matches_size = array();
+        if (preg_match('/\/[!]*([0-9]*),([0-9]*)\//', $filename, $matches_size, PREG_OFFSET_CAPTURE) === 1) {
+            // take position of first match
+            $path = substr($filename, 0, $matches_size[0][1]) . Constantly::DIR_SEPARATOR_URL;
+            if (file_exists($path)) {
+                // read directory listing
+                $listing = scandir($path);
+                // spin through the candidates eliminating non-candidates
+                foreach ($listing as $candidate) {
+                    // ignore ., .. and .hidden
+                    if ($this->isIgnorableListingEntry($candidate)) {
+                        continue;
+                    }
+                    // for remaining listing files pull out width (key)
+                    $matches_vars = array();
+                    if (preg_match('/[!]*([0-9]*),([0-9]*)/', $candidate, $matches_vars, PREG_OFFSET_CAPTURE) === 1) {
+                        $width_key = $matches_vars[1][0];
+                        // check that the thumbnail is bigger than our minimum width threshold
+                        if ($width_key >= $minimum) {
+                            // get the name of the file inside (assume no rotation)
+                            $candidate_path = $path . $candidate . Constantly::DIR_SEPARATOR_URL . '0' . Constantly::DIR_SEPARATOR_URL;
+                            if (file_exists($candidate_path)) {
+                                $sublisting = scandir($candidate_path);
+                                foreach ($sublisting as $subcandidate) {
+                                    if ($this->isIgnorableListingEntry($subcandidate)) {
+                                        continue;
+                                    }
+                                    if (substr($subcandidate, -8) == ('.jpg.' . Constantly::CACHE_FILEEXT)) {
+                                        $availables[$width_key] = $candidate_path . $subcandidate;
+                                        // only store one candidate per width (there will probably only be 1)
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // sort list into key order (smallest first)
+        ksort($availables);
+        return $availables;
     }
 
     /**

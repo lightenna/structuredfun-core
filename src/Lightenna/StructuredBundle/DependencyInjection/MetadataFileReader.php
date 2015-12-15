@@ -187,19 +187,20 @@ class MetadataFileReader extends FileReader
 
     /**
      * Add metadata fields to directory entries
-     * @param Object $entry Listing object
+     * @param object $entry Listing object
+     * @return object updated $entry
      */
     public function parseDirectoryEntry($entry)
     {
         switch ($entry->getType()) {
             case 'image':
-                // get the image metadata by reading (cached-only) file
-                // fast enough (110ms for 91 images)
-                $entry = $this->getDirectoryEntryMetadata($entry);
-                break;
             case 'video':
-                // get the video metadata by reading (cached-only) file
-                $entry = $this->getDirectoryEntryMetadata($entry);
+                // get the image/video metadata by reading (cached-only) file
+                // fast enough (110ms for 91 images)
+                if (($returned_entry = $this->getDirectoryEntryMetadata($entry)) !== null) {
+                    // replace entry, so long as it didn't fail to find any metadata
+                    $entry = $returned_entry;
+                }
                 break;
             default:
                 break;

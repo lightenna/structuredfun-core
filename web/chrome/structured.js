@@ -568,7 +568,7 @@ window.sfun = (function($, undefined) {
       // if successful, use metadata to make decision about reres
       var nativeWidth = $reresable.data('native-width');
       var nativeHeight = $reresable.data('native-height');
-      // analyse
+      // analyse (Constantly::RESBRACKET)
       var resbracket = 250, brackWidth, brackHeight;
       var bigger = imageContainerWidth > loadedWidth || imageContainerHeight > loadedHeight;
       var available = loadedWidth < nativeWidth || loadedHeight < nativeHeight;

@@ -280,7 +280,7 @@ class ImageMetadata
                     'iptc_copyright' => $iptc->get(IPTC_COPYRIGHT_STRING),
                     'iptc_source' => $iptc->get(IPTC_SOURCE),
                 );
-                // if we retreived any of the above fields, use them to overwrite defaults
+                // if we retrieved any of the above fields, use them to overwrite defaults
                 $this->imbue($candidate, true);
             }
         }
@@ -566,6 +566,13 @@ class ImageMetadata
     public function setEditable($e)
     {
         $this->editable = $e;
+    }
+
+    public function updateLoadedDimensions(&$imgdata) {
+        $uri = 'data://application/octet-stream;base64,' . base64_encode($imgdata);
+        $mdata = getimagesize($uri);
+        $this->setLoadedWidth($mdata[0]);
+        $this->setLoadedHeight($mdata[1]);
     }
 
     public function getLoadedWidth()

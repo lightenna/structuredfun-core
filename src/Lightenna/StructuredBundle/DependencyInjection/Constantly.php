@@ -27,5 +27,7 @@ class Constantly
     const ZIP_SEPARATOR = '/';
     const ARG_SEPARATOR = '~args&';
     const FILEARG_SEPARATOR = '~';
+    const RESBRACKET = 250;
+    const RESTHRESHOLD = 2000;
 
 }
