@@ -83,7 +83,7 @@ class CachedMetadataFileReader extends MetadataFileReader
         if (isset($settings['general']['nocache']) || !$this->entry->hasCacheKey()) {
             return false;
         }
-        if ($this->args &&  (!$this->args->getCache())) {
+        if ($this->args && (!$this->args->getCache())) {
             return false;
         }
         return true;
@@ -132,7 +132,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                 // detect directory separators in filename
                 if (strpos($this->entry->getCacheKey(), Constantly::DIR_SEPARATOR_URL) !== false) {
                     if (!file_exists(dirname($filename))) {
-                        mkdir(dirname($filename), 0777, true);
+                        @mkdir(dirname($filename), 0777, true);
                     }
                 }
                 // write out file
@@ -153,7 +153,8 @@ class CachedMetadataFileReader extends MetadataFileReader
      * Store the data in the cache
      * @param string $data
      */
-    public function cacheRawData($filename, $data) {
+    public function cacheRawData($filename, $data)
+    {
         file_put_contents($filename, $data);
     }
 
@@ -277,6 +278,9 @@ class CachedMetadataFileReader extends MetadataFileReader
             $this->rewrite($this->getFilename($this->entry->getCacheKey()), false);
         }
         $imgdata = parent::get();
+        if (Constantly::FILE_MAINTAINREADLIST) {
+            $this->logRead($this->file_part);
+        }
         return $imgdata;
     }
 
@@ -286,18 +290,23 @@ class CachedMetadataFileReader extends MetadataFileReader
      * @param boolean $force true to load all the images
      * warning: this will be slow if most of the images aren't cached
      */
-    public function getDirectoryAll($listing, $force = false)
+    public function getDirectoryAll(&$listing, $force = false)
     {
-        foreach ($listing as &$entry) {
+        foreach ($listing as $key => &$entry) {
             $image_metadata = $entry->getMetadata();
             // skip directories
-            if ($entry->getType() == 'directory') {
+            $type = $entry->getType();
+            // can't use switch here (wraps break/continue)
+            if ($type == 'directory') {
                 // make directories square by default
                 // @todo could resolve subcell images first
                 $image_metadata->setStatus(Constantly::IMAGE_STATUS_DIRECTORY);
                 $image_metadata->setLoadedWidth(1000);
                 $image_metadata->setLoadedHeight(1000);
                 $image_metadata->calcRatio();
+            }
+            if (in_array($type, explode(',', Constantly::FILEENT_SKIPLIST))) {
+                // skip directories and files etc.
                 continue;
             }
             // memory usage doesn't seem to increase
@@ -318,6 +327,8 @@ class CachedMetadataFileReader extends MetadataFileReader
                     $image_metadata->setLoadedHeight(1080);
                     $image_metadata->calcRatio();
                 }
+            } else {
+                $listing[$key] = $rentry;
             }
         }
     }
@@ -348,7 +359,8 @@ class CachedMetadataFileReader extends MetadataFileReader
      * @param string $type leaf
      * @return string name of target cache directory
      */
-    public function setupCacheDir($type = 'image') {
+    public function setupCacheDir($type = 'image')
+    {
         $settings = $this->controller->getSettings();
         $dirname = $this->controller->convertRawToInternalFilename('htdocs' . Constantly::DIR_SEPARATOR_URL . 'web' . Constantly::DIR_SEPARATOR_URL . $settings['mediacache']['path'] . Constantly::DIR_SEPARATOR_URL . $type);
         // create cache directory if it's not already present
@@ -409,7 +421,8 @@ class CachedMetadataFileReader extends MetadataFileReader
      * @param int $minimum min width of image
      * @return array List of available sizes
      */
-    public function huntAvailableSizes($minimum = 0) {
+    public function huntAvailableSizes($minimum = 0)
+    {
         // if we don't have anything cached for this image, there are no available sizes
         if (!$this->isCached()) {
             return array();
@@ -511,6 +524,56 @@ class CachedMetadataFileReader extends MetadataFileReader
         if ($this->cacheKeyUpdateable()) {
             // update cachekey after messing with args
             $this->entry->setCacheKey($this->getKey());
+        }
+    }
+
+    /**
+     * log fails quietly, only used for debugging
+     * @param $filename name of file to log read of
+     */
+    public function logRead($filename)
+    {
+        $logfile = $this->cachedir . '_readlog.txt';
+        // read as CSV
+        $found = false;
+        $rows = array();
+        if (($fp = @fopen($logfile, 'r+')) !== false) {
+            // acquire a lock so we don't overwrite the file
+            // flock($fp, LOCK_EX);
+            while (($data = @fgetcsv($fp, 10000, ',')) !== false) {
+                if (!isset($data[1])) {
+                    continue;
+                }
+                // test to see if it's our file
+                if ($data[1] == $filename) {
+                    // if it is, increment count
+                    $data[0]++;
+                    // flag as found
+                    $found = true;
+                }
+                // store entry (after updating count)
+                $rows[] = $data;
+            }
+            if (!$found) {
+                // add file to CSV
+                $rows[] = array(0, $filename);
+            }
+            // write [overwrite] back as CSV
+            ftruncate($fp, 0);
+            foreach ($rows as $fields) {
+                @fputcsv($fp, $fields);
+            }
+            fflush($fp);
+            // flock($fp, LOCK_UN);
+            @fclose($fp);
+        } else {
+            // create the file for the first time
+            if (($fp = @fopen($logfile, 'w')) !== false) {
+                // flock($fp, LOCK_EX);
+                @fputcsv($fp, array(0, $filename));
+                // flock($fp, LOCK_UN);
+                @fclose($fp);
+            }
         }
     }
 

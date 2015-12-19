@@ -57,7 +57,7 @@ class FileviewController extends ViewController
                             'direction' => Constantly::DEFAULT_LAYOUT_DIRECTION,
                             'celltype' => 'pc',
                             'breadth' => Constantly::DEFAULT_LAYOUT_BREADTH,
-                            'linkpath' => $linkpath,
+                            'linkpath' => CachedMetadataFileReader::hash($linkpath),
                             'linkaliased' => str_replace(Constantly::DIR_SEPARATOR_URL, Constantly::DIR_SEPARATOR_ALIAS, trim($name, Constantly::DIR_SEPARATOR_URL)) . Constantly::DIR_SEPARATOR_ALIAS,
                             'dirsep' => Constantly::DIR_SEPARATOR_ALIAS,
                             'argsbase' => Constantly::ARG_SEPARATOR,
