@@ -2007,9 +2007,15 @@ window.sfun = (function($, undefined) {
     }
     // search backwards from lastChar to find preceding slash
     var previousSlash = url.lastIndexOf('/', lastChar);
+    // search backwards from lastChar to find preceding ~2F
+    var previousAliasedSlash = url.lastIndexOf('~2F', lastChar);
+    if (previousSlash < previousAliasedSlash) {
+      // if an aliased slash nearer the end, use that instead
+      previousSlash = previousAliasedSlash;
+    }
     if (previousSlash != -1) {
       // new URL should include slash
-      var newUrl = url.substring(0, previousSlash+1);
+      var newUrl = url.substring(0, previousSlash) + '/';
       // append filtered hash
       var filteredHash = getFilteredHash();
       // redirect to new page

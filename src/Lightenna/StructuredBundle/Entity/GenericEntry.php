@@ -3,13 +3,9 @@
 namespace Lightenna\StructuredBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\InheritanceType;
-use Doctrine\ORM\Mapping\DiscriminatorColumn;
-use Doctrine\ORM\Mapping\DiscriminatorMap;
 
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
-use Lightenna\StructuredBundle\DependencyInjection\IptcWriter;
-use Lightenna\StructuredBundle\Entity\ImageMetadata;
+use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -33,21 +29,26 @@ class GenericEntry
     protected $type = null;
     protected $hidden = null;
     protected $ext = null;
+
+    // path to directory or zip (i.e. an entity that contains more entities)
     protected $path = null;
+
+    // file and file_original are full filenames (including the path to this entity within zip)
     protected $file = null;
     protected $file_original = null;
-    protected $zip_path = null;
+
+    // zip_bit is the [redundant] path from the zip parent (x.zip/) to the file, including the file's final leaf (/123.jpg)
+    protected $zip_bit = null;
+
     protected $seq = null;
     protected $cachekey = null;
     protected $subfolderCount = 0;
 
-    // objects
-    protected $meta = null;
+    // [Cached]MetadataFileReader, used to read this entry
     protected $mfr = null;
 
-    // to sort out in future (temporary fields for now)
-    public $newwidth;
-    public $newheight;
+    // Read-only copy of metadata, used for serialising (json for layout/imagemeta)
+    protected $meta = null;
 
     //
     // Methods
@@ -67,7 +68,7 @@ class GenericEntry
 
     public function isZip()
     {
-        return ($this->zip_path !== null);
+        return ($this->zip_bit !== null);
     }
 
     public function isImage()
@@ -194,14 +195,28 @@ class GenericEntry
         $this->file_original = $f;
     }
 
-    public function getZipPath()
+    public function getZipBit()
     {
-        return $this->zip_path;
+        return $this->zip_bit;
     }
 
-    public function setZipPath($z)
+    public function setZipBit($z)
     {
-        $this->zip_path = $z;
+        $this->zip_bit = $z;
+    }
+
+    public function getFullname()
+    {
+        return $this->getFile();
+
+        // DEPRECATE: used to have to build fullname from file and zip_bit, no longer!
+        // if obj contains a zip path
+        if ($this->isZip()) {
+            $fullname = $this->getFile() . Constantly::ZIP_SEPARATOR . $this->getZipBit();
+        } else {
+            $fullname = $this->getFile();
+        }
+        return $fullname;
     }
 
     public function getSeq()
@@ -254,11 +269,21 @@ class GenericEntry
         $this->subfolderCount = $c;
     }
 
+    /**
+     * always read metadata from master (in MetadataFileReader)
+     * this function is crucial to layout and imagemeta serialisation
+     * @return object stored metadata
+     */
     public function getMetadata()
     {
         return $this->meta;
     }
 
+    /**
+     * metadata should be set but not gotten (always read from master in MetadataFileReader)
+     * @param object $m metadata to store
+     * @return object stored metadata
+     */
     public function setMetadata($m)
     {
         return $this->meta = $m;

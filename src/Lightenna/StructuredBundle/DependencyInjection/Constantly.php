@@ -8,6 +8,7 @@ class Constantly
     const SFUN_VERSION = '0.9.7';
     const DIR_SEPARATOR_URL = '/';
     const DIR_SEPARATOR_ALIAS = '~2F';
+    const DIR_LONGFILENAMEMAX = 256;
     const IMAGE_STATUS_ERROR = -2;     // unable to open image at all
     const IMAGE_STATUS_DIRECTORY = -2; // entry is a directory
     const IMAGE_STATUS_MISSING = -1;   // cached image not found
@@ -29,7 +30,7 @@ class Constantly
     const ARG_SEPARATOR = '~args&';
     const FILEARG_SEPARATOR = '~';
     const RESBRACKET = 250;
-    const RESTHRESHOLD = 3000;
+    const RESTHRESHOLD = 8000;
     const TILE_SHOWCACHETINT = true;
     const FILE_MAINTAINREADLIST = true;
 }

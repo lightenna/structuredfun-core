@@ -38,7 +38,7 @@ class FileReader
      * @param string $filename
      */
 
-    private function parseFilename($filename)
+    protected function parseFilename($filename)
     {
         $end = self::stripArgsToFilename($filename);
         // parse filename for zip marker
@@ -121,7 +121,8 @@ class FileReader
         }
     }
 
-    public function isIgnorableListingEntry($v) {
+    public function isIgnorableListingEntry($v)
+    {
         // ignore directory references or empty file names
         if ($v == '.' || $v == '..' || $v == '') {
             return true;
@@ -237,16 +238,21 @@ class FileReader
             if ($this->file_part_leaf !== null) {
                 $entry->setPath($this->file_part_path);
                 $entry->setFile($this->file_part_path . Constantly::DIR_SEPARATOR_URL . $entry->getName());
+                // store duplicate of full filename (including path within zip) in case we need to rewriteToOriginal
+                $entry->setFileOriginal($entry->getFile());
             } // if listing a directory/zip
             else if ($this->file_part !== null) {
                 // capture file part
                 $entry->setPath($this->file_part);
-                $entry->setFile($this->file_part);
+                $entry->setFile($this->file_part . Constantly::DIR_SEPARATOR_URL . $entry->getName());
                 // if we cropped a zip path
                 if (($this->zip_part_path !== null) && ($len = strlen($this->zip_part_path)) > 0) {
                     // store cropped bit
-                    $entry->setZipPath($this->zip_part_path);
+                    $entry->setZipBit($this->zip_part_path . Constantly::DIR_SEPARATOR_URL . $entry->getName());
+                    // adjust filename to include it
+                    $entry->setFile($this->file_part . Constantly::ZIP_SEPARATOR . $entry->getZipBit());
                 }
+                $entry->setFileOriginal($entry->getFullname());
             }
             // assume it's a generic file
             $entry->setType('genfile');
@@ -265,8 +271,6 @@ class FileReader
                     $entry->setSubfolderCount(count($sublisting) - 2);
                 }
             }
-            // duplicate file ref incase we redirect
-            $entry->setFileOriginal($entry->getFile());
             // replace this entry in the array with the object we've just made
             $listing[$k] = $entry;
         }
@@ -313,28 +317,6 @@ class FileReader
     {
         $filename = $this->file_part;
         return $filename;
-    }
-
-    /**
-     * Gets a compound file name for a single directory entry
-     * Should only be called on directories, never files
-     * @param $entry directory entry object
-     * @return Full filename reconstituted from directory entry
-     */
-    public function getFullname($entry)
-    {
-        // if obj contains a zip path
-        if ($entry->isZip()) {
-            $fullname = $entry->getFile() . Constantly::ZIP_SEPARATOR . $entry->getZipPath();
-        } else {
-            $fullname = $entry->getFile();
-        }
-        // if it's a directory or a zip file, append leaf from entry
-        if ($this->isDirectory() || $this->inZip()) {
-            // if obj contains a leaf name, append it
-            $fullname .= Constantly::DIR_SEPARATOR_URL . $entry->getNameOriginalCharset();
-        }
-        return $fullname;
     }
 
     /**
@@ -533,6 +515,24 @@ class FileReader
             return false;
         }
         return true;
+    }
+
+    static function protectLongFilename($filename)
+    {
+        if (strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) {
+            // find nearest /
+            $last_slash_pos = strrpos($filename, Constantly::DIR_SEPARATOR_URL, Constantly::DIR_LONGFILENAMEMAX);
+            if ($last_slash_pos !== false) {
+                $dir = substr($filename, 0, $last_slash_pos);
+                // use chdir to share the load
+                chdir($dir);
+            }
+            $filename = substr($filename, strlen($dir) + 1);
+        }
+        if (strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) {
+            // @todo throw error or repeat chdir op
+        }
+        return $filename;
     }
 
 }

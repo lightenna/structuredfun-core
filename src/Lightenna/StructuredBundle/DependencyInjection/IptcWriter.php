@@ -71,7 +71,7 @@ class IptcWriter
 
     public function reload($path)
     {
-        $img = getimagesize($path, $info);
+        $img = getimagesize(FileReader::protectLongFilename($path), $info);
         if (isset($info['APP13'])) {
             $this->meta = iptcparse($info['APP13']);
         }
@@ -103,7 +103,7 @@ class IptcWriter
     public function getStream($path)
     {
         // load image from file and embed IPTC data
-        $imgdata = iptcembed($this->serialiseAsIPTC(), $path);
+        $imgdata = iptcembed($this->serialiseAsIPTC(), FileReader::protectLongFilename($path));
         return $imgdata;
     }
 
@@ -122,7 +122,7 @@ class IptcWriter
             // load image and embed IPTC data
             $content = $this->getStream($path);
             // write the new image data out to the file.
-            $fp = fopen($path, "wb");
+            $fp = fopen(FileReader::protectLongFilename($path), "wb");
             fwrite($fp, $content);
             fclose($fp);
         }

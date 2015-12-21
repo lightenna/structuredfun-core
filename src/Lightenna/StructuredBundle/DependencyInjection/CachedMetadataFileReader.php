@@ -38,6 +38,25 @@ class CachedMetadataFileReader extends MetadataFileReader
         }
     }
 
+    protected function parseFilename($filename)
+    {
+        // don't try to parse filenames in our cache
+        if (strrpos($filename, $this->cachedir, -strlen($filename)) !== FALSE) {
+            $end = self::stripArgsToFilename($filename);
+            $this->file_part = substr($filename, 0, $end);
+            list($this->file_part_path, $this->file_part_leaf) = $this->splitPathLeaf($this->file_part);
+            // catch situation where we're mistaking a directory for a file leaf
+            if ($this->file_part_leaf == '.' || $this->file_part_leaf == '..') {
+                $this->file_part_path = $this->file_part_path . $this->file_part_leaf;
+                $this->file_part_leaf = null;
+            }
+            $this->zip_part = $this->zip_part_path = $this->zip_part_leaf = null;
+            return;
+        }
+        // otherwise just treat as normal file elsewhere (parse using FileReader)
+        return parent::parseFilename($filename);
+    }
+
     /**
      * @return boolean true if we can write to the cache directory
      */
@@ -155,7 +174,7 @@ class CachedMetadataFileReader extends MetadataFileReader
      */
     public function cacheRawData($filename, $data)
     {
-        file_put_contents($filename, $data);
+        file_put_contents(FileReader::protectLongFilename($filename), $data);
     }
 
     /**
@@ -193,7 +212,8 @@ class CachedMetadataFileReader extends MetadataFileReader
         $key = '';
         $cachestring = $this->entry->getRawname();
         if ($cachestring == null) {
-            $cachestring = $this->getFullname();
+            // @todo really not sure about this; should dump
+            $cachestring = $this->entry->getFullname();
         }
         // hash
         $key .= self::hash($cachestring);
@@ -250,20 +270,6 @@ class CachedMetadataFileReader extends MetadataFileReader
     public function getFilenameInCache($key)
     {
         return $this->cachedir . '/' . $key;
-    }
-
-    /**
-     * Return the full name of this file, or file within zip, or entry within directory
-     * @param $entry directory entry object or null/blank to get our fullname
-     * @return Full filename reconstituted from directory entry
-     */
-
-    public function getFullname($entry = null)
-    {
-        if (is_null($entry)) {
-            $entry = $this->entry;
-        }
-        return parent::getFullname($entry);
     }
 
     /**
@@ -494,7 +500,7 @@ class CachedMetadataFileReader extends MetadataFileReader
     public function rewriteToOriginal()
     {
         $newname = $this->getGenericEntry()->getFileOriginal();
-        // dump the cachekey so future gets don't get the cached version again
+        // dump the cachekey so future get() calls don't get the cached version again
         $this->entry->setCacheKey(null);
         // rewrite up the chain but don't change cachekey
         return $this->rewrite($newname, false);
@@ -534,46 +540,9 @@ class CachedMetadataFileReader extends MetadataFileReader
     public function logRead($filename)
     {
         $logfile = $this->cachedir . '_readlog.txt';
-        // read as CSV
-        $found = false;
-        $rows = array();
-        if (($fp = @fopen($logfile, 'r+')) !== false) {
-            // acquire a lock so we don't overwrite the file
-            // flock($fp, LOCK_EX);
-            while (($data = @fgetcsv($fp, 10000, ',')) !== false) {
-                if (!isset($data[1])) {
-                    continue;
-                }
-                // test to see if it's our file
-                if ($data[1] == $filename) {
-                    // if it is, increment count
-                    $data[0]++;
-                    // flag as found
-                    $found = true;
-                }
-                // store entry (after updating count)
-                $rows[] = $data;
-            }
-            if (!$found) {
-                // add file to CSV
-                $rows[] = array(0, $filename);
-            }
-            // write [overwrite] back as CSV
-            ftruncate($fp, 0);
-            foreach ($rows as $fields) {
-                @fputcsv($fp, $fields);
-            }
-            fflush($fp);
-            // flock($fp, LOCK_UN);
+        if (($fp = @fopen($logfile, 'a')) !== false) {
+            @fputs($fp, $filename."\r\n");
             @fclose($fp);
-        } else {
-            // create the file for the first time
-            if (($fp = @fopen($logfile, 'w')) !== false) {
-                // flock($fp, LOCK_EX);
-                @fputcsv($fp, array(0, $filename));
-                // flock($fp, LOCK_UN);
-                @fclose($fp);
-            }
         }
     }
 

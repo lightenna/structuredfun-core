@@ -261,14 +261,15 @@ class MetadataFileReader extends FileReader
         // try and use the entry's FileReader
         $entry_mfr = $entry->getMetadataFileReader();
         if ($entry_mfr === null) {
-            $filename = $this->getFullname($entry);
+            $filename = $entry->getFullname();
             // local reader needs to use this reader's args (to get correctly size-cached thumbnails)
-            // @todo this should really be either a MetadataFileReader or a CachedMetadataFileReader
+            // @todo this should really be EITHER a MetadataFileReader or a CachedMetadataFileReader
             $entry_mfr = new CachedMetadataFileReader($filename, $this->controller);
             // tweak rawname using path from controller but leaf from obj
             $entry_name = $this->controller->getRawname() . Constantly::DIR_SEPARATOR_URL . $entry->getName();
-            // transfer metadata from cached copy to this directory entry
+            // transfer metadata from cached copy to this directory entry (note &$entity in args)
             $entry = $entry_mfr->getGenericEntry();
+            $entry->setMetadataFileReader($entry_mfr);
             $entry->setRawname($entry_name);
             // setup local reader
             $entry_mfr->setArgs($this->args);
@@ -288,6 +289,7 @@ class MetadataFileReader extends FileReader
     /**
      * Add metadata fields to object
      * @param Object $entry Listing object
+     * @return object $entry (as an input)
      */
 
     public function parseObject($entry)

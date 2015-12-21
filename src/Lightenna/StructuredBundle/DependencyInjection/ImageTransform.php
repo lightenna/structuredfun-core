@@ -110,7 +110,8 @@ class ImageTransform
     {
         // create a new image the correct shape and size
         $newimg = imagecreatetruecolor($this->output_width, $this->output_height);
-        imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $this->entry->getMetadata()->getLoadedWidth(), $this->entry->getMetadata()->getLoadedHeight());
+        $metadata = $this->entry->getMetadata();
+        imagecopyresampled($newimg, $img, 0, 0, 0, 0, $this->output_width, $this->output_height, $metadata->getLoadedWidth(), $metadata->getLoadedHeight());
         // clean up old image
         imagedestroy($img);
         return $newimg;
@@ -147,7 +148,7 @@ class ImageTransform
         // clear old calculations
         $this->output_width = $this->output_height = null;
         // find image dimensions and derive portrait/landscape
-        // @refactor ; use $this->entry->getMetadata()->getOrientation()
+        // @todo @refactor ; use $this->entry->getMetadata()->getOrientation()
         $width = imagesx($img);
         $height = imagesy($img);
         $portrait = false;
