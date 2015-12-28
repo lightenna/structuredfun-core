@@ -521,13 +521,21 @@ class FileReader
     {
         if (strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) {
             // find nearest /
-            $last_slash_pos = strrpos($filename, Constantly::DIR_SEPARATOR_URL, Constantly::DIR_LONGFILENAMEMAX);
+            $last_slash_pos = strrpos(substr($filename, 0, Constantly::DIR_LONGFILENAMEMAX), Constantly::DIR_SEPARATOR_URL);
+            if ($last_slash_pos === false && false) {
+                // do not try to find alias instead, because alias folders are atomic in cache
+                $last_slash_pos = strrpos(substr($filename, 0, Constantly::DIR_LONGFILENAMEMAX), Constantly::DIR_SEPARATOR_ALIAS);
+            }
             if ($last_slash_pos !== false) {
                 $dir = substr($filename, 0, $last_slash_pos);
+                // if this directory doesn't exist yet, create it
+                if (!file_exists($dir)) {
+                    mkdir($dir, 0777, true);
+                }
                 // use chdir to share the load
                 chdir($dir);
+                $filename = substr($filename, strlen($dir) + 1);
             }
-            $filename = substr($filename, strlen($dir) + 1);
         }
         if (strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) {
             // @todo throw error or repeat chdir op

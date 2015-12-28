@@ -151,7 +151,8 @@ class CachedMetadataFileReader extends MetadataFileReader
                 // detect directory separators in filename
                 if (strpos($this->entry->getCacheKey(), Constantly::DIR_SEPARATOR_URL) !== false) {
                     if (!file_exists(dirname($filename))) {
-                        @mkdir(dirname($filename), 0777, true);
+                        $partial = FileReader::protectLongFilename(dirname($filename));
+                        mkdir($partial, 0777, true);
                     }
                 }
                 // write out file
@@ -217,13 +218,6 @@ class CachedMetadataFileReader extends MetadataFileReader
         }
         // hash
         $key .= self::hash($cachestring);
-
-        // @todo remove this comment once Argument->getArgs() works
-        // don't flatten args, I think because rawname features args now
-        // $argstring = self::flattenKeyArgs($this->args);
-        // if ($argstring != '') {
-        //   $cachestring .= Constantly::ARG_SEPARATOR . $argstring;
-        // }
 
         // don't substitute illegal characters that can be in URLs but can't appear in filenames
         // because it creates a cache miss; instead address upstream

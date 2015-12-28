@@ -584,26 +584,26 @@ window.sfun = (function($, undefined) {
         var majorw = (imageContainerWidth >= imageContainerHeight);
         // but that dimension has to be the major dimension 
         // @todo could probably calculate both brackWidth and brackHeight, then combine these two
+        // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
+        brackWidth = Math.min(Math.ceil(imageContainerWidth/resbracket) * resbracket, nativeWidth);
+        // same but pivot on height rather than width
+        brackHeight = Math.min(Math.ceil(imageContainerHeight/resbracket) * resbracket, nativeHeight);
         if (majorw) {
-          // find the smallest resbracket less than nativeWidth, but greater that loadedWidth
-          brackWidth = Math.min(Math.ceil(imageContainerWidth/resbracket) * resbracket, nativeWidth);
           // could have resized down, so only swap the image if the brackWidth is greater that the current loaded
           if (brackWidth > loadedWidth) {
             // don't store max longest to shortcut next thumb load; always load 200s
             // last_longest = brackWidth;
             // swap out image and wait for swap to complete
-            imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': brackWidth, 'timecode': state_default['timecode'] } )).always(wrapUp);
+            imageReres($ent, substitute($reresable.data('template-src'), { 'maxwidth': brackWidth, 'maxheight': brackHeight, 'timecode': state_default['timecode'] } )).always(wrapUp);
           } else {
             wrapUp();
           }
         } else {
-          // same but pivot on height rather than width
-          brackHeight = Math.min(Math.ceil(imageContainerHeight/resbracket) * resbracket, nativeHeight);
           if (brackHeight > loadedHeight) {
             // don't store max longest to shortcut next thumb load; always load 200s
             // last_longest = brackHeight;
             // swap out image and wait for swap to complete
-            imageReres($ent, substitute($reresable.data('template-src'), { 'maxheight': brackHeight, 'timecode': state_default['timecode'] } )).always(wrapUp);
+            imageReres($ent, substitute($reresable.data('template-src'), { 'maxheight': brackHeight, 'maxwidth': brackWidth, 'timecode': state_default['timecode'] } )).always(wrapUp);
           } else {
             wrapUp();
           }

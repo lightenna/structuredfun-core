@@ -17,7 +17,7 @@
           data-template-src="/image/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/native.jpg"
           {% if file.metadata.Status is defined %}data-status="{{ file.metadata.Status }}" {% endif %}
           {% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %}
-          {% if file.metadata.NormalsHtml is not null %}{{ file.metadata.NormalsHtml|raw }}{% endif %}
+          {% if file.EntryLayout is not null %}{{ file.EntryLayout.NormalsHtml|raw }}{% endif %}
           {% if file.metadata.OriginalWidth is not null %}data-native-width="{{ file.metadata.OriginalWidth }}" {% endif %}{% if file.metadata.OriginalHeight is not null %}data-native-height="{{ file.metadata.OriginalHeight }}" {% endif %}
           data-loaded="false"
           data-seq="{{ file.seq }}" />

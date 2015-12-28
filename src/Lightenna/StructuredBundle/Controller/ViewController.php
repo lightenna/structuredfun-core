@@ -13,7 +13,9 @@ use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\EntryLayout;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\DatabaseLocalManager;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
+use Lightenna\StructuredBundle\DependencyInjection\Timer;
 
 define('SUB_REGEX', '/\[([0-9i]*)\]/');
 
@@ -31,9 +33,16 @@ class ViewController extends Controller
     protected $errbuf = null;
     // @param Request Symfony request object
     protected $request = null;
+    // @param Timer
+    protected $timer = null;
+    // @param DB
+    protected $db = null;
 
     public function __construct()
     {
+        // capture start time for internal timing functions
+        $this->timer = new Timer();
+        // process settings
         $settings_file = $this->convertRawToInternalFilename('conf/structured.ini');
         $this->settings = parse_ini_file($settings_file, true);
         // pull in conf.d settings
@@ -64,13 +73,8 @@ class ViewController extends Controller
         $this->settings['client']['sfun_version'] = Constantly::SFUN_VERSION;
         // process settings
         $this->processSettings();
-        // get database connection
-        if (false) {
-            // create database from scratch
-            $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($entityManager);
-            $classes = $entityManager->getMetadataFactory()->getAllMetadata();
-            $schemaTool->createSchema($classes);
-        }
+        // create database manager object for later
+        $this->db = new DatabaseLocalManager($this);
     }
 
     /**
@@ -100,6 +104,14 @@ class ViewController extends Controller
     public function getArgs()
     {
         return $this->args;
+    }
+
+    /**
+     * @return object DB manager
+     */
+    public function getDB()
+    {
+        return $this->db();
     }
 
     public function getRawname()
