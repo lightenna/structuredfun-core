@@ -10,6 +10,7 @@ use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\Entity\GenericEntry;
+use Lightenna\StructuredBundle\Entity\EntryLayout;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
@@ -462,15 +463,16 @@ class ViewController extends Controller
         $serial = array();
         $encoders = array(new XmlEncoder(), new JsonEncoder());
         $normalizers = array(new GetSetMethodNormalizer());
-        $igFields = array_merge(ImageMetadata::getIgnoredAttributes(), GenericEntry::getIgnoredAttributes());
+        $igFields = array_merge(ImageMetadata::getIgnoredAttributes(), GenericEntry::getIgnoredAttributes(), EntryLayout::getIgnoredAttributes());
         $normalizers[0]->setIgnoredAttributes($igFields);
         $serializer = new Serializer($normalizers, $encoders);
         // use two-stage deserialize to cope with array of objects
         $serial_array = $serializer->decode($serial_json, 'json');
         foreach ($serial_array as $sjs) {#
             $entry = $serializer->denormalize($sjs, 'Lightenna\StructuredBundle\Entity\GenericEntry', 'json');
-            // also properly deserialize the metadata object inside it
+            // properly deserialize the sub-objects inside it
             $entry->setMetadata($serializer->denormalize($entry->getMetadata(), 'Lightenna\StructuredBundle\Entity\ImageMetadata', 'json'));
+            $entry->setEntryLayout($serializer->denormalize($entry->getEntryLayout(), 'Lightenna\StructuredBundle\Entity\EntryLayout', 'json'));
             // reinflate the MetadataFileReader
             $filename = $this->convertRawToFilename($entry->getRawname());
             $mfr = new CachedMetadataFileReader($filename, $this);

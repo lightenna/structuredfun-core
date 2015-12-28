@@ -261,7 +261,7 @@ class MetadataFileReader extends FileReader
         // try and use the entry's FileReader
         $entry_mfr = $entry->getMetadataFileReader();
         if ($entry_mfr === null) {
-            $filename = $entry->getFullname();
+            $filename = $entry->getFile();
             // local reader needs to use this reader's args (to get correctly size-cached thumbnails)
             // @todo this should really be EITHER a MetadataFileReader or a CachedMetadataFileReader
             $entry_mfr = new CachedMetadataFileReader($filename, $this->controller);

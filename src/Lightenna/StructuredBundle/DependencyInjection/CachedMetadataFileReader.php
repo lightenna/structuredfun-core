@@ -213,7 +213,7 @@ class CachedMetadataFileReader extends MetadataFileReader
         $cachestring = $this->entry->getRawname();
         if ($cachestring == null) {
             // @todo really not sure about this; should dump
-            $cachestring = $this->entry->getFullname();
+            $cachestring = $this->entry->getFile();
         }
         // hash
         $key .= self::hash($cachestring);

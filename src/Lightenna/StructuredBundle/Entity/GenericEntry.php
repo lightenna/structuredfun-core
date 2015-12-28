@@ -47,6 +47,9 @@ class GenericEntry
     // [Cached]MetadataFileReader, used to read this entry
     protected $mfr = null;
 
+    // EntryLayout, used for storing information about how this entry is laid out
+    protected $entlay = null;
+
     // Read-only copy of metadata, used for serialising (json for layout/imagemeta)
     protected $meta = null;
 
@@ -60,6 +63,7 @@ class GenericEntry
     public function __construct()
     {
         $this->meta = new ImageMetadata(null, null);
+        $this->entlay = new EntryLayout();
     }
 
     //
@@ -205,12 +209,14 @@ class GenericEntry
         $this->zip_bit = $z;
     }
 
+    /**
+     * DEPRECATED, now use getFile()
+     * @return null|string
+     */
     public function getFullname()
     {
         return $this->getFile();
 
-        // DEPRECATE: used to have to build fullname from file and zip_bit, no longer!
-        // if obj contains a zip path
         if ($this->isZip()) {
             $fullname = $this->getFile() . Constantly::ZIP_SEPARATOR . $this->getZipBit();
         } else {
@@ -287,6 +293,14 @@ class GenericEntry
     public function setMetadata($m)
     {
         return $this->meta = $m;
+    }
+
+    public function getEntryLayout() {
+        return $this->entlay;
+    }
+
+    public function setEntryLayout($e) {
+        $this->entlay = $e;
     }
 
     public function getMetadataFileReader()

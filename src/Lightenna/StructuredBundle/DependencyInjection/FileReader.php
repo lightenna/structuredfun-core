@@ -252,7 +252,7 @@ class FileReader
                     // adjust filename to include it
                     $entry->setFile($this->file_part . Constantly::ZIP_SEPARATOR . $entry->getZipBit());
                 }
-                $entry->setFileOriginal($entry->getFullname());
+                $entry->setFileOriginal($entry->getFile());
             }
             // assume it's a generic file
             $entry->setType('genfile');
