@@ -8,6 +8,7 @@ class DatabaseLocalManager
 {
 
     protected $controller = null;
+    protected $doctrine = null;
     protected $em = null;
 
     public function __construct($con)
@@ -24,6 +25,7 @@ class DatabaseLocalManager
     }
 
     private function instantiateDB() {
+        $this->doctrine = $this->controller->getDoctrine();
         $this->em = $this->doctrine->getManager();
         if (false) {
             // create database from scratch

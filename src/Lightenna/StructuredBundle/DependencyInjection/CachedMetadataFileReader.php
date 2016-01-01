@@ -151,6 +151,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                 // detect directory separators in filename
                 if (strpos($this->entry->getCacheKey(), Constantly::DIR_SEPARATOR_URL) !== false) {
                     if (!file_exists(dirname($filename))) {
+                        // @because will still fail for long filenames on Windows
                         $partial = FileReader::protectLongFilename(dirname($filename));
                         mkdir($partial, 0777, true);
                     }
@@ -175,6 +176,7 @@ class CachedMetadataFileReader extends MetadataFileReader
      */
     public function cacheRawData($filename, $data)
     {
+        // @because will still fail for long filenames on Windows
         file_put_contents(FileReader::protectLongFilename($filename), $data);
     }
 

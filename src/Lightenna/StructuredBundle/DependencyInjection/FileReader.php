@@ -519,7 +519,8 @@ class FileReader
 
     static function protectLongFilename($filename)
     {
-        if (strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) {
+        $iter = 0;
+        while ((strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) && ($iter++ < Constantly::MAXITERATIONS)) {
             // find nearest /
             $last_slash_pos = strrpos(substr($filename, 0, Constantly::DIR_LONGFILENAMEMAX), Constantly::DIR_SEPARATOR_URL);
             if ($last_slash_pos === false && false) {
@@ -537,8 +538,8 @@ class FileReader
                 $filename = substr($filename, strlen($dir) + 1);
             }
         }
-        if (strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) {
-            // @todo throw error or repeat chdir op
+        if ($iter >= Constantly::MAXITERATIONS) {
+            // @todo throw error, or simply allow next function call (e.g. mkdir) to fail
         }
         return $filename;
     }

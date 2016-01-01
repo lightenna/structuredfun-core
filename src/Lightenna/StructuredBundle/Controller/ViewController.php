@@ -114,6 +114,10 @@ class ViewController extends Controller
         return $this->db();
     }
 
+    public function getDoctrine() {
+        return $this->getDoctrine();
+    }
+
     public function getRawname()
     {
         return rtrim($this->rawname, Constantly::DIR_SEPARATOR_URL);
