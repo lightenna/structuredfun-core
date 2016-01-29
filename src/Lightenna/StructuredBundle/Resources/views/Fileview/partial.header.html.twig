@@ -37,6 +37,8 @@
 <link href="/chrome/stylesheets/overflow.css" media="screen, projection" rel="stylesheet" type="text/css" />
 <link href="/chrome/vendor/qunit/qunit-1.14.0.min.css" media="screen, projection" rel="stylesheet" type="text/css" />
 <link href="/chrome/vendor/ionicons/css/ionicons.css" media="screen, projection" rel="stylesheet" type="text/css" />
+{# include any header additions that the AddOnBundle needs #}
+{{ include('LightennaStructuredAddonBundle:Common:partial.header-additions.html.twig', ignore_missing = true) }}
 </head>
 <body>
 <div class="page">

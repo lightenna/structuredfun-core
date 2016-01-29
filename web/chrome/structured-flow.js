@@ -71,7 +71,7 @@
             // if we can't find the selected image, just use the first
             $anchorpost = sfun.api_getCell(range.first_1);
         }
-        if (debug && true) {
+        if (debug && false) {
             console.log('flow_cellsResize calls ['+range.first_1+'-'+range.last_n+']');
         }
         // record the initial absolute coord of the image
