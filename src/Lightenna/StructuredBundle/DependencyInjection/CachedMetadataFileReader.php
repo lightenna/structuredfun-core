@@ -153,7 +153,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                     if (!file_exists(dirname($filename))) {
                         // @because will still fail for long filenames on Windows
                         $partial = FileReader::protectLongFilename(dirname($filename));
-                        mkdir($partial, 0777, true);
+                        @mkdir($partial, 0777, true);
                     }
                 }
                 // write out file
