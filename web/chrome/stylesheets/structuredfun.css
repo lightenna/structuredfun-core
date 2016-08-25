@@ -165,32 +165,36 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#96c2ff', endColorstr='#ffffff',GradientType=0 );
   /* IE6-9 */
 }
-/* line 119, ../sass/structuredfun.scss */
+/* line 109, ../sass/structuredfun.scss */
+.page .header.open, .page .footer.open {
+  height: auto;
+}
+/* line 123, ../sass/structuredfun.scss */
 .page .header p, .page .header li, .page .footer p, .page .footer li {
   float: left;
   height: 100%;
   padding-left: 3em;
   padding-top: 1em;
 }
-/* line 125, ../sass/structuredfun.scss */
+/* line 129, ../sass/structuredfun.scss */
 .page .header p a, .page .header li a, .page .footer p a, .page .footer li a {
   text-decoration: none;
   color: black;
 }
-/* line 130, ../sass/structuredfun.scss */
+/* line 134, ../sass/structuredfun.scss */
 .page .header p.menu.icon, .page .header li.menu.icon, .page .footer p.menu.icon, .page .footer li.menu.icon {
   padding: 0 0 0 0.1em;
   font-size: 3.0em;
 }
-/* line 147, ../sass/structuredfun.scss */
+/* line 151, ../sass/structuredfun.scss */
 .page .header {
   top: 0;
 }
-/* line 152, ../sass/structuredfun.scss */
+/* line 156, ../sass/structuredfun.scss */
 .page .footer {
   bottom: 0;
 }
-/* line 156, ../sass/structuredfun.scss */
+/* line 160, ../sass/structuredfun.scss */
 .page .content {
   height: 100%;
   -webkit-touch-callout: none;
@@ -201,20 +205,20 @@ html.no-js .header, html.no-js .footer, html.disabled-js .header, html.disabled-
   user-select: none;
 }
 
-/* line 184, ../sass/structuredfun.scss */
+/* line 188, ../sass/structuredfun.scss */
 html.flow-1 .page .content {
   height: 100%;
   margin: 0;
 }
-/* line 187, ../sass/structuredfun.scss */
+/* line 191, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun {
   margin: 0;
 }
-/* line 191, ../sass/structuredfun.scss */
+/* line 195, ../sass/structuredfun.scss */
 html.flow-1 .page .content .sfun .container .selectreflector {
   border: none;
 }
-/* line 197, ../sass/structuredfun.scss */
+/* line 201, ../sass/structuredfun.scss */
 html.flow-1 .overlay-holder {
   position: fixed;
   height: 100%;
@@ -239,16 +243,16 @@ html.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 220, ../sass/structuredfun.scss */
+/* line 224, ../sass/structuredfun.scss */
 .sfun {
   margin-top: -2px;
 }
 
-/* line 228, ../sass/structuredfun.scss */
+/* line 232, ../sass/structuredfun.scss */
 html.theme-dark {
   background-color: #171717;
 }
-/* line 232, ../sass/structuredfun.scss */
+/* line 236, ../sass/structuredfun.scss */
 html.theme-dark .page .header {
   color: white;
   background: #000000;
@@ -268,53 +272,53 @@ html.theme-dark .page .header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222',GradientType=0 );
   /* IE6-9 */
 }
-/* line 246, ../sass/structuredfun.scss */
+/* line 250, ../sass/structuredfun.scss */
 html.theme-dark .page .header p a, html.theme-dark .page .header li a {
   color: white;
 }
-/* line 249, ../sass/structuredfun.scss */
+/* line 253, ../sass/structuredfun.scss */
 html.theme-dark .page .header p.menu-icon, html.theme-dark .page .header li.menu-icon {
   background-image: url("/chrome/images/fullres/menu-icon-64x64-white.png");
 }
-/* line 257, ../sass/structuredfun.scss */
+/* line 261, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell {
   background-color: black;
 }
-/* line 261, ../sass/structuredfun.scss */
+/* line 265, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell:not(.selected) .container .selectreflector {
   border-color: #171717;
 }
-/* line 267, ../sass/structuredfun.scss */
+/* line 271, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta {
   color: #ffffff;
 }
-/* line 270, ../sass/structuredfun.scss */
+/* line 274, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta .base {
   background-image: linear-gradient(rgba(23, 23, 23, 0.4), rgba(23, 23, 23, 0.8));
 }
-/* line 273, ../sass/structuredfun.scss */
+/* line 277, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .meta .base .iptcCaption, html.theme-dark .page .content .sfun > .cell a .meta .base .iptcKeywords, html.theme-dark .page .content .sfun > .cell a .meta .base .iptcCopyright, html.theme-dark .page .content .sfun > .cell a .meta .base .iptcSource {
   color: #aaaaaa;
 }
-/* line 280, ../sass/structuredfun.scss */
+/* line 284, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell a .title {
   background-color: #171717;
   color: #ffffff;
 }
-/* line 288, ../sass/structuredfun.scss */
+/* line 292, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text], html.theme-dark .page .content .sfun > .cell .metaform-holder textarea {
   color: white;
 }
-/* line 290, ../sass/structuredfun.scss */
+/* line 294, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun > .cell .metaform-holder input[type=text]:focus, html.theme-dark .page .content .sfun > .cell .metaform-holder textarea:focus {
   border: 1px solid #aaaaaa;
   background-image: linear-gradient(rgba(23, 23, 23, 0.5), rgba(23, 23, 23, 0.8));
 }
-/* line 301, ../sass/structuredfun.scss */
+/* line 305, ../sass/structuredfun.scss */
 html.theme-dark .page .content .sfun.flow-1 .media-container .selectreflector {
   border-color: #171717;
 }
-/* line 309, ../sass/structuredfun.scss */
+/* line 313, ../sass/structuredfun.scss */
 html.theme-dark.flow-1 .overlay-holder {
   background: -moz-radial-gradient(center, circle farthest-corner, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.45) 100%);
   /* FF3.6+ */
@@ -332,7 +336,7 @@ html.theme-dark.flow-1 .overlay-holder {
   /* IE6-9 fallback on horizontal gradient */
 }
 
-/* line 327, ../sass/structuredfun.scss */
+/* line 331, ../sass/structuredfun.scss */
 .sfun.animate-zoom.flow-1 > .cell.selected img.reresable {
   animation: move-out 5s ease alternate;
   -ms-animation: move-out 5s ease alternate;
@@ -344,7 +348,7 @@ html.theme-dark.flow-1 .overlay-holder {
   -moz-animation: move-out 5s ease alternate;
   /* Firefox */
 }
-/* line 332, ../sass/structuredfun.scss */
+/* line 336, ../sass/structuredfun.scss */
 .sfun.animate-zoom.flow-2 > .cell.selected img.reresable {
   animation: move-in 5s ease alternate;
   -ms-animation: move-in 5s ease alternate;
@@ -359,7 +363,7 @@ html.theme-dark.flow-1 .overlay-holder {
 
 @keyframes move-out {}
 @keyframes move-in {}
-/* line 355, ../sass/structuredfun.scss */
+/* line 359, ../sass/structuredfun.scss */
 #eventQueueVis {
   color: #fff;
   font-size: 0.8em;
@@ -369,31 +373,31 @@ html.theme-dark.flow-1 .overlay-holder {
   left: 100%;
   margin-left: -11em;
 }
-/* line 366, ../sass/structuredfun.scss */
+/* line 370, ../sass/structuredfun.scss */
 #eventQueueVis li {
   width: 10em;
   padding: 0.2em;
   background-color: #660000;
   border: 1px solid #000;
 }
-/* line 372, ../sass/structuredfun.scss */
+/* line 376, ../sass/structuredfun.scss */
 #eventQueueVis li.queued {
   border-left-color: #ff0000;
   border-right-color: #ff0000;
 }
-/* line 377, ../sass/structuredfun.scss */
+/* line 381, ../sass/structuredfun.scss */
 #eventQueueVis li.queued:last-child {
   border-bottom-color: #ff0000;
 }
-/* line 381, ../sass/structuredfun.scss */
+/* line 385, ../sass/structuredfun.scss */
 #eventQueueVis li.hash {
   background-color: #006600;
 }
-/* line 385, ../sass/structuredfun.scss */
+/* line 389, ../sass/structuredfun.scss */
 #eventQueueVis li.scroll {
   background-color: #000066;
 }
-/* line 389, ../sass/structuredfun.scss */
+/* line 393, ../sass/structuredfun.scss */
 #eventQueueVis li .dig3 {
   font-size: 0.6em;
   border: 1px solid #fff;
@@ -401,7 +405,7 @@ html.theme-dark.flow-1 .overlay-holder {
   margin: 0.1em 0.4em 0.1em 0.1em;
 }
 
-/* line 401, ../sass/structuredfun.scss */
+/* line 405, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

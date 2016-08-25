@@ -26,7 +26,7 @@
   };
 
   var getTemplate = function() {
-    var str = '<p class="debug-only"><a href="#" id="header-test-all">{{ title }}</a></p>';
+    var str = '<li class="debug-only"><a href="#" id="header-test-all">{{ title }}</a></li>';
     return str;
   }
 

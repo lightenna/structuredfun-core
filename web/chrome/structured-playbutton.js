@@ -90,7 +90,7 @@
   //
 
   var _getTemplate = function() {
-    var str = '<p><a href="#" id="header-playbutton">{{ title }}</a></p>';
+    var str = '<li><a href="#" id="header-playbutton">{{ title }}</a></li>';
     return str;
   }
 

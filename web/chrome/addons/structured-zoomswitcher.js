@@ -57,7 +57,7 @@
     //
 
     var _getTemplate = function () {
-        var str = '<p><a href="#" id="header-switcher-zoom">{{ title_zoom }}</a> | <a href="#" id="header-switcher-file">{{ title_file }}</a></p>';
+        var str = '<li><a href="#" id="header-switcher-zoom">{{ title_zoom }}</a> | <a href="#" id="header-switcher-file">{{ title_file }}</a></li>';
         return str;
     };
 

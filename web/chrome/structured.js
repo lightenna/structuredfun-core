@@ -869,11 +869,13 @@ window.sfun = (function($, undefined) {
     // fade out header, then setup hover listeners
     $('.header').css('opacity', 0.5).mouseenter(function(event) {
       // animate header open to full screen width
-      $(this).addClass('open').stop(true, false).animate( { width: '100%', opacity: 1.0 }, 100);
+      $(this).stop(true, false).animate( { width: '100%', opacity: 1.0 }, { complete: function() {
+        $(this).addClass('open');
+      } }, 100);
       event.preventDefault();
     }).mouseleave(function(event) {
       // leave header up for 2s, then collapse back down
-      $(this).stop(true, false).delay(2000).animate( { width: '3em', opacity: 0.5}, { complete: function(){
+      $(this).stop(true, false).delay(2000).animate( { width: '3em', opacity: 0.5}, { start: function(){
         $(this).removeClass('open');
       } }, 100);
     });
@@ -881,12 +883,14 @@ window.sfun = (function($, undefined) {
     $('.header').on( { 'touchstart': function() {
       if ($(this).hasClass('open')) {
         // close open header menu
-        $(this).stop(true, false).animate( { width: '3em', opacity: 0.5}, { complete: function(){
+        $(this).stop(true, false).animate( { width: '3em', opacity: 0.5}, { start: function(){
           $(this).removeClass('open');
         } }, 100);
       } else {
         // open menu
-        $(this).addClass('open').stop(true, false).animate( { width: '100%', opacity: 1.0 }, 100);
+        $(this).stop(true, false).animate( { width: '100%', opacity: 1.0 }, { complete: function() {
+          $(this).addClass('open');
+        } }, 100);
       }
     }});
     // horizontal or vertical layout
