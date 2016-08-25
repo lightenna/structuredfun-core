@@ -15,6 +15,7 @@ class MetadataFileReader extends FileReader
     protected $controller = null;
     protected $metadata = null;
     protected $name = null;
+    protected $sorted = false;
 
     public function __construct($filename, $con)
     {
@@ -66,6 +67,16 @@ class MetadataFileReader extends FileReader
     public function setGenericEntry($e)
     {
         $this->entry = $e;
+    }
+
+    public function isSorted()
+    {
+        return ($this->sorted === true);
+    }
+
+    public function setSorted($s)
+    {
+        $this->sorted = $s;
     }
 
     public function dumbreadImageMetadata($imgdata)
@@ -149,16 +160,24 @@ class MetadataFileReader extends FileReader
             }
         }
         if ($this->isDirectory()) {
-            // sort directory based on entry type
-            usort($listing, function ($a, $b) {
-                $typeorder = array('image', 'directory', 'genfile');
-                $refa = array_search($a->getType(), $typeorder);
-                $refb = array_search($b->getType(), $typeorder);
-                if ($refa == $refb) {
-                    return ($a->getName() < $b->getName()) ? -1 : 1;
+            // don't sort internal listings
+            if ($this->isSorted()) {
+                // read metadata if set on this folder
+                FileReader::readSettingsFile($settings, $this->getFilename() . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_METADATA_FILENAME);
+                // default to aA-zZ
+                $sort_order = Constantly::SORT_AZ;
+                // see if we have a sort order defined in the directory metadata file
+                if (isset($settings[Constantly::DIR_METADATA_SECTION])) {
+                    if (isset($settings[Constantly::DIR_METADATA_SECTION]['IconSort'])) {
+                        if ($settings[Constantly::DIR_METADATA_SECTION]['IconSort'] > Constantly::SORT_NONE) {
+                            // if so, use that in preference
+                            $sort_order = $settings[Constantly::DIR_METADATA_SECTION]['IconSort'];
+                        }
+                    }
                 }
-                return ($refa < $refb) ? -1 : 1;
-            });
+                // sort directory based on entry type and arguments
+                usort($listing, $this->getSortFunction($sort_order));
+            }
             // finally add sequence number to each directory entry
             $seq = 0;
             foreach ($listing as $entry) {
@@ -351,6 +370,34 @@ class MetadataFileReader extends FileReader
         // don't rewrite its extension because we don't use that for file access, only for type detection
         // $this->entry->ext = self::getExtension($this->entry->file);
         return $newname;
+    }
+
+    private function getSortFunction($type = Constantly::SORT_AZ)
+    {
+        return (function ($a, $b) use (&$type) {
+            $typeorder = array('image', 'directory', 'genfile');
+            $refa = array_search($a->getType(), $typeorder);
+            $refb = array_search($b->getType(), $typeorder);
+            // if we have two entries of the same type
+            if ($refa == $refb) {
+                switch ($type) {
+                    case Constantly::SORT_ZA :
+                        // invert SORT_AZ
+                        return -1 * strcasecmp($a->getName(), $b->getName());
+                        break;
+                    case Constantly::SORT_RND :
+                        // random
+                        return rand(-1, 1);
+                        break;
+                    case Constantly::SORT_AZ :
+                    default :
+                        // use a natural (caseless) comparison of names
+                        return strcasecmp($a->getName(), $b->getName());
+                        break;
+                }
+            }
+            return ($refa < $refb) ? -1 : 1;
+        });
     }
 
     /**

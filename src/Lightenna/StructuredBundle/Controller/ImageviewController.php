@@ -73,13 +73,9 @@ class ImageviewController extends ViewController
      * returns image metadata
      * include same set of routes as image to shoot for cache hits on metadata request
      *
-     * @Route("/imagemeta/{rawname}", name="lightenna_imagemeta")
      * @Route("/imagemeta/{identifier}", name="lightenna_imagemeta_id")
      * @Route("/imagemeta/{identifier}/", name="lightenna_imagemeta_noreg")
-     * @Route("/imagemeta/{identifier}/{region}/", name="lightenna_imagemeta_nosize")
-     * @Route("/imagemeta/{identifier}/{region}/{size}/", name="lightenna_imagemeta_norot")
-     * @Route("/imagemeta/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagemeta_noqual")
-     * @Route("/imagemeta/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagemeta_full")
+     * @Route("/imagemeta/{identifier}/metadata.json", name="lightenna_imagemeta_noreg_md")
      */
     public function metaAction($identifier, Request $req)
     {
@@ -113,7 +109,11 @@ class ImageviewController extends ViewController
         }
         // serialise metadata to string
         $metadata = $this->entry->serialise();
-        // cache metadata as we would an image
+        // tell cache this is a /file
+        $imagemeta_cachedir = $this->mfr->setupCacheDir('imagemeta');
+        $name = self::convertRawToUrl($this->rawname);
+        // cache directory HTML content (part of response) and always update
+        $this->mfr->cache($metadata, $imagemeta_cachedir . $name . Constantly::DIR_SEPARATOR_URL . Constantly::IMAGE_METADATA_FILENAME . '.' . Constantly::CACHE_FILEEXT, true);
         // return metadata for this object, encoded as json
         print($metadata);
         exit;
@@ -193,7 +193,7 @@ class ImageviewController extends ViewController
             $it->applyFilter();
             $imgdata = $it->getImgdata();
             // cache transformed image
-            $this->mfr->cache($imgdata, false);
+            $this->mfr->cache($imgdata);
         }
         return $imgdata;
     }

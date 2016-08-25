@@ -84,7 +84,7 @@ class ViewControllerTest extends WebTestCase
         // test zip extract from nested folder
         $this->assertEquals($t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/nested/[1]'), $t->convertRawToFilename('structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'));
         // test nth from mixed folder
-        $this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[3]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980000.txt'));
+        $this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980000.txt'));
         // test nth-image from mixed folder
         $this->assertEquals($t->convertRawToFilename('structured/tests/[1]/10-file_folder/[i1]'), $t->convertRawToFilename('structured/tests/data/10-file_folder/00980001.JPG'));
         try {

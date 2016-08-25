@@ -95,7 +95,6 @@ class FileReader
      * Test to see if the file entity is a directory
      * @return boolean True if directory, false if file, null if not present
      */
-
     public function isDirectory()
     {
         if ($this->inZip()) {
@@ -233,7 +232,9 @@ class FileReader
             $entry->setName(rtrim($v_utf8, '/'));
             $entry->setNameOriginalCharset($v);
             // $obj->setName(rtrim($v, '/'));
-            $entry->setAlias($entry->getName());
+            // alias is name without extension
+            $alias = self::stripExtension($entry->getName());
+            $entry->setAlias($alias);
             // if listing just a file
             if ($this->file_part_leaf !== null) {
                 $entry->setPath($this->file_part_path);
@@ -380,9 +381,13 @@ class FileReader
      */
     static function stripExtension($filename)
     {
-        // remove extension and . separator
-        $file_without = substr($filename, 0, strlen($filename) - 1 - strlen(self::getExtension($filename)));
-        return $file_without;
+        // if we have a . (to separate extension)
+        if (strpos($filename, '.') !== false) {
+            // remove extension and . separator
+            $file_without = substr($filename, 0, strlen($filename) - 1 - strlen(self::getExtension($filename)));
+            return $file_without;
+        }
+        return $filename;
     }
 
     /**
@@ -487,6 +492,25 @@ class FileReader
         );
     }
 
+    //
+    // STATIC methods
+    //
+
+    /**
+     * updates global settings object
+     * @param $settings output target to merge settings into
+     * @param $filename Name of settings file to read
+     */
+    static function readSettingsFile(&$settings, $filename)
+    {
+        if (is_file($filename)) {
+            $sets = parse_ini_file($filename, true);
+            if (is_array($settings)) {
+                $settings += $sets;
+            }
+        }
+    }
+
     /**
      * Guess if we're going to have enough memory to load the image
      *  can't test length because it could be highly compressed/compressible
@@ -495,7 +519,6 @@ class FileReader
      * @param string $imgdata
      * @return boolean True if we can load the image
      */
-
     static function checkImageDatastream(&$imgdata)
     {
         if (strlen($imgdata) == 0) {

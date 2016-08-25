@@ -133,6 +133,7 @@ window.sfun = (function($, undefined) {
           // manually swap in data-desrc to src
           $(this).attr('src', $(this).data('desrc'));
         });
+        console.log('Running in explicitly disabled-javascript mode.');
       });
     } else {
       $document.ready(function() {
@@ -866,14 +867,28 @@ window.sfun = (function($, undefined) {
   var bindToHeaderLinks = function() {
     var that = this;
     // fade out header, then setup hover listeners
-    $('.header').css('opacity', 0.5).hover(function(event) {
+    $('.header').css('opacity', 0.5).mouseenter(function(event) {
       // animate header open to full screen width
-      $(this).stop(true, false).animate( { width: '100%', opacity: 1.0 }, 100);
-      event.preventDefault();      
-    }, function(event) {
+      $(this).addClass('open').stop(true, false).animate( { width: '100%', opacity: 1.0 }, 100);
+      event.preventDefault();
+    }).mouseleave(function(event) {
       // leave header up for 2s, then collapse back down
-      $(this).stop(true, false).delay(2000).animate( { width: '3em', opacity: 0.5 }, 100);
+      $(this).stop(true, false).delay(2000).animate( { width: '3em', opacity: 0.5}, { complete: function(){
+        $(this).removeClass('open');
+      } }, 100);
     });
+    // add touchstart event (not click) to open/close menu on mobile devices (without mouseenter/leave)
+    $('.header').on( { 'touchstart': function() {
+      if ($(this).hasClass('open')) {
+        // close open header menu
+        $(this).stop(true, false).animate( { width: '3em', opacity: 0.5}, { complete: function(){
+          $(this).removeClass('open');
+        } }, 100);
+      } else {
+        // open menu
+        $(this).addClass('open').stop(true, false).animate( { width: '100%', opacity: 1.0 }, 100);
+      }
+    }});
     // horizontal or vertical layout
     $('#flow-x').click(function(event) {
       fireTrackEvent('header_x');
@@ -4132,11 +4147,13 @@ window.sfun = (function($, undefined) {
           var velocity = 100;
           var next_pos = current_pos + ((0 - event.deltaY) + event.deltaX) * velocity;
           target = { 'scrollLeft': next_pos };
+        } else {
+          target = null;
         }
         break;
     }
     // only scroll if we've got a target
-    if (target != {}) {
+    if (target !== null) {
       // then crop against viewport
       fireScrollActual(target, animation_length);
       event.preventDefault();

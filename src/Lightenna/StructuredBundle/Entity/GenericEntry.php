@@ -209,22 +209,6 @@ class GenericEntry
         $this->zip_bit = $z;
     }
 
-    /**
-     * DEPRECATED, now use getFile()
-     * @return null|string
-     */
-    public function getFullname()
-    {
-        return $this->getFile();
-
-        if ($this->isZip()) {
-            $fullname = $this->getFile() . Constantly::ZIP_SEPARATOR . $this->getZipBit();
-        } else {
-            $fullname = $this->getFile();
-        }
-        return $fullname;
-    }
-
     public function getSeq()
     {
         return $this->seq;

@@ -22,7 +22,7 @@ define('SUB_REGEX', '/\[([0-9i]*)\]/');
 class ViewController extends Controller
 {
 
-    protected $settings;
+    protected $settings = null;
     // @param Arguments URL arguments
     protected $args;
     // @param FileReader object
@@ -42,9 +42,9 @@ class ViewController extends Controller
     {
         // capture start time for internal timing functions
         $this->timer = new Timer();
-        // process settings
-        $settings_file = $this->convertRawToInternalFilename('conf/structured.ini');
-        $this->settings = parse_ini_file($settings_file, true);
+        // initialise, read then process settings
+        $this->getSettings();
+        MetadataFileReader::readSettingsFile($this->settings, $this->convertRawToInternalFilename('conf/structured.ini'));
         // pull in conf.d settings
         if (isset($this->settings['general'])) {
             if (isset($this->settings['general']['confd'])) {
@@ -114,7 +114,8 @@ class ViewController extends Controller
         return $this->db();
     }
 
-    public function getDoctrine() {
+    public function getDoctrine()
+    {
         return $this->getDoctrine();
     }
 
@@ -129,6 +130,9 @@ class ViewController extends Controller
 
     public function getSettings()
     {
+        if ($this->settings === null) {
+            $this->settings = array();
+        }
         return $this->settings;
     }
 
@@ -225,7 +229,7 @@ class ViewController extends Controller
                 }
             }
         }
-        // search string for nth references [1]
+        // search string for nth references e.g. [1]
         $matches = array();
         // if there are no matches, substitution is same as input
         $subname = $filename;
@@ -249,18 +253,31 @@ class ViewController extends Controller
                 }
                 // subname gets real bit of path (from start, or last match)
                 $subname .= $addition;
-                // find file using that path
-                // strip trailing slash because findFind works off either a directory/zip
-                $matched_leaf = $this->findFile(rtrim($subname, Constantly::DIR_SEPARATOR_URL), $match[0]);
-                // if we couldn't find the first image [iX]
+                // start a series of tests to match the right leaf
+                $matched_path = rtrim($subname, Constantly::DIR_SEPARATOR_URL);
+                $matched_leaf = false;
+                // see if there's a directory metadata file
+                MetadataFileReader::readSettingsFile($this->settings, $matched_path . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_METADATA_FILENAME);
+                if (isset($this->settings[Constantly::DIR_METADATA_SECTION])) {
+                    if (isset($this->settings[Constantly::DIR_METADATA_SECTION]['IconFile'])) {
+                        $matched_leaf = $this->settings[Constantly::DIR_METADATA_SECTION]['IconFile'];
+                    }
+                }
+                // else, find file using path and match (e.g. [i1])
+                if ($matched_leaf === false) {
+                    // strip trailing slash because findFind works off either a directory/zip
+                    $matched_leaf = $this->findFile($matched_path, $match[0]);
+                }
+                // else, if we couldn't find the first image [iX]
                 if (($matched_leaf === false) && ($match[0][0] == 'i')) {
                     // try to search under first entity [1] (top-level dir zip case)
-                    $matched_leaf = $this->findFile(rtrim($subname, Constantly::DIR_SEPARATOR_URL), 1);
+                    $matched_leaf = $this->findFile($matched_path, 1);
                     if ($matched_leaf !== false) {
                         // if we found a first entity, append it to subname
                         $subname .= $matched_leaf . Constantly::DIR_SEPARATOR_URL;
+                        $matched_path = rtrim($subname, Constantly::DIR_SEPARATOR_URL);
                         // then search again for the original [iX]
-                        $matched_leaf = $this->findFile(rtrim($subname, Constantly::DIR_SEPARATOR_URL), $match[0]);
+                        $matched_leaf = $this->findFile($matched_path, $match[0]);
                     }
                 }
                 // check if we found anything
@@ -345,6 +362,8 @@ class ViewController extends Controller
     {
         // convert utf8 to iso-8859-1
         $name = iconv("utf-8", "iso-8859-1//ignore", $name);
+        // strip off index.html if set
+        $name = preg_replace('/'.Constantly::DIR_INDEX_FILENAME.'$/', '', $name);
         // swap out slash alias notation
         $name = CachedMetadataFileReader::reverse_hash($name);
         // strip trailing slash
@@ -460,7 +479,12 @@ class ViewController extends Controller
 
     static function convertRawToUrl($name)
     {
-        return Constantly::DIR_SEPARATOR_URL . trim($name, Constantly::DIR_SEPARATOR_URL);
+        // strip off index.html if set
+        $name = preg_replace('/'.Constantly::DIR_INDEX_FILENAME.'$/', '', $name);
+        // strip slash from both ends
+        $name = trim($name, Constantly::DIR_SEPARATOR_URL);
+        // return with starting slash only
+        return Constantly::DIR_SEPARATOR_URL . $name;
     }
 
     static function serialiseListing($listing)

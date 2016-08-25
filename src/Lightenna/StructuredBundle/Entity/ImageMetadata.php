@@ -292,7 +292,7 @@ class ImageMetadata
         foreach ($candidate as $k => $v) {
             // only set values if unset or forced
             if ($v && (is_null($this->{$k}) || $force)) {
-                $this->{$k} = $v;
+                $this->{$k} = self::filterUtf8($v);
             }
         }
     }
@@ -637,6 +637,11 @@ class ImageMetadata
     static function getIgnoredAttributes()
     {
         return array('defaults', 'originalSource', 'originalSourceFilename', 'ignoredAttributes', 'normalsHTML');
+    }
+
+    static function filterUtf8($v) {
+        $v_utf8 = iconv(mb_detect_encoding($v, mb_detect_order(), true), "UTF-8", $v);
+        return $v_utf8;
     }
 
 }

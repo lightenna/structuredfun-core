@@ -97,7 +97,7 @@ class ImageTransform
      */
     private function cacheInterim($imgdata)
     {
-        $this->mfr->cache($imgdata, false);
+        $this->mfr->cache($imgdata);
     }
 
     /**

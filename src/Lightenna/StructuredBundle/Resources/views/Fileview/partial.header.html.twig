@@ -37,13 +37,14 @@
 <link href="/chrome/stylesheets/overflow.css" media="screen, projection" rel="stylesheet" type="text/css" />
 <link href="/chrome/vendor/qunit/qunit-1.14.0.min.css" media="screen, projection" rel="stylesheet" type="text/css" />
 <link href="/chrome/vendor/ionicons/css/ionicons.css" media="screen, projection" rel="stylesheet" type="text/css" />
+<meta name="viewport" content="{% if (direction is defined) and (direction == 'y') %}width=device-width{% else %}height=device-height{% endif %}, initial-scale=1.0, minimum-scale=1.0">
 {# include any header additions that the AddOnBundle needs #}
 {{ include('LightennaStructuredAddonBundle:Common:partial.header-additions.html.twig', ignore_missing = true) }}
 </head>
 <body>
 <div class="page">
   <ul class="header">
-    <li class="menu icon ion-navicon-round"></li>
+    <li class="menu icon"><a href="#" id="menu-icon" class="ion-navicon-round"></a></li>
     <li><a id="flow-x" href="#">Horizontal</a> | <a id="flow-y" href="#">Vertical</a></li>
     <li><a id="theme-light" href="#">Light</a> | <a id="theme-dark" href="#">Dark</a></li>
     <li><a id="flow-1" href="#">1</a> | <a id="flow-2" href="#">2</a> | <a id="flow-4" href="#">4</a> | <a id="flow-8" href="#">8</a></li>

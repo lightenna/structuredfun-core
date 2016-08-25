@@ -131,38 +131,37 @@ class CachedMetadataFileReader extends MetadataFileReader
 
     /**
      * Store the imgdata in the cache if the cache is enabled
-     * @param string $imgdata
-     * @param boolean $reread_metadata
+     * @param string $data
      * @return true if written to cache
      */
-    public function cache(&$imgdata, $reread_metadata = true)
+    public function cache(&$data, $filename = null, $force = false)
     {
         if ($this->cacheIsEnabled()) {
-            if ($reread_metadata) {
-                // unless told not to, read metadata from imgdata stream
-                $this->readImageMetadata($imgdata);
+            // if filename is not set
+            if ($filename === null) {
+                // derive full filename from cachekey
+                $filename = $this->getFilename($this->entry->getCacheKey());
             }
-            // either way update the metadata object with image's current entry data
-            $this->metadata->ingestGenericEntry($this->entry);
-            // derive full filename from cachekey
-            $filename = $this->getFilename($this->entry->getCacheKey());
-            // only cache the file if it's not already in the cache
-            if (!$this->existsInCache($filename)) {
+            // only cache the file if it's not already in the cache, or force it through
+            if (!$this->existsInCache($filename) || $force) {
                 // detect directory separators in filename
-                if (strpos($this->entry->getCacheKey(), Constantly::DIR_SEPARATOR_URL) !== false) {
-                    if (!file_exists(dirname($filename))) {
-                        // @because will still fail for long filenames on Windows
-                        $partial = FileReader::protectLongFilename(dirname($filename));
-                        @mkdir($partial, 0777, true);
-                    }
+                if (!file_exists(dirname($filename))) {
+                    // @because will still fail for long filenames on Windows
+                    $partial = FileReader::protectLongFilename(dirname($filename));
+                    @mkdir($partial, 0777, true);
                 }
                 // write out file
-                $this->cacheRawData($filename, $imgdata);
-                if ($this->fileCanHoldMetadata()) {
-                    $this->metadata->write($filename);
-                } else {
-                    // serialize to text file
-                    file_put_contents($this->getMetaFilename($filename), $this->metadata->serialize());
+                $this->cacheRawData($filename, $data);
+                // if we're caching an image file entry, and we're not actually saving the image itself
+                if ($this->entry->isImage() && ($filename == $this->getFilename($this->entry->getCacheKey()))) {
+                    // update the metadata object with image's current entry data
+                    $this->metadata->ingestGenericEntry($this->entry);
+                    if ($this->fileCanHoldMetadata()) {
+                        $this->metadata->write($filename);
+                    } else {
+                        // serialize to text file
+                        file_put_contents($this->getMetaFilename($filename), $this->metadata->serialize());
+                    }
                 }
                 return true;
             }
@@ -229,6 +228,9 @@ class CachedMetadataFileReader extends MetadataFileReader
         if ($this->args !== null) {
             $key .= $this->args->getArgString();
         }
+
+        // special processing for /index.html files because they're really directories
+        $key = str_replace(Constantly::DIR_SEPARATOR_ALIAS . Constantly::DIR_INDEX_FILENAME, Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME, $key);
 
         // add .dat to end of the key (filename)
         $key .= '.' . Constantly::CACHE_FILEEXT;
@@ -352,7 +354,7 @@ class CachedMetadataFileReader extends MetadataFileReader
             $it->applyFilter();
             $imgdata = $it->getImgdata();
             // cache transformed image
-            $mfr->cache($imgdata, false);
+            $mfr->cache($imgdata);
         }
     }
 

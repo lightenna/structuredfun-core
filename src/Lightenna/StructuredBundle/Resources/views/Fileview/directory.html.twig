@@ -9,10 +9,10 @@
 {% for file in dirlisting %}
 {% if file.type == 'directory' %}
   <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type" data-seq="{{ file.seq }}">
-    <a class="container directory-container directory-outer clickable" href="/file/{{ linkpath }}{{ file.name }}/">
+    <a class="container directory-container directory-outer clickable" href="/file/{{ linkpath }}{{ file.name }}/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::DIR_INDEX_FILENAME') }}">
       <img id="imgseq-{{ file.seq }}" class="loadable reresable boundable {{ file.metadata.orientation }}-bound selectreflector"
           alt="directory preview thumbnail"
-          data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!200,200/0/native.jpg"
+          data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_METADATA_FILENAME') }}"
           data-desrc="/image/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!200,200/0/native.jpg"
           data-template-src="/image/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/native.jpg"
           {% if file.metadata.Status is defined %}data-status="{{ file.metadata.Status }}" {% endif %}
@@ -23,8 +23,8 @@
           data-seq="{{ file.seq }}" />
       <span class="meta">
         <span class="base">
-          <span class="iptc iptc_headline">{{ file.alias|e }}</span>
-          {% if file.subfolderCount is not null %}<span class="iptc iptc_byline">{{ file.subfolderCount }} assets</span>{% endif %}
+          <span class="iptc iptc_headline">{{ file.alias | e | replace({'_': ' '}) | title }}</span>
+          {% if file.subfolderCount is not null and file.subfolderCount > 0 %}<span class="iptc iptc_byline">{{ file.subfolderCount }} assets</span>{% endif %}
         </span>
       </span>
     </a>
@@ -36,7 +36,7 @@
       <img class="loadable reresable boundable {{ file.metadata.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"
            {# metadata source, same as thumbnail so we get a cache hit #}
-           data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}/full/!200,200/0/native.jpg"
+           data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_METADATA_FILENAME') }}"
            {# thumbnail source when first loaded #}
            data-desrc="/image/{{ linkaliased }}{{ file.name }}/full/!200,200/0/native.jpg"
            {# thumbnail source for dynamic reresing #}
