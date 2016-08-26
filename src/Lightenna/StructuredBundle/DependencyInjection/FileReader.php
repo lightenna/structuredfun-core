@@ -130,6 +130,10 @@ class FileReader
         if (($v[0] == '.') || ($v == Constantly::FOLDER_NAME) || ($v == Constantly::LINK_NAME)) {
             return true;
         }
+        // ignore selected OS files
+        if (($v == Constantly::DIR_METADATA_FILENAME)) {
+            return true;
+        }
         return false;
     }
 

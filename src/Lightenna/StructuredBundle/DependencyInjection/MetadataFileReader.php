@@ -315,7 +315,7 @@ class MetadataFileReader extends FileReader
     {
         $name = $entry->getName();
         $entry->setExt(self::getExtension($name));
-        // catch hidden files
+        // catch hidden files (not . or .. because removed upstream)
         if ($name[0] == '.') {
             $entry->setHidden(true);
         }

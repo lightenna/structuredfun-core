@@ -13,8 +13,8 @@
       <img id="imgseq-{{ file.seq }}" class="loadable reresable boundable {{ file.metadata.orientation }}-bound selectreflector"
           alt="directory preview thumbnail"
           data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_METADATA_FILENAME') }}"
-          data-desrc="/image/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!200,200/0/native.jpg"
-          data-template-src="/image/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/native.jpg"
+          data-desrc="/image/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!200,200/0/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_DEFAULT_FILENAME') }}"
+          data-template-src="/image/{{ linkaliased }}{{ file.name }}{{ dirsep }}[i1]/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_DEFAULT_FILENAME') }}"
           {% if file.metadata.Status is defined %}data-status="{{ file.metadata.Status }}" {% endif %}
           {% if file.metadata.Ratio is not null %}data-ratio="{{ file.metadata.Ratio }}" {% endif %}
           {% if file.EntryLayout is not null %}{{ file.EntryLayout.NormalsHtml|raw }}{% endif %}
@@ -38,9 +38,9 @@
            {# metadata source, same as thumbnail so we get a cache hit #}
            data-meta-src="/imagemeta/{{ linkaliased }}{{ file.name }}/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_METADATA_FILENAME') }}"
            {# thumbnail source when first loaded #}
-           data-desrc="/image/{{ linkaliased }}{{ file.name }}/full/!200,200/0/native.jpg"
+           data-desrc="/image/{{ linkaliased }}{{ file.name }}/full/!200,200/0/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_DEFAULT_FILENAME') }}"
            {# thumbnail source for dynamic reresing #}
-           data-template-src="/image/{{ linkaliased }}{{ file.name }}{% if file.type == 'video' %}{{ argsbase }}{% verbatim %}timecode={{ timecode }}{% endverbatim %}{% endif %}/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/native.jpg"
+           data-template-src="/image/{{ linkaliased }}{{ file.name }}{% if file.type == 'video' %}{{ argsbase }}{% verbatim %}timecode={{ timecode }}{% endverbatim %}{% endif %}/full/!{% verbatim %}{{ maxwidth }},{{ maxheight }}{% endverbatim %}/0/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_DEFAULT_FILENAME') }}"
       {% if (file.type == 'video') %}
            {# video source #}
            data-video-src="/file/{{ linkaliased }}{{ file.name }}"
@@ -56,7 +56,7 @@
 #}
            data-loaded="false"
            data-seq="{{ file.seq }}" />
-      <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image/{{ linkaliased }}{{ file.name }}/full/!200,200/0/native.jpg" alt="image thumbnail for {{ file.alias}}" /></noscript>
+      <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image/{{ linkaliased }}{{ file.name }}/full/!200,200/0/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_DEFAULT_FILENAME') }}" alt="image thumbnail for {{ file.alias}}" /></noscript>
       <span class="meta">
         <span class="base">
           <span class="imgmetric super"><span class="size"><span class="width">{% if file.metadata.LoadedWidth is not null %}{{ file.metadata.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.metadata.LoadedHeight is not null %}{{ file.metadata.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>

@@ -58,4 +58,30 @@ class FileReaderTest extends WebTestCase
         $this->assertEquals($fr->getFilename(), $t->convertRawToFilename('/structured/tests/data/10-file_folder/00980001.JPG'));
     }
 
+    public function testExcludedFile()
+    {
+        $t = new ViewController();
+        $fr = new FileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/'), $t);
+        $listing = $fr->getListing();
+        $this->assertEquals(true, count($listing) > 0);
+        foreach ($listing as $key => $entry) {
+            $this->assertNotEquals($entry->getName(), Constantly::DIR_METADATA_FILENAME);
+        }
+    }
+
+    public function testIndexRead()
+    {
+        $t = new ViewController();
+        $fr = new FileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/'), $t);
+        $listing_slash = $fr->getListing();
+        // check we got entries
+        $this->assertEquals(true, count($listing_slash) > 0);
+        $fr = new FileReader($t->convertRawToFilename('/structured/tests/data/10-file_folder/' . Constantly::DIR_INDEX_FILENAME), $t);
+        $listing_index = $fr->getListing();
+        // check we got the same entries
+        $this->assertEquals(true, count($listing_index) > 0);
+        $this->assertEquals(count($listing_slash), count($listing_index));
+        $this->assertEquals(reset($listing_slash)->getName(), reset($listing_index)->getName());
+    }
+
 }

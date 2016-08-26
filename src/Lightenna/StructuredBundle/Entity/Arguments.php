@@ -45,7 +45,7 @@ class Arguments
         if ($this->hasMaxHeight()) {
             $argstr .= '' . $this->getMaxHeight();
         }
-        $argstr .= $separator . '0' . $separator . 'native.jpg';
+        $argstr .= $separator . '0' . $separator . Constantly::IMAGE_DEFAULT_FILENAME;
         return $argstr;
     }
 

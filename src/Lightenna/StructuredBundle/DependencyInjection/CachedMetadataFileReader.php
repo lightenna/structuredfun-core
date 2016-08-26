@@ -199,6 +199,7 @@ class CachedMetadataFileReader extends MetadataFileReader
             default :
                 return true;
             case 'gif' :
+            case 'png' :
                 return false;
         }
     }
@@ -461,7 +462,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                                     if ($this->isIgnorableListingEntry($subcandidate)) {
                                         continue;
                                     }
-                                    if (substr($subcandidate, -8) == ('.jpg.' . Constantly::CACHE_FILEEXT)) {
+                                    if (substr($subcandidate, -8) == ('.' . Constantly::IMAGE_DEFAULT_FILENAME_EXT . '.' . Constantly::CACHE_FILEEXT)) {
                                         $availables[$width_key] = $candidate_path . $subcandidate;
                                         // only store one candidate per width (there will probably only be 1)
                                         break;
@@ -539,7 +540,7 @@ class CachedMetadataFileReader extends MetadataFileReader
     {
         $logfile = $this->cachedir . '_readlog.txt';
         if (($fp = @fopen($logfile, 'a')) !== false) {
-            @fputs($fp, $filename."\r\n");
+            @fputs($fp, $filename . "\r\n");
             @fclose($fp);
         }
     }
