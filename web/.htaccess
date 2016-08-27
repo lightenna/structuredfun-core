@@ -6,6 +6,9 @@
 DirectoryIndex app.php
 # DirectoryIndex app_dev.php
 
+# add handler for index.html.dat files
+AddType text/html .dat
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
