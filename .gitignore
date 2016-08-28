@@ -30,8 +30,7 @@ web/chrome/.sass-cache
 composer.phar
 
 # Ignore mediacache files (now that the directory exists)
-web/mediacache/image/*
+web/mediacache/*
 web/mediacache/image/.writeable.txt
-web/mediacache/layout/*
 web/mediacache/layout/.writeable.txt
 
