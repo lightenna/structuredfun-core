@@ -127,16 +127,18 @@ class ImageviewControllerTest extends WebTestCase
         $localmfr = new CachedMetadataFileReader(null, $t);
         // take snapshot at 00:00:09.0
         $outputname = $t->takeSnapshot('00:00:09.0', $localmfr->getFilename($leaf));
-        // read the snapshot from 00:00:09.0
-        $frame9s = file_get_contents($outputname);
-        $this->assertNotEquals($frame10s, $frame9s);
-        // check that both snapshots are not the error image
-        $rawerrorimg = $t->loadErrorImage();
-        $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getGenericEntryFromListingHead());
-        $it->applyFilter();
-        $errorimg = $it->getImgdata();
-        $this->assertNotEquals($frame10s, $errorimg);
-        $this->assertNotEquals($frame9s, $errorimg);
+        if ($outputname) {
+            // read the snapshot from 00:00:09.0
+            $frame9s = file_get_contents($outputname);
+            $this->assertNotEquals($frame10s, $frame9s);
+            // check that both snapshots are not the error image
+            $rawerrorimg = $t->loadErrorImage();
+            $it = new ImageTransform($t->getArgs(), $rawerrorimg, $t->getGenericEntryFromListingHead());
+            $it->applyFilter();
+            $errorimg = $it->getImgdata();
+            $this->assertNotEquals($frame10s, $errorimg);
+            $this->assertNotEquals($frame9s, $errorimg);
+        }
     }
 
     public function testPlatformImageLimits()
