@@ -140,7 +140,7 @@ class ImageviewControllerTest extends WebTestCase
     public function testPlatformImageLimits()
     {
         // expand memory limit for tests
-        ini_set('memory_limit', '128M');
+        ini_set('memory_limit', '140M');
         // progressively test larger images
         // 1MP
         $this->assertNotEquals($img = imagecreatetruecolor(1 * 1000, 1 * 1000), null);
@@ -154,7 +154,7 @@ class ImageviewControllerTest extends WebTestCase
         // 24MP
         $this->assertNotEquals($img = imagecreatetruecolor(4.9 * 1000, 4.9 * 1000), null); // limit of PHP @ 128M
         imagedestroy($img);
-        if (intval(ini_get('memory_limit')) <= 128) return;
+        if (intval(ini_get('memory_limit')) <= 140) return;
         // 25MP
         $this->assertNotEquals($img = imagecreatetruecolor(5 * 1000, 5 * 1000), null);
         imagedestroy($img);
