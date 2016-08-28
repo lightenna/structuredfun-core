@@ -138,6 +138,8 @@ class ImageviewControllerTest extends WebTestCase
             $errorimg = $it->getImgdata();
             $this->assertNotEquals($frame10s, $errorimg);
             $this->assertNotEquals($frame9s, $errorimg);
+        } else {
+            print("\r\n".'testTakeSnapshot skipped because ffmpeg is not installed/configured'."\r\n");
         }
     }
 
