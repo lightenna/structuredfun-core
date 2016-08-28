@@ -15,6 +15,7 @@ class Constantly
     const IMAGE_METADATA_FILENAME = 'metadata.json';
     const IMAGE_DEFAULT_FILENAME = 'native.img';
     const IMAGE_DEFAULT_FILENAME_EXT = 'img';
+    const IMAGE_ERROR_FILENAME = 'htdocs/web/chrome/images/fullres/missing_image.jpg';
     const IMAGE_STATUS_ERROR = -2;     // unable to open image at all
     const IMAGE_STATUS_DIRECTORY = -2; // entry is a directory
     const IMAGE_STATUS_MISSING = -1;   // cached image not found

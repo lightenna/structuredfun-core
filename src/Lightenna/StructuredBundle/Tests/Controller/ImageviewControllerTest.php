@@ -115,6 +115,8 @@ class ImageviewControllerTest extends WebTestCase
     public function testTakeSnapshot()
     {
         $t = new ImageviewController();
+        // skip test if we can't reach ffmpeg
+
         // prime the controller with the video URL, generate thumbnail at 00:00:10.0
         $frame10s = $t->imageAction(
             'structured/tests/data/40-video_folder/nasa-solar-flare-64x64.m4v',

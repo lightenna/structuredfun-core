@@ -246,6 +246,11 @@ class ImageviewController extends ViewController
         $time = str_replace('-', ':', $time);
         // get path to ffmpeg executable/binary
         $path_ffmpeg = $this->settings['general']['path_ffmpeg'];
+        // test to see if ffmpeg is enabled on this host
+        if (!$path_ffmpeg) {
+            // false flags error to caller
+            return false;
+        }
         // escape arguments (minus flags)
         $shell_filename = escapeshellarg($this->entry->getFileOriginal());
         $shell_output = escapeshellarg($outputname);
@@ -307,7 +312,7 @@ class ImageviewController extends ViewController
         // flag that an error has occurred
         $this->args->setError(true);
         // return error image
-        return file_get_contents($this->convertRawToInternalFilename('htdocs/web/chrome/images/fullres/missing_image.jpg'));
+        return file_get_contents($this->convertRawToInternalFilename(Constantly::IMAGE_ERROR_FILENAME));
     }
 
 }
