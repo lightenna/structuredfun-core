@@ -2058,33 +2058,47 @@ window.sfun = (function ($, undefined) {
     /**
      * change up a directory
      */
-    var urlChangeUp = function () {
-        var url = window.location.href;
+    var urlChangeUp = function (url) {
         var lastChar = url.length;
         // if we use a hash, start backwards from there
         var lastHash = url.lastIndexOf('#');
         if (lastHash != -1) {
             lastChar = lastHash - 1;
         }
+        // check for a '/index.html' string immediately prior to the hash
+        var last_eleven = url.substring(lastChar - 11 + 1, lastChar + 1);
+        if (last_eleven == '/index.html') {
+            lastChar -= 11;
+        }
         // check for a / immediately prior to the hash
-        if (url[lastChar] == '/') {
+        if (url[lastChar - 1] == '/') {
             lastChar--;
         }
         // search backwards from lastChar to find preceding slash
-        var previousSlash = url.lastIndexOf('/', lastChar);
+        var previousSlash = url.lastIndexOf('/', lastChar - 1);
         // search backwards from lastChar to find preceding ~2F
-        var previousAliasedSlash = url.lastIndexOf('~2F', lastChar);
+        var previousAliasedSlash = url.lastIndexOf('~2F', lastChar - 1);
         if (previousSlash < previousAliasedSlash) {
             // if an aliased slash nearer the end, use that instead
             previousSlash = previousAliasedSlash;
         }
         if (previousSlash != -1) {
             // new URL should include slash
-            var newUrl = url.substring(0, previousSlash) + '/';
+            var new_url = url.substring(0, previousSlash) + '/';
+            // catch recursive case where URL isn't changing
+            if (url == new_url) {
+                return false;
+            }
+            // catch nested zip case
+            var last_four = new_url.substring(previousSlash - 4, previousSlash);
+            if (last_four == '.zip') {
+                // recurse up from zip
+                return urlChangeUp(new_url);
+            }
             // append filtered hash
             var filteredHash = getFilteredHash();
             // redirect to new page
-            urlGoto(newUrl + exp.stringHASHBANG + filteredHash);
+            urlGoto(new_url + exp.stringHASHBANG + filteredHash);
         }
         return false;
     };
@@ -4029,7 +4043,7 @@ window.sfun = (function ($, undefined) {
             case exp.KEY_ARROW_UP:
                 if (event.altKey) {
                     event.preventDefault();
-                    urlChangeUp();
+                    urlChangeUp(window.location.href);
                 } else {
                     event.preventDefault();
                     fireTrackEvent('key_arrow_up');
