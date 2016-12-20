@@ -2,217 +2,217 @@
  * StructuredFun javascript
  * metaedit: image metadata editing
  */
-(function($, sfun, undefined) {
+(function ($, sfun, undefined) {
 
-  // ---------
-  // CONSTANTS
-  // ---------
+    // ---------
+    // CONSTANTS
+    // ---------
 
-  var debug = true;
-  var $document = $(document);
+    var debug = true;
+    var $document = $(document);
 
-  // -----
-  // STATE
-  // -----
+    // -----
+    // STATE
+    // -----
 
-  var editing_metadata = false;
+    var editing_metadata = false;
 
-  // ---------
-  // FUNCTIONS
-  // ---------
+    // ---------
+    // FUNCTIONS
+    // ---------
 
-  var init = function() {
-    var obj = {
-      'context' : this,
-      'key' : 'metaedit',
-      'receiverRegistered' : mde_receiverRegistered,
-      'receiverImageClicked' : mde_receiverImageClicked,
-      'receiverKeyPressed' : mde_receiverKeyPressed,
+    var init = function () {
+        var obj = {
+            'context': this,
+            'key': 'metaedit',
+            'receiverRegistered': mde_receiverRegistered,
+            'receiverImageClicked': mde_receiverImageClicked,
+            'receiverKeyPressed': mde_receiverKeyPressed,
+        };
+        // not sure of init order, so push async
+        sfun.push('registerTool', obj);
     };
-    // not sure of init order, so push async
-    sfun.push('registerTool', obj);
-  };
 
-  /**
-   * called by sfun when ready
-   */
-  var mde_receiverRegistered = function() {
-    // no actions
-  }
+    /**
+     * called by sfun when ready
+     */
+    var mde_receiverRegistered = function () {
+        // no actions
+    }
 
-  /**
-   * process a click on an image
-   * downstream of: EVENT image click, HANDLER image click
-   * @param {object} event raw DOM event
-   * @param {object} $ent jQuery object
-   * @param {string} selector (type.class) for the click target
-   */
-  var mde_receiverImageClicked = function(event, $ent, selector) {
-    switch (selector) {
-      case 'input':
-      case 'textarea':
-        // leave form elements alone
-        // stop the click from bubbling up
-        event.preventDefault();
-        break;
-      case 'span.editable':
-        // if editing, a click elsewhere terminates the edit
-        if (editing_metadata !== false) {
-          _imageTeardownEdit(editing_metadata);
+    /**
+     * process a click on an image
+     * downstream of: EVENT image click, HANDLER image click
+     * @param {object} event raw DOM event
+     * @param {object} $ent jQuery object
+     * @param {string} selector (type.class) for the click target
+     */
+    var mde_receiverImageClicked = function (event, $ent, selector) {
+        switch (selector) {
+            case 'input':
+            case 'textarea':
+                // leave form elements alone
+                // stop the click from bubbling up
+                event.preventDefault();
+                break;
+            case 'span.editable':
+                // if editing, a click elsewhere terminates the edit
+                if (editing_metadata !== false) {
+                    _imageTeardownEdit(editing_metadata);
+                }
+                // setup edit
+                var seq = $ent.data('seq');
+                _imageSetupEdit(seq);
+                // stop the click from bubbling up
+                event.sfun_active = false;
+                event.preventDefault();
+                break;
+            default:
+                // if editing, a click elsewhere terminates the edit
+                if (editing_metadata !== false) {
+                    _imageTeardownEdit(editing_metadata);
+                }
+                // but don't ignore the click
+                break;
         }
-        // setup edit
-        var seq = $ent.data('seq');
-        _imageSetupEdit(seq);
+    };
+
+    /**
+     * process a form submit
+     * @param {object} event raw DOM event
+     */
+    var mde_receiverSubmit = function (event) {
+        if (editing_metadata !== false) {
+            var $ent = sfun.api_$cell(editing_metadata);
+            var $form = $('#metaform');
+            var $reresable = $ent.cachedFind('.reresable');
+            if ($reresable.length && $reresable.data('meta-src')) {
+                // submit metadata form for update action
+                $.ajax({
+                    type: "post",
+                    url: $reresable.data('meta-src'),
+                    data: $form.serialize(),
+                    dataType: 'json',
+                })
+                    .done(function (data, textStatus, jqXHR) {
+                        // apply data to fields, in case it's been changed
+                        sfun.api_refreshMetadataApplyToFields($ent, data);
+                        // close up the form
+                        _imageTeardownEdit(editing_metadata);
+                    });
+            }
+        }
         // stop the click from bubbling up
         event.sfun_active = false;
         event.preventDefault();
-        break;
-      default:
-        // if editing, a click elsewhere terminates the edit
+        return;
+    }
+
+    /**
+     * process events generated by key presses
+     * downstream of: EVENT key pressed, HANDLER key pressed
+     * @return {object} jQuery deferred
+     */
+    var mde_receiverKeyPressed = function (event, eventContext) {
         if (editing_metadata !== false) {
-          _imageTeardownEdit(editing_metadata);
+            // ignore all key presses if editing
+            event.sfun_active = false;
         }
-        // but don't ignore the click
-        break;
-    }
-  };
-
-  /**
-   * process a form submit
-   * @param {object} event raw DOM event
-   */
-  var mde_receiverSubmit = function(event) {
-    if (editing_metadata !== false) {
-      var $ent = sfun.api_$cell(editing_metadata);
-      var $form = $('#metaform');
-      var $reresable = $ent.cachedFind('.reresable');
-      if ($reresable.length && $reresable.data('meta-src')) {
-        // submit metadata form for update action
-        $.ajax({
-          type: "post",
-          url: $reresable.data('meta-src'),
-          data: $form.serialize(),
-          dataType: 'json',
-        })
-        .done(function(data, textStatus, jqXHR) {
-          // apply data to fields, in case it's been changed
-          sfun.api_refreshMetadataApplyToFields($ent, data);
-          // close up the form
-          _imageTeardownEdit(editing_metadata);
-        });
-      }
-    }
-    // stop the click from bubbling up
-    event.sfun_active = false;
-    event.preventDefault();
-    return;
-  }
-
-  /**
-   * process events generated by key presses
-   * downstream of: EVENT key pressed, HANDLER key pressed
-   * @return {object} jQuery deferred
-   */
-  var mde_receiverKeyPressed = function(event, eventContext) {
-    if (editing_metadata !== false) {
-      // ignore all key presses if editing
-      event.sfun_active = false;
-    }
-    // process key press
-    switch (event.which) {
-      case sfun.KEY_RETURN:
-        if (editing_metadata !== false) {
-          // submit metadata form for update action
-          mde_receiverSubmit(event);
+        // process key press
+        switch (event.which) {
+            case sfun.KEY_RETURN:
+                if (editing_metadata !== false) {
+                    // submit metadata form for update action
+                    mde_receiverSubmit(event);
+                }
+                event.preventDefault();
+                break;
         }
-        event.preventDefault();
-        break;
+        return null;
     }
-    return null;
-  }
 
-  //
-  // FUNCTIONS: Helpers
-  // begin _
-  //
+    //
+    // FUNCTIONS: Helpers
+    // begin _
+    //
 
-  /**
-   * setup an image metadata editing form for this image
-   * @param {int} seq image to edit
-   */
-  var _imageSetupEdit = function(seq) {
-    var $root = sfun.api_$cell(seq).addClass('editing');
-    var $form = $('#metaform');
-    // setup fields to edit
-    var fields = sfun.api_getMetadataFieldNames();
-    // substitute values
-    for (var i=0 ; i<fields.length ; ++i) {
-      var key = fields[i];
-      var value;
-      switch (key) {
-        case 'iptcHeadline':
-        case 'iptcByline':
-          value = $root.cachedFind('.'+key).html();
-          break;
-        case 'iptcCaption':
-        case 'iptcCopyright':
-        case 'iptcKeywords':
-        case 'iptcSource':
-          value = $root.cachedFind('.'+key).attr('title');
-          break;
+    /**
+     * setup an image metadata editing form for this image
+     * @param {int} seq image to edit
+     */
+    var _imageSetupEdit = function (seq) {
+        var $root = sfun.api_$cell(seq).addClass('editing');
+        var $form = $('#metaform');
+        // setup fields to edit
+        var fields = sfun.api_getMetadataFieldNames();
+        // substitute values
+        for (var i = 0; i < fields.length; ++i) {
+            var key = fields[i];
+            var value;
+            switch (key) {
+                case 'iptcHeadline':
+                case 'iptcByline':
+                    value = $root.cachedFind('.' + key).html();
+                    break;
+                case 'iptcCaption':
+                case 'iptcCopyright':
+                case 'iptcKeywords':
+                case 'iptcSource':
+                    value = $root.cachedFind('.' + key).attr('title');
+                    break;
+            }
+            // set value to form element
+            $form.cachedFind('input#form_' + key).val(value);
         }
-      // set value to form element
-      $form.cachedFind('input#form_'+key).val(value);
-    }
-    // hide displayed metadata (in spans)
-    $root.cachedFind('.meta > .base').hide();
-    // bind to submit
-    $form.submit(mde_receiverSubmit);
-    // move form (don't clone) because it's full of #ids
-    $root.append($form);
-    // put the caret in the headline box
-    _fieldPutCursorAtEnd($form.cachedFind('.iptcHeadline'));
-    // flag that we're editing
-    editing_metadata = seq;
-  };
+        // hide displayed metadata (in spans)
+        $root.cachedFind('.meta > .base').hide();
+        // bind to submit
+        $form.submit(mde_receiverSubmit);
+        // move form (don't clone) because it's full of #ids
+        $root.append($form);
+        // put the caret in the headline box
+        _fieldPutCursorAtEnd($form.cachedFind('.iptcHeadline'));
+        // flag that we're editing
+        editing_metadata = seq;
+    };
 
-  /**
-   * tear down an image metadata editing form for this image
-   */
-  var _imageTeardownEdit = function() {
-    var seq = editing_metadata;
-    var $root = sfun.api_$cell(seq).removeClass('editing');
-    var $form = $('#metaform');
-    // move form (don't clone) back to its invisible holder
-    $('#metadata_form_sleeve').append($form);
-    // remove the handler
-    $form.unbind('submit');
-    // re-show displayed metadata (in spans)
-    $root.cachedFind('.meta > .base').show();
-    // flag that we're no longer editing an image
-    editing_metadata = false;
-  };
+    /**
+     * tear down an image metadata editing form for this image
+     */
+    var _imageTeardownEdit = function () {
+        var seq = editing_metadata;
+        var $root = sfun.api_$cell(seq).removeClass('editing');
+        var $form = $('#metaform');
+        // move form (don't clone) back to its invisible holder
+        $('#metadata_form_sleeve').append($form);
+        // remove the handler
+        $form.unbind('submit');
+        // re-show displayed metadata (in spans)
+        $root.cachedFind('.meta > .base').show();
+        // flag that we're no longer editing an image
+        editing_metadata = false;
+    };
 
-  /**
-   * put cursor at the end of an input field
-   * based on http://css-tricks.com/snippets/jquery/move-cursor-to-end-of-textarea-or-input/
-   * @param {object} $field jQuery field
-   */
-  var _fieldPutCursorAtEnd = function($field) {
-    var element = $field[0];
-    $field.focus();
-    // use setSelectionRange if it exists (not in IE)
-    if (element.setSelectionRange) {
-      // double the length because Opera is inconsistent about whether a carriage return is one character or two
-      var len = $field.val().length * 2;
-      element.setSelectionRange(len, len);
-    } else {
-      // otherwise replace the contents with itself
-      $field.val($field.val());
-    }
-  };
+    /**
+     * put cursor at the end of an input field
+     * based on http://css-tricks.com/snippets/jquery/move-cursor-to-end-of-textarea-or-input/
+     * @param {object} $field jQuery field
+     */
+    var _fieldPutCursorAtEnd = function ($field) {
+        var element = $field[0];
+        $field.focus();
+        // use setSelectionRange if it exists (not in IE)
+        if (element.setSelectionRange) {
+            // double the length because Opera is inconsistent about whether a carriage return is one character or two
+            var len = $field.val().length * 2;
+            element.setSelectionRange(len, len);
+        } else {
+            // otherwise replace the contents with itself
+            $field.val($field.val());
+        }
+    };
 
-  // call init function
-  init();
+    // call init function
+    init();
 
 })(jQuery, window.sfun, undefined);

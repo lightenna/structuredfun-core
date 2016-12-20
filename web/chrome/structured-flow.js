@@ -72,7 +72,7 @@
             $anchorpost = sfun.api_getCell(range.first_1);
         }
         if (debug && false) {
-            console.log('flow_cellsResize calls ['+range.first_1+'-'+range.last_n+']');
+            console.log('flow_cellsResize calls [' + range.first_1 + '-' + range.last_n + ']');
         }
         // record the initial absolute coord of the image
         var selectedMajorCoordabsInitial = (direction == 'x' ? $anchorpost.offset().left : $anchorpost.offset().top);
@@ -96,8 +96,8 @@
             'minor': (
                 direction == 'x' ?
                     // trim minor axis because we lose some fillable space to margins
-                sfun.api_getViewportHeight() - spacing :
-                sfun.api_getViewportWidth() - spacing
+                    sfun.api_getViewportHeight() - spacing :
+                    sfun.api_getViewportWidth() - spacing
             ),
             'major': (direction == 'x' ?
                     sfun.api_getViewportWidth() :
