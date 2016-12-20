@@ -34,7 +34,7 @@
      */
     var flow_registered = function () {
         $('.resizeablecell').addClass('resizepending');
-    }
+    };
 
     /**
      * refresh the visible cell sizes by minor axis then major
@@ -55,7 +55,7 @@
 
         // return a resolved deferred in case we wait to make any of this resync in the future
         return $.Deferred().resolve();
-    }
+    };
 
     //
     // FUNCTIONS: Helpers

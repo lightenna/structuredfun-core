@@ -63,12 +63,8 @@
 
     var _getClickHandler = function (target) {
         return (function (event) {
-            var slashpos = window.location.pathname.indexOf('/', 1);
-            if (slashpos > 0) {
-                // pull current URL
-                var newurl = target + window.location.pathname.substring(slashpos) + window.location.hash;
-                // debugging
-                console.log(newurl);
+            var newurl = sfun.api_getNewUrlForCurrentIdentifier(target, true);
+            if (newurl) {
                 // redirect to current URL with
                 _redirect(newurl);
             }

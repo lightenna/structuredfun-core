@@ -43,7 +43,7 @@
      */
     var flow_registered = function () {
         $('.resizeablecell').addClass('resizepending');
-    }
+    };
 
     /**
      * clear sizes on visible cell
@@ -54,7 +54,7 @@
             'width': '',
             'height': ''
         }).removeClass(cell_marker).removeClass('visible vispart visnear');
-    }
+    };
 
     /**
      * refresh the visible cell sizes by minor axis then major
@@ -115,7 +115,7 @@
         _cellsResizeRealignMajor($anchorpost, selectedMajorCoordabsInitial, scrollMajorCoordabsInitial);
         // return a resolved deferred in case we wait to make any of this resync in the future
         return $.Deferred().resolve();
-    }
+    };
 
     /**
      * @param [string] direction
@@ -158,7 +158,7 @@
             console.log('viewport_midpoint[' + viewport_midpoint + '] cell_midpoint[' + cell_midpoint + '] offseq[' + offseq + '] cropped[' + cropped + ']');
         }
         return cropped;
-    }
+    };
 
     /**
      * check to see if we have ratios for all cells in minor, but haven't resized
@@ -196,7 +196,7 @@
         }
         // otherwise flag that there were no changes
         return false;
-    }
+    };
 
     //
     // FUNCTIONS: Helpers
@@ -231,7 +231,7 @@
             // realign selected against initial position
             _cellsResizeRealignMajor($selected, selectedMajorCoordabsInitial, false);
         }
-    }
+    };
 
     /**
      * find cell's position on major axis, but put in appropriate bucket
@@ -259,7 +259,7 @@
         }
         // add $ent into bucket
         group[key][group[key].length] = $ent;
-    }
+    };
 
     /**
      * calculate normalMinors their total
@@ -284,7 +284,7 @@
             }
         }
         return minorTotal;
-    }
+    };
 
     /**
      * resize all the minor axes
@@ -337,7 +337,7 @@
             }
         }
         return maxMajor;
-    }
+    };
 
     /**
      * resize all the major axes
@@ -358,7 +358,7 @@
                 console.log('cellResizeBucketMajor-' + $ent.data('seq') + ' major[' + proportion + '%]');
             }
         }
-    }
+    };
 
     /**
      * tidy up after resize
@@ -373,7 +373,7 @@
             // also remove any 'pending resize' flags
             $ent.removeClass('resizepending');
         }
-    }
+    };
 
     /**
      * realign a given cell with its initial position
@@ -413,7 +413,7 @@
                 sfun.api_triggerScroll(newpos, true);
             }
         }
-    }
+    };
 
     // call init function
     init();

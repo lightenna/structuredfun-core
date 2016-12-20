@@ -16,3 +16,7 @@ images:
     resource: "@LightennaStructuredBundle/Controller/ImageviewController.php"
     type:     annotation
 
+explorers:
+    resource: "@LightennaStructuredBundle/Controller/ExplorerviewController.php"
+    type:     annotation
+

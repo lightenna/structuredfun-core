@@ -4052,12 +4052,14 @@ window.sfun = (function ($, undefined) {
                 }
                 break;
             case exp.KEY_ARROW_RIGHT:
-                event.preventDefault();
-                fireTrackEvent('key_arrow_right');
-                // advance to previous image
-                eventContext.animateable = exp.implicitScrollDURATION;
-                // or if direction is same as arrow, jump forward by breadth
-                return imageAdvanceBy(getDirection() == 'x' ? getBreadth() : 1, eventContext);
+                if (!event.altKey) {
+                    event.preventDefault();
+                    fireTrackEvent('key_arrow_right');
+                    // advance to previous image
+                    eventContext.animateable = exp.implicitScrollDURATION;
+                    // or if direction is same as arrow, jump forward by breadth
+                    return imageAdvanceBy(getDirection() == 'x' ? getBreadth() : 1, eventContext);
+                }
             case exp.KEY_ARROW_DOWN:
                 event.preventDefault();
                 fireTrackEvent('key_arrow_down');
@@ -4919,6 +4921,25 @@ window.sfun = (function ($, undefined) {
          */
         'api_refreshMetadataApplyToFields': function ($ent, data) {
             return refreshMetadataApplyToFields($ent, data);
+        },
+
+        /**
+         * Compose a new URL for the current page; used for changing root
+         * @param {string} root new root, e.g. /file or /zoom
+         * @param {boolean} with_hash true to return with the current hash
+         * @returns {*}
+         */
+        'api_getNewUrlForCurrentIdentifier': function (root, with_hash) {
+            var slashpos = window.location.pathname.indexOf('/', 1);
+            if (slashpos > 0) {
+                // pull current URL
+                var newurl = root + window.location.pathname.substring(slashpos);
+                if (with_hash) {
+                    newurl += window.location.hash;
+                }
+                return newurl;
+            }
+            return false;
         },
 
         /**

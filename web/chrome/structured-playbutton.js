@@ -50,7 +50,7 @@
         $button = $('#header-playbutton');
         // bind to header button
         $button.click(_getClickHandler());
-    }
+    };
 
     /**
      * process a click on an image
@@ -82,7 +82,7 @@
                 event.preventDefault();
                 break;
         }
-    }
+    };
 
     //
     // FUNCTIONS: Helpers
@@ -92,7 +92,7 @@
     var _getTemplate = function () {
         var str = '<li><a href="#" id="header-playbutton">{{ title }}</a></li>';
         return str;
-    }
+    };
 
     var _getClickHandler = function () {
         return (function (event) {
@@ -103,7 +103,7 @@
             }
             event.preventDefault();
         });
-    }
+    };
 
     var _play = function () {
         // flag as playing
@@ -112,7 +112,7 @@
         $button.html(view['title_playing']);
         // setup change interval
         change_interval = setInterval(_getIntervalHandler(), slide_duration);
-    }
+    };
 
     var _pause = function () {
         // flag as paused
@@ -121,14 +121,14 @@
         $button.html(view['title']);
         // cancel change interval
         clearInterval(change_interval);
-    }
+    };
 
     var _getIntervalHandler = function () {
         return (function () {
             // advance to next image
             sfun.api_imageAdvanceBy(1);
         });
-    }
+    };
 
     // call init function
     init();

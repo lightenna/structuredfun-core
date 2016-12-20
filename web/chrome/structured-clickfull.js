@@ -234,7 +234,7 @@
             // hide image it's replacing
             $img.hide();
         }
-    }
+    };
 
     // TEMPLATES
     // for different embedded video players
@@ -244,14 +244,14 @@
         str += '<source src="{{ source }}" type="video/{{ type }}" />';
         str += '</video>';
         return str;
-    }
+    };
 
     var _getFlowplayerTemplate = function () {
         var str = '<video id="{{ id }}" class="video-js vjs-default-skin {{ classes }}" controls preload="none" width="{{ width }}" height="{{ height }}" poster="{{ poster }}">';
         str += '<source src="{{ source }}" type="video/{{ type }}" />';
         str += '</video>';
         return str;
-    }
+    };
 
     // call init function
     init();

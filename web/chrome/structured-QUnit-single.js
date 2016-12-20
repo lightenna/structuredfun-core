@@ -28,11 +28,11 @@
     var getTemplate = function () {
         var str = '<li class="debug-only"><a href="#" id="header-test-single">{{ title }}</a></li>';
         return str;
-    }
+    };
 
     var bindToTemplate = function (obj) {
         $('#header-test-single').click(getClickHandler());
-    }
+    };
 
     var getClickHandler = function () {
         return (function (event) {
@@ -46,7 +46,7 @@
             });
             event.preventDefault();
         });
-    }
+    };
 
     // -----
     // TESTS
@@ -83,7 +83,7 @@
         });
 
         QUnit.start();
-    }
+    };
 
     // call init function
     init();

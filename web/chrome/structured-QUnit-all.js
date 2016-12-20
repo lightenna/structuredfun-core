@@ -456,42 +456,6 @@
             };
         }, ['#!direction=x']);
 
-        multi_test('reres of last page of images', function (arg) {
-            return function () {
-                resetTest(arg);
-                // expand div (page-left) to force a vertical scrollbar (page-right)
-                var original_height = $('#qunit').height();
-                $('#qunit').height(3000);
-                // refresh vistable incase QUnit fixture has upset offsets
-                sfun.api_getVisTableMajor().updateAll(sfun.api_getDirection(), $('ul.flow .selectablecell'));
-                // run test asynchronously
-                QUnit.stop();
-                sfun.api_triggerKeypress(sfun.KEY_END).done(function () {
-                    equal($('ul.flow .selectablecell.selected').data('seq'), (sfun.api_getTotalEntries() - 1), 'End selected last image');
-                    $('ul.flow .selectablecell.visible .reresable').each(function () {
-                        var imw = $(this).width(), imh = $(this).height();
-                        var $ent = $(this).parents('li');
-                        var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
-                        // test that loaded res > image res
-                        ok(imw <= lodw && imh <= lodh, 'image #' + $ent.data('seq') + ' (' + imw + 'x' + imh + ') loaded(' + lodw + 'x' + lodh + ')');
-                        // test that the cell has the correct bound on it
-                        var cratio = $ent.width() / $ent.height();
-                        var iratio = imw / imh;
-                        var correctBound = ((cratio / iratio) > 1.0 ? 'y' : 'x');
-                        if (correctBound == 'x') {
-                            ok($(this).hasClass('x-bound'), 'image #' + $ent.data('seq') + ' (' + imw + 'x' + imh + ') in cell (' + $ent.width() + 'x' + $ent.height() + ') should be x-bound');
-                        } else {
-                            ok($(this).hasClass('y-bound'), 'image #' + $ent.data('seq') + ' (' + imw + 'x' + imh + ') in cell (' + $ent.width() + 'x' + $ent.height() + ') should be y-bound');
-                        }
-                    });
-                    QUnit.start();
-                    resetTest(arg);
-                    // restore QUnit to original height
-                    $('#qunit').height(original_height);
-                });
-            };
-        }, ['#!direction=x']);
-
         multi_test('image click #0', function (arg) {
             return function () {
                 resetTest(arg);
@@ -502,25 +466,6 @@
             };
         }, ['#!direction=x']);
 
-        /*
-         test( 'image click #1, return, arrow next', function() {
-         window.location.hash = 'image_click_1';
-         var initialBreadth = sfun.api_getBreadth();
-         QUnit.stop();
-         sfun.api_triggerClick($('#seq-1').find('a')).done(function() {
-         equal(sfun.api_getSeq(), 1, 'Click selected #1 image');
-         equal(sfun.api_getBreadth(), 1, 'Showing image full-screen');
-         sfun.api_triggerKeypress(sfun.KEY_RETURN).done(function() {
-         equal(sfun.api_getBreadth(), initialBreadth, 'Returned to initial breadth value');
-         sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT).done(function(){
-         equal($('ul.flow .selectablecell.selected').data('seq'), 2, 'Right arrow selected #2 image (#1+1)' );
-         QUnit.start();
-         resetTest();
-         });
-         });
-         });
-         });
-         */
         multi_test('set breadth 4, image click #1, return', function (arg) {
             return function () {
                 resetTest(arg);
@@ -534,46 +479,6 @@
                             equal(sfun.api_getBreadth(), 4, 'Returned to selected breadth');
                             QUnit.start();
                             resetTest();
-                        });
-                    });
-                });
-            };
-        }, ['#!direction=x']);
-
-        multi_test('end select last, home select first, arrow next', function (arg) {
-            return function () {
-                resetTest();
-                QUnit.stop();
-                sfun.api_triggerKeypress(sfun.KEY_END).done(function () {
-                    ok($('ul.flow .selectablecell.selected').data('seq') == (sfun.api_getTotalEntries() - 1), 'End selected last image');
-                    sfun.api_triggerKeypress(sfun.KEY_HOME).done(function () {
-                        ok($('ul.flow .selectablecell.selected').data('seq') == 0, 'Home selected #0 image');
-                        sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT).done(function () {
-                            ok($('ul.flow .selectablecell.selected').data('seq') == 1, 'Right arrow selected #1 image');
-                            QUnit.start();
-                            resetTest();
-                        });
-                    });
-                });
-            };
-        }, ['#!direction=x']);
-
-        multi_test('end arrow next wrap-around', function (arg) {
-            return function () {
-                resetTest(arg);
-                var last = sfun.api_getTotalEntries() - 1;
-                QUnit.stop();
-                sfun.api_triggerKeypress(sfun.KEY_END).done(function () {
-                    equal($('ul.flow .selectablecell.selected').data('seq'), last, 'End selected last image');
-                    sfun.api_triggerKeypress(sfun.KEY_ARROW_RIGHT).done(function () {
-                        equal($('ul.flow .selectablecell.selected').data('seq'), 0, 'Right arrow selected #0 image');
-                        sfun.api_triggerKeypress(sfun.KEY_END).done(function () {
-                            equal($('ul.flow .selectablecell.selected').data('seq'), last, 'End re-selected last image');
-                            sfun.api_triggerKeypress(sfun.KEY_HOME).done(function () {
-                                equal($('ul.flow .selectablecell.selected').data('seq'), 0, 'Home selected #0 image');
-                                QUnit.start();
-                                resetTest(arg);
-                            });
                         });
                     });
                 });
@@ -659,28 +564,6 @@
                 });
             };
         }, ['#!direction=x']);
-
-        /*
-         test( 'vis non-vis simple', function() {
-         var cellcount = sfun.api_getCellMajorCount(+1) * sfun.api_getBreadth();
-         window.location.hash = 'vis-non-vis-simple';
-         var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
-         // wait for keypress event to process
-         QUnit.stop();
-         // scroll to first off-screen element
-         sfun.api_triggerKeypress(sfun.KEY_PAGE_DOWN).done(function() {
-         ok( $('ul.flow .selectablecell.selected').data('seq') != initialSeq, 'Page down selected a different image' );
-         // check that first off-screen element (now on-screen) is cellcount
-         ok( $('ul.flow .selectablecell.selected').data('seq') == $('#seq-'+cellcount).data('seq'), 'Page down selected the '+(cellcount+1)+'th image (seq '+cellcount+')' );
-         // check that selected image is visible
-         ok( $('ul.flow .selectablecell.selected').hasClass('visible'), 'Selected cell is visible');
-         // check that the first image is not visible
-         ok( ! $('#seq-'+initialSeq).hasClass('visible'), 'Initially selected cell is no longer visible');
-         QUnit.start();
-         resetTest();
-         });
-         });
-         */
 
         test('vis block', function () {
             resetTest();

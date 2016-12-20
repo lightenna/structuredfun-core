@@ -2,11 +2,11 @@
 
 namespace Lightenna\StructuredBundle\Controller;
 
-use Lightenna\StructuredBundle\Entity\Arguments;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
+use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\Entity\VideoMetadata;
 use Lightenna\StructuredBundle\Entity\GenericEntry;
