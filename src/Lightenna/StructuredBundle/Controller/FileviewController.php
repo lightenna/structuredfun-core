@@ -2,6 +2,7 @@
 
 namespace Lightenna\StructuredBundle\Controller;
 
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,11 +18,26 @@ use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 class FileviewController extends ViewController
 {
 
-    public function indexAction($rawname, $format = 'html', Request $req)
+    /**
+     * returns directory listing, zip listing or binary file
+     *
+     * @Route("/", name="lightenna_file_root")
+     *
+     * /file is matched by .htaccess and redirected to the cached (index.html.dat) file if it exists
+     * @Route("/file/", name="lightenna_file_basic")
+     * @Route("/file/{identifier}", name="lightenna_file_id", requirements={"identifier" = ".*"})
+     *
+     * /filecacherefresh isn't matched, so we regen, but it still saves a cache file
+     * @Route("/filecacherefresh/{identifier}", name="lightenna_filecacherefresh_id", requirements={"identifier" = ".*"})
+     *
+     * /filenocache isn't matched, so we regen, and we don't save a cache file
+     * @Route("/filenocache/{identifier}", name="lightenna_filenocache_id", requirements={"identifier" = ".*"})
+     */
+    public function indexAction($identifier = '', $format = 'html', Request $req)
     {
         $this->request = $req;
         // store rawname being indexed
-        $this->rawname = $rawname;
+        $this->rawname = $identifier;
         // convert rawname to urlname and filename
         $filename = $this->convertRawToFilename($this->rawname);
         $name = self::convertRawToUrl($this->rawname);
@@ -65,13 +81,23 @@ class FileviewController extends ViewController
                     // client-side settings
                     'settings' => $this->settings['client'],
                 ));
-                // tell cache this is a /file
-                $file_cachedir = $this->mfr->setupCacheDir('file');
-                // cache directory HTML content (part of response) and always update
-                $content = $response->getContent();
-                $this->mfr->cache($content, $file_cachedir . $name . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME . '.' . Constantly::CACHE_FILEEXT, true);
-                // could return the response directly
-                // return $response;
+                // cache action depends on route
+                switch ($req->get('_route')) {
+                    case 'lightenna_filenocache_id' :
+                        // just return response, don't cache
+                        return $response;
+                        break;
+                    case 'lightenna_filecacherefresh_id' :
+                    case 'lightenna_file_id' :
+                    default :
+                        // cache the file then redirect to the cached file
+                        // tell cache this is a /file
+                        $file_cachedir = $this->mfr->setupCacheDir('file');
+                        // cache directory HTML content (part of response) and always update
+                        $content = $response->getContent();
+                        $this->mfr->cache($content, $file_cachedir . $name . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME . '.' . Constantly::CACHE_FILEEXT, true);
+                        break;
+                }
                 // redirect to ensure that future refreshes come from cache
                 return new RedirectResponse(Constantly::DIR_SEPARATOR_URL . 'file' . $name . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME);
             } else {

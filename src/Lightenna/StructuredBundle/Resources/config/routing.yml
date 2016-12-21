@@ -1,16 +1,6 @@
-lightenna_structured_fileview:
-    path:      /file/{rawname}
-    defaults:  { _controller: LightennaStructuredBundle:Fileview:index }
-    requirements:
-        rawname:  ".*"
-
-lightenna_structured_fileview_unspec:
-    path:      /file
-    defaults:  { _controller: LightennaStructuredBundle:Fileview:index, rawname:'' }
-
-lightenna_structured_fileview_root:
-    path:      /
-    defaults:  { _controller: LightennaStructuredBundle:Fileview:index, rawname:'' }
+files:
+    resource: "@LightennaStructuredBundle/Controller/FileviewController.php"
+    type:     annotation
 
 images:
     resource: "@LightennaStructuredBundle/Controller/ImageviewController.php"
