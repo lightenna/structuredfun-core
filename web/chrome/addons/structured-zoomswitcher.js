@@ -66,16 +66,11 @@
             var newurl = sfun.api_getNewUrlForCurrentIdentifier(target, true);
             if (newurl) {
                 // redirect to current URL with
-                _redirect(newurl);
+                console.log(target);
+                sfun.api_redirect(newurl);
             }
             event.preventDefault();
         });
-    };
-
-    var _redirect = function (target) {
-        console.log(target);
-        // simple javascript redirect
-        window.location = target;
     };
 
     // call init function

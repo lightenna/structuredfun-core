@@ -4957,6 +4957,14 @@ window.sfun = (function ($, undefined) {
         },
 
         /**
+         * Redirect the browser to the named URL
+         * @param target URL
+         */
+        'api_redirect': function (target) {
+            window.location = target;
+        },
+
+        /**
          * trigger a click and allow caller to bind to its context
          * @param {object} $ent jQuery entity to click
          * @return {object} jQuery deferred
