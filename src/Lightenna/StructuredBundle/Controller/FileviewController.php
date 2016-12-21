@@ -32,9 +32,6 @@ class FileviewController extends ViewController
         $this->mfr->rewrite($filename);
         $this->mfr->injectShares($name);
         $this->mfr->processDebugSettings();
-        // @todo remove these lines once we're sure everything works
-        // $thumbargs = new Arguments(200,200);
-        // $this->mfr->mergeArgs($thumbargs);
         // for now just display errors
         if ($this->errbuf !== null) {
             print(implode('', $this->getErrors()));
