@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
+use Lightenna\StructuredBundle\Entity\ImageException;
 use Lightenna\StructuredBundle\Entity\VideoMetadata;
 use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
@@ -34,12 +35,29 @@ class ImageviewController extends ViewController
     /**
      * returns image (iiif-style request)
      *
+     * /image is matched by .htaccess and redirected to the cached (native.jpg.dat) file if it exists
      * @Route("/image/{identifier}", name="lightenna_imageiiif_id")
      * @Route("/image/{identifier}/", name="lightenna_imageiiif_noreg")
      * @Route("/image/{identifier}/{region}/", name="lightenna_imageiiif_nosize")
      * @Route("/image/{identifier}/{region}/{size}/", name="lightenna_imageiiif_norot")
      * @Route("/image/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imageiiif_noqual")
      * @Route("/image/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imageiiif_full")
+     *
+     * /imagecacherefresh isn't matched, so we regen, but it still saves a cache file
+     * @Route("/imagecacherefresh/{identifier}", name="lightenna_imagecacherefreshiiif_id")
+     * @Route("/imagecacherefresh/{identifier}/", name="lightenna_imagecacherefreshiiif_noreg")
+     * @Route("/imagecacherefresh/{identifier}/{region}/", name="lightenna_imagecacherefreshiiif_nosize")
+     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/", name="lightenna_imagecacherefreshiiif_norot")
+     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagecacherefreshiiif_noqual")
+     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagecacherefreshiiif_full")
+     *
+     * /imagenocache isn't matched, so we regen, and we don't save a cache file
+     * @Route("/imagenocache/{identifier}", name="lightenna_imagenocacheiiif_id")
+     * @Route("/imagenocache/{identifier}/", name="lightenna_imagenocacheiiif_noreg")
+     * @Route("/imagenocache/{identifier}/{region}/", name="lightenna_imagenocacheiiif_nosize")
+     * @Route("/imagenocache/{identifier}/{region}/{size}/", name="lightenna_imagenocacheiiif_norot")
+     * @Route("/imagenocache/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagenocacheiiif_noqual")
+     * @Route("/imagenocache/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagenocacheiiif_full")
      */
     public function imageAction($identifier, $region = 'full', $size = 'full', $rotation = 0, $quality = 'native', $ext = 'jpg', $output = true, Request $req)
     {
@@ -53,8 +71,16 @@ class ImageviewController extends ViewController
         if ($imgdata) {
             // found cached image (probably without touching PHP, see .htaccess)
         } else {
-            // get image and transform
-            $imgdata = $this->fetchImage();
+            try {
+                // get image and transform
+                $imgdata = $this->fetchImage();
+                // cache transformed image
+                $this->mfr->cache($imgdata);
+            } catch (ImageException $e) {
+                // substitute in the error image
+                $imgdata = $this->loadErrorImage();
+                // @todo log the error
+            }
         }
         // catch test case
         if (!$output) {
@@ -89,9 +115,18 @@ class ImageviewController extends ViewController
         // if image not in cache
         if (!$imgdata) {
             // load the image normally to cache
-            $imgdata = $this->fetchImage();
-            // @todo currently have to re-pull from cache to put metadata in .meta{} subobject
-            $imgdata = $this->mfr->getOnlyIfCached();
+            try {
+                // get image and transform
+                $imgdata = $this->fetchImage();
+                // cache transformed image
+                $this->mfr->cache($imgdata);
+                // @todo currently have to re-pull from cache to put metadata in .meta{} subobject
+                $imgdata = $this->mfr->getOnlyIfCached();
+            } catch (ImageException $e) {
+                // substitute in the error image
+                $imgdata = $this->loadErrorImage();
+                // @todo log the error
+            }
         }
         // get metadata object (comes with metadata from file)
         $md = $this->mfr->getMetadata();
@@ -162,6 +197,7 @@ class ImageviewController extends ViewController
     /**
      * fetch a thumbnail image from the file (video/image)
      * - by this point, we've had a cache miss on the thumbnail/specific-resolution request
+     * @throws ImageException
      */
     public function fetchImage()
     {
@@ -179,21 +215,17 @@ class ImageviewController extends ViewController
         }
         // check that we loaded some data
         if ($imgdata === false) {
-            // substitute in error image
-            $imgdata = $this->loadErrorImage();
+            throw new ImageException();
         }
         // check image data
         if (!FileReader::checkImageDatastream($imgdata)) {
-            // substitute in error image
-            $imgdata = $this->loadErrorImage();
+            throw new ImageException();
         }
         // filter based on arguments
         if (ImageTransform::shouldFilterImage($this->args)) {
             $it = new ImageTransform($this->args, $imgdata, $this->mfr->getGenericEntryFromListingHead());
             $it->applyFilter();
             $imgdata = $it->getImgdata();
-            // cache transformed image
-            $this->mfr->cache($imgdata);
         }
         return $imgdata;
     }

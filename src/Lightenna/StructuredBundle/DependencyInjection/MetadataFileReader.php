@@ -166,7 +166,7 @@ class MetadataFileReader extends FileReader
                 FileReader::readSettingsFile($settings, $this->getFilename() . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_METADATA_FILENAME);
                 // default to aA-zZ
                 $sort_order = Constantly::SORT_AZ;
-                // see if we have a sort order defined in the directory metadata file
+                // see if we have a sort order defined in the directory metadata file (e.g. desktop.ini)
                 if (isset($settings[Constantly::DIR_METADATA_SECTION])) {
                     if (isset($settings[Constantly::DIR_METADATA_SECTION]['IconSort'])) {
                         if ($settings[Constantly::DIR_METADATA_SECTION]['IconSort'] > Constantly::SORT_NONE) {
