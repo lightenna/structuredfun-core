@@ -19,7 +19,7 @@
             <directory>../src/*/*Bundle/Tests</directory>
             <directory>../src/*/Bundle/*Bundle/Tests</directory>
         -->
-            <file>../src/Lightenna/StructuredBundle/Tests/Controller/FileviewControllerTest.php</file>
+            <file>../src/Lightenna/StructuredBundle/Tests/Controller/ImageviewControllerTest.php</file>
         </testsuite>
     </testsuites>
 

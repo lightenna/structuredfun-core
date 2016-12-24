@@ -59,7 +59,7 @@
       <noscript><img class="{{ file.metadata.orientation }}-bound selectreflector" src="/image/{{ linkaliased }}{{ file.name }}/full/!200,200/0/{{ constant('Lightenna\\StructuredBundle\\DependencyInjection\\Constantly::IMAGE_DEFAULT_FILENAME') }}" alt="image thumbnail for {{ file.alias}}" /></noscript>
       <span class="meta">
         <span class="base">
-          <span class="imgmetric super"><span class="size"><span class="width">{% if file.metadata.LoadedWidth is not null %}{{ file.metadata.LoadedWidth }}{% else %}-{% endif %}</span> x <span class="height">{% if file.metadata.LoadedHeight is not null %}{{ file.metadata.LoadedHeight }}{% else %}-{% endif %}</span> @ </span><span class="perc">Initialising...</span></span>
+          <span class="imgmetric super"><span class="size"><span class="width">{% if file.metadata.LoadedWidth is not null %}{{ file.metadata.LoadedWidth }}{% else %}-{% endif %}</span>x<span class="height">{% if file.metadata.LoadedHeight is not null %}{{ file.metadata.LoadedHeight }}{% else %}-{% endif %}</span> at </span><span class="perc">initial res...</span></span>
           {# Always show headline; if not set use file.alias #}
           <span class="iptc iptcHeadline">{{ file.metadata is not null and file.metadata.IptcHeadline != defaults.iptcHeadline ? file.metadata.IptcHeadline : file.alias }}</span>
           {# Only show other metadata if it's not the default #}

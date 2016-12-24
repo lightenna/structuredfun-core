@@ -56,12 +56,13 @@ class FileviewController extends ViewController
             if ($this->mfr->isDirectory()) {
                 // get the list of entries for this directory
                 $listing = $this->mfr->getListing();
-                $linkpath = $name == '/' ? '' : trim($name, Constantly::DIR_SEPARATOR_URL) . Constantly::DIR_SEPARATOR_URL;
+                $linkpath_unhashed = $name == '/' ? '' : trim($name, Constantly::DIR_SEPARATOR_URL) . Constantly::DIR_SEPARATOR_URL;
+                $linkpath_hashed = CachedMetadataFileReader::hash($linkpath_unhashed);
                 // check to see if we've only got a single entry
                 if (count($listing) == 1) {
                     if (reset($listing)->isDirectory()) {
                         // if it's a directory, redirect to it immediately
-                        return new RedirectResponse('/file/'. $linkpath . reset($listing)->getName() . Constantly::DIR_SEPARATOR_URL);
+                        return new RedirectResponse('/file/'. $linkpath_hashed . reset($listing)->getName() . Constantly::DIR_SEPARATOR_URL);
                     }
                 }
                 // ensure that we're reading/making up all the metadata (cached and uncached files)
@@ -71,7 +72,7 @@ class FileviewController extends ViewController
                     'direction' => Constantly::DEFAULT_LAYOUT_DIRECTION,
                     'celltype' => 'pc',
                     'breadth' => Constantly::DEFAULT_LAYOUT_BREADTH,
-                    'linkpath' => CachedMetadataFileReader::hash($linkpath),
+                    'linkpath' => $linkpath_hashed,
                     'linkaliased' => str_replace(Constantly::DIR_SEPARATOR_URL, Constantly::DIR_SEPARATOR_ALIAS, trim($name, Constantly::DIR_SEPARATOR_URL)) . Constantly::DIR_SEPARATOR_ALIAS,
                     'dirsep' => Constantly::DIR_SEPARATOR_ALIAS,
                     'argsbase' => Constantly::ARG_SEPARATOR,
@@ -85,7 +86,6 @@ class FileviewController extends ViewController
                 switch ($req->get('_route')) {
                     case 'lightenna_filenocache_id' :
                         // just return response, don't cache
-                        return $response;
                         break;
                     case 'lightenna_filecacherefresh_id' :
                     case 'lightenna_file_id' :
@@ -95,11 +95,12 @@ class FileviewController extends ViewController
                         $file_cachedir = $this->mfr->setupCacheDir('file');
                         // cache directory HTML content (part of response) and always update
                         $content = $response->getContent();
-                        $this->mfr->cache($content, $file_cachedir . $name . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME . '.' . Constantly::CACHE_FILEEXT, true);
+                        $this->mfr->cache($content, $file_cachedir . rtrim($name, Constantly::DIR_SEPARATOR_URL) . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME . '.' . Constantly::CACHE_FILEEXT, true);
                         break;
                 }
+                return $response;
                 // redirect to ensure that future refreshes come from cache
-                return new RedirectResponse(Constantly::DIR_SEPARATOR_URL . 'file' . $name . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME);
+                // return new RedirectResponse(Constantly::DIR_SEPARATOR_URL . 'file' . rtrim($name, Constantly::DIR_SEPARATOR_URL) . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME);
             } else {
                 // prepare BinaryFileResponse
                 $realname = str_replace('/', '\\', $filename);

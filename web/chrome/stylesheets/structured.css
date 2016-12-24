@@ -318,10 +318,6 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   padding: 0 0.2em 0 0.2em;
   white-space: nowrap;
 }
-/* line 319, ../sass/structured.scss */
-.sfun.flow-pc > .cell > .container > .meta .base .imgmetric .size {
-  display: none;
-}
 /* line 328, ../sass/structured.scss */
 .sfun.flow-pc > .cell > .container > .meta .base .imgmetric.super {
   background-color: #009900;

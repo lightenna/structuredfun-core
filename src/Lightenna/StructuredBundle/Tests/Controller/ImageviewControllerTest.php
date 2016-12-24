@@ -221,8 +221,9 @@ class ImageviewControllerTest extends WebTestCase
         // load the same image from a direct path for comparison
         $mfr = new MetadataFileReader($t->convertRawToFilename('/structured/tests/data/30-zip_folder.zip/nested/00980006.JPG'), $t);
         $this->assertEquals($mfr->isExisting(), true);
-        // compare images
-        $this->assertEquals($mfr->get(), $imgdata);
+        // compare images by dimensions; can't do direct comparison because cached file has its own metadata
+        $diff = array_diff(getimagesizefromstring($imgdata), getimagesizefromstring($mfr->get()));
+        $this->assertEquals(0, count($diff));
     }
 
 }
