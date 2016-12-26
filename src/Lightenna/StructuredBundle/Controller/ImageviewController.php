@@ -4,6 +4,7 @@ namespace Lightenna\StructuredBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\HttpFoundation\Request;
 
 use Lightenna\StructuredBundle\Entity\Arguments;
@@ -36,28 +37,28 @@ class ImageviewController extends ViewController
      * returns image (iiif-style request)
      *
      * /image is matched by .htaccess and redirected to the cached (native.jpg.dat) file if it exists
-     * @Route("/image/{identifier}", name="lightenna_imageiiif_id")
-     * @Route("/image/{identifier}/", name="lightenna_imageiiif_noreg")
-     * @Route("/image/{identifier}/{region}/", name="lightenna_imageiiif_nosize")
-     * @Route("/image/{identifier}/{region}/{size}/", name="lightenna_imageiiif_norot")
-     * @Route("/image/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imageiiif_noqual")
-     * @Route("/image/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imageiiif_full")
+     * @Route("/image/{identifier}", name="lightenna_image_id")
+     * @Route("/image/{identifier}/", name="lightenna_image_noreg")
+     * @Route("/image/{identifier}/{region}/", name="lightenna_image_nosize")
+     * @Route("/image/{identifier}/{region}/{size}/", name="lightenna_image_norot")
+     * @Route("/image/{identifier}/{region}/{size}/{rotation}/", name="lightenna_image_noqual")
+     * @Route("/image/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_image_full")
      *
      * /imagecacherefresh isn't matched, so we regen, but it still saves a cache file
-     * @Route("/imagecacherefresh/{identifier}", name="lightenna_imagecacherefreshiiif_id")
-     * @Route("/imagecacherefresh/{identifier}/", name="lightenna_imagecacherefreshiiif_noreg")
-     * @Route("/imagecacherefresh/{identifier}/{region}/", name="lightenna_imagecacherefreshiiif_nosize")
-     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/", name="lightenna_imagecacherefreshiiif_norot")
-     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagecacherefreshiiif_noqual")
-     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagecacherefreshiiif_full")
+     * @Route("/imagecacherefresh/{identifier}", name="lightenna_imagecacherefresh_id")
+     * @Route("/imagecacherefresh/{identifier}/", name="lightenna_imagecacherefresh_noreg")
+     * @Route("/imagecacherefresh/{identifier}/{region}/", name="lightenna_imagecacherefresh_nosize")
+     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/", name="lightenna_imagecacherefresh_norot")
+     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagecacherefresh_noqual")
+     * @Route("/imagecacherefresh/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagecacherefresh_full")
      *
      * /imagenocache isn't matched, so we regen, and we don't save a cache file
-     * @Route("/imagenocache/{identifier}", name="lightenna_imagenocacheiiif_id")
-     * @Route("/imagenocache/{identifier}/", name="lightenna_imagenocacheiiif_noreg")
-     * @Route("/imagenocache/{identifier}/{region}/", name="lightenna_imagenocacheiiif_nosize")
-     * @Route("/imagenocache/{identifier}/{region}/{size}/", name="lightenna_imagenocacheiiif_norot")
-     * @Route("/imagenocache/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagenocacheiiif_noqual")
-     * @Route("/imagenocache/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagenocacheiiif_full")
+     * @Route("/imagenocache/{identifier}", name="lightenna_imagenocache_id")
+     * @Route("/imagenocache/{identifier}/", name="lightenna_imagenocache_noreg")
+     * @Route("/imagenocache/{identifier}/{region}/", name="lightenna_imagenocache_nosize")
+     * @Route("/imagenocache/{identifier}/{region}/{size}/", name="lightenna_imagenocache_norot")
+     * @Route("/imagenocache/{identifier}/{region}/{size}/{rotation}/", name="lightenna_imagenocache_noqual")
+     * @Route("/imagenocache/{identifier}/{region}/{size}/{rotation}/{quality}.{ext}", name="lightenna_imagenocache_full")
      */
     public function imageAction($identifier, $region = 'full', $size = 'full', $rotation = 0, $quality = 'native', $ext = 'jpg', $output = true, Request $req)
     {
@@ -65,7 +66,12 @@ class ImageviewController extends ViewController
         // store rawname being indexed
         $this->rawname = $identifier;
         // populate vars based on rawname
-        $this->populate($region, $size);
+        try {
+            $this->populate($region, $size);
+        } catch (\Exception $e) {
+            // unable to populate (file doesn't exist, e.g. [i4]), so return a small transparent image
+            $this->returnImage($this->loadNonImage());
+        }
         // try and pull image from cache
         $imgdata = $this->mfr->getOnlyIfCached();
         if ($imgdata) {
@@ -74,8 +80,20 @@ class ImageviewController extends ViewController
             try {
                 // get image and transform
                 $imgdata = $this->fetchImage();
-                // cache transformed image
-                $this->mfr->cache($imgdata);
+                // work out what kind of request this was
+                $route_type = $this->getRouteType('image');
+                switch ($route_type) {
+                    case 'imagenocache' :
+                        // just return response, don't cache
+                        break;
+                    case 'imagecacherefresh' :
+                    case 'image' :
+                    default :
+                        // cache transformed image
+                        $this->mfr->cache($imgdata);
+                        break;
+                }
+
             } catch (ImageException $e) {
                 // substitute in the error image
                 $imgdata = $this->loadErrorImage();
@@ -86,13 +104,12 @@ class ImageviewController extends ViewController
         if (!$output) {
             return $imgdata;
         }
-        if ($imgdata !== null) {
-            // print image to output stream
-            $this->returnImage($imgdata);
-        } else {
-            // implied else
+        if ($imgdata === null) {
+            // catch all for empty/bad but non-error images
             return $this->render('LightennaStructuredBundle:Fileview:file_not_found.html.twig');
         }
+        // return image to output stream
+        return $this->returnImage($imgdata);
     }
 
     /**
@@ -109,7 +126,12 @@ class ImageviewController extends ViewController
         // store rawname being indexed
         $this->rawname = $identifier;
         // populate vars based on rawname
-        $this->populate();
+        try {
+            $this->populate();
+        } catch (\Exception $e) {
+            // unable to populate (file doesn't exist, e.g. [i4]), so return a small transparent image
+            $this->returnImage($this->loadNonImage());
+        }
         // request image from cache (including metadata)
         $imgdata = $this->mfr->getOnlyIfCached();
         // if image not in cache
@@ -144,14 +166,12 @@ class ImageviewController extends ViewController
         }
         // serialise metadata to string
         $metadata = $this->entry->serialise();
-        // tell cache this is a /file
         $imagemeta_cachedir = $this->mfr->setupCacheDir('imagemeta');
         $name = self::convertRawToUrl($this->rawname);
         // cache directory HTML content (part of response) and always update
         $this->mfr->cache($metadata, $imagemeta_cachedir . $name . Constantly::DIR_SEPARATOR_URL . Constantly::IMAGE_METADATA_FILENAME . '.' . Constantly::CACHE_FILEEXT, true);
         // return metadata for this object, encoded as json
-        print($metadata);
-        exit;
+        return new Response($metadata);
     }
 
     //
@@ -160,18 +180,12 @@ class ImageviewController extends ViewController
 
     /**
      * Process input and setup local objects
+     * @throws Exception
      */
     public function populate($region = 'full', $size = 'full')
     {
-        try {
-            // convert rawname to urlname and filename
-            $filename = $this->convertRawToFilename($this->rawname);
-        } catch (\Exception $e) {
-            // if there was a problem, return a small transparent image
-            $this->rawname = '/chrome/images/fullres/transparent.png';
-            $this->disableCaching();
-            $filename = $this->convertRawToInternalFilename('htdocs/web' . $this->rawname);
-        }
+        // convert rawname to urlname and filename
+        $filename = $this->convertRawToFilename($this->rawname);
         $name = self::convertRawToUrl($this->rawname);
         $this->args = new Arguments();
         // parse arguments from iiif-format vars
@@ -230,6 +244,10 @@ class ImageviewController extends ViewController
         return $imgdata;
     }
 
+    /**
+     * @return string image data as string
+     * @throws ImageException
+     */
     private function loadVideoFrame()
     {
         // calculate position in video
@@ -249,8 +267,7 @@ class ImageviewController extends ViewController
             $returnedFile = $this->takeSnapshot($this->args->{'timecode'}, $localmfr->getFilename($key));
             // if no image produced (e.g. video corrupted or stored in zip)
             if ($returnedFile === false) {
-                $errorimgdata = $this->loadErrorImage();
-                return $errorimgdata;
+                throw new ImageException();
             }
             // point the local reader at the returned file, then read from it
             $localmfr->rewrite($returnedFile);
@@ -339,12 +356,15 @@ class ImageviewController extends ViewController
 
     public function loadErrorImage()
     {
-        // disable caching
-        $this->disableCaching();
         // flag that an error has occurred
         $this->args->setError(true);
         // return error image
         return file_get_contents($this->convertRawToInternalFilename(Constantly::IMAGE_ERROR_FILENAME));
+    }
+
+    public function loadNonImage()
+    {
+        return file_get_contents($this->convertRawToInternalFilename(Constantly::IMAGE_TRANSPARENT_FILENAME));
     }
 
 }

@@ -374,13 +374,11 @@ class CachedMetadataFileReader extends MetadataFileReader
             if (!is_dir($dirname)) {
                 // unable to create cache directory, throw nice error
                 $this->controller->error('Unable to create cache directory (' . $this->cachedir . ').  Caching temporarily disabled.  Please check filesystem permissions.');
-                $this->controller->disableCaching();
             }
         }
         // test cache directory is writeable
         if (!$this->testCacheWrite()) {
             $this->controller->error('Unable to write to cache directory.  Caching temporarily disabled.  Please check filesystem permissions.');
-            $this->controller->disableCaching();
         }
         $this->cachedir = $dirname;
         return $dirname;

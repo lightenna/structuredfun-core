@@ -82,13 +82,14 @@ class FileviewController extends ViewController
                     // client-side settings
                     'settings' => $this->settings['client'],
                 ));
-                // cache action depends on route
-                switch ($req->get('_route')) {
-                    case 'lightenna_filenocache_id' :
+                // work out what kind of request this was
+                $route_type = $this->getRouteType('file');
+                switch ($route_type) {
+                    case 'filenocache' :
                         // just return response, don't cache
                         break;
-                    case 'lightenna_filecacherefresh_id' :
-                    case 'lightenna_file_id' :
+                    case 'filecacherefresh' :
+                    case 'file' :
                     default :
                         // cache the file then redirect to the cached file
                         // tell cache this is a /file

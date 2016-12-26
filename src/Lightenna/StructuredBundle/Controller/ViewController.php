@@ -8,6 +8,7 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Response;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\EntryLayout;
@@ -363,7 +364,7 @@ class ViewController extends Controller
         // convert utf8 to iso-8859-1
         $name = iconv("utf-8", "iso-8859-1//ignore", $name);
         // strip off index.html if set
-        $name = preg_replace('/'.Constantly::DIR_INDEX_FILENAME.'$/', '', $name);
+        $name = preg_replace('/' . Constantly::DIR_INDEX_FILENAME . '$/', '', $name);
         // swap out slash alias notation
         $name = CachedMetadataFileReader::reverse_hash($name);
         // strip trailing slash
@@ -395,8 +396,7 @@ class ViewController extends Controller
     /**
      * @return Filename within structured folder without trailing slash
      */
-    public
-    function convertRawToInternalFilename($name)
+    public function convertRawToInternalFilename($name)
     {
         return $this->convertRawToFilename(Constantly::FOLDER_NAME . Constantly::DIR_SEPARATOR_URL . $name);
     }
@@ -404,8 +404,7 @@ class ViewController extends Controller
     /**
      * turn off caching, usually as a result of a detected error in the writeable cache folder
      */
-    public
-    function disableCaching()
+    public function disableCaching()
     {
         // single args object, so use it to disable caching
         $this->args->setCache(false);
@@ -417,8 +416,7 @@ class ViewController extends Controller
      * @param string $message Simple text error message
      * channel all calls through here so eventually we can do something clever
      */
-    public
-    function error($message, $fatal = false)
+    public function error($message, $fatal = false)
     {
         if ($fatal) {
             print $message;
@@ -438,8 +436,7 @@ class ViewController extends Controller
     /**
      * @return array list of errors accumulated
      */
-    public
-    function getErrors()
+    public function getErrors()
     {
         return $this->errbuf;
     }
@@ -447,9 +444,9 @@ class ViewController extends Controller
     /**
      * Output an image with correct headers
      * @param string $imgdata Raw image data as a string
+     * @return Response image data returned in Symfony Response wrapper
      */
-    protected
-    function returnImage($imgdata)
+    protected function returnImage($imgdata)
     {
         $ext = 'jpeg';
         if (isset($this->{'entry'})) {
@@ -459,12 +456,10 @@ class ViewController extends Controller
             header("Content-Type: image/" . $ext);
             header("Content-Length: " . strlen($imgdata));
         }
-        echo $imgdata;
-        exit;
+        return new Response($imgdata);
     }
 
-    protected
-    function getParameterOrDefault($name, $default)
+    protected function getParameterOrDefault($name, $default)
     {
         $param_value = $this->request->get($name);
         if ($param_value === null) {
@@ -473,14 +468,25 @@ class ViewController extends Controller
         return $param_value;
     }
 
+    public function getRouteType($default)
+    {
+        // pull from route name (e.g. lightenna_filecacherefresh_id -> filecacherefresh)
+        $route_type = explode('_', $this->request->get('_route'));
+        if (isset($route_type[1])) {
+            return $route_type[1];
+        } else {
+            return $default;
+        }
+        return $route_type;
+    }
+
     /**
      * @return URL name without trailing slash
      */
-
     static function convertRawToUrl($name)
     {
         // strip off index.html if set
-        $name = preg_replace('/'.Constantly::DIR_INDEX_FILENAME.'$/', '', $name);
+        $name = preg_replace('/' . Constantly::DIR_INDEX_FILENAME . '$/', '', $name);
         // strip slash from both ends
         $name = trim($name, Constantly::DIR_SEPARATOR_URL);
         // return with starting slash only

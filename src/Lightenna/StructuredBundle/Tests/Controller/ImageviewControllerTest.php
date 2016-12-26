@@ -2,16 +2,39 @@
 
 namespace Lightenna\StructuredBundle\Tests\Controller;
 
+use Doctrine\Common\Cache\Cache;
 use Lightenna\StructuredBundle\Controller\ImageviewController;
 use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\Entity\Arguments;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Lightenna\StructuredBundle\Tests\DependencyInjection\BaseWebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
-class ImageviewControllerTest extends WebTestCase
+class ImageviewControllerTest extends BaseWebTestCase
 {
+
+    public function testImageRoutes()
+    {
+        $identifier = CachedMetadataFileReader::hash('structured/tests/data/10-file_folder/00980001.JPG');
+        $identifier .= '/full/!1024,679/0/native.img';
+        $file_cache = $this->getCachedFileLocation('/image/' . $identifier);
+        // fire request
+        $imgdata = $this->fireRequestForContent('/image/' . $identifier, $file_cache);
+        // check that cache entry generated
+        $this->assertEquals(true, file_exists($file_cache));
+        $this->fireRequestForContent('/imagenocache/' . $identifier, $file_cache);
+        // check that cache entry is not generated (nocache)
+        $this->assertEquals(false, file_exists($file_cache));
+        $this->fireRequestForContent('/imagecacherefresh/' . $identifier, $file_cache);
+        // check that cache entry generated
+        $this->assertEquals(true, file_exists($file_cache));
+    }
+
+    public function testImageReturnedDimension()
+    {
+
+    }
 
     public function testImageCalcNewSize()
     {
@@ -139,7 +162,7 @@ class ImageviewControllerTest extends WebTestCase
             $this->assertNotEquals($frame10s, $errorimg);
             $this->assertNotEquals($frame9s, $errorimg);
         } else {
-            print("\r\n".'testTakeSnapshot skipped because ffmpeg is not installed/configured'."\r\n");
+            print("\r\n" . 'testTakeSnapshot skipped because ffmpeg is not installed/configured' . "\r\n");
         }
     }
 
@@ -225,5 +248,24 @@ class ImageviewControllerTest extends WebTestCase
         $diff = array_diff(getimagesizefromstring($imgdata), getimagesizefromstring($mfr->get()));
         $this->assertEquals(0, count($diff));
     }
+
+    //
+    // HELPERS
+    //
+
+    private function fireRequestForContent($url, $file_cache = null)
+    {
+        // scrub existing cache entry for this route
+        if (($file_cache !== null) && file_exists($file_cache)) {
+            unlink($file_cache);
+        }
+        // fire a simple request for test URL
+        $this->client->followRedirects();
+        $crawler = $this->client->request('GET', $url);
+        // check the returned content for some basic known HTML
+        $content = $this->client->getResponse()->getContent();
+        return $content;
+    }
+
 
 }

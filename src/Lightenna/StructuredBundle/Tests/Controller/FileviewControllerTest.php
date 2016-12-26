@@ -2,9 +2,7 @@
 
 namespace Lightenna\StructuredBundle\Tests\Controller;
 
-use Lightenna\StructuredBundle\Controller\ViewController;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
-use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\Tests\DependencyInjection\BaseWebTestCase;
 
 class FileviewControllerTest extends BaseWebTestCase
@@ -12,7 +10,7 @@ class FileviewControllerTest extends BaseWebTestCase
     public function testFileRouteRoot()
     {
         $identifier = 'index.html';
-        $file_cache = $this->getCachedFileLocation($identifier);
+        $file_cache = $this->getCachedFileLocation('/file' . $identifier);
         $match = '<title>Directory / - StructuredFun</title>';
         // fire request
         $this->fireRequestAndCheckForContent('/file/' . $identifier, $match, $file_cache);
@@ -32,7 +30,7 @@ class FileviewControllerTest extends BaseWebTestCase
     public function testFileRouteTestData()
     {
         $identifier = 'structured~2Ftests~2Fdata';
-        $file_cache = $this->getCachedFileLocation($identifier);
+        $file_cache = $this->getCachedFileLocation('/file/' . $identifier);
         $match = '<title>Directory /' . $identifier . ' - StructuredFun</title>';
         // fire request
         $this->fireRequestAndCheckForContent('/file/' . $identifier, $match, $file_cache);
@@ -64,19 +62,6 @@ class FileviewControllerTest extends BaseWebTestCase
         // check the returned content for some basic known HTML
         $content = $this->client->getResponse()->getContent();
         $this->assertContains($match, $content);
-    }
-
-    private function getCachedFileLocation($identifier)
-    {
-        $t = new ViewController();
-        // find path to cached index file
-        $filename = $t->convertRawToFilename($identifier);
-        $name = $t::convertRawToUrl($identifier);
-        $mfr = new CachedMetadataFileReader($filename, $t);
-        // assumption that we're looking for a file/directory (not image)
-        $file_cachedir = $mfr->setupCacheDir('file');
-        $file_cache = $file_cachedir . $name . Constantly::DIR_SEPARATOR_URL . Constantly::DIR_INDEX_FILENAME . '.' . Constantly::CACHE_FILEEXT;
-        return $file_cache;
     }
 
 }
