@@ -2,9 +2,6 @@
 
 namespace Lightenna\StructuredBundle\DependencyInjection;
 
-use Lightenna\StructuredBundle\Entity\GenericEntry;
-use Lightenna\StructuredBundle\Entity\ImageMetadata;
-
 class Rectangle
 {
 

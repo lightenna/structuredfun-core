@@ -2,7 +2,6 @@
 
 namespace Lightenna\StructuredBundle\Tests\Controller;
 
-use Doctrine\Common\Cache\Cache;
 use Lightenna\StructuredBundle\Controller\ImageviewController;
 use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;

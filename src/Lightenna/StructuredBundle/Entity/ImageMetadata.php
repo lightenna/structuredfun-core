@@ -11,7 +11,6 @@ use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\IptcWriter;
 use Lightenna\StructuredBundle\DependencyInjection\Rectangle;
-use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
 
 /**
  * ImageMetadata model

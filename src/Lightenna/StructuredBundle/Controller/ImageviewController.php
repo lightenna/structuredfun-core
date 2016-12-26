@@ -3,17 +3,14 @@
 namespace Lightenna\StructuredBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
 use Lightenna\StructuredBundle\Entity\Arguments;
-use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\Entity\ImageException;
 use Lightenna\StructuredBundle\Entity\VideoMetadata;
 use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\DependencyInjection\FileReader;
-use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
