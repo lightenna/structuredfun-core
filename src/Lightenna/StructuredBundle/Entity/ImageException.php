@@ -6,3 +6,8 @@ class ImageException extends \Exception
 {
 
 }
+
+class VideoThumbnailException extends ImageException
+{
+
+}

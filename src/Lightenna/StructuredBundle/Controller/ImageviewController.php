@@ -243,7 +243,7 @@ class ImageviewController extends ViewController
 
     /**
      * @return string image data as string
-     * @throws ImageException
+     * @throws VideoThumbnailException
      */
     private function loadVideoFrame()
     {
@@ -264,7 +264,7 @@ class ImageviewController extends ViewController
             $returnedFile = $this->takeSnapshot($this->args->{'timecode'}, $localmfr->getFilename($key));
             // if no image produced (e.g. video corrupted or stored in zip)
             if ($returnedFile === false) {
-                throw new ImageException();
+                throw new VideoThumbnailException();
             }
             // point the local reader at the returned file, then read from it
             $localmfr->rewrite($returnedFile);
