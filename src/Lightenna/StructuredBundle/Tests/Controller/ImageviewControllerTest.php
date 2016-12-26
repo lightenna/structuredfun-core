@@ -33,7 +33,23 @@ class ImageviewControllerTest extends BaseWebTestCase
 
     public function testImageReturnedDimension()
     {
+        $identifier = CachedMetadataFileReader::hash('structured/tests/data/10-file_folder/00980001.JPG');
+        $identifier .= '/full/!1024,679/0/native.img';
+        // fire request
+        $imgdata = $this->fireRequestForContent('/imagecacherefresh/' . $identifier);
+        $imgmeta = getimagesizefromstring($imgdata);
+        $this->assertEquals(1024, $imgmeta[0]);
+        $this->assertEquals(679, $imgmeta[1]);
+    }
 
+    public function testImageMetaReturnedDimension()
+    {
+        $identifier = CachedMetadataFileReader::hash('structured/tests/data/10-file_folder/00980001.JPG');
+        // fire request
+        $imgjson = $this->fireRequestForContent('/imagemeta/' . $identifier, null);
+        $imgmeta = json_decode($imgjson);
+        $this->assertEquals(1024, $imgmeta->metadata->loadedWidth);
+        $this->assertEquals(679, $imgmeta->metadata->loadedHeight);
     }
 
     public function testImageCalcNewSize()
