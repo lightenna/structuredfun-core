@@ -2969,7 +2969,7 @@ window.sfun = (function ($, undefined) {
                         type = keypart[0];
                     }
                     // build DOM element
-                    var itemhtml = '<li class="' + type + '" data-key="' + current.key + '"><span class="dig3">' + sfun.api_pad(idx3dig, 3) + '</span>' + current.key + '</li>';
+                    var itemhtml = '<li class="' + type + '" data-key="' + current.key + '"><span class="dig3" title="' + current.key + '">' + sfun.api_pad(idx3dig, 3) + '</span>' + current.key + '</li>';
                     // insert into visualised (vised) list
                     vised.arr[vised.arr.length] = current.idx;
                     // see if there's anything left in the list
