@@ -16,7 +16,7 @@ class ExplorerviewController extends ViewController
      *
      * @Route("/explorer/", name="lightenna_explorer_root")
      * @Route("/explorer/{identifier}/", name="lightenna_explorer_id")
-     * @Route("/explorer/{identifier}/index.html", name="lightenna_explorer_id")
+     * @Route("/explorer/{identifier}/index.html", name="lightenna_explorer_idind")
      */
     public function indexAction($identifier = '/', $format = 'html', Request $req)
     {

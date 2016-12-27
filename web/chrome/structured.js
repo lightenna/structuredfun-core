@@ -4182,6 +4182,8 @@ window.sfun = (function ($, undefined) {
         // get current scroll position
         var rounding = getGutter() + 1;
         var current_pos = (direction == 'x' ? $document.scrollLeft() : $document.scrollTop());
+        // minimum width of an image is required to correct rounding errors
+        var min_offset = 1.0;
         // active mousewheel reaction is dependent on which direction we're flowing in
         var target = {};
         var animation_length = exp.implicitScrollDURATION;
@@ -4205,7 +4207,7 @@ window.sfun = (function ($, undefined) {
                 break;
 
             case exp.imageSnapByScroll : // on, scroll by image alignment
-                var next_pos = handlerMouseWheeled_getNextPos(breadth, direction, scrolldir, current_pos);
+                var next_pos = handlerMouseWheeled_getNextPos(breadth, direction, scrolldir, current_pos + min_offset);
                 // put into target object
                 target[(direction == 'x' ? 'scrollLeft' : 'scrollTop')] = next_pos;
                 // target = cropScrollPositionAgainstViewport(target);
