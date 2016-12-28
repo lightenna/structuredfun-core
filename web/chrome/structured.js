@@ -1,78 +1,9 @@
-// ---------
-// POLYFILLS
-// ---------
-
-// Object.create polyfill
-if (typeof Object.create !== 'function') {
-    Object.create = function (o) {
-        function F() {
-        }
-
-        F.prototype = o;
-        return new F();
-    };
-}
-
-// inherits polyfill
-if (typeof Function.prototype.inherits !== 'function') {
-    // helper that makes inheritance work using 'Object.create'
-    Function.prototype.inherits = function (parent) {
-        this.prototype = Object.create(parent.prototype);
-    };
-}
-
-// missing console in IE
-var console = window.console || {
-        log: function () {
-        }
-    };
 
 /**
  * StructuredFun javascript
  * @param {object} $ object reference, so polyfills apply to all jQuery objects
  */
 window.sfun = (function ($, undefined) {
-
-    // ---------
-    // POLYFILLS
-    // ---------
-
-    // jQuery selector refresh
-    $.fn.refresh = function () {
-        return $(this.selector);
-    };
-
-    // jQuery caching find function
-    $.fn.cachedFind = function (subselector) {
-        this.litter = this.litter || {};
-        this.litter.cache = this.litter.cache || {};
-        if (this.litter.cache[subselector] == undefined) {
-            if (debug && false) {
-                console.log('cache HIT (' + this.selector + ') id[' + this.attr('id') + ']:' + subselector);
-            }
-            this.litter.cache[subselector] = this.find(subselector);
-        }
-        else {
-            if (debug && false) {
-                console.log('cache MISS (' + this.selector + ') id[' + this.attr('id') + ']:' + subselector);
-            }
-        }
-        return this.litter.cache[subselector];
-    };
-
-    // jQuery caching getter
-    $.fn.cachedGet = function (key) {
-        this.litter = this.litter || {};
-        this.litter.cache = this.litter.cache || {};
-        return this.litter.cache[key];
-    }
-
-    // jQuery caching setter
-    $.fn.cachedSet = function (key, value) {
-        this.litter = this.litter || {};
-        this.litter.cache = this.litter.cache || {};
-        this.litter.cache[key] = value;
-    }
 
     // ---------
     // CONSTANTS
@@ -1917,7 +1848,7 @@ window.sfun = (function ($, undefined) {
     var imageReres = function ($ent, path) {
         var that = this;
         var $reresable = $ent.cachedFind('.reresable');
-        if (debug && true) {
+        if (debug && false) {
             console.log('imageReres called for ' + $ent.data('seq'));
         }
         if ($reresable.length) {
@@ -2269,375 +2200,12 @@ window.sfun = (function ($, undefined) {
         return hash;
     }
 
-    // --------------------------
-    // LIBRARY: generic hashTable
-    // --------------------------
-
     /**
-     * create a generic hashTable
-     * @param {string} namearg name of the table (used for debugging messages)
-     * @return {object} hashTable object
+     * The visTableMajor is used:
+     * - to store an indexed list of cell coordinates along the major axis
      */
-    var createHashTable = function (namearg) {
-        if (typeof(namearg) == 'undefined') {
-            namearg = '<unnamed>';
-        }
-        return {
-            // optional name
-            'name': namearg,
-            // array of objects, stored in dense sequential
-            'objarr': [],
-            // array of keys, stored in dense sequential
-            'keyarr': [],
-
-            // length of queue
-            'length': 0,
-            // counter for dishing out unique IDs
-            'counter': 0,
-
-            /**
-             * @param {array} arr Array of elements to push into hash table
-             */
-            'add': function (arr) {
-                // loop through array adding elements
-                for (var i = 0; i < arr.length; ++i) {
-                    var obj = arr[i];
-                    // if element isn't an object already
-                    if (typeof(obj) != 'object') {
-                        // create an object wrapper for this key
-                        obj = {};
-                        obj.key = arr[i];
-                    }
-                    // push into hash table
-                    this._push(obj);
-                }
-            },
-
-            /**
-             * wipe the hash table
-             */
-            'wipe': function () {
-                this.objarr.length = 0;
-                this.keyarr.length = 0;
-                // don't reset counter because old objects may still be floating about
-            },
-
-            /**
-             * interface function push obj onto queue
-             * this function may be overwritten by specialist hash tables
-             * @param {object} obj to push
-             */
-            'push': function (obj) {
-                this._push(obj);
-                return obj;
-            },
-
-            /**
-             * actually push obj onto queue
-             * @param {object} obj to push
-             */
-            '_push': function (obj) {
-                // get next free position, but don't store in obj because it can change
-                var ref = this.getSize();
-                // if object has ref set, use instead
-                if (obj.ref != undefined) {
-                    ref = obj.ref;
-                }
-                // store ID and ready for next ID request
-                obj.idx = 1000 + this.counter++;
-                // store in object array
-                this.objarr[ref] = obj;
-                // store in the index array(s), allow duplicate keys
-                this.keyarr[ref] = obj.key;
-                // optional debugging
-                if (debug && false) {
-                    console.log('pushed object[' + this.render(obj) + '] on to ref[' + ref + '] ' + this.name + ' hashTable, now has ' + this.getSize() + 'elements');
-                }
-                return ref;
-            },
-
-            /**
-             * @return {string} render simple string of object
-             */
-            'render': function (obj) {
-                if (obj == null) {
-                    return '<no object>';
-                }
-                return obj.key;
-            },
-
-            /**
-             * @param {mixed} key to search for
-             * @param {bool} [findLast] true to find last occurrence of this key
-             * @return {int} array reference or -1 if not found
-             */
-            'find': function (key, findLast) {
-                var ref;
-                // set defaults on optional arguments
-                if (typeof(findLast) == 'undefined') {
-                    findLast = false;
-                }
-                if (findLast) {
-                    ref = this.keyarr.lastIndexOf(key);
-                } else {
-                    ref = this.keyarr.indexOf(key);
-                }
-                return ref;
-            },
-
-            /**
-             * @param {mixed} key to search for, as regular expression without slashes
-             * @param {bool} [findLast] true to find last occurrence of this key
-             * @return {int} array reference or -1 if not found
-             */
-            'findRegex': function (key, findLast) {
-                var ref;
-                // set defaults on optional arguments
-                if (typeof(findLast) == 'undefined') {
-                    findLast = false;
-                }
-                // prep search loop
-                var re = new RegExp(key, 'g');
-                $matches = [];
-                for (var i = 0; i < this.keyarr.length; i++) {
-                    // try and match the key against this key
-                    if (this.keyarr[i].match(re) != null) {
-                        // store position of match
-                        ref = i;
-                        if (!findLast) {
-                            // if we're not looking for the last one, break at the first match
-                            break;
-                        }
-                    }
-                }
-                return ref;
-            },
-
-            /**
-             * @param {mixed} key to pivot around
-             * @param {int} increment positive for >=, negative for <=
-             * @param {bool} [findLast] true to find last occurrence of this key
-             * @return {int} ref position of object matching this comparison, or -1 if not found
-             */
-            'findCompare': function (key, comparison, findLast) {
-                // set defaults on optional arguments
-                if (typeof(findLast) == 'undefined') {
-                    findLast = false;
-                }
-                // find boundaries of array
-                var minRef = 0;
-                // detect sparse array
-                if (this.keyarr[minRef] == undefined) {
-                    for (var i in this.keyarr) {
-                        // array keys returned as strings, so convert
-                        minRef = parseInt(i);
-                        break;
-                    }
-                }
-                var maxRef = this.getSize() - 1;
-                // setup binary search
-                var currentRef;
-                var currentElement;
-                while (minRef <= maxRef) {
-                    // find middle ref, and element's value
-                    currentRef = (minRef + maxRef) / 2 | 0;
-                    currentElement = this.keyarr[currentRef];
-
-                    // if less than key
-                    if (currentElement < key) {
-                        // raise min to current+1
-                        minRef = currentRef + 1;
-                    }
-                    // if greater than key
-                    else if (currentElement > key) {
-                        // lower max to current-1
-                        maxRef = currentRef - 1;
-                    }
-                    // if equal
-                    else {
-                        // converge on current
-                        minRef = maxRef = currentRef;
-                        break;
-                    }
-                }
-                // process based on direction of comparison (LTE/GTE)
-                if (comparison > 0) {
-                    if (minRef < 0 || minRef >= this.getSize()) return -1;
-                    currentElement = this.keyarr[minRef];
-                    // work forwards looking for identical value to first >= key
-                    return this.find(currentElement, false);
-                } else {
-                    if (maxRef < 0 || maxRef >= this.getSize()) return -1;
-                    currentElement = this.keyarr[maxRef];
-                    // work backwards looking for identical value to last <= key
-                    return this.find(currentElement, true);
-                }
-            },
-
-            /**
-             * update key for a given object
-             * @param {int} ref position in object array
-             * @param {objext} obj object to update
-             * @param {mixed} new_key
-             */
-            'replaceKey': function (ref, obj, new_key) {
-                if (this.objarr[ref] == obj) {
-                    // upate object itself
-                    obj.key = new_key;
-                    // update key array
-                    this.keyarr[ref] = new_key;
-                }
-            },
-
-            /**
-             * Could use any object property to dereference it (like ID)
-             * @param {object} object to remove if found
-             * @return {int} array reference if removed or -1 if not found
-             */
-            'removeObj': function (obj) {
-                // use key to deref object
-                return this.removeKey(obj.key);
-            },
-
-            /**
-             * @param {string} key to remove if found
-             * @return {int} array reference if removed or -1 if not found
-             */
-            'removeKey': function (key) {
-                // find this key in the array
-                var ref = this.find(key);
-                if (ref != -1) {
-                    var obj = this.objarr[ref];
-                    this.removeRef(ref);
-                    // optional debugging output
-                    if (debug && false) {
-                        console.log('removed [' + this.render(obj) + '] from ' + this.name + ' hashTable');
-                    }
-                }
-                return ref;
-            },
-
-            /**
-             * @param {int} ref to remove
-             */
-            'removeRef': function (ref) {
-                // delete from the object array
-                this.objarr.splice(ref, 1);
-                // delete from the index array
-                this.keyarr.splice(ref, 1);
-            },
-
-            /**
-             * This can be used just prior to a _push to get the ID that will be assigned by that _push
-             * @return {int} object counter in the hashTable
-             */
-            'getCounter': function () {
-                return this.counter;
-            },
-
-            /**
-             * @return {int} total number of entries in table
-             */
-            'getSize': function () {
-                return this.objarr.length;
-            },
-
-            /**
-             * interface function to get from table
-             * @param {string} key to search for
-             * @param {bool} [alsoRemove] true to delete matched elements
-             * @param {bool} [findLast] true to find last occurrence of this key
-             * @return {object} matched object or null if not found
-             */
-            'get': function (key, alsoRemove, findLast) {
-                // set defaults on optional arguments
-                if (typeof(alsoRemove) == 'undefined') {
-                    alsoRemove = false;
-                }
-                if (typeof(findLast) == 'undefined') {
-                    findLast = false;
-                }
-                return this._get(key, alsoRemove);
-            },
-
-            /**
-             * actually get object from table
-             * @param {string} key to search for
-             * @param {bool} [alsoRemove] true to delete matched elements
-             * @param {bool} [findLast] true to find last occurrence of this key
-             * @return {object} matched object or null if not found
-             */
-            '_get': function (key, alsoRemove, findLast) {
-                // set defaults on optional arguments
-                if (typeof(alsoRemove) == 'undefined') {
-                    alsoRemove = false;
-                }
-                if (typeof(findLast) == 'undefined') {
-                    findLast = false;
-                }
-                // find position in array(s)
-                var ref = this.find(key, findLast);
-                if (debug && false) {
-                    console.log('get requested for key[' + key + ']');
-                }
-                if (ref != -1) {
-                    // get the object
-                    var obj = this.objarr[ref];
-                    if (alsoRemove) {
-                        // delete this object
-                        this.removeRef(ref);
-                        if (debug && false) {
-                            console.log('pulled hashTable object[' + this.render(obj) + ']');
-                        }
-                    }
-                    return obj;
-                }
-                return null;
-            },
-
-            /**
-             * get the object at a certain position in the table
-             * @param {int} ref position in table
-             * @return {object} matched object, or null if not present
-             */
-            'select': function (ref) {
-                if ((ref == -1) || (ref >= this.objarr.length)) {
-                    return null;
-                }
-                return this.objarr[ref];
-            },
-
-            /**
-             * get the key on an object at a certain position in the table
-             * @param {int} ref position in table
-             * @return {mixed} key at this position in the table
-             */
-            'key': function (ref) {
-                if ((ref == -1) || (ref >= this.objarr.length)) {
-                    return null;
-                }
-                return this.keyarr[ref];
-            },
-
-            /**
-             * @param {function} func function to call on all objects in hashTable
-             */
-            'iterate': function (func) {
-                for (var i = 0; i < this.objarr.length; i++) {
-                    var obj = this.objarr[i];
-                    func(obj);
-                }
-            },
-
-            lastEntry: null
-        };
-    }
-
-    /**
-     * create a specialised hashTable for visTableMajor
-     */
-    var createVisTable = function () {
-        return $.extend(createHashTable('visTable'), {
+    var createVisTable = function (outer_class) {
+        return $.extend($.createHashTable('visTable'), {
 
             // FUNCTIONS
 
@@ -2723,44 +2291,30 @@ window.sfun = (function ($, undefined) {
                 }
             },
 
-            'lastEntry': null
-        });
-    }
+            lastEntry: null
 
-    /**
-     * The visTableMajor is used:
-     * - to store an indexed list of cell coordinates along the major axis
-     */
-    var visTableMajor = createVisTable();
+        });
+    };
+    var visTableMajor = createVisTable(this);
 
     /**
      * The layoutManager is used:
      * - to store an indexed list of layout methods
      */
-    var layoutManager = function () {
-        return $.extend(createHashTable('layoutManager'), {
-            // comma-less last field
-            'lastEntry': null
-        });
-    }();
+    var layoutManager = $.createHashTable('layoutManager');
 
     /**
      * The toolManager is used:
      * - to store an indexed list of available tools
      */
-    var toolManager = function () {
-        return $.extend(createHashTable('toolManager'), {
-            // comma-less last field
-            'lastEntry': null
-        });
-    }();
+    var toolManager = $.createHashTable('toolManager');
 
     /**
      * create a specialised hashTable for the eventQueue
      * @return {object} hashTable object
      */
     var createEventQueue = function (outer_class) {
-        return $.extend(createHashTable('eventQueue'), {
+        return $.extend($.createHashTable('eventQueue'), {
 
             // CONSTANTS
 
@@ -2885,19 +2439,15 @@ window.sfun = (function ($, undefined) {
                 }
                 this.visref_$list_static.addClass('updating');
                 // iterate from critical_section up to produce queued list
-                queued = [];
-                var j = 0, current = this.critical_section;
-                for (; j < exp.loopIterLIMIT && current != null; ++j, current = current.parent) {
-                    queued[queued.length] = current;
-                }
+                var queued = this.visualisationBuildParentList(this.critical_section);
                 if (debug && false) {
                     console.log('queued');
                     console.log(queued);
                 }
                 // first show the queued list
-                vised = this.visualisationRefreshList(queued, {last_i: 0, arr: []});
+                var vised = this.visualisationRefreshList(queued, {last_i: 0, arr: []});
                 // then show everything else that's in there
-                rest = [];
+                var rest = [];
                 this.iterate(function (obj) {
                     // if we haven't already vised it
                     if (vised.arr.indexOf(obj.idx) == -1) {
@@ -2939,6 +2489,14 @@ window.sfun = (function ($, undefined) {
 
             },
 
+            'visualisationBuildParentList': function (current) {
+                var list = [];
+                for (var j = 0; j < exp.loopIterLIMIT && current != null; ++j, current = current.parent) {
+                    list[list.length] = current;
+                }
+                return list;
+            },
+
             'visualisationDumpList': function (vised) {
                 var _localDelete = function ($li, delay) {
                     $li.delay(delay).animate({right: '200px', height: 0, opacity: 0.0}, 300, function () {
@@ -2962,14 +2520,23 @@ window.sfun = (function ($, undefined) {
                 for (var j = 0; j < evlist.length; ++j, ++i) {
                     var current = evlist[j];
                     // build list item
-                    var idx3dig = current.idx % 1000;
                     var type = 'generic_event';
                     var keypart = current.key.split(':');
                     if (keypart.length) {
                         type = keypart[0];
                     }
+                    // build parent list for this item
+                    var parent_list = this.visualisationBuildParentList(current.parent);
+                    var parent_block = '';
+                    for (var k=0 ; k < parent_list.length ; ++k) {
+                        parent_block += '<span class="' + this.visualisationItemGetType(parent_list[k]) + '"><span class="dig3">' + sfun.api_pad(parent_list[k].idx % 1000, 3) + '</span></span>';
+                    }
                     // build DOM element
-                    var itemhtml = '<li class="' + type + '" data-key="' + current.key + '"><span class="dig3" title="' + current.key + '">' + sfun.api_pad(idx3dig, 3) + '</span>' + current.key + '</li>';
+                    var itemhtml = '<li class="' + this.visualisationItemGetType(current) + '" data-key="' + current.key + '">';
+                    itemhtml += parent_block;
+                    itemhtml += '<span class="dig3" title="' + current.key + '">' + sfun.api_pad(current.idx % 1000, 3) + '</span>';
+                    itemhtml += current.key;
+                    itemhtml += '</li>';
                     // insert into visualised (vised) list
                     vised.arr[vised.arr.length] = current.idx;
                     // see if there's anything left in the list
@@ -2999,6 +2566,18 @@ window.sfun = (function ($, undefined) {
                 // allow for added elements
                 vised.last_i = i + noAdded;
                 return vised;
+            },
+
+            'visualisationItemGetType': function (current) {
+                var type = 'generic_event';
+                if ((current.key === undefined) || (current.key === null)) {
+                    return type;
+                }
+                var keypart = current.key.split(':');
+                if (keypart.length) {
+                    type = keypart[0];
+                }
+                return type;
             },
 
             // PUBLIC FUNCTIONS
@@ -3789,7 +3368,7 @@ window.sfun = (function ($, undefined) {
         }
         // buffer track event call slightly to avoid key-action or click-action latency
         setTimeout(function () {
-            if (debug && true) {
+            if (debug && false) {
                 console.log('send trackEvent(' + category + ', ' + event + ', ' + label + ')')
             }
             // send event to Google
@@ -4000,6 +3579,12 @@ window.sfun = (function ($, undefined) {
      */
     var handlerKeyPressed = function (event) {
         var that = this;
+        // ignore certain key presses
+        switch (event.which) {
+            case exp.KEY_CTRL :
+            case exp.KEY_ALT :
+                return getDeferred().resolve();
+        }
         // create an event context for this handler, or use stored one
         var eventContext = eventQueue.getOrInvent({
             'key': 'keypress:' + 'key=' + event.which,
@@ -4652,6 +4237,13 @@ window.sfun = (function ($, undefined) {
         },
 
         /**
+         * first call once all libraries have been built
+         */
+        'api_initialise': function() {
+            init();
+        },
+
+        /**
          * add a button to the header
          * @param {object} obj arguments
          */
@@ -5114,15 +4706,16 @@ window.sfun = (function ($, undefined) {
          * @return {object} visibility table for major axis
          */
         'api_createVisTable': function () {
-            return createVisTable();
+            return $.createVisTable();
         },
 
         // no comma on last entry
         lastEntry: true
     };
 
-    // call init function then return API object
+    // call initialisation
     init();
+    // return API object
     return exp;
 
 })(jQuery, undefined);

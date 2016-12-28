@@ -365,10 +365,10 @@ html.theme-dark {
   top: 0;
   // stick to right-hand edge
   left: 100%;
-  margin-left: -11em;
+  margin-left: -20em;
 
   li {
-    width: 10em;
+    width: 20em;
     padding: 0.2em;
     background-color: #660000;
     border: 1px solid #000;
@@ -382,11 +382,15 @@ html.theme-dark {
       border-bottom-color: #ff0000; 
     }
 
-    &.hash {
+    &.keypress, span.keypress {
+      background-color: #660000;
+    }
+
+    &.hash, span.hash {
       background-color: #006600;
     }
 
-    &.scroll {
+    &.scroll, span.scroll {
       background-color: #000066;
     }
 
