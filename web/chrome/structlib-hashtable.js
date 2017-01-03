@@ -375,5 +375,5 @@
 
             lastEntry: null
         };
-    }
+    };
 }));

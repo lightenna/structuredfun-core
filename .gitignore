@@ -34,3 +34,5 @@ web/mediacache/*
 web/mediacache/image/.writeable.txt
 web/mediacache/layout/.writeable.txt
 
+# Ignore log files created by SASS compilation
+/web/chrome/compass_app_log.txt
