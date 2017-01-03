@@ -14,24 +14,25 @@
   videojs.options.flash.swf = "/chrome/vendor/video.js/video-js.swf"
 </script>
 {# structuredfun core #}
-<script type="text/javascript" src="/chrome/structlib-polyfills.js"></script>
-<script type="text/javascript" src="/chrome/structlib-hashtable.js"></script>
-<script type="text/javascript" src="/chrome/structured.js"></script>
-<script type="text/javascript" src="/chrome/structlib-vistable.js"></script>
+<script type="text/javascript" src="{{ asset('chrome/core/000structured-polyfills.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/core/010structured-hashtable.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/core/100structured.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/core/110structured-vistable.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/core/120structured-bind.js') }}"></script>
 <script type="text/javascript">
   // initialise once we've built up all the structured javascript  file
   window.sfun.api_initialise();
 </script>
-<script type="text/javascript" src="/chrome/structured-flow.js"></script>
-<script type="text/javascript" src="/chrome/structured-flow2.js"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-flow.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-flow2.js') }}"></script>
 {# tool receiver order, used for event preventing = script order established here #}
-<script type="text/javascript" src="/chrome/structured-metaedit.js"></script>
-<script type="text/javascript" src="/chrome/structured-clickfull.js"></script>
-<script type="text/javascript" src="/chrome/structured-playbutton.js"></script>
-<script type="text/javascript" src="/chrome/structured-showfolder.js"></script>
-<script type="text/javascript" src="/chrome/structured-refresh.js"></script>
-<script type="text/javascript" src="/chrome/structured-QUnit-all.js"></script>
-<script type="text/javascript" src="/chrome/structured-QUnit-single.js"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-metaedit.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-clickfull.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-playbutton.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-showfolder.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-refresh.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-QUnit-all.js') }}"></script>
+<script type="text/javascript" src="{{ asset('chrome/tools/structured-QUnit-single.js') }}"></script>
 <script type="text/javascript">
 {% if defaults is defined %}
   // write dynamic settings JSON into HTML [async]
