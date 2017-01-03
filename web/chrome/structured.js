@@ -964,7 +964,7 @@ window.sfun = (function ($, undefined) {
                 }
                 // use parent cell to find seq
                 var $ent = $(this).parents('.selectablecell');
-                this.handlerImageClicked(event, $ent, selector);
+                that.handlerImageClicked(event, $ent, selector);
             });
         },
 
@@ -980,10 +980,10 @@ window.sfun = (function ($, undefined) {
                     return true;
                 } else {
                     // interrupt the click and manually process
-                    var url = this.urlDirectoryWithState($(this).attr('href'));
+                    var url = that.urlDirectoryWithState($(this).attr('href'));
                     event.preventDefault();
                     // manually jump to new URL
-                    this.urlGoto(url);
+                    that.urlGoto(url);
                 }
             });
         },
@@ -998,11 +998,11 @@ window.sfun = (function ($, undefined) {
                 // be very careful with code in here as :hover is a very frequent event
                 var seq = $(this).parent().data('seq');
                 // work out image and viewport's positions on major axis
-                var offseq = this.imageStillShiftOffseq(seq);
+                var offseq = that.imageStillShiftOffseq(seq);
                 // select image using hash update
-                this.fireHashUpdate({'seq': seq, 'offseq': offseq}, false);
+                that.fireHashUpdate({'seq': seq, 'offseq': offseq}, false);
                 // optional debugging
-                if (this.debug && true) {
+                if (that.debug && true) {
                     console.log('hover over img-' + seq);
                 }
             });
@@ -1017,7 +1017,7 @@ window.sfun = (function ($, undefined) {
             // be very careful with code in here as :hover is a very frequent event
             this.$sfun.on('mousemove', '.selectablecell a.video-container', function (event) {
                 // pull ent using shared cached copy
-                var $ent = this.$cell($(this).parent().data('seq'));
+                var $ent = that.$cell($(this).parent().data('seq'));
                 // work out image and cursor positions on x axis (always)
                 var image_pos = $ent.offset();
                 var cursor_pos = event.pageX - image_pos.left;
@@ -1028,7 +1028,7 @@ window.sfun = (function ($, undefined) {
                     // var cursor_part = this.exp.api_round(cursor_pos * partitions / $ent.width(), 0);
                     // var cursor_frame = this.exp.api_round(cursor_part * meta.dv_framecount / partitions, 0);
                     // calculate frame to request
-                    var cursor_frame = this.exp.api_round(cursor_pos * meta.dv_framecount / $ent.width(), 0);
+                    var cursor_frame = that.exp.api_round(cursor_pos * meta.dv_framecount / $ent.width(), 0);
                     // check to see if we're already displaying this frame
                     if ($ent.data('frame') == cursor_frame) {
                         // do nothing
@@ -1041,9 +1041,9 @@ window.sfun = (function ($, undefined) {
                             // do nothing
                         } else {
                             // just change out the img src; no res/ratio changes
-                            var highres = this.substitute($loadable.data('template-src'), {
-                                'maxwidth': this.last_longest,
-                                'maxheight': this.last_longest,
+                            var highres = that.substitute($loadable.data('template-src'), {
+                                'maxwidth': that.last_longest,
+                                'maxheight': that.last_longest,
                                 'timecode': 'f' + cursor_frame
                             });
                             var im = new Image();
@@ -1055,7 +1055,7 @@ window.sfun = (function ($, undefined) {
                             im.src = highres;
                             $loadable.addClass('frame_pending')
                             // optional debugging
-                            if (this.debug && true) {
+                            if (that.debug && true) {
                                 console.log(cursor_frame + ' of ' + meta.dv_framecount);
                             }
                         }
@@ -1886,7 +1886,7 @@ window.sfun = (function ($, undefined) {
                 img.attr('src', path).one('load', function () {
                     // now that it's pre-cached by the temp, apply to original image
                     $reresable.attr('src', path);
-                    // store loaded width and height
+                    // store loaded width and height (loaded attributes come in 'this')
                     $reresable.data('loaded-width', this.width);
                     $reresable.data('loaded-height', this.height);
                     $reresable.data('ratio', this.width / this.height);
@@ -2252,6 +2252,8 @@ window.sfun = (function ($, undefined) {
                     'deps': null,
                     // has not been handled yet
                     'handled': false,
+                    // was not fired by us explicitly
+                    'fired': false,
                     // can not be dumped if peered
                     'dumpable': false,
                     // has no action
@@ -3163,7 +3165,8 @@ window.sfun = (function ($, undefined) {
             // always create a context [so we can resolve something], but parent it only if eventContext is not undefined
             var localContext = this.eventQueue.pushOrParent({
                 'key': 'hash:' + hash,
-                'comment': 'localContext for fire_hashUpdate'
+                'comment': 'localContext for fire_hashUpdate',
+                'fired': true
             }, eventContext);
             // if hash would have no effect (would not trigger handlerHashChanged)
             if (this.hashEquals(this.getHash(), hash)) {
@@ -3198,7 +3201,8 @@ window.sfun = (function ($, undefined) {
             // otherwise create a context, but parent it if eventContext is defined (and not identical)
             var localContext = this.eventQueue.pushOrParent({
                 'key': newkey,
-                'comment': 'localContext for fire_scrollUpdate'
+                'comment': 'localContext for fire_scrollUpdate',
+                'fired': true
             }, eventContext);
             if (this.debug && false) {
                 console.log('* fired scroll event ' + this.eventQueue.render(localContext));
@@ -3250,7 +3254,8 @@ window.sfun = (function ($, undefined) {
             var e = jQuery.Event('keydown', {which: key});
             var localContext = this.eventQueue.pushOrParent({
                 'key': 'keypress:key=' + key,
-                'comment': 'localContext for fire_keyPress (keyToPress ' + key + ')'
+                'comment': 'localContext for fire_keyPress (keyToPress ' + key + ')',
+                'fired': true
             });
             this.$document.trigger(e);
             return localContext.deferred;
@@ -3369,7 +3374,7 @@ window.sfun = (function ($, undefined) {
                 // update images based on what changed
                 if (seqChanged || offseqChanged || breadthChanged || directionChanged || forceChange) {
                     // scroll to the selected image, which triggers refresh on all .visible images
-                    return this.envisionSeq(obj.seq, obj.offseq, eventContext).done(function () {
+                    return that.envisionSeq(obj.seq, obj.offseq, eventContext).done(function () {
                         // @todo this doesn't cover it, do it on this.refreshAnImageSet() instead
                         //if (breadthChanged || directionChanged || forceChange) {
                         //  this.cellsResize();
@@ -3508,7 +3513,7 @@ window.sfun = (function ($, undefined) {
                 // setup event to allow delegates to prevent
                 event.sfun_active = true;
                 // delegate keypress to tool receivers
-                this.toolManager.iterate(function (obj) {
+                that.toolManager.iterate(function (obj) {
                     var tool = obj;
                     // only process event if it hasn't been deactivated
                     if (event.sfun_active) {
@@ -3517,10 +3522,10 @@ window.sfun = (function ($, undefined) {
                 });
                 if (event.sfun_active) {
                     // process keypress with local receiver (if still active)
-                    defs[defs.length] = this.receiverKeyPressed(event, eventContext);
+                    defs[defs.length] = that.receiverKeyPressed(event, eventContext);
                 }
                 // aggregate deferreds then resolve context
-                $.when.apply($, defs).always(this.eventQueue.resolve(eventContext));
+                $.when.apply($, defs).always(that.eventQueue.resolve(eventContext));
             });
         },
 
