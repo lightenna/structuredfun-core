@@ -452,11 +452,12 @@ class ViewController extends Controller
         if (isset($this->{'entry'})) {
             $ext = $this->entry->getExt();
         }
+        $headers = array();
         if (!headers_sent()) {
-            header("Content-Type: image/" . $ext);
-            header("Content-Length: " . strlen($imgdata));
+            $headers['Content-Type'] = 'image/' . $ext;
+            $headers['Content-Length'] = strlen($imgdata);
         }
-        return new Response($imgdata);
+        return new Response($imgdata, 200, $headers);
     }
 
     protected function getParameterOrDefault($name, $default)

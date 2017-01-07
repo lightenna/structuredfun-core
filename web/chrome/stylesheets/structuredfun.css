@@ -390,7 +390,7 @@ html.theme-dark.flow-1 .overlay-holder {
   border-bottom-color: #ff0000;
 }
 /* line 385, ../sass/structuredfun.scss */
-#eventQueueVis li.keypress, #eventQueueVis li span.keypress {
+#eventQueueVis li.keypress, #eventQueueVis li span.keypress, #eventQueueVis li.selected, #eventQueueVis li span.selected {
   background-color: #660000;
 }
 /* line 389, ../sass/structuredfun.scss */

@@ -80,7 +80,7 @@
      */
     var tests = function () {
         QUnit.init();
-        var resetTestMarker = '#!';
+        var resetTestMarker = '#!debug=1';
         var resetTest = function () {
             window.location.hash = resetTestMarker;
         };
@@ -177,18 +177,18 @@
             QUnit.stop();
             evq.actOnContext(localContext, function () {
                 // check we're now flagged as being in our critical section
-                equal(evq.critical_section, localContext, 'localContext is flagged criticalSection');
+                equal(evq.tss_getCriticalSection(), localContext, 'localContext is flagged criticalSection');
                 // try to act on it; it should get delayed and queued
                 evq.actOnContext(delayedContext, function () {
                     // use semaphor to mark that we've been run (toggle result)
                     result = !result;
                     // when we eventually run, should be flagged as being in our critical section
-                    equal(evq.critical_section, delayedContext, 'delayedContext is flagged criticalSection');
-                });
+                    equal(evq.tss_getCriticalSection(), delayedContext, 'delayedContext is flagged criticalSection');
+                }, this);
                 // check that delayedContext got delayed; result should still be in its original state (true)
                 equal(result, true, 'delayedContext has not been run yet');
                 QUnit.start();
-            });
+            }, this);
             // resolve first context
             evq.resolve(localContext);
             // check that delayedContext has not been run
@@ -203,7 +203,7 @@
             // no action, just shouldn't generate an error
             evq.actOnContext(null);
             // check nothing is in its critical section
-            equal(evq.critical_section, null, 'nothing in criticalSection');
+            equal(evq.tss_getCriticalSection(), null, 'nothing in criticalSection');
             var localContext = evq.push({
                 'key': 'test:act-on simple',
                 'comment': 'localContext for check eventQueue act-on simple test'
@@ -212,11 +212,11 @@
             QUnit.stop();
             evq.actOnContext(localContext, function () {
                 // check we're now flagged as being in our critical section
-                equal(evq.critical_section, localContext, 'localContext is flagged criticalSection');
+                equal(evq.tss_getCriticalSection(), localContext, 'localContext is flagged criticalSection');
                 QUnit.start();
-            });
+            }, this);
             evq.resolve(localContext);
-            notEqual(evq.critical_section, localContext, 'localContext is no longer flagged as criticalSection');
+            notEqual(evq.tss_getCriticalSection(), localContext, 'localContext is no longer flagged as criticalSection');
         });
 
         test('check eventQueue act-on replace', function () {
@@ -232,7 +232,7 @@
             evq.actOnContext(localContext, function () {
                 ok(false, 'act on ' + localContext.key + ' not replacing event');
                 QUnit.start();
-            });
+            }, this);
             // check that the localContext gets resolved without calling func
             localContext.deferred.then(function () {
                 ok(true, 'act on ' + localContext.key + ' resolved properly');
@@ -260,8 +260,8 @@
                 'key': 'test:child2',
                 'comment': 'child2 context for check eventQueue parent multi-child test'
             });
-            evq.parent(child1, parentContext);
-            evq.parent(child2, parentContext);
+            evq.tss_parent(child1, parentContext);
+            evq.tss_parent(child2, parentContext);
             // setup add-mux test variable
             var result = 3;
             // attach functions to each context
@@ -299,16 +299,14 @@
                 'key': 'test:child',
                 'comment': 'child context for check eventQueue parent test'
             });
-            evq.parent(childContext, parentContext);
+            evq.tss_parent(childContext, parentContext);
             // setup add-mux test variable
             var result = 3;
             // attach functions to each context
             childContext.deferred.done(function () {
-                console.log('child');
                 result = result * 10;
             });
             parentContext.deferred.done(function () {
-                console.log('parent');
                 result = result - 1;
             });
             $.when(childContext.deferred, parentContext.deferred).done(function () {
@@ -384,7 +382,9 @@
 
         test('check image bounds', function () {
             QUnit.stop();
-            $('ul.flow .selectablecell.visible .boundable').each(function () {
+            var assert_count = 0;
+            // select images based on visible or part-visible, because resolution dependent
+            $('ul.flow .selectablecell.visible .boundable, ul.flow .selectablecell.vispart .boundable').each(function () {
                 var tolerance = 1;
                 var imw = $(this).width(), imh = $(this).height();
                 var $ent = $(this).parents('li');
@@ -392,8 +392,10 @@
                 var withinWidth = (imw <= cellw + tolerance);
                 var withinHeight = (imh <= cellh + tolerance);
                 ok(withinWidth && withinHeight, 'image #' + $ent.data('seq') + ' (' + imw + 'x' + imh + ') bounded within it\'s cell (' + cellw + 'x' + cellh + ')');
+                assert_count++;
             }).promise().done(function () {
                 QUnit.start();
+                notEqual(assert_count, 0, 'at least one image tested');
             });
         });
 
@@ -444,7 +446,7 @@
                 QUnit.stop();
                 sfun.api_triggerKeypress(sfun.KEY_HOME).done(function () {
                     equal($('ul.flow .selectablecell.selected').data('seq'), 0, 'Home selected #0 image');
-                    $('ul.flow .selectablecell.visible .reresable').each(function () {
+                    $('ul.flow .selectablecell.visible .reresable, ul.flow .selectablecell.vispart .reresable').each(function () {
                         var imw = $(this).width(), imh = $(this).height();
                         var $ent = $(this).parents('li');
                         var lodw = $(this).data('loaded-width'), lodh = $(this).data('loaded-height');
@@ -492,7 +494,7 @@
                 var direction = sfun.api_getDirection();
                 var evq = sfun.api_getEventQueue();
                 // get initial dump count
-                var initial_dump_count = evq.dump_count;
+                var initial_dump_count = evq._dump_count;
                 // start test
                 QUnit.stop();
                 sfun.api_triggerKeypress(sfun.KEY_HOME).done(function () {
@@ -551,10 +553,8 @@
                                     if (i > iterCount) {
                                         clearInterval(interval);
                                         // test scroll position
-                                        var endPos = (direction == 'x' ? $(document).scrollLeft() : $(document).scrollTop());
+                                        var endPos = (direction == 'x' ? sfun.api_round($(document).scrollLeft(),0) : sfun.api_round($(document).scrollTop(),0) );
                                         equal(endPos, startPos + iterCount * iterMux, 'finished in correct scroll position');
-                                        // @deprecated check that we dumped events
-                                        // notEqual(initial_dump_count, evq.dump_count, (evq.dump_count - initial_dump_count) + ' events dumped');
                                     }
                                 }, 1);
                             }

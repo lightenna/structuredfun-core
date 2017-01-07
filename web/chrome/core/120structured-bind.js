@@ -28,7 +28,8 @@
             var that = this;
             if (this.bindToScroll_static == undefined) {
                 this.$window.scroll(function (event) {
-                    var sx = that.$document.scrollLeft(), sy = that.$document.scrollTop();
+                    var sx = that.exp.api_round(that.$document.scrollLeft(),0);
+                    var sy = that.exp.api_round(that.$document.scrollTop(),0);
                     that.handlerScrolled(event, sx, sy);
                     event.preventDefault();
                 });
@@ -269,8 +270,8 @@
                     }
                 }
             });
-        },
+        }
 
-    })
+    });
 
 }));

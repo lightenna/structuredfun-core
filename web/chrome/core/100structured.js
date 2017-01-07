@@ -107,8 +107,8 @@ window.sfun = (function ($, undefined) {
                     Mustache.parse(template);
                 }
             });
-            // initialise queues and tables
-            this.eventQueue = this.createEventQueue(this);
+            // initialise managers
+            // queues and tables done after this file loaded, but pre-init()
             this.layoutManager = $.createHashTable('layoutManager');
             this.toolManager = $.createHashTable('toolManager');
             // process state in page HTML next
@@ -1242,10 +1242,12 @@ window.sfun = (function ($, undefined) {
                 if (this.debug) {
                     // if debugging is now on
                     this.$html.addClass('debug');
+                    // show event vis
+                    this.eventQueue.display(true);
                 } else {
                     // if debugging is now off
                     // hide event vis
-                    this.eventQueue.visualisationDisplay(false);
+                    this.eventQueue.display(false);
                     // remove debug class to hide debugging controls
                     this.$html.removeClass('debug');
                 }
@@ -1408,6 +1410,10 @@ window.sfun = (function ($, undefined) {
             if (firstMatch == null) {
                 // use the first entry in table
                 firstMatch = this.visTableMajor.select(0);
+            }
+            // debugging breakpoint
+            if (firstMatch.$ent == undefined) {
+                console.log(firstMatch);
             }
             vis.first = firstMatch.$ent.data('seq');
             // work backwards from spanning min boundary to include partials
@@ -1975,919 +1981,6 @@ window.sfun = (function ($, undefined) {
             return hash;
         },
 
-        /**
-         * create a specialised hashTable for the eventQueue
-         * @return {object} hashTable object
-         */
-        'createEventQueue': function (outer_class) {
-            return $.extend($.createHashTable('eventQueue'), {
-
-                // CONSTANTS
-
-                // time after which scroll events expire
-                TIMEOUT_expireEVENT: 10000,
-
-                // default event object
-                'default_event_object': {
-                    'key': '<unset:',
-                    // don't replace the event handler
-                    'replaceEvent': null,
-                    // don't create a deferred
-                    'deferred': null,
-                    // has no parent
-                    'parent': null,
-                    // has no dependencies
-                    'deps': null,
-                    // has not been handled yet
-                    'handled': false,
-                    // was not fired by us explicitly
-                    'fired': false,
-                    // can not be dumped if peered
-                    'dumpable': false,
-                    // has no action
-                    'action': function () {
-                    },
-                    // never expires
-                    'expires': null,
-                    // comment is an empty string (for rendering)
-                    'comment': '',
-                    // no id yet
-                    'idx': null
-                    // 'animatable' not defined
-                },
-
-                // VARIABLES
-
-                // expiry timeout callback
-                'expiry_handler': null,
-
-                // currently executing event
-                'critical_section': null,
-
-                // and the one that just executed
-                'last_critical_section': null,
-
-                // count of dumped events
-                'dump_count': 0,
-
-                // SUB OBJECT, FUNCTIONS
-
-                /**
-                 * @param string action
-                 * @param string object [of action] identifier
-                 */
-                'visualisationLog': function (action, object) {
-                    var action = action + '[' + (object % 1000) + ']';
-                    if (outer_class.debug && false) {
-                        console.log(action);
-                    }
-                },
-
-                /**
-                 * @param boolean show true to display (default), false to hide
-                 */
-                'visualisationDisplay': function (show) {
-                    if (show == undefined) {
-                        show = true;
-                    }
-                    // find list if not cached
-                    if (typeof(this.visref_$list_static) == 'undefined') {
-                        // if it doesn't exist and we're displaying it
-                        if (show) {
-                            this.visref_$list_static = $('#eventQueueVis');
-                            // build list if not found
-                            if (this.visref_$list_static.length == 0) {
-                                outer_class.$html.append('<ol class="queue" id="eventQueueVis"></ol>');
-                                this.visref_$list_static = $('#eventQueueVis');
-                                this.visref_$list_static.click(this.visualisationClickHandler());
-                            }
-                        }
-                    } else {
-                        // if it does exist and we're hiding it
-                        if (!show) {
-                            this.visref_$list_static.remove();
-                            this.visref_$list_static = undefined;
-                        }
-                    }
-                },
-
-                /**
-                 * @return function click handler in this context
-                 */
-                'visualisationClickHandler': function () {
-                    var that = this;
-                    return function (event) {
-                        if (outer_class.debug && true) {
-                            console.log('Event queue current status:');
-                        }
-                        // iterate over entire event queue
-                        that.iterate(function (obj) {
-                            if (outer_class.debug && true) {
-                                console.log(obj);
-                            }
-                        });
-                    };
-                },
-
-                /**
-                 * event queue visualisation
-                 * @param [string] action
-                 * @param [string] object [of action] identifier
-                 */
-                'visualisationRefresh': function () {
-                    // process optional arguments if set
-                    if (arguments.length >= 2) {
-                        this.visualisationLog(arguments[0], arguments[1]);
-                    }
-                    // make sure list is visible
-                    this.visualisationDisplay(true);
-                    // lock list to other updates
-                    if (this.visref_$list_static.hasClass('updating')) {
-                        return;
-                    }
-                    this.visref_$list_static.addClass('updating');
-                    // iterate from critical_section up to produce queued list
-                    var queued = this.visualisationBuildParentList(this.critical_section);
-                    if (outer_class.debug && false) {
-                        console.log('queued');
-                        console.log(queued);
-                    }
-                    // first show the queued list
-                    var vised = this.visualisationRefreshList(queued, {last_i: 0, arr: []});
-                    // then show everything else that's in there
-                    var rest = [];
-                    this.iterate(function (obj) {
-                        // if we haven't already vised it
-                        if (vised.arr.indexOf(obj.idx) == -1) {
-                            // show event as part of rest
-                            rest[rest.length] = obj;
-                        }
-                    });
-                    if (outer_class.debug && false) {
-                        console.log('rest');
-                        console.log(rest);
-                    }
-                    // show rest, starting from where we left off
-                    vised = this.visualisationRefreshList(rest, vised);
-                    if (outer_class.debug && false) {
-                        console.log('vised');
-                        console.log(vised.arr);
-                    }
-                    // delete everything after last entry
-                    this.visualisationDumpList(vised);
-                    // if that are entries in the list, schedule/re-schedule next update
-                    this.visualisationScheduleUpdate();
-                    // release lock on vis
-                    this.visref_$list_static.removeClass('updating');
-                },
-
-                'visualisationScheduleUpdate': function () {
-                    var $listitem = this.visref_$list_static.find('li');
-                    // cancel if already scheduled
-                    if (this.vissched_timeout_static !== null) {
-                        clearTimeout(this.vissched_timeout_static);
-                    }
-                    // if we have a list, reschedule
-                    if ($listitem.length) {
-                        var that = this;
-                        this.vissched_timeout_static = setTimeout(function () {
-                            that.visualisationRefresh();
-                        }, 2000);
-                    }
-                },
-
-                'visualisationBuildParentList': function (current) {
-                    var list = [];
-                    for (var j = 0; j < outer_class.exp.loopIterLIMIT && current != null; ++j, current = current.parent) {
-                        list[list.length] = current;
-                    }
-                    return list;
-                },
-
-                'visualisationDumpList': function (vised) {
-                    var _localDelete = function ($li, delay) {
-                        $li.delay(delay).animate({right: '200px', height: 0, opacity: 0.0}, 300, function () {
-                            $(this).remove();
-                        });
-                    };
-                    // cache current list elements
-                    var $listitems = this.visref_$list_static.find('li');
-                    // work through list from last entry we looked at
-                    for (var j = vised.last_i; j < $listitems.length; ++j) {
-                        _localDelete($($listitems[j]), 2000);
-                    }
-                },
-
-                'visualisationRefreshList': function (evlist, vised) {
-                    var i = vised.last_i;
-                    var noAdded = 0;
-                    // cache current list elements
-                    var $listitems = this.visref_$list_static.find('li');
-                    // work through evlist
-                    for (var j = 0; j < evlist.length; ++j, ++i) {
-                        var current = evlist[j];
-                        // build list item
-                        var type = 'generic_event';
-                        var keypart = current.key.split(':');
-                        if (keypart.length) {
-                            type = keypart[0];
-                        }
-                        // build parent list for this item
-                        var parent_list = this.visualisationBuildParentList(current.parent);
-                        var parent_block = '';
-                        for (var k = 0; k < parent_list.length; ++k) {
-                            parent_block += '<span class="' + this.visualisationItemGetType(parent_list[k]) + '"><span class="dig3">' + sfun.api_pad(parent_list[k].idx % 1000, 3) + '</span></span>';
-                        }
-                        // build DOM element
-                        var itemhtml = '<li class="' + this.visualisationItemGetType(current) + '" data-key="' + current.key + '">';
-                        itemhtml += parent_block;
-                        itemhtml += '<span class="dig3" title="' + current.key + '">' + sfun.api_pad(current.idx % 1000, 3) + '</span>';
-                        itemhtml += current.key;
-                        itemhtml += '</li>';
-                        // insert into visualised (vised) list
-                        vised.arr[vised.arr.length] = current.idx;
-                        // see if there's anything left in the list
-                        if ($listitems.length - 1 < i) {
-                            // if not, just append
-                            this.visref_$list_static.append(itemhtml);
-                            noAdded += 1;
-                        } else {
-                            // see if this event is the next in the list
-                            var $listitem = $($listitems[i]);
-                            var likey = $listitem.data('key');
-                            if ((likey != undefined) && (likey == current.key)) {
-                                // event already in correct place in list, ignore it
-                            } else {
-                                // delete this event if it's anywhere else in the list
-                                var $alreadyThere = this.visref_$list_static.find('li[data-key="' + current.key + '"]');
-                                if ($alreadyThere.length > 0) {
-                                    $alreadyThere.remove();
-                                    noAdded -= 1;
-                                }
-                                // insert this event next into the list
-                                $listitem.after(itemhtml);
-                                noAdded += 1;
-                            }
-                        }
-                    }
-                    // allow for added elements
-                    vised.last_i = i + noAdded;
-                    return vised;
-                },
-
-                'visualisationItemGetType': function (current) {
-                    var type = 'generic_event';
-                    if ((current.key === undefined) || (current.key === null)) {
-                        return type;
-                    }
-                    var keypart = current.key.split(':');
-                    if (keypart.length) {
-                        type = keypart[0];
-                    }
-                    return type;
-                },
-
-                // PUBLIC FUNCTIONS
-
-                /**
-                 * @return {string} render simple string of object
-                 */
-                'render': function (obj) {
-                    if (obj == null) {
-                        return '<no event context>';
-                    }
-                    var output = obj.idx + ':' + obj.key + ', ' + obj.deferred.state();
-                    if (obj.comment) {
-                        output += ', ' + obj.comment;
-                    }
-                    if (obj.deps.length) {
-                        output += ', ' + obj.deps.length + ' deps';
-                    }
-                    return output;
-                },
-
-                /**
-                 * work through eventQueue looking for expired events
-                 */
-                'checkExpiries': function () {
-                    if (outer_class.debug) {
-                        console.log('checking expiries');
-                    }
-                    var obj, timenow = this.getTime();
-                    // note dynamic getSize() call, because list is changing during loop
-                    for (var i = 0; i < this.getSize(); ++i) {
-                        obj = this.objarr[i];
-                        if (obj.expires != null) {
-                            if (timenow > obj.expires) {
-                                if (outer_class.debug) {
-                                    console.log('expiring eventContext[' + obj.key + ']');
-                                }
-                                this.resolve(obj);
-                                // beware: resolve deletes at most 1 elements from array, so redo
-                                i--;
-                            }
-                        }
-                    }
-                },
-
-                /**
-                 * @return {int} time in milliseconds
-                 */
-                'getTime': function () {
-                    var d = new Date;
-                    return d.getTime();
-                },
-
-                /**
-                 * push event object onto event queue
-                 * @param {object} partial fields to override defaults
-                 */
-                'push': function (partial) {
-                    var that = this;
-                    // start by trying to match this key to an existing event in the queue
-                    var obj = null;
-                    if (typeof(partial.key) != 'undefined') {
-                        obj = this.get(partial.key);
-                    }
-                    // if we've created the object, prep and push it
-                    if (obj == null) {
-                        // compose new object ($.extend gives right to left precedence)
-                        var obj = $.extend({},
-                            // 1: static defaults
-                            this.default_event_object, {
-                                // 2: dynamic defaults
-                                'key': this.default_event_object.key + this.getCounter() + '>',
-                                // create new deferred, but ignore if already set in partial
-                                'deferred': outer_class.getDeferred(),
-                                // set expiry
-                                'expires': this.getTime() + this.TIMEOUT_expireEVENT,
-                                'deps': []
-                            },
-                            // 3: overrides from call
-                            partial
-                        );
-                        // push
-                        var ref = this._push(obj);
-                        // optional debugging message
-                        if (outer_class.debug && false) {
-                            console.log('+ pushed event context[' + this.render(obj) + '], qlen now ' + (this.getSize()));
-                        }
-                    }
-                    // but if we've found an existing object matching the key
-                    else {
-                        // merge in any partial fields that we want to keep
-                        if (obj.comment) {
-                            obj.comment += ', now peered with sister [' + partial.comment + ']';
-                        }
-                        // optional debugging message
-                        if (outer_class.debug && false) {
-                            console.log('+ not-pushed, found sister event context[' + this.render(obj) + '], qlen now ' + (this.getSize()));
-                        }
-                    }
-                    // if the object expires, schedule its removal
-                    if (obj.expires) {
-                        // clear old [eventQueue-wide] timeout
-                        if (that.expiry_handler != null) {
-                            clearTimeout(that.expiry_handler);
-                        }
-                        // schedule a [single shared eventQueue-wide] check after the timeout
-                        this.expiry_handler = setTimeout(function () {
-                            that.checkExpiries();
-                        }, this.TIMEOUT_expireEVENT);
-                    }
-                    if (outer_class.debug) {
-                        this.visualisationRefresh('push', obj.idx);
-                    }
-                    // return the object (retreived or pushed)
-                    return obj;
-                },
-
-                /**
-                 * push event object or merge if a peer is set
-                 *   this does create issues if we try to pull based on the old key
-                 * @param {object} partial fields to override defaults
-                 */
-                'pushOrMerge': function (partial, peer) {
-                    if (typeof(peer) == 'undefined') {
-                        // if no peer, push new context with partial values
-                        return this.push($.extend({}, partial));
-                    }
-                    // capture old position
-                    var ref = this.find(peer.key);
-                    // capture old description for debugging
-                    var olddesc = '';
-                    if (outer_class.debug) {
-                        olddesc = this.render(peer);
-                    }
-                    // aggregate the comments to enable clearer historical tracking
-                    if (partial.comment) {
-                        partial.comment += ', was ' + peer.comment;
-                    }
-                    // merge in set fields
-                    $.extend(peer, partial);
-                    // manually update old indices
-                    if (ref != -1) {
-                        this.keyarr[ref] = peer.key
-                    }
-                    // optional debugging
-                    if (outer_class.debug && true) {
-                        console.log('  - merged event context[' + this.render(peer) + '] into old context[' + olddesc + '], unaffected q len now' + this.getSize());
-                    }
-                    if (outer_class.debug) {
-                        this.visualisationRefresh('pushOrMerge', peer.idx);
-                    }
-                    return peer;
-                },
-
-                /**
-                 * push event object onto event queue and setup parenting
-                 * copes with 1:N parent:child relationships
-                 * @param {object} partial fields to override defaults
-                 * @param {object} parentContext
-                 */
-                'pushOrParent': function (partial, parent) {
-                    if (typeof(parent) == 'undefined') {
-                        // if no parent, just push the partial
-                        return this.push(partial);
-                    }
-                    // aggregate the comments to enable clearer historical tracking
-                    if (partial.comment) {
-                        partial.comment += ', inherited from ' + parent.comment + ' (which is now upstream)';
-                    }
-                    // push partial in normal way
-                    var obj = this.push(partial);
-                    // attach this obj as child to parent
-                    this.parent(obj, parent);
-                    if (outer_class.debug) {
-                        this.visualisationRefresh('pushOrParent', obj.idx);
-                    }
-                    return obj;
-                },
-
-                /**
-                 * interface function to get from table
-                 * @param {string} key to search for
-                 * @param {bool} [alsoRemove] true to delete matched elements
-                 * @return {object} matched object or null if not found
-                 */
-                'get': function (key) {
-                    var obj = this._get(key, false);
-                    if (obj != null) {
-                        if (outer_class.debug && false) {
-                            console.log('- pulled event context[' + this.render(obj) + '], q' + this.getSize());
-                        }
-                    } else {
-                        if (outer_class.debug && false) {
-                            console.log('o unfilled get request for key[' + key + ']');
-                        }
-                    }
-                    return obj;
-                },
-
-                /**
-                 * @param {object} partial fields to override defaults
-                 * @return {object} created object if fresh or matched object if found
-                 */
-                'getOrInvent': function (partial) {
-                    var retrieved = null;
-                    if (typeof(partial.key) != 'undefined') {
-                        retrieved = this.get(partial.key);
-                    }
-                    // if this is a fresh event that we didn't fire
-                    if (retrieved == null) {
-                        // create object using shallow copy of defaults, then overwrite set fields
-                        retrieved = this.invent(partial);
-                        // store, which will add to unhandled list
-                        retrieved = this.push(retrieved);
-                    }
-                    // otherwise if we've fired (and not resolved) this event
-                    else {
-                        // aggregate the comments to enable clearer historical tracking
-                        if (retrieved.comment) {
-                            retrieved.comment += ', instead of ' + partial.comment;
-                        }
-                        if (outer_class.debug && false) {
-                            console.log('* handler caught fired event context[' + this.render(retrieved) + '], q' + this.getSize());
-                        }
-                    }
-                    return retrieved;
-                },
-
-                /**
-                 * invent an event context
-                 * @param {object} partial for context to invent
-                 * @return {object} created object
-                 */
-                'invent': function (partial) {
-                    if (typeof(partial.key) == 'undefined') {
-                        partial.key = '<unset>';
-                    }
-                    // create object using shallow copy of defaults, then overwrite set fields
-                    var retrieved = $.extend({}, this.default_event_object, {
-                        'deferred': outer_class.getDeferred(),
-                        'deps': [],
-                    }, partial);
-                    return retrieved;
-                },
-
-                /**
-                 * process act-on-event decision
-                 * event contexts:
-                 *   get resolved when they've done their work (action function)
-                 *   get marked as handled whether they get queued or not
-                 * @param {object} eventContext
-                 * @param {function} func to call or store; this function contains its own wrapUp calls
-                 */
-                'actOnContext': function (eventContext, func) {
-                    var that = this;
-                    // only act if we've been given a real eventContext that hasn't been handled or already begun processing
-                    if (eventContext == null || eventContext.handled == true || eventContext.action == null) {
-                        // otherwise just return a nice resolved deferred
-                        return outer_class.getDeferred().resolve();
-                    }
-                    // flag that this context has now been through a handler
-                    eventContext.handled = true;
-                    // should we be nullifying this event
-                    if (eventContext.replaceEvent != null) {
-                        // process by calling null function then wrap up, instead of processing this event directly
-                        eventContext.action = function () {
-                        },
-                            // make sure replaceEvent function isn't used twice, if eventContext cascades to multiple events
-                            eventContext.replaceEvent = null;
-                        // optional debugging message
-                        if (outer_class.debug && false) {
-                            console.log('replaceEvent used in place for ' + this.render(eventContext) + ', critical section left unchanged (' + this.render(this.critical_section) + ')');
-                        }
-                        // call func with outer class context, then wrap up
-                        this.contextExecute(eventContext);
-                    }
-                    // test to see if any other event is in its critical section
-                    else if (this.critical_section == null) {
-                        // if not, flag event as in its critical section
-                        this.setCriticalSection(eventContext);
-                        // optional debugging message
-                        if (outer_class.debug && false) {
-                            console.log('> entering fresh critical section (from null) for ' + this.render(eventContext));
-                        }
-                        // call func with outer class context, then wrap up
-                        eventContext.action = func;
-                        this.contextExecute(eventContext);
-                    }
-                    // test to see if we're actually still in the same context (eventContext == critical_section)
-                    else if (eventContext.key == this.critical_section.key) {
-                        // we're reusing the same context, so just call and leave critical_section alone
-                        eventContext.action = func;
-                        this.contextExecute(eventContext);
-                    }
-                    // test to see if we're in the parent's context (parent eventContext == critical_section)
-                    else if (this.isParentOf(this.critical_section, eventContext)) {
-                        // call and leave critical_section alone
-                        eventContext.action = func;
-                        this.contextExecute(eventContext);
-                    }
-                    else {
-                        // delay func by queuing (parent on earliestAncestor), but clean chain
-                        eventContext.action = func
-                        this.contextDelayExecution(eventContext);
-                    }
-                    return eventContext.deferred;
-                },
-
-                /**
-                 * @param {object} object to resolve and remove if found
-                 * @param {mixed} returnValue optional value to return via resolve
-                 * @return {object} jQuery deferred
-                 */
-                'resolve': function (obj, returnValue) {
-                    if (obj != null) {
-                        // remove this object from the eventQueue
-                        var ref = this.removeObj(obj);
-                        if (outer_class.debug && false) {
-                            console.log('Q resolve event context[' + this.render(obj) + '], qlen now ' + this.getSize());
-                        }
-                        // resolve its deferred if set
-                        if (obj.deferred != null) {
-                            obj.deferred.resolve(returnValue);
-                        }
-                        // if object has a parent, update it
-                        if (obj.parent != null) {
-                            this.parentResolve(obj, obj.parent);
-                        }
-                        if (this.debug) {
-                            this.visualisationRefresh('resolve', obj.idx);
-                        }
-                    }
-                    // always return a resolved deferred
-                    return outer_class.getDeferred().resolve(returnValue);
-                },
-
-                /**
-                 * @param {object} object to reject and remove if found
-                 * @param {mixed} returnValue optional value to return via reject
-                 * @return {object} jQuery deferred
-                 */
-                'reject': function (obj, returnValue) {
-                    if (outer_class.debug) {
-                        this.visualisationRefresh('reject', obj.idx);
-                    }
-                    if (obj != null) {
-                        // remove this object from the eventQueue
-                        var ref = this.removeObj(obj);
-                        if (outer_class.debug && true) {
-                            console.log('Q rejected event context[' + this.render(obj) + '], qlen now ' + this.getSize());
-                        }
-                        // reject its deferred if set
-                        if (obj.deferred != null) {
-                            return obj.deferred.reject(returnValue);
-                        }
-                    }
-                    // always return a rejected deferred
-                    return outer_class.getDeferred().reject(returnValue);
-                },
-
-                // PRIVATE FUNCTIONS
-
-                /**
-                 * delay s2 (parent) to follow s1 (child)
-                 * equivalent to setup parenting from s1 (child) to s2 (parent)
-                 * @param {object} obj child event context to attach to parent
-                 * @param {object} parentContext parent event context
-                 */
-                delay: function (obj, parentContext) {
-                    var that = this;
-                    if (typeof(parentContext) != 'undefined' && parentContext) {
-                        // attach to parent
-                        this.attachParent(obj, parentContext);
-                        // optional debugging
-                        if (outer_class.debug && false) {
-                            console.log('  - delayed event context[' + this.render(obj.parent) + '] to follow resolution of context[' + this.render(obj) + '], q len now ' + this.getSize());
-                        }
-                        if (outer_class.debug) {
-                            this.visualisationRefresh('delay', obj.parent.idx);
-                        }
-                    }
-                    return obj;
-                },
-
-                /**
-                 * setup parenting from s1 (child) to s2 (parent)
-                 * @param {object} obj child event context to attach to parent
-                 * @param {object} parentContext parent event context
-                 */
-                parent: function (obj, parentContext) {
-                    var that = this;
-                    if (typeof(parentContext) != 'undefined' && parentContext) {
-                        // child inherits certain parental attributes
-                        obj.dumpable = parentContext.dumpable;
-                        obj.animateable = parentContext.animateable;
-                        obj.replaceEvent = parentContext.replaceEvent;
-                        // attach to parent
-                        this.attachParent(obj, parentContext);
-                        // optional debugging
-                        if (outer_class.debug && false) {
-                            console.log('  - placed child event context[' + this.render(obj) + '] into parent context[' + this.render(obj.parent) + '], q len now ' + this.getSize());
-                        }
-                    }
-                    // return original object, not what actually got attached to parent
-                    return obj;
-                },
-
-                /**
-                 * setup parenting from s1's earliest ancestor (child) to s2 (parent)
-                 * @param {object} attach_point [great][grand]child event context
-                 * @param {object} parentContext parent event context
-                 * @return {object} s1's ancestor that got attached to parent
-                 */
-                attachParent: function (attach_point, parentContext) {
-                    // if this object already had a parent
-                    if (attach_point.parent != null) {
-                        // find its earliest ancestor
-                        attach_point = this.earliestAncestor(attach_point);
-                    }
-                    // store parent relationship
-                    attach_point.parent = parentContext;
-                    // store child relationship
-                    parentContext.deps[parentContext.deps.length] = attach_point;
-                    return attach_point;
-                },
-
-                /**
-                 * @param {string} key
-                 * @return {string} regex pattern to match key's family
-                 */
-                getKeyFamily: function (key) {
-                    var colonPos = key.indexOf(':');
-                    if (colonPos != -1) {
-                        return key.substr(0, colonPos + 1) + '.*';
-                    }
-                    return key;
-                },
-
-                /**
-                 * @param {object} eventContext to flag as being in its critical section
-                 */
-                setCriticalSection: function (eventContext) {
-                    var that = this;
-                    // setup back-to-one function for use in callbacks
-                    var scheduleCriticalReset = function () {
-                        // if nothing else has swiped it already
-                        if (that.critical_section == eventContext) {
-                            that.last_critical_section = that.critical_section;
-                            // used to flag that nothing is in its critical section
-                            // that.critical_section = null;
-                            // but that's not accurate
-                            // because done() triggers something else to enter its section
-                            // yet it never gets set
-                            // so instead we just point at parent (which may be null)
-                            that.critical_section = that.critical_section.parent;
-                            if (outer_class.debug) {
-                                that.visualisationRefresh('done with criticalSection', that.last_critical_section.idx);
-                            }
-                        }
-                    };
-                    // remember last critical section
-                    that.last_critical_section = that.critical_section;
-                    // store eventContext as current critical section
-                    this.critical_section = eventContext;
-                    // optional debugging
-                    if (outer_class.debug && false) {
-                        console.log('> entering critical section for ' + this.render(this.critical_section));
-                    }
-                    if (outer_class.debug) {
-                        this.visualisationRefresh('setCriticalSection', eventContext.idx);
-                    }
-                    this.critical_section.deferred.done(scheduleCriticalReset);
-                },
-
-                /**
-                 * call function, then wrap up its context
-                 * @param {object} eventContext context to wrap up
-                 */
-                contextExecute: function (eventContext) {
-                    var that = this;
-                    var func = eventContext.action;
-                    var wrapUp = function () {
-                        that.resolve(eventContext);
-                    };
-                    if (typeof func == 'function') {
-                        // nullify eventContext.action so it cannot be re-called
-                        eventContext.action = null;
-                        $.when(func.call(outer_class)).always(wrapUp);
-                    } else {
-                        wrapUp();
-                    }
-                },
-
-                /**
-                 * work through ancestor chain, dump similar peers, attach this context
-                 * @param {object} eventContext context to attach
-                 */
-                contextDelayExecution: function (eventContext) {
-                    var that = this;
-                    // @deprecated remove any peers to this event from the queue first
-                    // this.dumpAncestors(this.getKeyFamily(eventContext.key), this.critical_section);
-                    // this event depends on the end of the current critical one's chain
-                    var lastDep = this.earliestAncestor(this.critical_section);
-                    // optional debugging message
-                    if (outer_class.debug && false) {
-                        console.log('_ delaying critical section for ' + this.render(eventContext));
-                    }
-                    // set this event up as dependent upon the lastDep (lastDep kicks eventContext)
-                    this.delay(lastDep, eventContext);
-                },
-
-                /**
-                 * work up through the parents and remove those matching key
-                 * @param {string} regkey regex pattern to match peers by family
-                 * @param {object} current root context in parent chain
-                 */
-                dumpAncestors: function (regkey, current) {
-                    var re = new RegExp(regkey, 'g');
-                    // start with root's parent because we don't want to dump current critial_section
-                    current = current.parent;
-                    while ((current != null) && (current.parent != null)) {
-                        // check to see if current is dumpable and if key matches regkey
-                        if (current.dumpable && (current.key.match(re) != null)) {
-                            // remove ancestor from parent chain; point at next in chain/null
-                            current = this.deleteAncestor(current);
-                        } else {
-                            // move on to next iteration
-                            current = current.parent;
-                        }
-                    }
-                },
-
-                /**
-                 * remove an ancestor from the parent chain
-                 * @param {object} current eventContex to remove from parent chain
-                 * @return {object} next eventContext in chain after deleted one, or null if none
-                 */
-                deleteAncestor: function (current) {
-                    var parent = current.parent;
-                    var children = current.deps;
-                    // tell the children initially that they no longer have a parent
-                    for (var i = 0; i < children.length; ++i) {
-                        children[i].parent = null;
-                    }
-                    // if there is a parent, setup each child
-                    if (parent != null) {
-                        // remove current as child of parent
-                        var ref = parent.deps.indexOf(current);
-                        if (ref != -1) {
-                            // delete this dep from parent
-                            parent.deps.splice(ref, 1);
-                        }
-                        // add children to parent
-                        for (var i = 0; i < children.length; ++i) {
-                            this.parent(children[i], parent);
-                        }
-                    }
-                    // test to see if we've seen the handler for this already
-                    if (current.handled) {
-                        // remove ancestor from eventQueue all together;
-                        this.eventQueue.resolve(current);
-                    } else {
-                        // leave dumped event in queue to catch handler, but force expiry
-                        if (current.expires == null) {
-                            current.expires = this.getTime() + this.TIMEOUT_expireEVENT;
-                        }
-                    }
-                    // update count
-                    this.dump_count++;
-                    // optional debugging
-                    if (outer_class.debug && true) {
-                        var logstr = 'D dumped event[' + current.key + ']';
-                        if (children.length > 0) {
-                            logstr += ', reparented ' + children.length + ' child:0[' + children[0].key + ']';
-                        }
-                        if (parent != null) {
-                            logstr += ' to parent[' + parent.key + ']';
-                        } else {
-                            logstr += ', no parent';
-                        }
-                        console.log(logstr);
-                    }
-                    // return parent, or null if there's none
-                    return parent;
-                },
-
-                /**
-                 * work up through the parents to find the oldest ancestor
-                 * @param {object} current
-                 * @return {object} earliest ancestor (end of parent chain)
-                 */
-                earliestAncestor: function (current) {
-                    while ((current != null) && (current.parent != null)) {
-                        current = current.parent;
-                    }
-                    return current;
-                },
-
-                /**
-                 * @param {object} s1 event context
-                 * @param {object} s2 event context
-                 * @return {boolean} true if s1 is a parent of s2
-                 */
-                isParentOf: function (s1, s2) {
-                    while (s2.parent != null) {
-                        if (s2.parent == s1) {
-                            return true;
-                        }
-                        // make s2 its parent and test again
-                        s2 = s2.parent;
-                    }
-                    return false;
-                },
-
-                /**
-                 * tell parent that one of its child objects has been resolved
-                 * @param {object} obj child that's been resolved
-                 * @param {object} parentContext context to update
-                 */
-                parentResolve: function (obj, parentContext) {
-                    // remove this from parent's outstanding deps
-                    var ref = parentContext.deps.indexOf(obj);
-                    if (ref != -1) {
-                        // delete this dep from parent
-                        parentContext.deps.splice(ref, 1);
-                    }
-                    // if we've resolved all the parent's deps
-                    if (parentContext.deps.length == 0) {
-                        if (outer_class.debug && false) {
-                            console.log('U processing next/parent context[' + this.render(obj.parent) + '], following resolution of context[' + this.render(obj) + ']');
-                        }
-                        // process parent
-                        this.setCriticalSection(parentContext);
-                        this.contextExecute(parentContext);
-                    }
-                    // flag as no longer parented
-                    obj.parent = null;
-                },
-
-                lastEntry: null
-            });
-        },
-
         // -------------------------
         // FUNCTIONS: event triggers
         // -------------------------
@@ -2953,7 +2046,7 @@ window.sfun = (function ($, undefined) {
                 'fired': true
             }, eventContext);
             if (this.debug && false) {
-                console.log('* fired scroll event ' + this.eventQueue.render(localContext));
+                console.log('* fired scroll event ' + this.eventQueue.renderToString(localContext));
             }
             // fire event: change the scroll position
             this.fireScrollActual(target, animate);
@@ -3130,7 +2223,7 @@ window.sfun = (function ($, undefined) {
                         //}
                     });
                 }
-            });
+            }, this);
         },
 
         /**
@@ -3166,7 +2259,7 @@ window.sfun = (function ($, undefined) {
                             // store context in event in case we need it when processing
                             event.eventContext = eventContext;
                             return that.handlerScrolled_eventProcess(event, sx, sy);
-                        });
+                        }, that);
                     },
                     // drop function to execute if we're dumping this event
                     function () {
@@ -3185,7 +2278,7 @@ window.sfun = (function ($, undefined) {
                             // store context in event in case we need it when processing
                             event.eventContext = eventContext;
                             return that.handlerScrolled_eventProcess(event, sx, sy);
-                        });
+                        }, that);
                     },
                     // no drop function, as normal
                     function () {
@@ -3275,7 +2368,7 @@ window.sfun = (function ($, undefined) {
                 }
                 // aggregate deferreds then resolve context
                 $.when.apply($, defs).always(that.eventQueue.resolve(eventContext));
-            });
+            }, this);
         },
 
         /**
@@ -3889,6 +2982,8 @@ window.sfun = (function ($, undefined) {
             imageSnapOff: 0,
             imageSnapByScroll: 1,
             imageSnapBySeq: 2,
+            // time after which scroll events expire
+            TIMEOUT_expireEVENT: 10000,
             // settings (default settings)
             settings: {
                 'ga_id': null,
@@ -4044,6 +3139,20 @@ window.sfun = (function ($, undefined) {
             },
 
             /**
+             * @return {boolean} true if in debugging mode
+             */
+            'api_getDebug': function () {
+                return coreObject.debug;
+            },
+
+            /**
+             * @return {object} promise (alias for commonality)
+             */
+            'api_getDeferred': function () {
+                return coreObject.getDeferred();
+            },
+
+            /**
              * @return {string} direction of current view
              */
             'api_getDirection': function () {
@@ -4108,7 +3217,7 @@ window.sfun = (function ($, undefined) {
             /**
              * @return {object} visibility table for major axis
              */
-            'api_getthis.visTableMajor': function () {
+            'api_getVisTableMajor': function () {
                 return coreObject.visTableMajor;
             },
 
@@ -4116,7 +3225,7 @@ window.sfun = (function ($, undefined) {
              * @return {object} event queue
              */
             'api_getEventQueue': function () {
-                return thcoreObjectis.eventQueue;
+                return coreObject.eventQueue;
             },
 
             /**
@@ -4151,7 +3260,7 @@ window.sfun = (function ($, undefined) {
              * @return {object} previous state as name:value pairs
              */
             'api_overwritePreviousState': function (over) {
-                var prev = coreObject.api_getPreviousState();
+                var prev = this.api_getPreviousState();
                 return coreObject.merge(prev, over);
             },
 
@@ -4238,7 +3347,7 @@ window.sfun = (function ($, undefined) {
             'api_triggerClick': function ($ent) {
                 $ent.trigger('click');
                 // get earliest context for current [post-click] hash
-                var context = coreObject.eventQueue.get(this.getHash());
+                var context = coreObject.eventQueue.get(coreObject.getHash());
                 if (context == null) {
                     return coreObject.getDeferred().resolve();
                 }
@@ -4375,10 +3484,12 @@ window.sfun = (function ($, undefined) {
             // Test suite support functions
 
             /**
-             * @return {object} visibility table for major axis
+             * @return {object} create new blank visibility table
              */
             'api_createVisTable': function () {
-                return $.createVisTable();
+                var cloned_vis_table = $.extend({}, coreObject.visTableMajor);
+                cloned_vis_table.wipe();
+                return cloned_vis_table;
             },
 
             // no comma on last entry

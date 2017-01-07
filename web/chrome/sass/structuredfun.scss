@@ -382,7 +382,7 @@ html.theme-dark {
       border-bottom-color: #ff0000; 
     }
 
-    &.keypress, span.keypress {
+    &.keypress, span.keypress, &.selected, span.selected {
       background-color: #660000;
     }
 
