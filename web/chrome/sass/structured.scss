@@ -38,47 +38,6 @@
   &.flow-pc {
     // all orientation-agnostic now
 
-    // 1x1
-    &.flow-1 {
-      // turn off all margins for fullscreen, horizontal flow
-      &.flow-x > .cell {
-        width: 100%;
-        height: 100%;
-        margin-top: 0;
-        margin-bottom: 0;
-      }
-
-      // turn off all margins for fullscreen, vertical flow
-      &.flow-y > .cell {
-        width: 100%;
-        height: 100%;
-        margin-left: 0;
-        margin-right: 0;
-      }
-    }
-
-    // 2x2, default
-    &.flow-2 > .cell {
-      width: (100% / 2);
-      height: (100% / 2);
-      @include calc(width, (100% / 2)+" - "+($alley));
-      @include calc(height, (100% / 2)+" - "+($alley));
-    }
-    // 4x4
-    &.flow-4 > .cell {
-      width: (100% / 4);
-      height: (100% / 4);
-      @include calc(width, (100% / 4)+" - "+($alley));
-      @include calc(height, (100% / 4)+" - "+($alley));
-    }
-    // 8x8
-    &.flow-8 > .cell {
-      width: (100% / 8);
-      height: (100% / 8);
-      @include calc(width, (100% / 8)+" - "+($alley));
-      @include calc(height, (100% / 8)+" - "+($alley));
-    }
-
     /**
      * This section is not used, but kept for reference only
      *
@@ -472,6 +431,45 @@
       }
 
     } // .cell
+
+    // 1x1
+    &.flow-1 {
+      // turn off all margins for fullscreen, horizontal flow
+      &.flow-x > .cell {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      // turn off all margins for fullscreen, vertical flow
+      &.flow-y > .cell {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+    }
+
+    // 2x2, default
+    &.flow-2 > .cell {
+      width: (100% / 2);
+      height: (100% / 2);
+      @include calc(width, (100% / 2)+" - "+($alley));
+      @include calc(height, (100% / 2)+" - "+($alley));
+    }
+    // 4x4
+    &.flow-4 > .cell {
+      width: (100% / 4);
+      height: (100% / 4);
+      @include calc(width, (100% / 4)+" - "+($alley));
+      @include calc(height, (100% / 4)+" - "+($alley));
+    }
+    // 8x8
+    &.flow-8 > .cell {
+      width: (100% / 8);
+      height: (100% / 8);
+      @include calc(width, (100% / 8)+" - "+($alley));
+      @include calc(height, (100% / 8)+" - "+($alley));
+    }
 
   }
 }

@@ -30,8 +30,9 @@
     </a>
   </li>
 {% elseif (file.type == 'image') or (file.type == 'video') %}
-  <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type
-  " data-seq="{{ file.seq }}">
+  <li id="seq-{{ file.seq }}" class="cell selectablecell resizeablecell {{ file.type }}-type"
+      data-seq="{{ file.seq }}"
+      tabindex="{{ file.seq }}">
     <a class="container media-container {{ file.type }}-container" href="/image/{{ linkaliased }}{{ file.name }}">
       <img class="loadable reresable boundable {{ file.metadata.orientation }}-bound selectreflector"
            alt="image thumbnail for {{ file.alias}}"

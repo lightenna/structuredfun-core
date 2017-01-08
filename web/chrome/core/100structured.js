@@ -122,6 +122,7 @@ window.sfun = (function ($, undefined) {
             // stick default timecode in here as a bit of a hack, until we use data-frame
             this.state_default['timecode'] = '00-00-10.0';
             // bind to page
+            this.bindToWindow();
             this.bindToHeaderLinks();
             this.bindToHotKeys();
             this.bindToImageLinks();
@@ -1127,6 +1128,22 @@ window.sfun = (function ($, undefined) {
         },
 
         /**
+         * get the viewport x position (scroll left)
+         * @return {real} position of viewport in whole pixels
+         */
+        'getViewportXpos': function (force) {
+            return this.exp.api_round(this.$document.scrollLeft(), 0);
+        },
+
+        /**
+         * get the viewport y position (scroll top)
+         * @return {real} position of viewport in whole pixels
+         */
+        'getViewportYpos': function (force) {
+            return this.exp.api_round(this.$document.scrollTop(), 0);
+        },
+
+        /**
          * get the viewport width, but don't cache it because scrollbars appear/disappear
          * @return {real} width of viewport in pixels
          */
@@ -1347,7 +1364,7 @@ window.sfun = (function ($, undefined) {
                 relativeTarget = false;
             }
             // work out current scroll position
-            var scroll = {'scrollTop': this.$document.scrollTop(), 'scrollLeft': this.$document.scrollLeft()};
+            var scroll = {'scrollTop': this.getViewportYpos(), 'scrollLeft': this.getViewportXpos()};
             if (relativeTarget) {
                 // increment relative target by current scroll position
                 if (typeof(target.scrollTop) != 'undefined') {
@@ -1392,17 +1409,17 @@ window.sfun = (function ($, undefined) {
             var vis = {};
             var min, max;
             // cells' offset is a couple of pixels left of image
-            var rounding = this.getGutter() + 1;
+            var rounding = this.getGutter();
             var direction = this.getDirection();
             // get screen bounds along major axis (min and max)
             if (direction == 'x') {
                 // min is left bar minus rounding for border/margin
-                min = this.$document.scrollLeft() - rounding;
+                min = this.getViewportXpos() - rounding;
                 // max is right bar minus rounding for border/margin
-                max = this.$document.scrollLeft() + this.getViewportWidth() - rounding;
+                max = this.getViewportXpos() + this.getViewportWidth() + rounding;
             } else {
-                min = this.$document.scrollTop() - rounding;
-                max = this.$document.scrollTop() + this.getViewportHeight() - rounding;
+                min = this.getViewportYpos() - rounding;
+                max = this.getViewportYpos() + this.getViewportHeight() + rounding;
             }
             // find first spanning min boundary
             var firstRef = this.visTableMajor.findCompare(min, this.exp.compareGTE, false);
@@ -1429,7 +1446,7 @@ window.sfun = (function ($, undefined) {
                 }
             }
             // find last spanning max boundary
-            var lastRef = this.visTableMajor.findCompare(max, this.exp.compareLTE, true);
+            var lastRef = this.visTableMajor.findCompare(max - 1, this.exp.compareLTE, true);
             var lastMatch = this.visTableMajor.select(lastRef);
             if (lastMatch == null) {
                 // use the last entry in the table
@@ -1747,7 +1764,7 @@ window.sfun = (function ($, undefined) {
                 direction = this.getDirection();
             }
             var gutter = this.getGutter();
-            var viewport_base = (direction == 'x' ? this.$document.scrollLeft() : this.$document.scrollTop());
+            var viewport_base = (direction == 'x' ? this.getViewportXpos() : this.getViewportYpos());
             var image_pos = this.$cell(seq).offset();
             var image_base = (direction == 'x' ? image_pos.left : image_pos.top) - gutter;
             // find current offset of image within viewport, to 0DP
@@ -2162,29 +2179,6 @@ window.sfun = (function ($, undefined) {
                 console.log('illegal hash values, falling back to defaults');
             }
             this.merge(obj, fromHash);
-            // update previous values if changed
-            var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq(), coffseq = this.getOffseq(), ctheme = this.getTheme(), cdebug = this.debug, cimagesnap = this.imagesnap;
-            if (cdirection != obj.direction) {
-                this.state_previous['direction'] = cdirection;
-            }
-            if (cbreadth != obj.breadth) {
-                this.state_previous['breadth'] = cbreadth;
-            }
-            if (cseq != obj.seq) {
-                this.state_previous['seq'] = cseq;
-            }
-            if (coffseq != obj.offseq) {
-                this.state_previous['offseq'] = coffseq;
-            }
-            if (ctheme != obj.theme) {
-                this.state_previous['theme'] = ctheme;
-            }
-            if (cdebug != obj.debug) {
-                this.state_previous['debug'] = cdebug;
-            }
-            if (cimagesnap != obj.imagesnap) {
-                this.state_previous['imagesnap'] = cimagesnap;
-            }
             // optional debugging
             if (this.debug && false) {
                 console.log('caught hashChanged event [' + hash + ']');
@@ -2300,9 +2294,9 @@ window.sfun = (function ($, undefined) {
          */
         'handlerScrolled_eventProcess': function (event, sx, sy) {
             if (event.eventContext !== undefined) {
-                // can use 'dumpable' for now as a good proxy for 'invented'
-                if (event.eventContext.dumpable) {
-                    // only track scroll events that we didn't invent
+                // can use 'dumpable' for now as a good proxy for 'invented' (not fired)
+                if (!event.eventContext.fired) {
+                    // only track scroll events that we didn't fire
                     var keyargs = 'x=' + sx + '&y=' + sy;
                     this.fireTrackEvent('scroll', undefined, keyargs);
                     // console.log(event.eventContext);
@@ -2522,7 +2516,7 @@ window.sfun = (function ($, undefined) {
             var scrolldir = 0 - event.deltaY;
             // get current scroll position
             var rounding = this.getGutter() + 1;
-            var current_pos = (direction == 'x' ? this.$document.scrollLeft() : this.$document.scrollTop());
+            var current_pos = (direction == 'x' ? this.getViewportXpos() : this.getViewportYpos());
             // minimum width of an image is required to correct rounding errors
             var min_offset = 1.0;
             // active mousewheel reaction is dependent on which direction we're flowing in
@@ -2683,6 +2677,20 @@ window.sfun = (function ($, undefined) {
         // ------------------
         // FUNCTIONS: helpers
         // ------------------
+
+        /**
+         * store current values as previous state, for reversion later
+         */
+        'storeStateAsPrevious': function() {
+            var cdirection = this.getDirection(), cbreadth = this.getBreadth(), cseq = this.getSeq(), coffseq = this.getOffseq(), ctheme = this.getTheme(), cdebug = this.debug, cimagesnap = this.imagesnap;
+            this.state_previous['direction'] = cdirection;
+            this.state_previous['breadth'] = cbreadth;
+            this.state_previous['seq'] = cseq;
+            this.state_previous['offseq'] = coffseq;
+            this.state_previous['theme'] = ctheme;
+            this.state_previous['debug'] = cdebug;
+            this.state_previous['imagesnap'] = cimagesnap;
+        },
 
         /**
          * substitute values into a mustache template
@@ -3236,6 +3244,20 @@ window.sfun = (function ($, undefined) {
             },
 
             /**
+             * @return {array} list of field names
+             */
+            'api_getMetadataFieldNames': function () {
+                return coreObject.metadata_fields;
+            },
+
+            /**
+             * write current state as name:value pairs in state_previous
+             */
+            'api_storeStateAsPrevious': function () {
+                return coreObject.storeStateAsPrevious();
+            },
+
+            /**
              * @return {object} previous state as name:value pairs
              */
             'api_getPreviousState': function () {
@@ -3249,14 +3271,7 @@ window.sfun = (function ($, undefined) {
             },
 
             /**
-             * @return {array} list of field names
-             */
-            'api_getMetadataFieldNames': function () {
-                return coreObject.metadata_fields;
-            },
-
-            /**
-             * @param {object} over [typically selective] state to overwrite previous with
+             * @param {object} [typically selective] state to overwrite previous with
              * @return {object} previous state as name:value pairs
              */
             'api_overwritePreviousState': function (over) {

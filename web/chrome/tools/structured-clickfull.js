@@ -157,6 +157,8 @@
                     // update offseq (to what it should be already) before going fullscreen
                     var outgoing_offseq = sfun.api_imageStillShiftOffseq(seq);
                     sfun.api_setOffseq(outgoing_offseq);
+                    // store state for return journey
+                    sfun.api_storeStateAsPrevious();
                     // update URL to go to fullscreen (b=1)
                     return sfun.api_fireHashUpdate({'breadth': 1, 'seq': seq, 'offseq': offseq}, false, eventContext);
                 }
