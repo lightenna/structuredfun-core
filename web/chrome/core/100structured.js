@@ -989,6 +989,10 @@ window.sfun = (function ($, undefined) {
             if (round > 0) {
                 cell_count = Math.ceil(cell_count);
             }
+            // catch case where we've got full screen images (can't round them down)
+            if (cell_count <= 0) {
+                cell_count = 1;
+            }
             return cell_count;
         },
 

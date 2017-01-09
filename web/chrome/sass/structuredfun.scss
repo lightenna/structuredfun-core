@@ -12,15 +12,17 @@
   width: $gutter;
   height: 0;
 }
-// no gutter around fullscreen images
-// but normal alley between images
-html.flow-1 #gutterball {
-  width: 0;
-}
 // alleyball to pass sass variable (column gap) back to js
 #alleyball {
   width: $alley;
   height: 0;
+}
+// no gutter around or alley between fullscreen images
+html.flow-1 #gutterball {
+  width: 0;
+}
+html.flow-1 #alleyball {
+  width: 0;
 }
 
 html {
