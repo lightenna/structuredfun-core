@@ -369,21 +369,19 @@ html.theme-dark {
   // stick to right-hand edge
   left: 100%;
   margin-left: -20em;
+  border: 1px solid grey;
+  transition: 0.5s linear all;
+
+  &.refreshing {
+    border-color: red;
+    transition: none;
+  }
 
   li {
     width: 20em;
     padding: 0.2em;
-    background-color: #660000;
     border: 1px solid #000;
-
-    &.queued {
-      border-left-color: #ff0000; 
-      border-right-color: #ff0000; 
-    }
-
-    &.queued:last-child {
-      border-bottom-color: #ff0000; 
-    }
+    background-color: grey;
 
     &.keypress, span.keypress, &.selected, span.selected {
       background-color: #660000;
@@ -395,6 +393,10 @@ html.theme-dark {
 
     &.scroll, span.scroll {
       background-color: #000066;
+    }
+
+    &.history {
+      opacity: 0.5;
     }
 
     .dig3 {

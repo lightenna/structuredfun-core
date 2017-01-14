@@ -377,36 +377,38 @@ html.theme-dark.flow-1 .overlay-holder {
   top: 0;
   left: 100%;
   margin-left: -20em;
+  border: 1px solid grey;
+  transition: 0.5s linear all;
 }
-/* line 373, ../sass/structuredfun.scss */
+/* line 375, ../sass/structuredfun.scss */
+#eventQueueVis.refreshing {
+  border-color: red;
+  transition: none;
+}
+/* line 380, ../sass/structuredfun.scss */
 #eventQueueVis li {
   width: 20em;
   padding: 0.2em;
-  background-color: #660000;
   border: 1px solid #000;
+  background-color: grey;
 }
-/* line 379, ../sass/structuredfun.scss */
-#eventQueueVis li.queued {
-  border-left-color: #ff0000;
-  border-right-color: #ff0000;
-}
-/* line 384, ../sass/structuredfun.scss */
-#eventQueueVis li.queued:last-child {
-  border-bottom-color: #ff0000;
-}
-/* line 388, ../sass/structuredfun.scss */
+/* line 386, ../sass/structuredfun.scss */
 #eventQueueVis li.keypress, #eventQueueVis li span.keypress, #eventQueueVis li.selected, #eventQueueVis li span.selected {
   background-color: #660000;
 }
-/* line 392, ../sass/structuredfun.scss */
+/* line 390, ../sass/structuredfun.scss */
 #eventQueueVis li.hash, #eventQueueVis li span.hash {
   background-color: #006600;
 }
-/* line 396, ../sass/structuredfun.scss */
+/* line 394, ../sass/structuredfun.scss */
 #eventQueueVis li.scroll, #eventQueueVis li span.scroll {
   background-color: #000066;
 }
-/* line 400, ../sass/structuredfun.scss */
+/* line 398, ../sass/structuredfun.scss */
+#eventQueueVis li.history {
+  opacity: 0.5;
+}
+/* line 402, ../sass/structuredfun.scss */
 #eventQueueVis li .dig3 {
   font-size: 0.6em;
   border: 1px solid #fff;
@@ -414,7 +416,7 @@ html.theme-dark.flow-1 .overlay-holder {
   margin: 0.1em 0.4em 0.1em 0.1em;
 }
 
-/* line 412, ../sass/structuredfun.scss */
+/* line 414, ../sass/structuredfun.scss */
 #qunit {
   position: absolute;
   z-index: 999;

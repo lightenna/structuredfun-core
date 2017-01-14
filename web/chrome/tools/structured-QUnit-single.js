@@ -62,24 +62,39 @@
             window.location.hash = resetTestMarker;
         };
 
-        test('vis non-vis simple', function () {
+        test('check vistable refresh', function () {
             resetTest();
-            var cellcount = sfun.api_getCellMajorCount(+1) * sfun.api_getBreadth();
-            var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
-            // wait for keypress event to process
-            QUnit.stop();
-            // scroll to first off-screen element
-            sfun.api_triggerKeypress(sfun.KEY_PAGE_DOWN).done(function () {
-                ok($('ul.flow .selectablecell.selected').data('seq') != initialSeq, 'Page down selected a different image');
-                // check that first off-screen element (now on-screen) is cellcount
-                ok($('ul.flow .selectablecell.selected').data('seq') == $('#seq-' + cellcount).data('seq'), 'Page down selected the ' + (cellcount + 1) + 'th image (seq ' + cellcount + ')');
-                // check that selected image is visible
-                ok($('ul.flow .selectablecell.selected').hasClass('visible'), 'Selected cell is visible');
-                // check that the first image is not visible
-                ok(!$('#seq-' + initialSeq).hasClass('visible'), 'Initially selected cell is no longer visible');
-                QUnit.start();
-                resetTest();
-            });
+            var direction = sfun.api_getDirection();
+            var breadth = sfun.api_getBreadth();
+            var vt = sfun.api_createVisTable();
+            var vt_partial = sfun.api_createVisTable();
+            var $cells = $('ul.flow .selectablecell');
+            if ($cells.length < (4 * breadth)) {
+                ok(false, "Not enough cells " + $cells.length + "to conduct test");
+            } else {
+                var ref3 = 2 * breadth, ref4 = 3 * breadth;
+                var off3 = $cells.eq(ref3).offset(), off4 = $cells.eq(ref4).offset();
+                var major3 = Math.floor(direction == 'x' ? off3.left : off3.top), major4 = Math.floor(direction == 'x' ? off4.left : off4.top);
+                // update all vis table entries
+                vt.updateAll(direction, $cells);
+                // look for major3 and major4 to check mid-array load
+                equal(vt.findCompare(major3, sfun.compareGTE), ref3, 'vistable found major 3 at ref 3');
+                equal(vt.findCompare(major4, sfun.compareGTE), ref4, 'vistable found major 4 at ref 4');
+                // update only some entries in vt_partial
+                // this creates a sparse array, which isn't typical
+                vt_partial.updateRange(direction, ref3, ref4);
+                // look for first and last to check partials
+                equal(vt_partial.findCompare(0, sfun.compareGTE), ref3, 'vistable found ref 3 >= 0');
+                equal(vt_partial.findCompare(9999, sfun.compareLTE), ref4, 'vistable found ref 4 <= 9999');
+                // imagine we expand the size of column 3 and calculate delta_b
+                var delta_b = 50;
+                // apply delta to affected cells
+                vt_partial.keyShift(ref4, vt_partial.getSize() - 1, delta_b);
+                // check update
+                var major4b = vt_partial.select(ref4).key;
+                equal(major4b, major4 + delta_b, 'delta correctly applied to post range cells');
+            }
+            resetTest();
         });
 
         QUnit.start();

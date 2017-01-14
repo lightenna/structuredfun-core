@@ -26,6 +26,10 @@
         // timeout function for next unprompted refresh
         vissched_timeout_static: null,
 
+        // time to next unprompted refresh (typically 2s)
+        vissched_time_to_next_default: 2000,
+        vissched_time_to_next: 2000,
+
         /**
          * @param string action
          * @param string object [of action] identifier
@@ -55,33 +59,49 @@
             };
         },
 
-        _scheduleNextUnpromptedRefresh: function () {
-            var $listitem = this.$vislist.find('li');
-            // cancel if already scheduled
-            if (this.vissched_timeout_static !== null) {
-                clearTimeout(this.vissched_timeout_static);
+        _refresh: function () {
+            // iterate from critical_section up to produce list of queued events
+            // i.e. the current critical and its parents
+            var queued_list = this._buildParentList(this._critical_section);
+            if (sfun.api_getDebug() && false) {
+                console.log('queued');
+                console.log(queued_list);
             }
-            // if we have a list, reschedule
-            if ($listitem.length) {
-                var that = this;
-                this.vissched_timeout_static = setTimeout(function () {
-                    that.refresh();
-                }, 2000);
+            // hash the 'queued' list so we can easily do look-ups in it
+            var queued_hashtable = this._hashList(queued_list);
+            // iterate through whole eventQueue looking for events not yet queued
+            var unqueued_list = [];
+            this.eventQueue.iterate(function (obj) {
+                var lookup_id = obj.idx
+                // if this event hasn't been queued (parent to current critical section)
+                if (queued_hashtable.arr.indexOf(lookup_id) == -1) {
+                    // add to unqueued list
+                    unqueued_list[unqueued_list.length] = obj;
+                }
+            });
+            if (sfun.api_getDebug() && false) {
+                console.log('unqueued');
+                console.log(unqueued_list);
             }
-        },
-
-        _visualisationDumpList: function (vised) {
-            var _localDelete = function ($li, delay) {
-                $li.delay(delay).animate({right: '200px', height: 0, opacity: 0.0}, 300, function () {
-                    $(this).remove();
-                });
-            };
-            // cache current list elements
-            var $listitems = this.$vislist.find('li');
-            // work through list from last entry we looked at
-            for (var j = vised.last_i; j < $listitems.length; ++j) {
-                _localDelete($($listitems[j]), 2000);
-            }
+            // hash the 'unqueued' list so we can easily do look-ups in it
+            var unqueued_hashtable = this._hashList(unqueued_list);
+            // find anything that's previously been rendered, but is no longer in the eventQueue
+            var $recent_history_list = [];
+            var $active_list = this.$vislist.find('li.queued, li.unqueued');
+            $active_list.each(function () {
+                var lookup_id = $(this).data('key');
+                // if this item isn't in either the queued event list, or the unqueued event list
+                if ((queued_hashtable.arr.indexOf(lookup_id) == -1) && (unqueued_hashtable.arr.indexOf(lookup_id) == -1)) {
+                    $recent_history_list[$recent_history_list.length] = $(this).removeClass('queued unqueued').addClass('history');
+                }
+            });
+            this.$vislist.find('li.title').remove();
+            // clear the previous queued and unqueued (future) events
+            $active_list.detach();
+            // render lists (oldest to newest, bottom up)
+            this._renderList('history', 'history', $recent_history_list);
+            this._renderList('queued', 'queued', queued_list);
+            this._renderList('future', 'unqueued', unqueued_list);
         },
 
         _renderListItemIDBlock: function (current) {
@@ -92,7 +112,7 @@
             return block;
         },
 
-        _renderListItem: function (current) {
+        _renderListItem: function (list_name, current) {
             // build list item
             var type = 'generic_event';
             var keypart = current.key.split(':');
@@ -108,7 +128,7 @@
                 parent_block += '</span>';
             }
             // build DOM element
-            var itemhtml = '<li class="' + this._getEventType(current) + '" data-key="' + current.key + '">';
+            var itemhtml = '<li class="' + list_name + ' ' + this._getEventType(current) + '" data-key="' + current.key + '">';
             itemhtml += parent_block;
             itemhtml += this._renderListItemIDBlock(current);
             itemhtml += current.key;
@@ -116,44 +136,34 @@
             return itemhtml;
         },
 
-        _renderList: function (evlist, vised) {
-            var i = vised.last_i;
-            var noAdded = 0;
-            // cache current list elements
-            var $listitems = this.$vislist.find('li');
-            // work through evlist
-            for (var j = 0; j < evlist.length; ++j, ++i) {
-                var current = evlist[j];
-                var itemhtml = this._renderListItem(current);
-                // insert into visualised (vised) list
-                vised.arr[vised.arr.length] = current.idx;
-                // see if there's anything left in the list
-                if ($listitems.length - 1 < i) {
-                    // if not, just append
-                    this.$vislist.append(itemhtml);
-                    noAdded += 1;
+        _renderList: function (title, list_class, list) {
+            // iterate through list
+            for (var j = 0; j < list.length; ++j) {
+                var current = list[j];
+                if (current instanceof jQuery) {
+                    this.$vislist.prepend(current);
                 } else {
-                    // see if this event is the next in the list
-                    var $listitem = $($listitems[i]);
-                    var likey = $listitem.data('key');
-                    if ((likey != undefined) && (likey == current.key)) {
-                        // event already in correct place in list, ignore it
-                    } else {
-                        // delete this event if it's anywhere else in the list
-                        var $alreadyThere = this.$vislist.find('li[data-key="' + current.key + '"]');
-                        if ($alreadyThere.length > 0) {
-                            $alreadyThere.remove();
-                            noAdded -= 1;
-                        }
-                        // insert this event next into the list
-                        $listitem.after(itemhtml);
-                        noAdded += 1;
-                    }
+                    // render event to object
+                    var item_html = this._renderListItem(list_class, list[j]);
+                    // append to list
+                    this.$vislist.prepend(item_html);
                 }
             }
-            // allow for added elements
-            vised.last_i = i + noAdded;
-            return vised;
+            // then show title (at top because of prepend)
+            if (title) {
+                // append an item to flag this sublist
+                this.$vislist.prepend('<li class="title">' + title + '</li>');
+            }
+        },
+
+        _hashList: function (list) {
+            var hashtable = {last_i: 0, arr: []};
+            // iterate through list
+            for (var j = 0; j < list.length; ++j) {
+                // insert into hashtable
+                hashtable.arr[hashtable.arr.length] = list[j].idx;
+            }
+            return hashtable;
         },
 
         _getEventType: function (current) {
@@ -174,6 +184,28 @@
                 list[list.length] = current;
             }
             return list;
+        },
+
+        _scheduleNextUnpromptedRefresh: function (donext) {
+            // cancel if already scheduled
+            if (this.vissched_timeout_static !== null) {
+                clearTimeout(this.vissched_timeout_static);
+            }
+            if (donext !== false) {
+                if (this.$vislist !== null) {
+                    var $listitem = this.$vislist.find('li');
+                    // if we have a list, reschedule
+                    if ($listitem.length) {
+                        var that = this;
+                        this.vissched_timeout_static = setTimeout(function () {
+                            // default the next refresh back to 2s
+                            that.vissched_time_to_next = that.vissched_time_to_next_default;
+                            // do the refresh
+                            that.refresh();
+                        }, this.vissched_time_to_next);
+                    }
+                }
+            }
         },
 
         // PUBLIC functions
@@ -207,8 +239,11 @@
             } else {
                 // if it does exist and we're hiding it
                 if (!show) {
+                    // remove vislist from screen
                     this.$vislist.remove();
                     this.$vislist = null;
+                    // deschedule next update altogether
+                    this._scheduleNextUnpromptedRefresh(false);
                 }
             }
         },
@@ -223,47 +258,26 @@
             if (arguments.length >= 2) {
                 this._log(arguments[0], arguments[1]);
             }
+            var that = this, wrapUp = function() {
+                if (that.$vislist !== null) {
+                    that.$vislist.removeClass('refreshing');
+                }
+                // schedule/re-schedule next refresh (last thing we do)
+                that._scheduleNextUnpromptedRefresh();
+            };
             // make sure list is visible
             this.display(true);
             // lock list to avoid concurrent refreshes
             if (this.$vislist.hasClass('refreshing')) {
+                // currently mid-refresh, but schedule the next one really soon after completion
+                this.vissched_time_to_next = 10;
                 return;
             }
             this.$vislist.addClass('refreshing');
-            // iterate from critical_section up to produce list of queued events
-            // i.e. the current critical and its parents
-            var queued = this._buildParentList(this._critical_section);
-            if (sfun.api_getDebug() && false) {
-                console.log('queued');
-                console.log(queued);
-            }
-            // first show the 'queued' list
-            var vised = this._renderList(queued, {last_i: 0, arr: []});
-            // then show everything else that's sitting in the eventQueue
-            var rest = [];
-            this.eventQueue.iterate(function (obj) {
-                // if we haven't already vised it
-                if (vised.arr.indexOf(obj.idx) == -1) {
-                    // show event as part of rest
-                    rest[rest.length] = obj;
-                }
-            });
-            if (sfun.api_getDebug() && false) {
-                console.log('rest');
-                console.log(rest);
-            }
-            // show rest, starting from where we left off
-            vised = this._renderList(rest, vised);
-            if (sfun.api_getDebug() && false) {
-                console.log('vised');
-                console.log(vised.arr);
-            }
-            // delete everything after last entry
-            this._visualisationDumpList(vised);
-            // if that are entries in the list, schedule/re-schedule next refresh
-            this._scheduleNextUnpromptedRefresh();
-            // release lock on vis
-            this.$vislist.removeClass('refreshing');
+            // split event queue into sublists and render
+            this._refresh();
+            // release lock on vis, but asynchronously to make the pulsing CSS work
+            setTimeout(wrapUp,5);
         },
 
         lastEntry: null
@@ -353,6 +367,9 @@
             _parent: function (obj, parentContext) {
                 var that = this;
                 if (typeof(parentContext) != 'undefined' && parentContext) {
+                    if (obj.idx == parentContext.idx) {
+                        console.log('EEEEK self-parenting');
+                    }
                     // child inherits certain parental attributes
                     obj.dumpable = parentContext.dumpable;
                     obj.animateable = parentContext.animateable;

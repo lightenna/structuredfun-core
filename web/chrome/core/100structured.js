@@ -3506,9 +3506,7 @@ window.sfun = (function ($, undefined) {
              * @return {object} create new blank visibility table
              */
             'api_createVisTable': function () {
-                var cloned_vis_table = $.extend({}, coreObject.visTableMajor);
-                cloned_vis_table.wipe();
-                return cloned_vis_table;
+                return coreObject.visTableMajor.createNew();
             },
 
             // no comma on last entry
