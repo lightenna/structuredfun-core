@@ -369,8 +369,8 @@ html.theme-dark {
   // stick to right-hand edge
   left: 100%;
   margin-left: -20em;
-  border: 1px solid grey;
-  transition: 0.5s linear all;
+  border: 1px solid black;
+  transition: 0.8s linear all;
 
   &.refreshing {
     border-color: red;

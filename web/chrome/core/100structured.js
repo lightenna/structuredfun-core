@@ -1871,12 +1871,12 @@ window.sfun = (function ($, undefined) {
                 }
                 History.replaceState({}, 'Image', this.exp.stringHASHBANG + hash);
                 // can also check with readback, but location.hash makes a mess of the history
-                var assume_working = true;
+                var assume_working = false;
                 if (!assume_working) {
                     // have to read it back and check; History hashes come back without #
                     readback = History.getHash();
                     if ((this.exp.stringHASHBANG + hash) != ('#' + readback)) {
-                        // -- leaves a messy history trail
+                        // -- leaves a messy history trail, but necessary when hash isn't being set to window
                         window.location.hash = this.exp.stringHASHBANG + hash;
                         console.log('History.replaceState(' + (this.exp.stringHASHBANG + hash) + ') failed=' + readback + ', forced location.hash=' + (this.exp.stringHASHBANG + hash));
                     }

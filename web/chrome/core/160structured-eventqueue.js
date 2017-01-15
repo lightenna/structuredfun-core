@@ -89,7 +89,7 @@
             var $recent_history_list = [];
             var $active_list = this.$vislist.find('li.queued, li.unqueued');
             $active_list.each(function () {
-                var lookup_id = $(this).data('key');
+                var lookup_id = $(this).data('idx');
                 // if this item isn't in either the queued event list, or the unqueued event list
                 if ((queued_hashtable.arr.indexOf(lookup_id) == -1) && (unqueued_hashtable.arr.indexOf(lookup_id) == -1)) {
                     $recent_history_list[$recent_history_list.length] = $(this).removeClass('queued unqueued').addClass('history');
@@ -128,7 +128,7 @@
                 parent_block += '</span>';
             }
             // build DOM element
-            var itemhtml = '<li class="' + list_name + ' ' + this._getEventType(current) + '" data-key="' + current.key + '">';
+            var itemhtml = '<li class="' + list_name + ' ' + this._getEventType(current) + '" data-idx="' + current.idx + '" data-key="' + current.key + '">';
             itemhtml += parent_block;
             itemhtml += this._renderListItemIDBlock(current);
             itemhtml += current.key;
@@ -180,9 +180,9 @@
 
         _buildParentList: function (current) {
             var list = [];
-            for (var j = 0; j < sfun.loopIterLIMIT && current != null; ++j, current = current.parent) {
-                list[list.length] = current;
-            }
+            this.eventQueue.iterateThroughParents(current, this, function (event) {
+                list[list.length] = event;
+            });
             return list;
         },
 
@@ -258,7 +258,7 @@
             if (arguments.length >= 2) {
                 this._log(arguments[0], arguments[1]);
             }
-            var that = this, wrapUp = function() {
+            var that = this, wrapUp = function () {
                 if (that.$vislist !== null) {
                     that.$vislist.removeClass('refreshing');
                 }
@@ -277,7 +277,7 @@
             // split event queue into sublists and render
             this._refresh();
             // release lock on vis, but asynchronously to make the pulsing CSS work
-            setTimeout(wrapUp,5);
+            setTimeout(wrapUp, 5);
         },
 
         lastEntry: null
@@ -337,6 +337,11 @@
 
             // PRIVATE FUNCTIONS
 
+            _error: function (message) {
+                console.log('ERROR: ' + message);
+                debugger;
+            },
+
             /**
              * delay s2 (parent) to follow s1 (child)
              * equivalent to setup parenting from s1 (child) to s2 (parent)
@@ -344,7 +349,6 @@
              * @param {object} parentContext parent event context
              */
             _delay: function (obj, parentContext) {
-                var that = this;
                 if (typeof(parentContext) != 'undefined' && parentContext) {
                     // attach to parent
                     this._attachParent(obj, parentContext);
@@ -365,11 +369,7 @@
              * @param {object} parentContext parent event context
              */
             _parent: function (obj, parentContext) {
-                var that = this;
                 if (typeof(parentContext) != 'undefined' && parentContext) {
-                    if (obj.idx == parentContext.idx) {
-                        console.log('EEEEK self-parenting');
-                    }
                     // child inherits certain parental attributes
                     obj.dumpable = parentContext.dumpable;
                     obj.animateable = parentContext.animateable;
@@ -392,10 +392,21 @@
              * @return {object} s1's ancestor that got attached to parent
              */
             _attachParent: function (attach_point, parentContext) {
+                if (attach_point == null) {
+                    this._error('attempt to attach a null parent');
+                }
+                // check for recursive parenting
+                if (attach_point.idx == parentContext.idx) {
+                    this._error('attempt to directly parent an event to itself');
+                }
                 // if this object already had a parent
                 if (attach_point.parent != null) {
                     // find its earliest ancestor
                     attach_point = this._earliestAncestor(attach_point);
+                }
+                // check for indirect recursive parenting [via a common descendant]
+                if (attach_point.idx == parentContext.idx) {
+                    this._error('attempt to indirectly parent an event to a descendant of itself');
                 }
                 // store parent relationship
                 attach_point.parent = parentContext;
@@ -476,7 +487,6 @@
              * @param {object} eventContext context to attach
              */
             _contextDelayExecution: function (eventContext) {
-                var that = this;
                 // @deprecated remove any peers to this event from the queue first
                 // this._dumpAncestors(this._getKeyFamily(eventContext.key), this._critical_section);
                 // this event depends on the end of the current critical one's chain
@@ -493,21 +503,20 @@
              * work up through the parents and remove those matching key
              * @param {string} regkey regex pattern to match peers by family
              * @param {object} current root context in parent chain
+             * @private
              */
             _dumpAncestors: function (regkey, current) {
+                var that = this;
                 var re = new RegExp(regkey, 'g');
                 // start with root's parent because we don't want to dump current critial_section
                 current = current.parent;
-                while ((current != null) && (current.parent != null)) {
+                this.iterateThroughParents(current, this, function (event) {
                     // check to see if current is dumpable and if key matches regkey
-                    if (current.dumpable && (current.key.match(re) != null)) {
+                    if (event.dumpable && (event.key.match(re) != null)) {
                         // remove ancestor from parent chain; point at next in chain/null
-                        current = this._deleteAncestor(current);
-                    } else {
-                        // move on to next iteration
-                        current = current.parent;
+                        that._deleteAncestor(event);
                     }
-                }
+                });
             },
 
             /**
@@ -570,10 +579,11 @@
              * @return {object} earliest ancestor (end of parent chain)
              */
             _earliestAncestor: function (current) {
-                while ((current != null) && (current.parent != null)) {
-                    current = current.parent;
-                }
-                return current;
+                var last_current = current;
+                this.iterateThroughParents(current, this, function (event) {
+                    last_current = event;
+                });
+                return last_current;
             },
 
             /**
@@ -678,6 +688,24 @@
             'getTime': function () {
                 var d = new Date;
                 return d.getTime();
+            },
+
+            /**
+             * Call passed function on each event working up from the current event through its ancestors
+             * @param current starting point
+             * @param context function context to call func from
+             * @param func function pointer
+             */
+            'iterateThroughParents': function (current, context, func) {
+                var loop_count = 0;
+                // iterate with self-parent (infinite loop) and max iteration protection
+                for (; (loop_count < sfun.loopIterLIMIT) && (current != null) && (current.parent != null) && (current != current.parent); loop_count++, current = current.parent) {
+                    // call function with current as the first argument
+                    func.call(context, current);
+                }
+                if (loop_count == sfun.loopIterLIMIT) {
+                    this._error('iterateThroughParents hit iteration limit, which points to an infinite loop');
+                }
             },
 
             /**
