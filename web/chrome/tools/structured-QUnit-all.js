@@ -683,14 +683,13 @@
                 var initialSeq = $('ul.flow .selectablecell.selected').data('seq');
                 // scroll to first off-screen element
                 sfun.api_triggerKeypress(sfun.KEY_PAGE_DOWN).done(function () {
-                    console.log($('ul.flow .selectablecell.selected').data('seq'));
-                    notEqual($('ul.flow .selectablecell.selected').data('seq'), initialSeq, 'Page down selected a different image');
+                    notEqual($('ul.flow .selectablecell.selected').data('seq'), 0, 'Page down selected a different image');
                     // check that first off-screen element (now on-screen) is cellcount
                     // equal($('ul.flow .selectablecell.selected').data('seq'), $('#seq-' + cellcount).data('seq'), 'Page down selected the ' + (cellcount + 1) + 'th image (seq ' + cellcount + ')');
-                    // // check that selected image is visible
-                    // ok($('ul.flow .selectablecell.selected').hasClass('visible'), 'Selected cell is visible');
-                    // // check that the first image is not visible
-                    // ok(!$('#seq-' + initialSeq).hasClass('visible'), 'Initially selected cell is no longer visible');
+                    // check that selected image is visible
+                    ok($('ul.flow .selectablecell.selected').hasClass('visible'), 'Selected cell is visible');
+                    // check that the first image is not visible
+                    equal($('#seq-0').hasClass('visible'), false, 'Initially selected cell is no longer visible');
                     QUnit.start();
                     resetTest();
                 });

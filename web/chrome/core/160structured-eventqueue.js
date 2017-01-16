@@ -112,6 +112,23 @@
             return block;
         },
 
+        _renderListItemStateChange: function (idx, $item, state) {
+            if (($item != null) && ($item.length > 0)) {
+                var $statespan = $item.find('.state');
+                // store previous state back into title
+                var prevstate = $statespan.attr('title');
+                if (prevstate != '') {
+                    prevstate += '\n';
+                }
+                prevstate += state;
+                $statespan.attr('title', prevstate);
+                // update with new state
+                $statespan.html(state);
+            } else {
+                console.log('Attempted to update state of IDX[' + idx + ']: ' + state);
+            }
+        },
+
         _renderListItem: function (list_name, current) {
             // build list item
             var type = 'generic_event';
@@ -132,6 +149,7 @@
             itemhtml += parent_block;
             itemhtml += this._renderListItemIDBlock(current);
             itemhtml += current.key;
+            itemhtml += '<span class="state" title=""></span>';
             itemhtml += '</li>';
             return itemhtml;
         },
@@ -257,6 +275,7 @@
             // process optional arguments if set
             if (arguments.length >= 2) {
                 this._log(arguments[0], arguments[1]);
+                this._renderListItemStateChange(arguments[1], this.$vislist.find('li[data-idx="' + arguments[1] + '"]'), arguments[0]);
             }
             var that = this, wrapUp = function () {
                 if (that.$vislist !== null) {
@@ -445,20 +464,16 @@
                         // so instead we just point at parent (which may be null)
                         that._critical_section = that._critical_section.parent;
                         if (sfun.api_getDebug()) {
-                            that._vis.refresh('done with criticalSection', that._last_critical_section.idx);
+                            that._vis.refresh('leaving critical section', that._last_critical_section.idx);
                         }
                     }
                 };
                 // remember last critical section
-                that._last_critical_section = that._critical_section;
+                this._last_critical_section = this._critical_section;
                 // store eventContext as current critical section
                 this._critical_section = eventContext;
-                // optional debugging
-                if (sfun.api_getDebug() && false) {
-                    console.log('> entering critical section for ' + this.renderToString(this._critical_section));
-                }
                 if (sfun.api_getDebug()) {
-                    this._vis.refresh('_setCriticalSection', eventContext.idx);
+                    this._vis.refresh('entering critical section', this._critical_section.idx);
                 }
                 this._critical_section.deferred.done(scheduleCriticalReset);
             },
@@ -665,20 +680,24 @@
                 if (sfun.api_getDebug()) {
                     console.log('checking expiries');
                 }
-                var obj, timenow = this.getTime();
-                // note dynamic getSize() call, because list is changing during loop
-                for (var i = 0; i < this.getSize(); ++i) {
+                var obj, timenow = this.getTime(), len = this.getSize(), candidates = [];
+                // first identify which objects can be expired
+                for (var i = 0; i < len; ++i) {
                     obj = this.objarr[i];
                     if (obj.expires != null) {
                         if (timenow > obj.expires) {
-                            if (sfun.api_getDebug()) {
-                                console.log('expiring eventContext[' + obj.key + ']');
-                            }
-                            this.resolve(obj);
-                            // beware: resolve deletes at most 1 elements from array, so redo
-                            i--;
+                            // add this event to the candidates list
+                            candidates[candidates.length] = obj;
                         }
                     }
+                }
+                // then expire them in sequence
+                for (var i = 0; i < candidates.length; ++i) {
+                    obj = candidates[i];
+                    if (sfun.api_getDebug()) {
+                        console.log('expiring eventContext[' + obj.key + ']');
+                    }
+                    this.expire(obj);
                 }
             },
 
@@ -966,16 +985,17 @@
             },
 
             /**
-             * @param {object} object to resolve and remove if found
-             * @param {mixed} returnValue optional value to return via resolve
-             * @return {object} jQuery deferred
+             * @param obj event to resolve
+             * @param {string} type resolve or expire
+             * @param {object} return value to pass to jquery deferred resolve
+             * @private
              */
-            'resolve': function (obj, returnValue) {
+            _resolve: function (obj, type, returnValue) {
                 if (obj != null) {
                     // remove this object from the eventQueue
-                    var ref = this.removeObj(obj);
+                    this.removeObj(obj);
                     if (sfun.api_getDebug() && false) {
-                        console.log('Q resolve event context[' + this.renderToString(obj) + '], qlen now ' + this.getSize());
+                        console.log('Q ' + type + ' event context[' + this.renderToString(obj) + '], qlen now ' + this.getSize());
                     }
                     // resolve its deferred if set
                     if (obj.deferred != null) {
@@ -985,9 +1005,33 @@
                     if (obj.parent != null) {
                         this._parentResolve(obj, obj.parent);
                     }
-                    if (this.debug) {
-                        this._vis.refresh('resolve', obj.idx);
+                    if (sfun.api_getDebug()) {
+                        this._vis.refresh(type + 'd', obj.idx);
                     }
+                }
+            },
+
+            /**
+             * @param {object} object to resolve and remove if found
+             * @param {mixed} returnValue optional value to return via resolve
+             * @return {object} jQuery deferred
+             */
+            'expire': function (obj, returnValue) {
+                if (obj != null) {
+                    this._resolve(obj, 'expire', returnValue);
+                }
+                // always return a resolved deferred
+                return sfun.api_getDeferred().resolve(returnValue);
+            },
+
+            /**
+             * @param {object} object to resolve and remove if found
+             * @param {mixed} returnValue optional value to return via resolve
+             * @return {object} jQuery deferred
+             */
+            'resolve': function (obj, returnValue) {
+                if (obj != null) {
+                    this._resolve(obj, 'resolve', returnValue);
                 }
                 // always return a resolved deferred
                 return sfun.api_getDeferred().resolve(returnValue);
@@ -1011,6 +1055,9 @@
                     // reject its deferred if set
                     if (obj.deferred != null) {
                         return obj.deferred.reject(returnValue);
+                    }
+                    if (this.api_getDebug()) {
+                        this._vis.refresh('rejected', obj.idx);
                     }
                 }
                 // always return a rejected deferred
