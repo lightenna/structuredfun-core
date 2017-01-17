@@ -139,7 +139,8 @@
             // build parent list for this item
             var parent_list = this._buildParentList(current.parent);
             var parent_block = '';
-            for (var k = 0; k < parent_list.length; ++k) {
+            // render oldest parent first: grandparent -> parent -> child
+            for (var k = parent_list.length-1; k >= 0; --k) {
                 parent_block += '<span class="' + this._getEventType(parent_list[k]) + '">';
                 parent_block += this._renderListItemIDBlock(parent_list[k]);
                 parent_block += '</span>';
@@ -835,7 +836,7 @@
              * @param {object} parentContext
              */
             'pushOrParent': function (partial, parent) {
-                if (typeof(parent) == 'undefined') {
+                if ((typeof(parent) == 'undefined') || (parent == null)) {
                     // if no parent, just push the partial
                     return this.push(partial);
                 }
