@@ -8,6 +8,12 @@ DirectoryIndex app.php
 
 # add handler for index.html.dat files
 AddType text/html .dat
+AddType image/jpeg .img
+
+# force all images from cache to be displayed as JPEGs
+<Files ~ ".img">
+    ForceType image/jpeg
+</Files>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
