@@ -90,7 +90,6 @@ class ImageviewController extends ViewController
                         $this->mfr->cache($imgdata);
                         break;
                 }
-
             } catch (ImageException $e) {
                 // substitute in the error image
                 $imgdata = $this->loadErrorImage();
