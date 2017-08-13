@@ -3255,6 +3255,14 @@ window.sfun = (function ($, undefined) {
             },
 
             /**
+             * Get and parse the document's hash
+             * @return {object} hash as object
+             */
+            'api_getAndParseHash': function () {
+                return coreObject.hashParse(coreObject.getHash());
+            },
+
+            /**
              * write current state as name:value pairs in state_previous
              */
             'api_storeStateAsPrevious': function () {
