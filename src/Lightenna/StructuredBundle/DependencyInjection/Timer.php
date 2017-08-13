@@ -9,7 +9,7 @@ class Timer
 
     public function __construct()
     {
-        $this->start = static::getTime();
+        $this->reset();
     }
 
     public function get() {
@@ -19,10 +19,22 @@ class Timer
 
     public function getString() {
         $t = $this->get();
+        return static::formatTime($t);
+    }
+
+    public function reset() {
+        $this->start = static::getTime();
+    }
+
+    static function formatTime($t) {
         if ($t < 1000) {
             return round($t, 0).'ms';
         }
-        return round($t / 1000, 2).'s';
+        if ($t < 100000) {
+            return round($t / 1000, 2).'s';
+        }
+        $min = floor(($t/1000) / 60);
+        return $min . 'min ' . static::formatTime($t - (60 * 1000 * $min));
     }
 
     static function getTime() {

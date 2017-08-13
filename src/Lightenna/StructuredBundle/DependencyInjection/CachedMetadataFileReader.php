@@ -68,12 +68,12 @@ class CachedMetadataFileReader extends MetadataFileReader
         }
         $filename = $this->getFilenameInCache('.writeable.txt');
         // delete the file if it's already there
-        if (file_exists($filename)) {
+        if (FileReader::protectFileExists($filename)) {
             @unlink($filename);
         }
-        @file_put_contents($filename, '0');
+        @FileReader::protectFilePutContents($filename, '0');
         // if the file is not there afterwards, return a nice error
-        if (!file_exists($filename)) {
+        if (!FileReader::protectFileExists($filename)) {
             $cacheWriteable = false;
         }
         $cacheWriteable = true;
@@ -114,7 +114,7 @@ class CachedMetadataFileReader extends MetadataFileReader
             $filename = $this->entry->getFile();
         }
         // if the image file exists in the (enabled) cache, return it
-        return $this->cacheIsEnabled() && file_exists($filename);
+        return $this->cacheIsEnabled() && FileReader::protectFileExists($filename);
     }
 
     public function isCached()
@@ -144,13 +144,7 @@ class CachedMetadataFileReader extends MetadataFileReader
             }
             // only cache the file if it's not already in the cache, or force it through
             if (!$this->existsInCache($filename) || $force) {
-                // detect directory separators in filename
-                if (!file_exists(dirname($filename))) {
-                    // @because will still fail for long filenames on Windows
-                    $partial = FileReader::protectLongFilename(dirname($filename));
-                    @mkdir($partial, 0777, true);
-                }
-                // write out file
+                // write out file (will create directories as needed)
                 $this->cacheRawData($filename, $data);
                 // if we're caching an image file entry, and we're not actually saving the image itself
                 if ($this->entry->isImage() && ($filename == $this->getFilename($this->entry->getCacheKey()))) {
@@ -160,7 +154,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                         $this->metadata->write($filename);
                     } else {
                         // serialize to text file
-                        file_put_contents($this->getMetaFilename($filename), $this->metadata->serialize());
+                        FileReader::protectFilePutContents($this->getMetaFilename($filename), $this->metadata->serialize());
                     }
                 }
                 return true;
@@ -176,7 +170,7 @@ class CachedMetadataFileReader extends MetadataFileReader
     public function cacheRawData($filename, $data)
     {
         // @because will still fail for long filenames on Windows
-        file_put_contents(FileReader::protectLongFilename($filename), $data);
+        FileReader::protectFilePutContents($filename, $data);
     }
 
     /**
@@ -393,15 +387,15 @@ class CachedMetadataFileReader extends MetadataFileReader
         if ($this->isCached()) {
             // not calling parent::get() because want to read cache
             $filename = $this->getFilename($this->entry->getCacheKey());
-            $imgdata = file_get_contents($filename);
+            $imgdata = FileReader::protectFileGetContents($filename);
             if ($this->fileCanHoldMetadata()) {
                 // pull metadata manually for cached image
                 $this->readImageMetadata($imgdata);
             } else {
                 // pull from cached .meta file
                 $metaname = $this->getMetaFilename($filename);
-                if (file_exists($metaname)) {
-                    $md = unserialize(file_get_contents($metaname));
+                if (FileReader::protectFileExists($metaname)) {
+                    $md = unserialize(FileReader::protectFileGetContents($metaname));
                     $this->entry->setMetadata($md);
                 }
             }
@@ -437,7 +431,7 @@ class CachedMetadataFileReader extends MetadataFileReader
         if (preg_match('/\/[!]*([0-9]*),([0-9]*)\//', $filename, $matches_size, PREG_OFFSET_CAPTURE) === 1) {
             // take position of first match
             $path = substr($filename, 0, $matches_size[0][1]) . Constantly::DIR_SEPARATOR_URL;
-            if (file_exists($path)) {
+            if (FileReader::protectFileExists($path)) {
                 // read directory listing
                 $listing = scandir($path);
                 // spin through the candidates eliminating non-candidates
@@ -454,7 +448,7 @@ class CachedMetadataFileReader extends MetadataFileReader
                         if ($width_key >= $minimum) {
                             // get the name of the file inside (assume no rotation)
                             $candidate_path = $path . $candidate . Constantly::DIR_SEPARATOR_URL . '0' . Constantly::DIR_SEPARATOR_URL;
-                            if (file_exists($candidate_path)) {
+                            if (FileReader::protectFileExists($candidate_path)) {
                                 $sublisting = scandir($candidate_path);
                                 foreach ($sublisting as $subcandidate) {
                                     if ($this->isIgnorableListingEntry($subcandidate)) {

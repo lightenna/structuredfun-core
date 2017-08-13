@@ -87,7 +87,7 @@ class FileReader
             return false;
         } else {
             // use filesystem to detect presence
-            return file_exists($this->file_part);
+            return FileReader::protectFileExists($this->file_part);
         }
     }
 
@@ -228,7 +228,7 @@ class FileReader
             if (strpos($v_utf8, '?') !== false) {
                 // @todo don't fail silently, log an error
                 // var_dump($this->file_part_path.'/'.$v);
-                // var_dump(file_exists($this->file_part_path.'/'.$v));
+                // var_dump(FileReader::protectFileExists($this->file_part_path.'/'.$v));
                 // exit;
             }
             // create an object
@@ -309,7 +309,7 @@ class FileReader
             $zip->close();
             return $imgdata;
         } else {
-            return @file_get_contents($this->file_part);
+            return @FileReader::protectFileGetContents($this->file_part);
         }
     }
 
@@ -544,31 +544,86 @@ class FileReader
         return true;
     }
 
-    static function protectLongFilename($filename)
+    /**
+     * Test if file exists, don't create directories
+     * @param $filename
+     * @return bool
+     */
+    static function protectFileExists($filename)
+    {
+        return file_exists(FileReader::protectChangeIntoAndSplit($filename, false));
+    }
+
+    /**
+     * Get contents if file exists, don't create directories
+     * @param $filename
+     * @return bool
+     */
+    static function protectFileGetContents($filename)
+    {
+        return file_get_contents(FileReader::protectChangeIntoAndSplit($filename, false));
+    }
+
+    /**
+     * Create directories and put leaf file
+     * @param $filename
+     * @param $data
+     * @return bool|int
+     */
+    static function protectFilePutContents($filename, $data)
+    {
+        return file_put_contents(FileReader::protectChangeIntoAndSplit($filename, true), $data);
+    }
+
+    /**
+     * 1. work through a long path changing into the directories, leaving a short [enough] filename
+     * 2.(optional) create all the directories in a long path
+     * @param $filename
+     * @param bool $makeDirectoriesEnRoute True to make directories as it goes
+     * @return bool|string False if we needed to create a directory but weren't instructed to
+     */
+    static function protectChangeIntoAndSplit($filename, $makeDirectoriesEnRoute = true)
     {
         $iter = 0;
         while ((strlen($filename) > Constantly::DIR_LONGFILENAMEMAX) && ($iter++ < Constantly::MAXITERATIONS)) {
             // find nearest /
             $last_slash_pos = strrpos(substr($filename, 0, Constantly::DIR_LONGFILENAMEMAX), Constantly::DIR_SEPARATOR_URL);
-            if ($last_slash_pos === false && false) {
-                // do not try to find alias instead, because alias folders are atomic in cache
-                $last_slash_pos = strrpos(substr($filename, 0, Constantly::DIR_LONGFILENAMEMAX), Constantly::DIR_SEPARATOR_ALIAS);
+            if (false) {
+                // DO NOT try to find alias instead, because alias folders are atomic in cache
+                if ($last_slash_pos === false) {
+                    $last_slash_pos = strrpos(substr($filename, 0, Constantly::DIR_LONGFILENAMEMAX), Constantly::DIR_SEPARATOR_ALIAS);
+                }
             }
             if ($last_slash_pos !== false) {
                 $dir = substr($filename, 0, $last_slash_pos);
-                // if this directory doesn't exist yet, create it
-                if (!file_exists($dir)) {
-                    mkdir($dir, 0777, true);
-                }
-                // use chdir to share the load
-                chdir($dir);
                 $filename = substr($filename, strlen($dir) + 1);
+                // if this directory doesn't exist yet
+                if (!file_exists($dir)) {
+                    if ($makeDirectoriesEnRoute) {
+                        // create it
+                        mkdir($dir, 0777, true);
+                    } else {
+                        // break off because we can't go any further
+                        return false;
+                    }
+                }
+                // if the directory now exists change into it
+                chdir($dir);
             }
         }
         if ($iter >= Constantly::MAXITERATIONS) {
             // @todo throw error, or simply allow next function call (e.g. mkdir) to fail
         }
+        // make last directory in loop if it doesn't exist
+        if ($makeDirectoriesEnRoute) {
+            $dir = dirname($filename);
+            if (!file_exists($dir)) {
+                // this may fail if the total path length is greater than the 256 limit
+                @mkdir($dir, 0777, true);
+            }
+        }
         return $filename;
+
     }
 
 }

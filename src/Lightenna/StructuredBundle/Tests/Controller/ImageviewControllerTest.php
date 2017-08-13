@@ -4,8 +4,9 @@ namespace Lightenna\StructuredBundle\Tests\Controller;
 
 use Lightenna\StructuredBundle\Controller\ImageviewController;
 use Lightenna\StructuredBundle\DependencyInjection\ImageTransform;
-use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\Entity\Arguments;
 use Lightenna\StructuredBundle\Tests\DependencyInjection\BaseWebTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,13 +22,13 @@ class ImageviewControllerTest extends BaseWebTestCase
         // fire request
         $imgdata = $this->fireRequestForContent('/image/' . $identifier, $file_cache);
         // check that cache entry generated
-        $this->assertEquals(true, file_exists($file_cache));
+        $this->assertEquals(true, FileReader::protectFileExists($file_cache));
         $this->fireRequestForContent('/imagenocache/' . $identifier, $file_cache);
         // check that cache entry is not generated (nocache)
-        $this->assertEquals(false, file_exists($file_cache));
+        $this->assertEquals(false, FileReader::protectFileExists($file_cache));
         $this->fireRequestForContent('/imagecacherefresh/' . $identifier, $file_cache);
         // check that cache entry generated
-        $this->assertEquals(true, file_exists($file_cache));
+        $this->assertEquals(true, FileReader::protectFileExists($file_cache));
     }
 
     public function testImageReturnedDimension()
@@ -167,7 +168,7 @@ class ImageviewControllerTest extends BaseWebTestCase
         $outputname = $t->takeSnapshot('00:00:09.0', $localmfr->getFilename($leaf));
         if ($outputname) {
             // read the snapshot from 00:00:09.0
-            $frame9s = file_get_contents($outputname);
+            $frame9s = FileReader::protectFileGetContents($outputname);
             $this->assertNotEquals($frame10s, $frame9s);
             // check that both snapshots are not the error image
             $rawerrorimg = $t->loadErrorImage();
@@ -271,7 +272,7 @@ class ImageviewControllerTest extends BaseWebTestCase
     private function fireRequestForContent($url, $file_cache = null)
     {
         // scrub existing cache entry for this route
-        if (($file_cache !== null) && file_exists($file_cache)) {
+        if (($file_cache !== null) && FileReader::protectFileExists($file_cache)) {
             unlink($file_cache);
         }
         // fire a simple request for test URL

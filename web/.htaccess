@@ -35,6 +35,9 @@ AddType image/jpeg .img
     RewriteCond %{DOCUMENT_ROOT}/mediacache%{REQUEST_URI}\.dat -s
     # if so rewrite to use cached copy
     RewriteRule .* /mediacache%{REQUEST_URI}\.dat [L]
+    # test to see if the directory exists in mediacache with cached index.html.dat
+    RewriteCond %{DOCUMENT_ROOT}/mediacache%{REQUEST_URI}index\.html\.dat -s
+    RewriteRule .* /mediacache%{REQUEST_URI}index\.html\.dat [L]
 
     # Redirect to URI without front controller to prevent duplicate content
     # (with and without `/app.php`). Only do this redirect on the initial

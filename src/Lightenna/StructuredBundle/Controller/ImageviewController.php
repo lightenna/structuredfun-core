@@ -301,7 +301,7 @@ class ImageviewController extends ViewController
         $shell_output = escapeshellarg($outputname);
         $shell_time = escapeshellarg(ltrim($time, 'f'));
         // remove output file if it exists already
-        if (file_exists($outputname)) {
+        if (FileReader::protectFileExists($outputname)) {
             unlink($outputname);
         }
         // detect what kind of timecode we're using
@@ -318,7 +318,7 @@ class ImageviewController extends ViewController
         // extract a thumbnail from the video and store in the mediacache
         @shell_exec($command);
         // check that an output file was created
-        if (file_exists($outputname)) {
+        if (FileReader::protectFileExists($outputname)) {
             // pull metadata from original file
             $command = "{$path_ffmpeg}ffprobe -loglevel error -show_streams {$shell_filename}";
             $ffoutput = @shell_exec($command);
@@ -355,12 +355,12 @@ class ImageviewController extends ViewController
         // flag that an error has occurred
         $this->args->setError(true);
         // return error image
-        return file_get_contents($this->convertRawToInternalFilename(Constantly::IMAGE_ERROR_FILENAME));
+        return FileReader::protectFileGetContents($this->convertRawToInternalFilename(Constantly::IMAGE_ERROR_FILENAME));
     }
 
     public function loadNonImage()
     {
-        return file_get_contents($this->convertRawToInternalFilename(Constantly::IMAGE_TRANSPARENT_FILENAME));
+        return FileReader::protectFileGetContents($this->convertRawToInternalFilename(Constantly::IMAGE_TRANSPARENT_FILENAME));
     }
 
 }

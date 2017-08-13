@@ -84,4 +84,24 @@ class FileReaderTest extends WebTestCase
         $this->assertEquals(reset($listing_slash)->getName(), reset($listing_index)->getName());
     }
 
+    public function testProtectChangeIntoAndSplit()
+    {
+        // check that no change to short filenames, don't create directories
+        $original_name = 'C:/small/file/path/with/filename.txt';
+        $this->assertEquals($original_name, FileReader::protectChangeIntoAndSplit($original_name, false));
+        // find safe path to write directories to
+        $t = new ViewController();
+        $prepend = $t->convertRawToFilename('/structured/tests/data/60-file_output_folder/');
+        // long filename above limit
+        $original_name = $prepend . '/long/next_is_100_chars/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/next_is_100_chars/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/next_is_100_chars/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/file/path/with/filename.txt';
+        $this->assertGreaterThan(Constantly::DIR_LONGFILENAMEMAX, strlen($original_name));
+        // if we tell it to create, we should get back a shorter filename
+        $returned_filename = FileReader::protectChangeIntoAndSplit($original_name, true);
+        $this->assertLessThan(Constantly::DIR_LONGFILENAMEMAX, strlen($returned_filename));
+        $smaller_split = '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/next_is_100_chars/0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789/file/path/with/filename.txt';
+        $this->assertEquals($smaller_split, $returned_filename);
+        // if we tell it not to create, it should be there already and still return
+        $this->assertEquals($smaller_split, FileReader::protectChangeIntoAndSplit($original_name, false));
+    }
+
 }

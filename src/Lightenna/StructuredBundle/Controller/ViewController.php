@@ -12,8 +12,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Lightenna\StructuredBundle\Entity\ImageMetadata;
 use Lightenna\StructuredBundle\Entity\GenericEntry;
 use Lightenna\StructuredBundle\Entity\EntryLayout;
-use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\FileReader;
 use Lightenna\StructuredBundle\DependencyInjection\MetadataFileReader;
+use Lightenna\StructuredBundle\DependencyInjection\CachedMetadataFileReader;
 use Lightenna\StructuredBundle\DependencyInjection\DatabaseLocalManager;
 use Lightenna\StructuredBundle\DependencyInjection\Constantly;
 use Lightenna\StructuredBundle\DependencyInjection\Timer;
@@ -138,14 +139,6 @@ class ViewController extends Controller
     }
 
     /**
-     * @return string server name and port
-     */
-    public function getServerCompound()
-    {
-        return $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'];
-    }
-
-    /**
      * Process settings array for actions
      */
     private function processSettings()
@@ -198,10 +191,10 @@ class ViewController extends Controller
                     continue;
                 }
                 // test existance of each folder
-                if (!file_exists($entry['path'])) {
+                if (!FileReader::protectFileExists($entry['path'])) {
                     // try as relative path
                     $newpath = $this->convertRawToFilename($entry['path']);
-                    if (file_exists($newpath)) {
+                    if (FileReader::protectFileExists($newpath)) {
                         $entry['path'] = $newpath;
                     }
                 }
@@ -529,6 +522,14 @@ class ViewController extends Controller
             $serial[] = $entry;
         }
         return $serial;
+    }
+
+    /**
+     * @return string server name and port
+     */
+    static function getServerCompound()
+    {
+        return $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'];
     }
 
 }

@@ -14,6 +14,7 @@ class Constantly
     const DIR_LONGFILENAMEMAX = 256;   // 260 is Windows limit
     const IMAGE_METADATA_FILENAME = 'metadata.json';
     const IMAGE_DEFAULT_FILENAME = 'native.img';
+    const TILE_DEFAULT_FILENAME = 'default.jpg';
     const IMAGE_DEFAULT_FILENAME_EXT = 'img';
     const IMAGE_ERROR_FILENAME = 'htdocs/web/chrome/images/fullres/missing_image.jpg';
     const IMAGE_TRANSPARENT_FILENAME = 'htdocs/web/chrome/images/fullres/transparent.png';

@@ -46,9 +46,12 @@
     var zs_receiverRegistered = function () {
         $button_zoom = $('#header-switcher-zoom');
         $button_file = $('#header-switcher-file');
-        // bind to header buttons
-        $button_zoom.click(_getClickHandler('/zoom'));
-        $button_file.click(_getClickHandler('/file'));
+        // swap out links for header buttons
+        _swapOutLink($button_zoom, '/zoom');
+        _swapOutLink($button_file, '/file');
+        // @deprecate used to bind to header buttons
+        // $button_zoom.click(_getClickHandler('/zoom'));
+        // $button_file.click(_getClickHandler('/file'));
     };
 
     //
@@ -59,6 +62,11 @@
     var _getTemplate = function () {
         var str = '<li><a href="#" id="header-switcher-zoom">{{ title_zoom }}</a> | <a href="#" id="header-switcher-file">{{ title_file }}</a></li>';
         return str;
+    };
+
+    var _swapOutLink = function($elem, target) {
+        var newurl = sfun.api_getNewUrlForCurrentIdentifier(target, true);
+        $elem.attr('href', newurl);
     };
 
     var _getClickHandler = function (target) {
