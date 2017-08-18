@@ -2981,6 +2981,7 @@ window.sfun = (function ($, undefined) {
             visnearBreadthMULTIPLIER: 4,
             implicitScrollDURATION: 100,
             implicitScrollBUFFER: 50,
+            explicitScrollBUFFER: 50,
             loopIterLIMIT: 100,
             compareGTE: 1,
             compareLTE: -1,
@@ -3134,6 +3135,18 @@ window.sfun = (function ($, undefined) {
                     }
                 }
                 return context.deferred;
+            },
+
+            /**
+             * buffer a frequently firing event
+             * @param {string} name of buffer
+             * @param {function} successCallback to call if we're executing this event
+             * @param {function} dropCallback to call if we're dropping this event
+             * @param {int} timeout in milliseconds, needs to be about 200ms for normal dragging
+             * @param {int} mode 0 (default) = bufferExecFIRST, 1 = bufferExecLAST
+             */
+            'api_buffer': function () {
+                return coreObject.buffer.apply(coreObject, arguments);
             },
 
             /**
