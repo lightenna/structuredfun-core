@@ -946,6 +946,27 @@ window.sfun = (function ($, undefined) {
         },
 
         /**
+         * Get the image display mode
+         * First token also contains caching instructions
+         * e.g. /file/, /filenocache/, /filecacherefresh/
+         * @return string mode (file|zoom)
+         */
+        'getMode': function () {
+            var first = this.getFirstUrlToken();
+            if (first.indexOf('zoom') === 0) {
+                return 'zoom';
+            }
+            return 'file';
+        },
+
+        /**
+         * @returns {boolean} true if we're in zoom mode
+         */
+        'isZoomMode': function() {
+            return (this.getMode() == 'zoom');
+        },
+
+        /**
          * page scroll offset to sequence number is stored in the html tag [default to 0]
          * @return {int} scroll offset to seq
          */
@@ -1119,16 +1140,18 @@ window.sfun = (function ($, undefined) {
         },
 
         /**
-         * get the viewport height, but don't cache it because scrollbars appear/disappear
-         * @return {real} height of viewport in pixels
+         * get the first part of the URL
+         * @returns {string} first token
          */
-        'getViewportHeight': function (force) {
-            if (this.$sfun_yardy.length) {
-                return this.$sfun_yardy.height();
-            } else {
-                // fall back to window
-                return this.$window.height();
+        'getFirstUrlToken': function() {
+            var url = window.location.pathname;
+            var slashpos = url.indexOf('/', 1);
+            if (slashpos > 0) {
+                // pull token without first /
+                var token = url.substring(1, slashpos);
+                return token;
             }
+            return url;
         },
 
         /**
@@ -1157,6 +1180,31 @@ window.sfun = (function ($, undefined) {
             } else {
                 // fall back to window
                 return this.$window.width();
+            }
+        },
+
+        /**
+         * get the viewport height, but don't cache it because scrollbars appear/disappear
+         * @return {real} height of viewport in pixels
+         */
+        'getViewportHeight': function (force) {
+            if (this.$sfun_yardy.length) {
+                return this.$sfun_yardy.height();
+            } else {
+                // fall back to window
+                return this.$window.height();
+            }
+        },
+
+        'getCanvasWidth': function() {
+            if (this.isZoomMode()) {
+                return this.$sfun.data('width');
+            }
+        },
+
+        'getCanvasHeight': function() {
+            if (this.isZoomMode()) {
+                return this.$sfun.data('height');
             }
         },
 
@@ -2453,11 +2501,21 @@ window.sfun = (function ($, undefined) {
                 case this.exp.KEY_HOME:
                     event.preventDefault();
                     this.fireTrackEvent('key_home');
-                    return this.imageAdvanceTo(0, eventContext);
+                    if (this.isZoomMode()) {
+                        return this.exp.api_zoomPanCornerTo(this.exp.cornerTOPLEFT, 0, 0, eventContext);
+                    } else {
+                        return this.imageAdvanceTo(0, eventContext);
+                    }
+                    break;
                 case this.exp.KEY_END:
                     event.preventDefault();
                     this.fireTrackEvent('key_end');
-                    return this.imageAdvanceTo(this.getTotalEntries() - 1, eventContext);
+                    if (this.isZoomMode()) {
+                        return this.exp.api_zoomPanCornerTo(this.exp.cornerBOTTOMRIGHT, this.getCanvasWidth(), this.getCanvasHeight(), eventContext);
+                    } else {
+                        return this.imageAdvanceTo(this.getTotalEntries() - 1, eventContext);
+                    }
+                    break;
 
                 // change breadth
                 case this.exp.KEY_NUMBER_1:
@@ -2995,6 +3053,8 @@ window.sfun = (function ($, undefined) {
             imageSnapOff: 0,
             imageSnapByScroll: 1,
             imageSnapBySeq: 2,
+            cornerTOPLEFT: 0,
+            cornerBOTTOMRIGHT: 1,
             // time after which scroll events expire
             TIMEOUT_expireEVENT: 10000,
             // settings (default settings)
@@ -3019,6 +3079,19 @@ window.sfun = (function ($, undefined) {
                     var attributes = arguments[i];
                     for (var key in attributes) {
                         coreObject[key] = attributes[key];
+                    }
+                }
+            },
+
+            /**
+             * extend the core API functions
+             * @param obj 1..N collection of functions (object) to extend with
+             */
+            'api_apiExtend': function (target) {
+                for (var i = 0; i < arguments.length; i++) {
+                    var attributes = arguments[i];
+                    for (var key in attributes) {
+                        this[key] = attributes[key];
                     }
                 }
             },
@@ -3369,6 +3442,10 @@ window.sfun = (function ($, undefined) {
                     return newurl;
                 }
                 return false;
+            },
+
+            'api_getFirstUrlToken': function() {
+                return coreObject.getFirstUrlToken();
             },
 
             /**
