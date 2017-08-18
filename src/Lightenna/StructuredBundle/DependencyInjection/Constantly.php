@@ -5,7 +5,7 @@ namespace Lightenna\StructuredBundle\DependencyInjection;
 class Constantly
 {
 
-    const SFUN_VERSION = '0.9.10';
+    const SFUN_VERSION = '0.9.11';
     const DIR_SEPARATOR_URL = '/';
     const DIR_SEPARATOR_ALIAS = '~2F';
     const DIR_METADATA_FILENAME = 'desktop.ini';
