@@ -69,8 +69,15 @@ class ImageviewController extends ViewController
             // unable to populate (file doesn't exist, e.g. [i4]), so return a small transparent image
             $this->returnImage($this->loadNonImage());
         }
-        // try and pull image from cache
-        $imgdata = $this->mfr->getOnlyIfCached();
+        // if we're deliberately refreshing the cache
+        $imgdata = null;
+        $route_type = $this->getRouteType('image');
+        if ($route_type == 'imagecacherefresh') {
+            // make sure we don't pull this image from the cache
+        } else {
+            // try to pull image from cache (may have no cachekey)
+            $imgdata = $this->mfr->getOnlyIfCached();
+        }
         if ($imgdata) {
             // found cached image (probably without touching PHP, see .htaccess)
         } else {
@@ -78,7 +85,6 @@ class ImageviewController extends ViewController
                 // get image and transform
                 $imgdata = $this->fetchImage();
                 // work out what kind of request this was
-                $route_type = $this->getRouteType('image');
                 switch ($route_type) {
                     case 'imagenocache' :
                         // just return response, don't cache
@@ -86,8 +92,8 @@ class ImageviewController extends ViewController
                     case 'imagecacherefresh' :
                     case 'image' :
                     default :
-                        // cache transformed image
-                        $this->mfr->cache($imgdata);
+                        // always cache transformed image
+                        $this->mfr->cache($imgdata, null, true);
                         break;
                 }
             } catch (ImageException $e) {
@@ -337,12 +343,12 @@ class ImageviewController extends ViewController
     }
 
     /**
-     * load image into a buffer
+     * load image into a buffer (without using cache)
      * @return string image as a string
      **/
     private function loadImage()
     {
-        return $this->mfr->get();
+        return $this->mfr->get(false);
     }
 
     /**

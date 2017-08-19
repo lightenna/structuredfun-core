@@ -269,10 +269,12 @@ class CachedMetadataFileReader extends MetadataFileReader
      * Get the contents of a file, ideally from the cache
      * Can't save to cache here because the image hasn't been filtered (resized/cropped etc.)
      * @see \Lightenna\StructuredBundle\DependencyInjection\FileReader::get()
+     * @param boolean $useCache false to avoid cache
+     * @return string imgdata
      */
-    public function get()
+    public function get($useCache = true)
     {
-        if ($this->isCached()) {
+        if ($useCache && $this->isCached()) {
             // redirect to use file from cache, but don't change cache key
             $this->rewrite($this->getFilename($this->entry->getCacheKey()), false);
         }
