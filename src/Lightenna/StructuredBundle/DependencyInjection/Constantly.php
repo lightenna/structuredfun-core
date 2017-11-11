@@ -44,7 +44,7 @@ class Constantly
     const SORT_AZ = 1;
     const SORT_ZA = 2;
     const SORT_RND = 3;
-    const TILE_SHOWCACHETINT = true;
+    const TILE_SHOWCACHETINT = false;
     const FILE_MAINTAINREADLIST = true;
     const MAXITERATIONS = 15;
 }
