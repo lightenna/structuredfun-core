@@ -23,6 +23,11 @@ Debug::enable();
 
 require_once __DIR__.'/../app/AppKernel.php';
 
+// disable zray if installed
+if (function_exists('zray_disable')) {
+    zray_disable();
+}
+
 $kernel = new AppKernel('dev', true);
 $kernel->loadClassCache();
 $request = Request::createFromGlobals();

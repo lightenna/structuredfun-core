@@ -16,6 +16,11 @@ $loader->register(true);
 require_once __DIR__.'/../app/AppKernel.php';
 //require_once __DIR__.'/../app/AppCache.php';
 
+// disable zray if installed
+if (function_exists('zray_disable')) {
+    zray_disable();
+}
+
 $kernel = new AppKernel('prod', true);
 $kernel->loadClassCache();
 //$kernel = new AppCache($kernel);
