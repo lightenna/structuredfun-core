@@ -77,6 +77,7 @@ class FileviewController extends ViewController
                     'dirlisting' => $listing,
                     'metaform' => $this->mfr->getMetadata()->getForm($this)->createView(),
                     'defaults' => ImageMetadata::getDefaults(),
+                    'fullyqualprepend' => $req->getSchemeAndHttpHost(),
                     // client-side settings
                     'settings' => $this->settings['client'],
                 ));
